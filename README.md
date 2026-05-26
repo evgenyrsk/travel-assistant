@@ -1,24 +1,57 @@
 # Travel Assistant
 
-Travel Assistant is a private project for building an AI-powered travel planning assistant.
+Travel Assistant — приватный проект для разработки AI-помощника по планированию путешествий.
 
-## Goals
+## Цели
 
-- Help users plan trips with destinations, dates, budget, and preferences.
-- Organize itineraries, places, bookings, and travel notes.
-- Keep the project structure flexible while the product and tech stack are being shaped.
+- Помогать пользователям планировать поездки с учетом направлений, дат, бюджета и предпочтений.
+- Организовывать маршруты, места, бронирования и travel notes.
+- Сохранять структуру проекта гибкой, пока продуктовые решения и архитектурные контракты уточняются по roadmap.
 
-## Repository Structure
+## Структура репозитория
 
 ```text
 .
-├── app/                 # User-facing application
-├── services/            # Backend services and integrations
-├── docs/                # Product, architecture, and planning notes
-├── tests/               # Cross-cutting tests and fixtures
-└── scripts/             # Developer and automation scripts
+├── AGENTS.md            # Правила работы Codex/AI-агентов в репозитории
+├── README.md            # Входная точка и навигация
+├── .env.example         # Пример локальных переменных окружения
+├── .gitignore           # Правила исключения локальных и generated-файлов
+├── .github/             # GitHub issue и pull request templates
+├── app/                 # Будущий frontend/application слой
+├── services/            # Будущие backend/services модули
+├── docs/                # Продуктовая, roadmap, архитектурная и development-документация
+├── tests/               # Будущие тесты, fixtures и e2e-сценарии
+└── scripts/             # Будущие скрипты разработки и автоматизации
 ```
 
-## Getting Started
+## Карта документации
 
-The implementation stack is intentionally not fixed yet. Start by capturing product decisions in `docs/PROJECT_BRIEF.md`, then add the chosen app and service scaffolding under `app/` and `services/`.
+- `README.md` — главная входная точка проекта и краткая навигация.
+- `AGENTS.md` — обязательные правила для Codex/AI-агентов внутри этого репозитория.
+- `docs/product/README.md` — входная точка в продуктовую документацию.
+- `docs/product/stage-0/` — Этап 0: продуктовая рамка, первичные сценарии, границы MVP, допущения и открытые вопросы.
+- `docs/PROJECT_BRIEF.md` — продуктовый контекст, пользователи, ключевые сценарии и открытые продуктовые вопросы.
+- `docs/ARCHITECTURE.md` — целевая архитектура, границы слоев и технические принципы.
+- `docs/ROADMAP.md` — верхнеуровневый продуктовый roadmap.
+- `docs/roadmap/roadmap.md` — поэтапный roadmap проекта.
+- `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
+- `docs/development/roadmap.md` — детальный roadmap разработки и порядок этапов.
+- `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки.
+- `docs/development/implementation-strategy.md` — практическая стратегия реализации и правила декомпозиции задач.
+- `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
+- `.github/` — GitHub templates для постановки задач и описания pull requests.
+
+## Начало работы
+
+Текущий этап — Этап 0: перезапуск проекта и продуктовая рамка. На этом этапе фиксируются исходная продуктовая постановка, границы проекта, пользовательская ценность и правила дальнейшей работы. Техническая архитектура, каркас приложения и сервисов добавляются только на соответствующих будущих этапах roadmap.
+
+## Рабочий процесс Codex
+
+- Обязательные правила репозитория для Codex-агентов находятся в `AGENTS.md`.
+- Переиспользуемый шаблон постановки задач находится в `docs/prompts/task-template.md`.
+- Общие правила roadmap, границ задачи, ADR и отчетности находятся в `docs/prompts/codex-rules.md`.
+- Шаблон задач на ревью с проверками отклонения от roadmap, разрастания границ задачи и преждевременной реализации будущих этапов находится в `docs/prompts/review-template.md`.
+- GitHub PR checklist находится в `.github/pull_request_template.md`.
+- Верхнеуровневый продуктовый roadmap находится в `docs/ROADMAP.md`.
+- Поэтапный roadmap находится в `docs/roadmap/roadmap.md`.
+- Детальный roadmap разработки находится в `docs/development/roadmap.md`.
