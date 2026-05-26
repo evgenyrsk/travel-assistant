@@ -1,5 +1,7 @@
 # Roadmap
 
+Этот документ описывает верхнеуровневый product roadmap. Детальный порядок implementation-задач и milestones ведется отдельно в `docs/development/roadmap.md` и `docs/development/milestones.md`.
+
 ## Phase 1: Discovery
 
 - Define the first platform and primary user flow.
