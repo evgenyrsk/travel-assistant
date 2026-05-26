@@ -1,24 +1,32 @@
 # Travel Assistant
 
-Travel Assistant is a private project for building an AI-powered travel planning assistant.
+Travel Assistant — приватный проект для разработки AI-powered помощника по планированию путешествий.
 
-## Goals
+## Цели
 
-- Help users plan trips with destinations, dates, budget, and preferences.
-- Organize itineraries, places, bookings, and travel notes.
-- Keep the project structure flexible while the product and tech stack are being shaped.
+- Помогать пользователям планировать поездки с учетом направлений, дат, бюджета и предпочтений.
+- Организовывать маршруты, места, бронирования и travel notes.
+- Сохранять структуру проекта гибкой, пока формируются продукт и технологический стек.
 
-## Repository Structure
+## Структура репозитория
 
 ```text
 .
-├── app/                 # User-facing application
-├── services/            # Backend services and integrations
-├── docs/                # Product, architecture, and planning notes
-├── tests/               # Cross-cutting tests and fixtures
-└── scripts/             # Developer and automation scripts
+├── app/                 # Пользовательское приложение
+├── services/            # Backend-сервисы и интеграции
+├── docs/                # Продуктовые, архитектурные и планировочные заметки
+├── tests/               # Сквозные тесты и fixtures
+└── scripts/             # Скрипты для разработки и автоматизации
 ```
 
-## Getting Started
+## Начало работы
 
-The implementation stack is intentionally not fixed yet. Start by capturing product decisions in `docs/PROJECT_BRIEF.md`, then add the chosen app and service scaffolding under `app/` and `services/`.
+Стек реализации намеренно пока не зафиксирован. Начинайте с фиксации продуктовых решений в `docs/PROJECT_BRIEF.md`, затем добавляйте выбранные app и service scaffolding в `app/` и `services/`.
+
+## Рабочий процесс Codex
+
+- Правила репозитория для Codex-агентов находятся в `AGENTS.md`.
+- Переиспользуемый шаблон задач находится в `docs/prompts/task-template.md`.
+- Общие правила Codex находятся в `docs/prompts/codex-rules.md`.
+- Шаблон review-задач находится в `docs/prompts/review-template.md`.
+- Детальный roadmap разработки находится в `docs/development/roadmap.md`.

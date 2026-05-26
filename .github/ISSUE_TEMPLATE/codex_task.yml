@@ -1,0 +1,130 @@
+name: Задача для Codex
+description: Маленькая stage-based задача реализации или документации для Codex/opencode.
+title: "[Задача Codex]: "
+labels: ["codex-task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Используй эту форму для маленьких задач с явным текущим этапом, границами scope и запретом на accidental future-stage implementation.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Контекст
+      description: Краткий контекст, ссылки на обсуждения, документы или предыдущие задачи.
+      placeholder: |
+        Кратко опиши, почему нужна задача и к какому продуктово-техническому контексту она относится.
+    validations:
+      required: true
+
+  - type: input
+    id: current-stage
+    attributes:
+      label: Текущий этап
+      description: Этап roadmap или milestone, в рамках которого должна выполняться задача.
+      placeholder: "Например: Repository & Process Setup / Milestone 0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: Тип задачи
+      description: Выбери основной тип работы.
+      options:
+        - Документация
+        - GitHub/Codex workflow
+        - Product/requirements
+        - Architecture/API contracts
+        - Backend
+        - AI/orchestration
+        - Travel search
+        - Frontend/UI
+        - Testing/quality
+        - Security/observability
+    validations:
+      required: true
+
+  - type: textarea
+    id: required-reading
+    attributes:
+      label: Что прочитать перед началом
+      description: Документы и файлы, которые Codex должен прочитать до изменений.
+      placeholder: |
+        - README.md
+        - AGENTS.md
+        - docs/ROADMAP.md
+        - docs/development/roadmap.md
+        - docs/development/milestones.md
+        - docs/development/implementation-strategy.md
+        - релевантные ADR в docs/decisions/, если есть
+    validations:
+      required: true
+
+  - type: textarea
+    id: task
+    attributes:
+      label: Задача
+      description: Что нужно сделать в рамках этой задачи.
+      placeholder: |
+        Опиши одну маленькую атомарную задачу.
+        Укажи, что считается завершением задачи.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-changes
+    attributes:
+      label: Ожидаемые изменения
+      description: Какие файлы, документы или модули ожидается создать, обновить или проверить.
+      placeholder: |
+        - Создать:
+        - Обновить:
+        - Проверить:
+    validations:
+      required: true
+
+  - type: textarea
+    id: forbidden-changes
+    attributes:
+      label: Что нельзя менять
+      description: Явные запреты для защиты roadmap, scope и unrelated files.
+      value: |
+        - Не переопределять roadmap.
+        - Не менять порядок этапов roadmap.
+        - Не начинать следующий этап roadmap без явного запроса.
+        - Не расширять scope, если это не требуется для выполнения задачи.
+        - Не выполнять рекомендации в этой задаче.
+        - Добавлять будущую работу только в раздел "Рекомендации, не выполнены".
+        - Не трогать unrelated files.
+        - Соблюдать ADR в docs/decisions/, если они есть.
+        - Не добавлять accidental future-stage implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Конкретные проверки, подтверждающие выполнение задачи.
+      placeholder: |
+        - ...
+        - ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: final-report-format
+    attributes:
+      label: Финальный отчёт
+      description: Формат, который Codex должен использовать в отчете о завершении.
+      value: |
+        1. Созданные файлы
+        2. Изменённые файлы
+        3. Краткое описание изменений
+        4. Принятые решения
+        5. Открытые вопросы
+        6. Рекомендации, не выполнены
+    validations:
+      required: true
