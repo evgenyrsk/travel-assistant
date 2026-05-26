@@ -1,6 +1,6 @@
 # Travel Assistant
 
-Travel Assistant — приватный проект для разработки AI-powered помощника по планированию путешествий.
+Travel Assistant — приватный проект для разработки AI-помощника по планированию путешествий.
 
 ## Цели
 
@@ -19,7 +19,7 @@ Travel Assistant — приватный проект для разработки
 ├── .github/             # GitHub issue и pull request templates
 ├── app/                 # Будущий frontend/application слой
 ├── services/            # Будущие backend/services модули
-├── docs/                # Продуктовая, архитектурная и development-документация
+├── docs/                # Продуктовая, roadmap, архитектурная и development-документация
 ├── tests/               # Будущие тесты, fixtures и e2e-сценарии
 └── scripts/             # Будущие скрипты разработки и автоматизации
 ```
@@ -28,25 +28,30 @@ Travel Assistant — приватный проект для разработки
 
 - `README.md` — главная входная точка проекта и краткая навигация.
 - `AGENTS.md` — обязательные правила для Codex/AI-агентов внутри этого репозитория.
+- `docs/product/README.md` — входная точка в продуктовую документацию.
+- `docs/product/stage-0/` — Этап 0: продуктовая рамка, первичные сценарии, границы MVP, допущения и открытые вопросы.
 - `docs/PROJECT_BRIEF.md` — продуктовый контекст, пользователи, ключевые сценарии и открытые продуктовые вопросы.
 - `docs/ARCHITECTURE.md` — целевая архитектура, границы слоев и технические принципы.
-- `docs/ROADMAP.md` — верхнеуровневый product roadmap.
+- `docs/ROADMAP.md` — верхнеуровневый продуктовый roadmap.
+- `docs/roadmap/roadmap.md` — поэтапный roadmap проекта.
+- `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
 - `docs/development/roadmap.md` — детальный roadmap разработки и порядок этапов.
-- `docs/development/milestones.md` — milestones, контрольные точки, scope и acceptance criteria.
+- `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки.
 - `docs/development/implementation-strategy.md` — практическая стратегия реализации и правила декомпозиции задач.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
 - `.github/` — GitHub templates для постановки задач и описания pull requests.
 
 ## Начало работы
 
-Текущий этап — подготовка структуры, документации и процесса. Целевой стек и архитектурные границы фиксируются в `AGENTS.md`, `docs/ARCHITECTURE.md` и roadmap-документах; app и service scaffolding добавляются только на соответствующих этапах `docs/development/roadmap.md`.
+Текущий этап — Этап 0: перезапуск проекта и продуктовая рамка. На этом этапе фиксируются исходная продуктовая постановка, границы проекта, пользовательская ценность и правила дальнейшей работы. Техническая архитектура, каркас приложения и сервисов добавляются только на соответствующих будущих этапах roadmap.
 
 ## Рабочий процесс Codex
 
 - Обязательные правила репозитория для Codex-агентов находятся в `AGENTS.md`.
 - Переиспользуемый шаблон постановки задач находится в `docs/prompts/task-template.md`.
-- Общие правила roadmap, scope, ADR и отчетности находятся в `docs/prompts/codex-rules.md`.
-- Шаблон review-задач с проверками roadmap drift, scope creep и future-stage implementation находится в `docs/prompts/review-template.md`.
+- Общие правила roadmap, границ задачи, ADR и отчетности находятся в `docs/prompts/codex-rules.md`.
+- Шаблон задач на ревью с проверками отклонения от roadmap, разрастания границ задачи и преждевременной реализации будущих этапов находится в `docs/prompts/review-template.md`.
 - GitHub PR checklist находится в `.github/pull_request_template.md`.
-- Верхнеуровневый product roadmap находится в `docs/ROADMAP.md`.
+- Верхнеуровневый продуктовый roadmap находится в `docs/ROADMAP.md`.
+- Поэтапный roadmap находится в `docs/roadmap/roadmap.md`.
 - Детальный roadmap разработки находится в `docs/development/roadmap.md`.

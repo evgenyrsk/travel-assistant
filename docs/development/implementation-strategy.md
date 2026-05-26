@@ -1,6 +1,6 @@
 # Стратегия реализации через opencode
 
-Этот документ задает правила работы с задачами для Travel Assistant. Он нужен, чтобы развитие продукта шло маленькими проверяемыми шагами, а архитектура оставалась пригодной для web, mobile, desktop и будущих provider-интеграций.
+Этот документ задает правила работы с задачами для Travel Assistant. Он нужен, чтобы развитие продукта шло маленькими проверяемыми шагами, а архитектура оставалась пригодной для web, mobile, desktop и будущих интеграций с провайдерами.
 
 ## Общий подход
 
@@ -9,10 +9,10 @@
 - Сначала документация и контракты, потом код.
 - Каждый новый модуль должен иметь понятную ответственность.
 - Избегать преждевременной интеграции с реальными travel API.
-- Использовать mock/stub providers до стабилизации доменной модели.
+- Использовать mock/stub провайдеры до стабилизации доменной модели.
 - Проектировать backend так, чтобы позже можно было относительно спокойно перейти с Ktor на Spring, если потребуется.
 - Не завязывать доменную логику на конкретный framework.
-- Не завязывать LLM orchestration на конкретного провайдера.
+- Не завязывать LLM-оркестрацию на конкретного провайдера.
 - Предпочитать интерфейсы и use cases в application/domain слоях, а детали Ktor, PostgreSQL, Redis, LLM и travel API держать в infrastructure/adapters.
 - Для MVP считать внешние travel API нестабильной зависимостью и работать через абстрактные порты.
 
@@ -21,43 +21,43 @@
 Каждая задача для opencode должна быть оформлена так, чтобы ее можно было выполнить и проверить независимо.
 
 ```text
-Task ID:
-Goal:
-Context:
-Expected changes:
-Files to create/update:
-Constraints:
-Acceptance criteria:
-Validation steps:
+Идентификатор задачи:
+Цель:
+Контекст:
+Ожидаемые изменения:
+Файлы для создания или обновления:
+Ограничения:
+Критерии приемки:
+Шаги проверки:
 ```
 
 ### Описание полей
 
-**Task ID:** короткий стабильный идентификатор, например `BE-001`, `AI-003`, `WEB-004`.
+**Идентификатор задачи:** короткий стабильный идентификатор, например `BE-001`, `AI-003`, `WEB-004`.
 
-**Goal:** конкретная цель задачи в одном или двух предложениях.
+**Цель:** конкретная цель задачи в одном или двух предложениях.
 
-**Context:** ссылки на документы, решения, предыдущие задачи и ограничения.
+**Контекст:** ссылки на документы, решения, предыдущие задачи и ограничения.
 
-**Expected changes:** список ожидаемых изменений без избыточных деталей реализации.
+**Ожидаемые изменения:** список ожидаемых изменений без избыточных деталей реализации.
 
-**Files to create/update:** предполагаемые файлы или директории. Если список неизвестен, нужно указать ожидаемые модули.
+**Файлы для создания или обновления:** предполагаемые файлы или директории. Если список неизвестен, нужно указать ожидаемые модули.
 
-**Constraints:** архитектурные и продуктовые ограничения, например отсутствие реальных travel API или запрет на framework-зависимости в domain layer.
+**Ограничения:** архитектурные и продуктовые ограничения, например отсутствие реальных travel API или запрет на framework-зависимости в domain layer.
 
-**Acceptance criteria:** проверяемые условия завершения задачи.
+**Критерии приемки:** проверяемые условия завершения задачи.
 
-**Validation steps:** команды, ручные проверки или тестовые сценарии, которые подтверждают результат.
+**Шаги проверки:** команды, ручные проверки или тестовые сценарии, которые подтверждают результат.
 
 ## Рекомендуемый размер задачи
 
-Хорошая задача должна помещаться в один понятный pull request или один небольшой набор изменений. Если задача требует одновременно менять backend, frontend, API contracts, persistence и UI, ее нужно разбить.
+Хорошая задача должна помещаться в один понятный pull request или один небольшой набор изменений. Если задача требует одновременно менять backend, frontend, API-контракты, persistence и UI, ее нужно разбить.
 
 Примеры хорошего разбиения:
-- сначала описать API contract для chat endpoint;
-- затем создать backend route без orchestration;
+- сначала описать API-контракт для chat endpoint;
+- затем создать backend route без оркестрации;
 - затем добавить use case;
-- затем подключить mock orchestrator;
+- затем подключить mock-orchestrator;
 - затем обновить frontend API client;
 - затем подключить Chat UI.
 
@@ -65,11 +65,11 @@ Validation steps:
 
 ### system-analytics
 
-Полезен на этапах product requirements, MVP scope, system architecture и API contracts. Помогает уточнять сценарии, границы системы, зависимости и риски.
+Полезен на этапах продуктовых требований, границ MVP, системной архитектуры и API-контрактов. Помогает уточнять сценарии, границы системы, зависимости и риски.
 
 ### backend-builder
 
-Полезен на этапах backend skeleton, API contracts implementation, use cases, provider abstractions и local development. Создает новые backend-модули по уже описанным контрактам.
+Полезен на этапах backend skeleton, реализации API-контрактов, use cases, абстракций провайдеров и локальной разработки. Создает новые backend-модули по уже описанным контрактам.
 
 ### backend-refactor
 
@@ -77,15 +77,15 @@ Validation steps:
 
 ### ai-llm-architect
 
-Полезен на этапах LLM abstraction и Travel Assistant orchestration. Проектирует `LlmClient`, intent extraction, slot filling, clarification flow и будущий путь к state-machine / LangGraph-like orchestration.
+Полезен на этапах LLM-абстракции и оркестрации Travel Assistant. Проектирует `LlmClient`, intent extraction, slot filling, clarification flow и будущий путь к state-machine / LangGraph-like оркестрации.
 
 ### data-search-engineer
 
-Полезен на этапах flight search abstraction, hotel search abstraction, offer matching and ranking. Отвечает за модели поиска, mock providers, ранжирование и объяснимость рекомендаций.
+Полезен на этапах абстракции поиска перелетов, абстракции поиска отелей, сопоставления офферов и ранжирования. Отвечает за модели поиска, mock-провайдеры, ранжирование и объяснимость рекомендаций.
 
 ### builder-web-platform
 
-Полезен на этапах web frontend skeleton, backend integration, frontend API client и state management. Следит за структурой Next.js приложения и отделением UI от API-деталей.
+Полезен на этапах web frontend skeleton, backend-интеграции, frontend API client и управления состоянием. Следит за структурой Next.js приложения и отделением UI от API-деталей.
 
 ### ui-ux-designer
 
@@ -93,15 +93,15 @@ Validation steps:
 
 ### test-generator
 
-Полезен начиная с backend foundation и особенно на этапах orchestration, matching, API и frontend. Добавляет unit, integration, component и smoke tests под уже определенное поведение.
+Полезен начиная с backend foundation и особенно на этапах оркестрации, matching, API и frontend. Добавляет unit, integration, component и smoke tests под уже определенное поведение.
 
 ### security-reviewer
 
-Полезен на этапах security baseline, API contracts, configuration, provider integrations и production readiness. Проверяет secrets, validation, error handling, CORS, rate limiting и обработку чувствительных данных.
+Полезен на этапах security baseline, API-контрактов, configuration, интеграций с провайдерами и production readiness. Проверяет secrets, validation, error handling, CORS, rate limiting и обработку чувствительных данных.
 
 ### documentation-writer
 
-Полезен на всех этапах, особенно при изменении архитектуры, контрактов и пользовательских сценариев. Обновляет roadmap, API docs, architecture notes, README и checklists.
+Полезен на всех этапах, особенно при изменении архитектуры, контрактов и пользовательских сценариев. Обновляет roadmap, API-документацию, архитектурные заметки, README и checklists.
 
 ## Definition of Done
 
@@ -115,32 +115,32 @@ Validation steps:
 - добавлены или обновлены тесты, если задача затрагивает бизнес-логику;
 - обновлена документация, если изменилось поведение или архитектура;
 - локальная сборка не сломана;
-- mock/stub providers используются там, где реальные интеграции еще не утверждены;
-- domain layer не зависит от Ktor, Next.js, PostgreSQL, Redis или конкретного LLM provider;
-- validation steps выполнены и результат зафиксирован в ответе агента.
+- mock/stub провайдеры используются там, где реальные интеграции еще не утверждены;
+- domain layer не зависит от Ktor, Next.js, PostgreSQL, Redis или конкретного LLM-провайдера;
+- шаги проверки выполнены и результат зафиксирован в ответе агента.
 
 ## Правила для backend-задач
 
 - Ktor routing должен быть тонким слоем над application use cases.
 - Domain models не должны импортировать Ktor, Exposed, JDBC, Redis clients или LLM SDK.
 - Infrastructure adapters должны реализовывать интерфейсы, объявленные ближе к domain/application слоям.
-- Ошибки provider-ов нужно переводить в собственные ошибки приложения.
+- Ошибки провайдеров нужно переводить в собственные ошибки приложения.
 - Конфигурация должна приходить из environment/config files, а не из хардкода.
 
 ## Правила для AI-задач
 
-- Любой LLM provider должен подключаться через `LlmClient`.
-- Prompt templates и parsing rules должны быть отделены от transport-кода provider-а.
+- Любой LLM-провайдер должен подключаться через `LlmClient`.
+- Prompt templates и parsing rules должны быть отделены от transport-кода провайдера.
 - Orchestrator должен явно работать с conversation state.
-- Slot filling и clarification flow должны быть тестируемыми на mock LLM client.
-- Не добавлять реального provider-а, пока не стабилизированы intent, slots и domain model.
+- Slot filling и clarification flow должны быть тестируемыми на mock LLM-клиенте.
+- Не добавлять реального провайдера, пока не стабилизированы intent, slots и domain model.
 
 ## Правила для travel search-задач
 
 - Flight и hotel search должны быть отдельными портами.
-- Mock providers должны возвращать достаточно богатые данные для проверки ranking и UI.
-- Внешние provider DTO не должны становиться внутренней доменной моделью.
-- Реальные API credentials не должны появляться в репозитории.
+- Mock-провайдеры должны возвращать достаточно богатые данные для проверки ranking и UI.
+- Внешние DTO провайдеров не должны становиться внутренней доменной моделью.
+- Реальные учетные данные API не должны появляться в репозитории.
 - Кеширование через Redis добавлять только после появления понятного сценария и ключей кеша.
 
 ## Правила для frontend-задач
@@ -153,11 +153,11 @@ Validation steps:
 
 ## Порядок реализации MVP
 
-1. Зафиксировать требования, MVP scope и API contracts.
+1. Зафиксировать требования, границы MVP и API-контракты.
 2. Создать backend skeleton и health endpoint.
-3. Добавить `LlmClient` abstraction и mock implementation.
+3. Добавить `LlmClient` abstraction и mock-реализацию.
 4. Создать `TravelAssistantOrchestrator` с clarification flow.
-5. Добавить flight/hotel search abstractions и mock providers.
+5. Добавить абстракции поиска перелетов/отелей и mock-провайдеры.
 6. Добавить offer matching and ranking.
 7. Создать web skeleton.
 8. Реализовать Chat UI.

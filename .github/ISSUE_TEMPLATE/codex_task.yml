@@ -1,12 +1,12 @@
 name: Задача для Codex
-description: Маленькая stage-based задача реализации или документации для Codex/opencode.
+description: Маленькая поэтапная задача реализации или документации для Codex/opencode.
 title: "[Задача Codex]: "
 labels: ["codex-task"]
 body:
   - type: markdown
     attributes:
       value: |
-        Используй эту форму для маленьких задач с явным текущим этапом, границами scope и запретом на accidental future-stage implementation.
+        Используй эту форму для маленьких задач с явным текущим этапом, границами задачи и запретом на случайную реализацию будущих этапов.
 
   - type: textarea
     id: context
@@ -22,8 +22,8 @@ body:
     id: current-stage
     attributes:
       label: Текущий этап
-      description: Этап roadmap или milestone, в рамках которого должна выполняться задача.
-      placeholder: "Например: Repository & Process Setup / Milestone 0"
+      description: Этап roadmap или веха, в рамках которой должна выполняться задача.
+      placeholder: "Например: настройка репозитория и процесса / веха 0"
     validations:
       required: true
 
@@ -35,14 +35,14 @@ body:
       options:
         - Документация
         - GitHub/Codex workflow
-        - Product/requirements
-        - Architecture/API contracts
+        - Продукт/требования
+        - Архитектура/API-контракты
         - Backend
-        - AI/orchestration
-        - Travel search
+        - AI/оркестрация
+        - Поиск travel-предложений
         - Frontend/UI
-        - Testing/quality
-        - Security/observability
+        - Тестирование/качество
+        - Безопасность/наблюдаемость
     validations:
       required: true
 
@@ -89,24 +89,24 @@ body:
     id: forbidden-changes
     attributes:
       label: Что нельзя менять
-      description: Явные запреты для защиты roadmap, scope и unrelated files.
+      description: Явные запреты для защиты roadmap, границ задачи и unrelated files.
       value: |
         - Не переопределять roadmap.
         - Не менять порядок этапов roadmap.
         - Не начинать следующий этап roadmap без явного запроса.
-        - Не расширять scope, если это не требуется для выполнения задачи.
+        - Не расширять границы задачи, если это не требуется для выполнения задачи.
         - Не выполнять рекомендации в этой задаче.
         - Добавлять будущую работу только в раздел "Рекомендации, не выполнены".
         - Не трогать unrelated files.
         - Соблюдать ADR в docs/decisions/, если они есть.
-        - Не добавлять accidental future-stage implementation.
+        - Не добавлять случайную реализацию будущих этапов.
     validations:
       required: true
 
   - type: textarea
     id: acceptance-criteria
     attributes:
-      label: Acceptance criteria
+      label: Критерии приемки
       description: Конкретные проверки, подтверждающие выполнение задачи.
       placeholder: |
         - ...

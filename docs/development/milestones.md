@@ -1,31 +1,38 @@
-# Milestones проекта Travel Assistant
+# Вехи проекта Travel Assistant
 
-Milestones описывают контрольные точки разработки. Каждый milestone должен завершаться проверяемым результатом, который можно использовать как основу для следующего этапа.
+Вехи описывают контрольные точки разработки. Каждая веха должна завершаться проверяемым результатом, который можно использовать как основу для следующего этапа.
 
-## Milestone 0 — Project Foundation
+## Веха 0 — основа проекта
 
-**Цель:** подготовить структуру проекта, документацию, правила разработки и базовые соглашения.
+**Цель:** подготовить структуру проекта, документацию, правила разработки, базовые соглашения и продуктовую рамку Этапа 0.
 
-**Scope:**
+**Границы:**
 - структура репозитория;
 - базовые документы проекта;
 - правила работы с задачами;
-- соглашения по архитектурным границам.
+- соглашения по архитектурным границам;
+- исходная продуктовая постановка;
+- верхнеуровневые сценарии;
+- предварительные границы MVP;
+- открытые вопросы для будущих этапов.
 
-**Out of scope:**
+**Не входит:**
 - код backend и frontend;
 - реальные интеграции;
-- production infrastructure.
+- production-инфраструктура.
 
-**Deliverables:**
+**Артефакты:**
 - актуальный `README.md`;
 - документация в `docs/`;
-- roadmap, milestones и implementation strategy;
+- продуктовые документы Этапа 0 в `docs/product/stage-0/`;
+- поэтапный roadmap в `docs/roadmap/roadmap.md`;
+- roadmap, вехи и стратегия реализации;
 - базовое описание процесса разработки.
 
-**Acceptance criteria:**
+**Критерии приемки:**
 - новый участник или код-агент понимает, где находятся документы и как двигаться по этапам;
-- определены следующие milestones;
+- продуктовая идея, пользовательская ценность, основные сценарии и предварительные границы MVP зафиксированы;
+- определены следующие вехи;
 - нет изменений в коде приложения без необходимости.
 
 **Риски:**
@@ -34,32 +41,32 @@ Milestones описывают контрольные точки разработ
 
 **Зависимости:** нет.
 
-## Milestone 1 — Product & Architecture Foundation
+## Веха 1 — продуктовая и архитектурная основа
 
-**Цель:** зафиксировать требования, MVP scope, системную архитектуру, основные сценарии пользователя.
+**Цель:** зафиксировать требования, границы MVP, системную архитектуру и основные сценарии пользователя.
 
-**Scope:**
-- product requirements;
-- MVP boundaries;
-- user flows;
-- high-level architecture;
+**Границы:**
+- продуктовые требования;
+- границы MVP;
+- пользовательские потоки;
+- высокоуровневая архитектура;
 - начальная доменная модель;
-- API contracts draft.
+- черновик API-контрактов.
 
-**Out of scope:**
+**Не входит:**
 - реализация API;
 - UI-компоненты;
-- реальные LLM и travel provider integrations.
+- реальные интеграции с LLM и travel-провайдерами.
 
-**Deliverables:**
+**Артефакты:**
 - документ с требованиями;
-- документ с MVP scope;
+- документ с границами MVP;
 - архитектурная схема компонентов;
 - черновик доменной модели;
-- черновик backend/frontend API contracts.
+- черновик backend/frontend API-контрактов.
 
-**Acceptance criteria:**
-- MVP сценарий описан end-to-end;
+**Критерии приемки:**
+- MVP-сценарий описан end-to-end;
 - backend, frontend, domain, AI и integrations имеют понятные границы;
 - доменная модель не зависит от Ktor, Next.js или конкретных провайдеров;
 - есть список открытых продуктовых вопросов.
@@ -69,13 +76,13 @@ Milestones описывают контрольные точки разработ
 - смешивание API DTO с доменными моделями;
 - фиксация архитектуры вокруг mock-данных вместо реальной предметной области.
 
-**Зависимости:** Milestone 0.
+**Зависимости:** Веха 0.
 
-## Milestone 2 — Backend Foundation
+## Веха 2 — основа backend
 
-**Цель:** создать backend skeleton на Kotlin + Ktor, базовые health endpoints, конфигурацию, слои приложения.
+**Цель:** создать backend skeleton на Kotlin + Ktor, базовые health endpoints, конфигурацию и слои приложения.
 
-**Scope:**
+**Границы:**
 - Gradle/project setup для backend;
 - Ktor application module;
 - health endpoint;
@@ -83,21 +90,21 @@ Milestones описывают контрольные точки разработ
 - слои `api`, `application`, `domain`, `infrastructure`;
 - базовые тесты запуска и health endpoint.
 
-**Out of scope:**
-- LLM orchestration;
+**Не входит:**
+- LLM-оркестрация;
 - travel search;
 - PostgreSQL schema;
 - Redis cache;
 - авторизация.
 
-**Deliverables:**
+**Артефакты:**
 - запускаемый backend service;
 - health endpoint;
 - базовая структура пакетов;
 - минимальные тесты;
 - инструкция локального запуска.
 
-**Acceptance criteria:**
+**Критерии приемки:**
 - backend собирается локально;
 - health endpoint возвращает ожидаемый статус;
 - domain layer не зависит от Ktor;
@@ -105,92 +112,92 @@ Milestones описывают контрольные точки разработ
 
 **Риски:**
 - завязать бизнес-логику на Ktor routing;
-- добавить лишние зависимости до появления use cases;
+- добавить лишние зависимости до появления вариантов использования;
 - усложнить skeleton раньше времени.
 
-**Зависимости:** Milestone 1.
+**Зависимости:** Веха 1.
 
-## Milestone 3 — AI Orchestration Foundation
+## Веха 3 — основа AI-оркестрации
 
 **Цель:** создать `LlmClient` abstraction, `TravelAssistantOrchestrator`, структуру intent extraction / slot filling / clarification flow.
 
-**Scope:**
+**Границы:**
 - `LlmClient` interface;
-- mock LLM client;
+- mock LLM-клиент;
 - модели intent и slots;
 - conversation state;
 - начальный `TravelAssistantOrchestrator`;
 - clarification flow для недостающих параметров.
 
-**Out of scope:**
-- реальный LLM provider;
+**Не входит:**
+- реальный LLM-провайдер;
 - streaming;
 - tool calling;
 - сложный graph runtime;
 - долгосрочная память.
 
-**Deliverables:**
-- AI abstraction без привязки к провайдеру;
+**Артефакты:**
+- AI-абстракция без привязки к провайдеру;
 - orchestration use case;
 - тесты intent/slot/clarification flow на mock-клиенте;
-- документация по расширению orchestration.
+- документация по расширению оркестрации.
 
-**Acceptance criteria:**
+**Критерии приемки:**
 - orchestrator может принять свободный запрос и определить, хватает ли данных для поиска;
 - при нехватке данных возвращается уточняющий вопрос;
 - реализацию можно развивать в сторону state-machine / LangGraph-like подхода;
-- LLM ошибки обрабатываются явно.
+- LLM-ошибки обрабатываются явно.
 
 **Риски:**
 - превратить orchestrator в монолитный класс;
-- захардкодить prompts и provider details в доменной логике;
+- захардкодить prompts и детали провайдера в доменной логике;
 - смешать conversation state с UI state.
 
-**Зависимости:** Milestone 2.
+**Зависимости:** Веха 2.
 
-## Milestone 4 — Travel Search Foundation
+## Веха 4 — основа поиска travel-предложений
 
-**Цель:** создать абстракции для поиска перелетов и отелей, mock providers, базовые DTO и use cases.
+**Цель:** создать абстракции для поиска перелетов и отелей, mock-провайдеры, базовые DTO и варианты использования.
 
-**Scope:**
+**Границы:**
 - flight search port;
 - hotel search port;
-- mock providers;
+- mock-провайдеры;
 - модели поиска и результатов;
-- use cases для поиска по заполненному trip request.
+- варианты использования для поиска по заполненному запросу поездки.
 
-**Out of scope:**
+**Не входит:**
 - реальные travel API;
 - live availability;
 - бронирование;
 - платежи;
 - сложное кеширование.
 
-**Deliverables:**
+**Артефакты:**
 - `FlightSearchClient` или аналогичный интерфейс;
 - `HotelSearchClient` или аналогичный интерфейс;
-- mock implementations;
+- mock-реализации;
 - тесты поиска на стабильных данных;
 - базовые ошибки provider-слоя.
 
-**Acceptance criteria:**
-- поиск работает без внешних credentials;
+**Критерии приемки:**
+- поиск работает без внешних учетных данных;
 - use cases зависят от интерфейсов, а не от mock-реализаций;
 - flight и hotel модели можно использовать в matching/ranking;
-- provider errors не протекают напрямую в UI/API.
+- ошибки провайдеров не протекают напрямую в UI/API.
 
 **Риски:**
 - слишком рано подстроиться под конкретный внешний API;
 - сделать mock-данные бедными и непригодными для end-to-end сценария;
-- смешать flight и hotel responsibilities.
+- смешать responsibilities перелетов и отелей.
 
-**Зависимости:** Milestone 2, частично Milestone 3.
+**Зависимости:** Веха 2, частично Веха 3.
 
-## Milestone 5 — Web MVP
+## Веха 5 — web MVP
 
 **Цель:** создать web UI с чатовым интерфейсом, выводом результатов и базовой интеграцией с backend.
 
-**Scope:**
+**Границы:**
 - Next.js + React + Tailwind + shadcn/ui skeleton;
 - chat UI;
 - search results UI;
@@ -198,21 +205,21 @@ Milestones описывают контрольные точки разработ
 - loading/error/empty states;
 - базовая responsive layout.
 
-**Out of scope:**
+**Не входит:**
 - mobile app;
 - desktop app;
 - сложная дизайн-система;
 - realtime streaming;
 - авторизация.
 
-**Deliverables:**
+**Артефакты:**
 - запускаемый web-клиент;
 - чатовый интерфейс;
-- отображение mock travel offers;
+- отображение mock travel-офферов;
 - базовая интеграция с backend endpoint-ами;
 - документация запуска.
 
-**Acceptance criteria:**
+**Критерии приемки:**
 - пользователь может отправить запрос из UI;
 - UI показывает уточняющие вопросы и результаты;
 - ошибки backend отображаются понятно;
@@ -223,13 +230,13 @@ Milestones описывают контрольные точки разработ
 - смешать DTO mapping и UI rendering;
 - не заложить места для mobile/desktop клиентов.
 
-**Зависимости:** Milestone 2, Milestone 3, Milestone 4.
+**Зависимости:** Веха 2, Веха 3, Веха 4.
 
-## Milestone 6 — End-to-End MVP
+## Веха 6 — end-to-end MVP
 
 **Цель:** собрать полный сценарий: пользователь пишет запрос → ассистент уточняет → ищет mock-предложения → ранжирует → объясняет результат.
 
-**Scope:**
+**Границы:**
 - end-to-end conversation flow;
 - search orchestration;
 - offer matching and ranking;
@@ -237,20 +244,20 @@ Milestones описывают контрольные точки разработ
 - basic conversation history for session;
 - smoke tests.
 
-**Out of scope:**
+**Не входит:**
 - реальные API;
 - аккаунты пользователей;
 - платежи и бронирование;
 - production deployment.
 
-**Deliverables:**
-- рабочий MVP сценарий через web UI;
+**Артефакты:**
+- рабочий MVP-сценарий через web UI;
 - backend orchestration для полного flow;
 - ranking service;
 - объяснения рекомендаций;
 - e2e или integration smoke tests.
 
-**Acceptance criteria:**
+**Критерии приемки:**
 - пользовательский сценарий проходит от первого сообщения до списка предложений;
 - при нехватке параметров ассистент задает уточняющий вопрос;
 - найденные mock-предложения отсортированы и объяснены;
@@ -261,27 +268,27 @@ Milestones описывают контрольные точки разработ
 - непрозрачное ранжирование;
 - слишком большая задача без промежуточных проверок.
 
-**Зависимости:** Milestone 3, Milestone 4, Milestone 5.
+**Зависимости:** Веха 3, Веха 4, Веха 5.
 
-## Milestone 7 — Quality & Production Readiness
+## Веха 7 — качество и production readiness
 
 **Цель:** добавить тесты, security baseline, observability, Docker, README и checklist для дальнейшей production-ready разработки.
 
-**Scope:**
-- testing strategy implementation;
+**Границы:**
+- реализация стратегии тестирования;
 - security baseline;
 - observability baseline;
 - Docker/local development;
 - production readiness checklist;
 - README updates.
 
-**Out of scope:**
+**Не входит:**
 - production launch;
 - Kubernetes/cloud infrastructure;
 - enterprise security compliance;
-- реальные provider contracts.
+- реальные контракты провайдеров.
 
-**Deliverables:**
+**Артефакты:**
 - unit/integration/e2e baseline tests;
 - Docker Compose для локальной инфраструктуры;
 - structured logging и request id;
@@ -289,7 +296,7 @@ Milestones описывают контрольные точки разработ
 - production readiness checklist;
 - обновленная документация запуска и проверки.
 
-**Acceptance criteria:**
+**Критерии приемки:**
 - локальная сборка и тесты проходят;
 - секреты не хранятся в репозитории;
 - есть понятный локальный запуск backend, frontend, PostgreSQL и Redis при необходимости;
@@ -300,4 +307,4 @@ Milestones описывают контрольные точки разработ
 - перепутать MVP readiness и production readiness;
 - добавить инфраструктурную сложность без необходимости.
 
-**Зависимости:** Milestone 6.
+**Зависимости:** Веха 6.
