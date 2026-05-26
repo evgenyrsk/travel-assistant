@@ -43,9 +43,10 @@ Travel Assistant — приватный проект для разработки
 
 ## Рабочий процесс Codex
 
-- Правила репозитория для Codex-агентов находятся в `AGENTS.md`.
-- Переиспользуемый шаблон задач находится в `docs/prompts/task-template.md`.
-- Общие правила Codex находятся в `docs/prompts/codex-rules.md`.
-- Шаблон review-задач находится в `docs/prompts/review-template.md`.
+- Обязательные правила репозитория для Codex-агентов находятся в `AGENTS.md`.
+- Переиспользуемый шаблон постановки задач находится в `docs/prompts/task-template.md`.
+- Общие правила roadmap, scope, ADR и отчетности находятся в `docs/prompts/codex-rules.md`.
+- Шаблон review-задач с проверками roadmap drift, scope creep и future-stage implementation находится в `docs/prompts/review-template.md`.
+- GitHub PR checklist находится в `.github/pull_request_template.md`.
 - Верхнеуровневый product roadmap находится в `docs/ROADMAP.md`.
 - Детальный roadmap разработки находится в `docs/development/roadmap.md`.
