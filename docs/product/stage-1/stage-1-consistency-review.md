@@ -66,14 +66,14 @@ Stage 1 в целом согласован и пригоден как вход �
 - **Return to previous search:** последовательно разделен на MVP для текущей сессии и post-MVP для долгосрочной истории.
 - **Personalization:** явно указанные preferences в текущем сценарии входят в MVP; долгосрочная персонализация — post-MVP.
 - **Authorization:** не входит в ранний MVP и вынесена в Q-010.
-- **Real API providers:** не входят в Stage 1/MVP-ранние этапы; sources описаны как abstract providers.
+- **Real API providers:** интеграция с существующим travel API входит в MVP; на Stage 1 и ранних технических этапах sources описаны как abstract providers, допускаются mock/fake providers и contract placeholders до предоставления реального API-контракта.
 - **LLM provider choice:** не выполняется на Stage 1.
 - **Booking/payment:** не входит в MVP.
 - **Mobile apps:** не являются обязательной первой платформой; cross-platform остается продуктовым ограничением.
 
 Расхождения:
 
-- **Combined search:** S-03 и BR-009 имеют Open-статус для MVP, но `stage-1-summary.md` включает "Работа через абстрактных providers и mock/stub данные" в MVP, а FR с `In MVP` ссылаются на S-03. Это можно читать как "MVP должен понимать combined intent и иметь groundwork", но не как обязательный full combined search. На Stage 2/3 нужно явно развести эти уровни.
+- **Combined search:** S-03 и BR-009 имеют Open-статус для MVP, но FR с `In MVP` ссылаются на S-03. Это можно читать как "MVP должен понимать combined intent и иметь groundwork", но не как обязательный full combined search. На Stage 2/3 нужно явно развести эти уровни.
 
 ## 5. Scope control review
 
@@ -85,12 +85,12 @@ Stage 1 не вышел за рамки продуктового этапа:
 - UI-макеты не создавались;
 - финальный технический стек не выбирался;
 - конкретный LLM provider не выбирался;
-- реальные providers/API не интегрировались;
+- реальные providers/API не интегрировались в рамках Stage 1, но интеграция с существующим travel API зафиксирована как часть финального MVP;
 - Stage 2 не выполнялся.
 
 Допустимые пограничные формулировки:
 
-- `provider abstraction`, `LLM provider abstraction`, `mock/stub данные` используются как продуктовые и архитектурные ограничения, а не как технические контракты.
+- `provider abstraction`, `LLM provider abstraction`, `mock/fake providers` и `contract placeholders` используются как продуктовые и архитектурные ограничения, а не как технические контракты.
 - Journeys упоминают продуктовые состояния, но не проектируют экраны.
 
 ## 6. Terminology review
@@ -113,7 +113,7 @@ Stage 1 не вышел за рамки продуктового этапа:
 - Этап 0 отмечен как завершенный.
 - Этап 1 отмечен как завершенный.
 - Stage 1 artifacts перечислены.
-- Ограничения Stage 1 явно запрещают код, API-контракты, UI-макеты, схему БД, выбор финального стека и реальные интеграции.
+- Ограничения Stage 1 явно запрещают код, проектирование API-контрактов, UI-макеты, схему БД, выбор финального стека и фактическую реализацию реальных интеграций.
 - Будущие этапы не были переупорядочены.
 
 Сохраняется осознанное расхождение, уже зафиксированное в Q-011: старый roadmap разделял бизнес-требования, пользовательские сценарии и функциональные требования между Stage 1 - Stage 3, а фактическая задача Stage 1 включила их в один продуктовый пакет. Это не блокирует Stage 2, если Stage 2 будет трактоваться как детализация use cases, а Stage 3 — как финализация MVP boundaries и acceptance criteria.
@@ -140,7 +140,7 @@ Risks R-001 - R-006 покрывают требуемые risk areas:
 - MVP scope creep по combined search;
 - AI/LLM hallucination;
 - provider/API coupling;
-- качество mock/stub данных;
+- качество mock/fake данных;
 - сохранение результатов;
 - privacy.
 
@@ -267,3 +267,9 @@ Stage 1 проходит consistency review с minor notes. Блокеров д�
 - `MN-S1-003`: корневой `README.md` обновлен и больше не называет Этап 0 текущим этапом;
 - `MN-S1-004`: добавлен риск `R-007. Provider reliability и качество данных`;
 - `MJ-S1-001`: не закрыт полностью; добавлено уточнение, что combined intent recognition может входить в MVP, а full combined package ranking остается Open до Stage 2/3.
+
+## 14. Scope correction: existing travel API
+
+После Stage 1 пользователь уточнил MVP-scope: интеграция с существующим travel API входит в MVP. Ранние provider abstractions, mock/fake providers и contract placeholders допустимы как временные средства разработки, но финальный MVP должен использовать предоставленный API-контракт для получения реальных travel offers.
+
+Эта корректировка не начинает Stage 2, не создает API contracts, не выбирает adapter implementations и не меняет порядок roadmap. Детали API-контракта, adapters, error handling и production-hardening должны уточняться на последующих технических этапах после предоставления контракта.
