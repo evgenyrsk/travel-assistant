@@ -2,7 +2,7 @@
 
 Этот документ описывает верхнеуровневый список этапов и не является источником текущих статусов. Главный roadmap со статусами, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Детальный порядок задач реализации и вех ведется отдельно в `docs/development/roadmap.md` и `docs/development/milestones.md` и следует primary roadmap.
 
-Текущий прогресс: Stage 0, Stage 1 и Stage 2 завершены; Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Stage 3 — MVP UX / Navigation начат; Stage 3.1 Screen Map и Stage 3.2 Required Fields & Acceptance Criteria выполнены. При расхождении статусов приоритет у `docs/roadmap/roadmap.md`.
+Текущий прогресс: Stage 0, Stage 1 и Stage 2 завершены; Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Stage 3 — MVP UX / Navigation начат; Stage 3.1 Screen Map, Stage 3.2 Required Fields & Acceptance Criteria и Stage 3.3 MVP Search Flow Details выполнены. При расхождении статусов приоритет у `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 

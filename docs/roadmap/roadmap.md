@@ -14,8 +14,8 @@
 | Item | Status |
 |---|---|
 | Current stage | Stage 3 — MVP UX / Navigation |
-| Last completed stage | Stage 3.2 — Required Fields & Acceptance Criteria |
-| Next planned step | Stage 3.3 — MVP Search Flow Details |
+| Last completed stage | Stage 3.3 — MVP Search Flow Details |
+| Next planned step | Stage 3 Combined Search UX Decision |
 | Stage 3 | In progress |
 | Code/API/DB/UI implementation | Not started |
 
@@ -36,7 +36,7 @@
 - Когда и в каком виде будет предоставлен контракт существующего travel API.
 - Adapter design, provider error taxonomy, reliability и production-hardening.
 - Долгосрочная история, авторизация и account-level storage.
-- Детальные MVP search flow steps и UX consistency review для Stage 3.
+- UX consistency review для Stage 3.
 
 ## Stage 0 — Product Framing
 
@@ -170,7 +170,7 @@
 
 - [x] Stage 3.1 — MVP Screen Map / UX Navigation: `docs/product/stage-3/screen-map.md`.
 - [x] Stage 3.2 — Required Fields & Acceptance Criteria: `docs/product/stage-3/required-fields-and-acceptance-criteria.md`.
-- [ ] MVP Search Flow Details.
+- [x] Stage 3.3 — MVP Search Flow Details: `docs/product/stage-3/mvp-search-flow-details.md`.
 - [ ] Combined Search UX Decision.
 - [ ] MVP/Post-MVP split для session persistence, resume и authorization.
 - [ ] UX Consistency Review.

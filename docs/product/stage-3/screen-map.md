@@ -8,7 +8,7 @@
 
 Документ не является визуальным дизайном, wireframe, технической архитектурой, API-контрактом или спецификацией компонентов.
 
-Связанный следующий документ Stage 3: `docs/product/stage-3/required-fields-and-acceptance-criteria.md`.
+Связанные следующие документы Stage 3: `docs/product/stage-3/required-fields-and-acceptance-criteria.md` и `docs/product/stage-3/mvp-search-flow-details.md`.
 
 ## 2. Источники и ограничения
 

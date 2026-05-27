@@ -2,7 +2,7 @@
 
 Этот раздел содержит продуктовую документацию Travel Assistant. Документы фиксируют пользовательскую ценность, сценарии, границы MVP, открытые вопросы и правила движения по этапам до начала технической реализации.
 
-Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Stage 2 Minor Cleanup выполнен; текущий этап — Stage 3: MVP UX / Navigation. Stage 3.1 Screen Map и Stage 3.2 Required Fields & Acceptance Criteria выполнены; Stage 3 остается открытым до завершения search flow details, combined search UX decision и UX consistency review.
+Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Stage 2 Minor Cleanup выполнен; текущий этап — Stage 3: MVP UX / Navigation. Stage 3.1 Screen Map, Stage 3.2 Required Fields & Acceptance Criteria и Stage 3.3 MVP Search Flow Details выполнены; Stage 3 остается открытым до завершения combined search UX decision и UX consistency review.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -38,6 +38,7 @@
 
 - `stage-3/screen-map.md` — Stage 3.1: карта экранов MVP, навигационная модель, основные UX-потоки, состояния экранов и MVP/Post-MVP разделение на уровне UX-навигации.
 - `stage-3/required-fields-and-acceptance-criteria.md` — Stage 3.2: required/optional/derived fields, missing data behaviour и acceptance criteria для MVP search flows.
+- `stage-3/mvp-search-flow-details.md` — Stage 3.3: подробные MVP search flows для hotel, flight, combined, open destination, refinement, save/shortlist и recovery states.
 
 Stage 3 отвечает за UX-структуру, навигацию, search flows, required fields, acceptance criteria и MVP/Post-MVP UX boundaries. Stage 4 остается отдельным будущим этапом Visual Design / UI Concept: visual style, layout direction, UI components, design system, typography, colors и возможные wireframes/mockups.
 

@@ -26,6 +26,8 @@
 - `docs/product/stage-2/data-requirements.md`;
 - `docs/product/stage-3/screen-map.md`.
 
+Связанный следующий документ Stage 3: `docs/product/stage-3/mvp-search-flow-details.md`.
+
 Ограничения:
 
 - MVP работает через естественный текстовый запрос и AI clarification flow.
@@ -460,7 +462,7 @@ Acceptance criteria:
 
 ## 15. Recommendations
 
-- Следующим Stage 3 шагом описать MVP Search Flow Details на основе этих required fields.
+- Stage 3.3 MVP Search Flow Details описан в `docs/product/stage-3/mvp-search-flow-details.md` на основе этих required fields.
 - Отдельно принять Combined Search UX Decision по Level 3.
 - После search flow details провести UX Consistency Review для Stage 3.
 - На будущих технических этапах сверить required fields с предоставленным API-контрактом, не меняя этот документ задним числом без product review.

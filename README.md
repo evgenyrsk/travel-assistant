@@ -46,7 +46,7 @@ Travel Assistant — приватный проект для разработки
 
 ## Начало работы
 
-Текущий статус: Этап 0, Этап 1 и Этап 2 завершены, Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Stage 3 — MVP UX / Navigation начат; Stage 3.1 Screen Map и Stage 3.2 Required Fields & Acceptance Criteria выполнены. Следующий шаг — Stage 3.3: MVP Search Flow Details. Техническая архитектура, визуальный дизайн, каркас приложения и сервисов добавляются только на соответствующих будущих этапах roadmap.
+Текущий статус: Этап 0, Этап 1 и Этап 2 завершены, Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Stage 3 — MVP UX / Navigation начат; Stage 3.1 Screen Map, Stage 3.2 Required Fields & Acceptance Criteria и Stage 3.3 MVP Search Flow Details выполнены. Следующий шаг — Combined Search UX Decision в рамках Stage 3. Техническая архитектура, визуальный дизайн, каркас приложения и сервисов добавляются только на соответствующих будущих этапах roadmap.
 
 ## Рабочий процесс Codex
 
