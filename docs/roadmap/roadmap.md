@@ -13,9 +13,9 @@
 
 | Item | Status |
 |---|---|
-| Current stage | Cleanup после Stage 2, перед Stage 2 Consistency Review |
+| Current stage | После Stage 2 Minor Cleanup |
 | Last completed stage | Stage 2 — Use Cases & Edge Cases |
-| Next planned step | Stage 2 Consistency Review |
+| Next planned step | Stage 3 — MVP Boundaries & Acceptance Criteria |
 | Stage 3 | Not started |
 | Code/API/DB/UI implementation | Not started |
 
@@ -127,10 +127,12 @@
 - [x] `docs/product/stage-2/combined-search-levels.md`
 - [x] `docs/product/stage-2/data-requirements.md`
 - [x] `docs/product/stage-2/stage-2-summary.md`
+- [x] `docs/product/stage-2/stage-2-consistency-review.md`
 
 **Follow-ups checklist:**
 
-- [ ] Stage 2 Consistency Review
+- [x] Stage 2 Consistency Review
+- [x] Stage 2 Minor Cleanup — Language & Roadmap Navigation Polish
 
 **Key results:**
 
@@ -156,7 +158,6 @@
 
 **Recommendations / carryover:**
 
-- Выполнить Stage 2 Consistency Review отдельной задачей.
 - На Stage 3 превратить Stage 2 use cases и edge cases в финальные MVP boundaries и acceptance criteria.
 - Сохранить запрет на API contracts, DB schema, UI mockups и код до соответствующих этапов.
 
@@ -183,7 +184,8 @@
 - [x] Stage 1 Follow-up Cleanup completed.
 - [x] Stage 1 Scope Correction completed.
 - [x] Stage 2 completed.
-- [ ] Stage 2 Consistency Review completed.
+- [x] Stage 2 Consistency Review completed.
+- [x] Stage 2 Minor Cleanup completed.
 
 **Exit criteria:**
 

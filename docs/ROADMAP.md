@@ -1,8 +1,8 @@
 # Roadmap
 
-Этот документ описывает верхнеуровневый список этапов. Главный roadmap со статусами, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Детальный порядок задач реализации и вех ведется отдельно в `docs/development/roadmap.md` и `docs/development/milestones.md`.
+Этот документ описывает верхнеуровневый список этапов и не является источником текущих статусов. Главный roadmap со статусами, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Детальный порядок задач реализации и вех ведется отдельно в `docs/development/roadmap.md` и `docs/development/milestones.md` и следует primary roadmap.
 
-Текущий прогресс: Stage 0, Stage 1 и Stage 2 завершены; следующий шаг — Stage 2 Consistency Review. Stage 3 не начат.
+Текущий прогресс: Stage 0, Stage 1 и Stage 2 завершены; Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Следующий шаг — Stage 3, но Stage 3 не начат. При расхождении статусов приоритет у `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 

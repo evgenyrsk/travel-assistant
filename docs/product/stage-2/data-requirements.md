@@ -14,22 +14,22 @@
 - Финальный MVP должен использовать предоставленный API-контракт для получения реальных travel offers.
 - Stage 2 не проектирует API-контракт.
 
-## Data groups
+## Группы данных
 
-| Data group | Required for MVP | Why needed | Related use cases | Notes |
+| Data group | Требуется для MVP | Зачем нужно | Связанные use cases | Заметки |
 |---|---|---|---|---|
 | Search request data | yes | Позволяет определить intent, понять required fields, уточнить пробелы и выполнить поиск. | UC-01, UC-02, UC-03, UC-04, UC-11, UC-12 | Не является API request schema. |
 | Hotel offer data | yes | Нужно для hotel search, ranking, comparison и explanation. | UC-01, UC-05, UC-06, UC-13, UC-15 | Финальный MVP получает реальные hotel offers из предоставленного travel API. |
 | Flight offer data | yes | Нужно для flight search, ranking, comparison и explanation. | UC-02, UC-05, UC-06, UC-13, UC-15 | Финальный MVP получает реальные flight offers из предоставленного travel API. |
 | Combined search data | open | Нужно для Level 2/3 combined behaviour; объем зависит от Stage 3 решения. | UC-03, UC-11, UC-12 | Level 1/2 In MVP; Level 3 Open; Level 4 Post-MVP/Open. |
-| Search session data | yes | Нужно для уточнений, сохранения, сравнения, resume и changes during search. | UC-04, UC-07, UC-08, UC-12 | Не задает storage model. |
-| Provider/API data handling | yes | Нужно для anti-hallucination, explainability, unknown handling и real offers в MVP. | UC-06, UC-09, UC-13, UC-15 | API contract остается open input для future technical stages. |
+| Search session data | yes | Нужно для уточнений, сохранения, сравнения, resume и изменений в search. | UC-04, UC-07, UC-08, UC-12 | Не задает storage model. |
+| Provider/API data handling | yes | Нужно для anti-hallucination, explainability, unknown handling и real offers в MVP. | UC-06, UC-09, UC-13, UC-15 | API contract остается open input для будущих технических этапов. |
 
 ## Search request data
 
-**Required for MVP:** yes.
+**Требуется для MVP:** yes.
 
-**Fields:**
+**Поля:**
 - origin;
 - destination;
 - dates;
@@ -41,17 +41,17 @@
 - flexibility;
 - intent type.
 
-**Why needed:** эти данные определяют, можно ли искать, что уточнять и какие offers релевантны.
+**Зачем нужно:** эти данные определяют, можно ли искать, что уточнять и какие offers релевантны.
 
-**Related use cases:** UC-01, UC-02, UC-03, UC-04, UC-10, UC-11, UC-12.
+**Связанные use cases:** UC-01, UC-02, UC-03, UC-04, UC-10, UC-11, UC-12.
 
-**Notes:** обязательность отдельных полей зависит от intent и должна быть финализирована на Stage 3.
+**Заметки:** обязательность отдельных полей зависит от intent и должна быть финализирована на Stage 3.
 
 ## Hotel offer data
 
-**Required for MVP:** yes.
+**Требуется для MVP:** yes.
 
-**Fields:**
+**Поля:**
 - hotel name;
 - location;
 - price;
@@ -65,17 +65,17 @@
 - data freshness;
 - confidence/unknown fields.
 
-**Why needed:** hotel offers должны быть ранжируемыми, сравнимыми и объяснимыми.
+**Зачем нужно:** hotel offers должны быть ранжируемыми, сравнимыми и объяснимыми.
 
-**Related use cases:** UC-01, UC-05, UC-06, UC-13, UC-15.
+**Связанные use cases:** UC-01, UC-05, UC-06, UC-13, UC-15.
 
-**Notes:** missing rating, cancellation policy или amenities должны быть unknown data, а не assistant assumptions.
+**Заметки:** missing rating, cancellation policy или amenities должны быть unknown data, а не assistant assumptions.
 
 ## Flight offer data
 
-**Required for MVP:** yes.
+**Требуется для MVP:** yes.
 
-**Fields:**
+**Поля:**
 - airline;
 - origin;
 - destination;
@@ -89,17 +89,17 @@
 - data freshness;
 - confidence/unknown fields.
 
-**Why needed:** flight offers должны поддерживать базовое сравнение цены, времени, пересадок и удобства.
+**Зачем нужно:** flight offers должны поддерживать базовое сравнение цены, времени, пересадок и удобства.
 
-**Related use cases:** UC-02, UC-05, UC-06, UC-13, UC-15.
+**Связанные use cases:** UC-02, UC-05, UC-06, UC-13, UC-15.
 
-**Notes:** baggage availability и freshness нельзя додумывать, если provider их не вернул.
+**Заметки:** baggage availability и freshness нельзя додумывать, если provider их не вернул.
 
 ## Combined search data
 
-**Required for MVP:** open.
+**Требуется для MVP:** open.
 
-**Fields:**
+**Поля:**
 - shared dates;
 - shared destination;
 - total budget;
@@ -108,17 +108,17 @@
 - package assumptions;
 - unresolved constraints.
 
-**Why needed:** эти данные нужны для Level 2 same-dialog assistance и возможного Level 3 coordinated combined search.
+**Зачем нужно:** эти данные нужны для Level 2 same-dialog assistance и возможного Level 3 coordinated combined search.
 
-**Related use cases:** UC-03, UC-11, UC-12.
+**Связанные use cases:** UC-03, UC-11, UC-12.
 
-**Notes:** budget split может быть assistant assumption, если provider/API не подтверждает package price.
+**Заметки:** budget split может быть assistant assumption, если provider/API не подтверждает package price.
 
 ## Search session data
 
-**Required for MVP:** yes.
+**Требуется для MVP:** yes.
 
-**Fields:**
+**Поля:**
 - current user goal;
 - extracted parameters;
 - missing required parameters;
@@ -130,15 +130,15 @@
 - provider facts;
 - unknown fields.
 
-**Why needed:** search session поддерживает clarification, resume, save, compare и изменение constraints.
+**Зачем нужно:** search session поддерживает clarification, resume, save, compare и изменение constraints.
 
-**Related use cases:** UC-04, UC-05, UC-07, UC-08, UC-12.
+**Связанные use cases:** UC-04, UC-05, UC-07, UC-08, UC-12.
 
-**Notes:** долгосрочная история и account-level storage остаются Post-MVP/Open.
+**Заметки:** долгосрочная история и account-level storage остаются Post-MVP/Open.
 
 ## Provider/API data handling
 
-**Required for MVP:** yes.
+**Требуется для MVP:** yes.
 
 **Provider facts:** данные, полученные из provider/API или другого утвержденного источника travel offers: prices, availability, schedules, hotel attributes, flight attributes, baggage, restrictions, source, freshness.
 
@@ -146,8 +146,8 @@
 
 **Unknown data:** данные, которых нет, которые неполны, устарели, противоречивы или не имеют freshness/source confirmation.
 
-**Why needed:** это основа anti-hallucination, explainability и доверия к real provider/API data.
+**Зачем нужно:** это основа anti-hallucination, explainability и доверия к real provider/API data.
 
-**Related use cases:** UC-06, UC-09, UC-10, UC-13, UC-15.
+**Связанные use cases:** UC-06, UC-09, UC-10, UC-13, UC-15.
 
-**Notes:** если API-контракт еще не предоставлен, это фиксируется как open input для future technical stages, а не как перенос real API integration в Post-MVP.
+**Заметки:** если API-контракт еще не предоставлен, это фиксируется как open input для будущих технических этапов, а не как перенос real API integration в Post-MVP.

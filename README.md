@@ -35,17 +35,17 @@ Travel Assistant — приватный проект для разработки
 - `docs/PROJECT_BRIEF.md` — продуктовый контекст, пользователи, ключевые сценарии и открытые продуктовые вопросы.
 - `docs/ARCHITECTURE.md` — целевая архитектура, границы слоев и технические принципы.
 - `docs/roadmap/roadmap.md` — главный roadmap проекта: статусы этапов, чеклисты артефактов, open questions, carryover и следующий шаг.
-- `docs/ROADMAP.md` — краткий верхнеуровневый список этапов.
+- `docs/ROADMAP.md` — краткий верхнеуровневый список этапов, не источник текущих статусов.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
-- `docs/development/roadmap.md` — детальный roadmap разработки и порядок этапов.
-- `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки.
-- `docs/development/implementation-strategy.md` — практическая стратегия реализации и правила декомпозиции задач.
+- `docs/development/roadmap.md` — secondary roadmap разработки; следует primary roadmap и не заменяет статусы этапов.
+- `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки; не источник статусов продуктовых этапов.
+- `docs/development/implementation-strategy.md` — практическая стратегия реализации и правила декомпозиции задач; не primary roadmap.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
 - `.github/` — GitHub templates для постановки задач и описания pull requests.
 
 ## Начало работы
 
-Текущий статус: Этап 0, Этап 1 и Этап 2 завершены. Следующий шаг — Stage 2 Consistency Review. Этап 3 еще не начат. Техническая архитектура, каркас приложения и сервисов добавляются только на соответствующих будущих этапах roadmap.
+Текущий статус: Этап 0, Этап 1 и Этап 2 завершены, Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Следующий шаг — Этап 3: MVP Boundaries & Acceptance Criteria; он еще не начат. Техническая архитектура, каркас приложения и сервисов добавляются только на соответствующих будущих этапах roadmap.
 
 ## Рабочий процесс Codex
 
@@ -54,6 +54,6 @@ Travel Assistant — приватный проект для разработки
 - Общие правила roadmap, границ задачи, ADR и отчетности находятся в `docs/prompts/codex-rules.md`.
 - Шаблон задач на ревью с проверками отклонения от roadmap, разрастания границ задачи и преждевременной реализации будущих этапов находится в `docs/prompts/review-template.md`.
 - GitHub PR checklist находится в `.github/pull_request_template.md`.
-- Верхнеуровневый продуктовый roadmap находится в `docs/ROADMAP.md`.
-- Поэтапный roadmap находится в `docs/roadmap/roadmap.md`.
-- Детальный roadmap разработки находится в `docs/development/roadmap.md`.
+- Primary roadmap со статусами этапов находится в `docs/roadmap/roadmap.md`.
+- Верхнеуровневый список этапов находится в `docs/ROADMAP.md`.
+- Secondary roadmap разработки находится в `docs/development/roadmap.md`.

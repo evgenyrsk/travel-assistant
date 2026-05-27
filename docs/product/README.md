@@ -2,7 +2,7 @@
 
 Этот раздел содержит продуктовую документацию Travel Assistant. Документы фиксируют пользовательскую ценность, сценарии, границы MVP, открытые вопросы и правила движения по этапам до начала технической реализации.
 
-Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Текущий следующий шаг: Stage 2 Consistency Review.
+Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Stage 2 Minor Cleanup выполнен; текущий следующий шаг: Stage 3 — MVP Boundaries & Acceptance Criteria, но Stage 3 еще не начат.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -31,6 +31,8 @@
 - `stage-2/combined-search-levels.md` — уровни combined search и MVP recommendation по MJ-S1-001.
 - `stage-2/data-requirements.md` — продуктовые требования к данным без API schema, DTO, OpenAPI или database schema.
 - `stage-2/stage-2-summary.md` — краткое резюме Stage 2, open questions, переносы на Stage 3 и readiness.
+- `stage-2/stage-2-consistency-review.md` — review Stage 2 и структуры документации: consistency, traceability, combined search, provider/API data handling, navigation, duplication и language notes.
+- Stage 2 Minor Cleanup — follow-up cleanup по language notes и roadmap navigation polish; результат зафиксирован в `stage-2/stage-2-consistency-review.md` и primary roadmap.
 
 ## Правила ведения product-документации
 

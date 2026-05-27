@@ -79,7 +79,7 @@ Stage 2 явно фиксирует:
 - интеграция с существующим travel API входит в MVP;
 - финальный MVP должен использовать предоставленный API-контракт для получения реальных travel offers;
 - mock/fake providers, provider abstractions и contract placeholders допустимы только как промежуточные средства разработки;
-- отсутствие API-контракта на Stage 2 является Open input для future technical stages, а не основанием переносить интеграцию в Post-MVP.
+- отсутствие API-контракта на Stage 2 является Open input для будущих технических этапов, а не основанием переносить интеграцию в Post-MVP.
 
 ## Provider/API data handling
 
