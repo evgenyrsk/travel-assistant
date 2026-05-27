@@ -1,107 +1,249 @@
-# Roadmap Travel Assistant
+# Roadmap Progress — Travel Assistant
 
-Этот roadmap фиксирует верхнеуровневую последовательность развития проекта. Этап 0 завершен как продуктовая рамка. Этап 1 завершен в рамках продуктовой проработки бизнес-требований, пользовательских сценариев и требований без технической реализации.
+Этот документ является **primary roadmap** проекта Travel Assistant. Он фиксирует этапы, текущий прогресс, артефакты, открытые вопросы, carryover и следующий шаг.
 
-## Этап 0 — перезапуск проекта и продуктовая рамка
+Связанные документы:
 
-**Статус:** завершен.
+- `docs/ROADMAP.md` — краткий верхнеуровневый список этапов.
+- `docs/development/roadmap.md` — детальный roadmap разработки и будущих implementation-задач.
+- `docs/development/milestones.md` — вехи и контрольные точки реализации.
+- `docs/product/README.md` — индекс продуктовых документов.
 
-**Цель:** зафиксировать исходную продуктовую постановку, границы проекта, цели, пользовательскую ценность и рабочие правила дальнейшей разработки.
+## Current Status
 
-**Результат:** продуктовая документационная основа без технической реализации.
+| Item | Status |
+|---|---|
+| Current stage | После Stage 2 Minor Cleanup |
+| Last completed stage | Stage 2 — Use Cases & Edge Cases |
+| Next planned step | Stage 3 — MVP Boundaries & Acceptance Criteria |
+| Stage 3 | Not started |
+| Code/API/DB/UI implementation | Not started |
 
-**Основные артефакты:**
+## MVP Scope Note
 
-- продуктовая рамка;
-- первичные сценарии;
-- предварительные границы MVP;
-- допущения и открытые вопросы;
-- правила дальнейшей поэтапной работы.
+- Интеграция с существующим travel API входит в MVP.
+- В организации уже есть travel API; его контракт должен быть предоставлен на соответствующем техническом этапе.
+- Mock/fake providers, provider abstractions и contract placeholders допустимы только как промежуточные средства разработки.
+- Финальный MVP должен использовать предоставленный API-контракт для получения реальных travel offers.
+- Stage 0/1/2 не проектируют API-контракт, endpoints, DTO, database schema, provider adapter или UI-макеты.
+- Provider/API data является primary source of truth для travel facts.
+- LLM/assistant не должен выдумывать provider facts и должен отделять provider facts, assistant assumptions и unknown data.
 
-## Этап 1 — бизнес-требования
+## Open Decisions
 
-**Статус:** завершен.
+- Минимальный required field set для hotel search, flight search и combined search.
+- Входит ли Level 3 coordinated combined search в MVP.
+- Какой объем open destination discovery нужен в MVP.
+- Когда и в каком виде будет предоставлен контракт существующего travel API.
+- Adapter design, provider error taxonomy, reliability и production-hardening.
+- Долгосрочная история, авторизация и account-level storage.
+- Acceptance criteria для Stage 3.
 
-**Цель:** уточнить бизнес-цели, целевые сегменты пользователей, критерии успешной рекомендации и ограничения продукта.
+## Stage 0 — Product Framing
 
-**Результат:** зафиксированы целевые сегменты, бизнес-сценарии, пользовательские пути, бизнес-требования, функциональные и нефункциональные требования, допущения, открытые вопросы и риски Stage 1.
+**Status:** Completed.
 
-**Основные артефакты:**
+**Goal:** зафиксировать исходную продуктовую рамку, первичные сценарии, предварительные MVP boundaries и правила дальнейшей работы.
 
-- `docs/product/stage-1/target-audience.md`;
-- `docs/product/stage-1/business-scenarios.md`;
-- `docs/product/stage-1/user-journeys.md`;
-- `docs/product/stage-1/business-requirements.md`;
-- `docs/product/stage-1/functional-requirements.md`;
-- `docs/product/stage-1/non-functional-requirements.md`;
-- `docs/product/stage-1/assumptions-and-open-questions.md`;
-- `docs/product/stage-1/stage-1-summary.md`;
-- `docs/product/stage-1/stage-1-consistency-review.md`.
+**Artifacts checklist:**
 
-**Quality gate:**
+- [x] `docs/product/stage-0/product-framing.md`
+- [x] `docs/product/stage-0/initial-scenarios.md`
+- [x] `docs/product/stage-0/mvp-boundaries.md`
+- [x] `docs/product/stage-0/assumptions-and-open-questions.md`
+- [x] Product documentation index: `docs/product/README.md`
 
-- [x] Stage 1 Consistency Review.
+**Open questions:**
 
-**Ограничения:** Этап 1 не реализует код, API-контракты, UI-макеты, схему базы данных, выбор финального технического стека или реальные интеграции.
+- Приоритетные пользователи и сценарии MVP были уточнены в Stage 1.
+- Точные MVP boundaries перенесены на Stage 3.
+- Технические контракты и архитектурные решения не фиксировались на Stage 0.
 
-## Этап 2 — пользовательские сценарии и варианты использования
+**Recommendations / carryover:**
 
-**Цель:** развернуть верхнеуровневые сценарии в варианты использования, пользовательские потоки и основные пограничные случаи.
+- Сохранять поэтапный порядок: product framing → requirements → use cases → MVP boundaries → UX/architecture → implementation.
+- Не использовать Stage 0 как источник финальных технических решений.
 
-**Не выполнять в рамках предыдущих этапов:** не превращать текущие сценарии в полные user stories или UX-потоки.
+## Stage 1 — Business Requirements
 
-## Этап 3 — границы MVP и функциональные требования
+**Status:** Completed.
 
-**Цель:** определить финальные границы MVP, функциональные требования и критерии приемки.
+**Goal:** зафиксировать аудиторию, business scenarios, user journeys, BR/FR/NFR, assumptions, open questions и risks.
 
-**Не выполнять в рамках предыдущих этапов:** не фиксировать окончательный объем MVP и не писать технические контракты.
+**Artifacts checklist:**
 
-## Этап 4 — UX/UI-концепция
+- [x] `docs/product/stage-1/target-audience.md`
+- [x] `docs/product/stage-1/business-scenarios.md`
+- [x] `docs/product/stage-1/user-journeys.md`
+- [x] `docs/product/stage-1/business-requirements.md`
+- [x] `docs/product/stage-1/functional-requirements.md`
+- [x] `docs/product/stage-1/non-functional-requirements.md`
+- [x] `docs/product/stage-1/assumptions-and-open-questions.md`
+- [x] `docs/product/stage-1/stage-1-summary.md`
+- [x] `docs/product/stage-1/stage-1-consistency-review.md`
 
-**Цель:** описать концепцию пользовательского опыта, основные экраны, структуру диалога и отображение результатов.
+**Follow-ups checklist:**
 
-**Не выполнять в рамках предыдущих этапов:** не создавать UI-макеты и не реализовывать интерфейс.
+- [x] Stage 1 Consistency Review
+- [x] Stage 1 Follow-up Cleanup
+- [x] Stage 1 Scope Correction
 
-## Этап 5 — техническая архитектура
+**Key results:**
 
-**Цель:** определить архитектурные границы, компоненты, интеграционные точки, принципы работы с AI/LLM и провайдерами.
+- Business scenarios S-01 - S-10 зафиксированы.
+- BR-001 - BR-016 зафиксированы.
+- FR-001 - FR-014 зафиксированы.
+- NFR-001 - NFR-015 зафиксированы.
+- Booking и payment исключены из MVP.
+- Provider abstraction и LLM provider abstraction зафиксированы как обязательные границы.
 
-**Не выполнять в рамках предыдущих этапов:** не проектировать детальную архитектуру, схему базы данных, OpenAPI или конкретные реализации.
+**Open questions:**
 
-## Этап 6 — подготовка реализации
+- Q-001: уровень поддержки combined search.
+- Q-002/Q-003: обязательные параметры hotel и flight search.
+- Q-004: критерии успешной рекомендации.
+- Q-005: open destination.
+- Q-006/Q-010: сохранение и авторизация.
+- Q-007/Q-009: порог уточнений и язык uncertainty/provider errors.
+- Q-012: когда будет предоставлен контракт существующего travel API.
 
-**Цель:** подготовить задачи реализации, контракты, тестовую стратегию, подход к mock/stub данным и локальный рабочий процесс.
+**Recommendations / carryover:**
 
-**Не выполнять в рамках предыдущих этапов:** не создавать mock-сервер, backend/frontend skeleton или tooling реализации.
+- Разделить combined intent recognition, same-dialog assistance, coordinated search и full package ranking.
+- Не проектировать API-контракт до предоставления существующего контракта.
+- На Stage 3 финализировать MVP boundaries и acceptance criteria.
 
-## Этап 7 — реализация MVP
+## Stage 2 — Use Cases & Edge Cases
 
-**Цель:** реализовать согласованный MVP по документированным требованиям и архитектуре.
+**Status:** Completed.
 
-**Не выполнять в рамках предыдущих этапов:** не писать код продукта.
+**Goal:** развернуть Stage 1 scenarios в use cases, edge cases, assistant behaviour rules, combined search levels и product data requirements.
 
-## Этап 8 — улучшение AI/LLM-оркестрации
+**Artifacts checklist:**
 
-**Цель:** улучшать оркестрацию, уточнения, объяснения, сравнения, устойчивость к неоднозначным запросам и качество AI-поведения.
+- [x] `docs/product/stage-2/use-cases.md`
+- [x] `docs/product/stage-2/edge-cases.md`
+- [x] `docs/product/stage-2/assistant-behaviour-rules.md`
+- [x] `docs/product/stage-2/combined-search-levels.md`
+- [x] `docs/product/stage-2/data-requirements.md`
+- [x] `docs/product/stage-2/stage-2-summary.md`
+- [x] `docs/product/stage-2/stage-2-consistency-review.md`
 
-**Не выполнять в рамках предыдущих этапов:** не оптимизировать prompts, не выбирать provider и не внедрять реальные LLM-интеграции.
+**Follow-ups checklist:**
 
-## Этап 9 — интеграция с реальными провайдерами/API
+- [x] Stage 2 Consistency Review
+- [x] Stage 2 Minor Cleanup — Language & Roadmap Navigation Polish
 
-**Цель:** подключить реальные источники офферов по отелям и авиабилетам через утвержденные абстракции провайдеров.
+**Key results:**
 
-**Не выполнять в рамках предыдущих этапов:** не интегрироваться с внутренними API и не фиксировать детали, специфичные для провайдера.
+- UC-01 - UC-15 зафиксированы.
+- EC-001 - EC-035 зафиксированы.
+- ABR-001 - ABR-018 зафиксированы.
+- Combined search разделен на 4 уровня:
+  - Level 1 — Combined intent recognition: In MVP.
+  - Level 2 — Same-dialog hotel and flight assistance: In MVP.
+  - Level 3 — Coordinated combined search: Open for Stage 3.
+  - Level 4 — Full combined package ranking: Post-MVP/Open.
+- Provider/API data зафиксирована как primary source of truth для travel facts.
+- LLM/assistant не должен выдумывать provider facts.
 
-## Этап 10 — кроссплатформенное расширение
+**Open questions:**
 
-**Цель:** развивать продукт за пределы первой платформы: mobile iOS/Android и другие интерфейсы.
+- Минимальный required field set для каждого intent.
+- MVP-решение по Level 3 coordinated combined search.
+- Open destination discovery.
+- Конкретный API-контракт существующего travel API.
+- Adapter design, error handling taxonomy, reliability и production-hardening.
+- Session persistence, resume behaviour, long-term history и authorization.
 
-**Не выполнять в рамках предыдущих этапов:** не проектировать и не реализовывать мобильные приложения.
+**Recommendations / carryover:**
 
-## Правила движения по roadmap
+- На Stage 3 превратить Stage 2 use cases и edge cases в финальные MVP boundaries и acceptance criteria.
+- Сохранить запрет на API contracts, DB schema, UI mockups и код до соответствующих этапов.
+
+## Stage 3 — MVP Boundaries & Acceptance Criteria
+
+**Status:** Not started / Planned.
+
+**Goal:** определить финальные границы MVP, функциональные требования в финальном виде и acceptance criteria.
+
+**Planned artifacts checklist:**
+
+- [ ] Финализированные MVP boundaries.
+- [ ] Acceptance criteria для MVP use cases.
+- [ ] Решение по Level 3 coordinated combined search.
+- [ ] Required fields per intent.
+- [ ] MVP/Post-MVP split для session persistence, resume и authorization.
+- [ ] Carryover list для architecture/technical stages.
+
+**Entry criteria:**
+
+- [x] Stage 0 completed.
+- [x] Stage 1 completed.
+- [x] Stage 1 Consistency Review completed.
+- [x] Stage 1 Follow-up Cleanup completed.
+- [x] Stage 1 Scope Correction completed.
+- [x] Stage 2 completed.
+- [x] Stage 2 Consistency Review completed.
+- [x] Stage 2 Minor Cleanup completed.
+
+**Exit criteria:**
+
+- MVP scope финализирован.
+- Acceptance criteria описаны и проверяемы.
+- Open/Post-MVP пункты отделены от MVP.
+- Real travel API integration сохранена в MVP scope без проектирования контракта до его предоставления.
+- Stage 4 может начинаться без неявного расширения MVP.
+
+## Future Stages
+
+### Stage 4 — UX/UI Concept
+
+**Status:** Planned.
+
+**Scope:** UX-концепция, основные состояния, структура диалога и отображение результатов без реализации UI.
+
+### Stage 5 — Technical Architecture
+
+**Status:** Planned.
+
+**Scope:** архитектурные границы, компоненты, AI/LLM abstraction, provider abstraction, backend/frontend/domain/integrations responsibilities.
+
+### Stage 6 — Implementation Preparation
+
+**Status:** Planned.
+
+**Scope:** задачи реализации, контракты, тестовая стратегия, mock/fake providers, contract placeholders и локальный workflow.
+
+### Stage 7 — MVP Implementation
+
+**Status:** Planned.
+
+**Scope:** реализация согласованного MVP, включая интеграцию с существующим travel API после предоставления API-контракта.
+
+### Stage 8 — AI/LLM Orchestration Improvements
+
+**Status:** Planned.
+
+**Scope:** улучшение уточнений, объяснений, сравнения и устойчивости AI-поведения без привязки к одному LLM provider.
+
+### Stage 9 — Real Provider/API Integration Hardening
+
+**Status:** Planned.
+
+**Scope:** adapter design, provider-specific error handling, reliability и production-hardening вокруг реального provider/API.
+
+### Stage 10 — Cross-platform Expansion
+
+**Status:** Planned.
+
+**Scope:** развитие за пределы первой платформы без переписывания продуктовой и доменной логики.
+
+## Roadmap Rules
 
 - Не начинать следующий этап без явной задачи.
 - Не менять порядок этапов без отдельного решения.
-- Документировать решения до реализации или вместе с ней.
-- Идеи будущих этапов фиксировать как recommendations, но не выполнять преждевременно.
-- Спорные архитектурные решения фиксировать через ADR.
+- Не выполнять recommendations в рамках cleanup или review задач.
+- Не создавать документы будущих этапов до соответствующей задачи.
+- Не проектировать API contracts, database schema, UI mockups или code до соответствующих этапов.
+- Спорные архитектурные решения фиксировать через ADR, если они появляются на будущих этапах.
