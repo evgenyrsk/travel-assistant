@@ -2,7 +2,7 @@
 
 Этот раздел содержит продуктовую документацию Travel Assistant. Документы фиксируют пользовательскую ценность, сценарии, границы MVP, открытые вопросы и правила движения по этапам до начала технической реализации.
 
-Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Stage 2 Minor Cleanup выполнен; текущий следующий шаг: Stage 3 — MVP Boundaries & Acceptance Criteria, но Stage 3 еще не начат.
+Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Stage 2 Minor Cleanup выполнен; текущий этап — Stage 3: MVP UX / Navigation. Stage 3.1 Screen Map и Stage 3.2 Required Fields & Acceptance Criteria выполнены; Stage 3 остается открытым до завершения search flow details, combined search UX decision и UX consistency review.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -33,6 +33,13 @@
 - `stage-2/stage-2-summary.md` — краткое резюме Stage 2, open questions, переносы на Stage 3 и readiness.
 - `stage-2/stage-2-consistency-review.md` — review Stage 2 и структуры документации: consistency, traceability, combined search, provider/API data handling, navigation, duplication и language notes.
 - Stage 2 Minor Cleanup — follow-up cleanup по language notes и roadmap navigation polish; результат зафиксирован в `stage-2/stage-2-consistency-review.md` и primary roadmap.
+
+## Этап 3 — MVP UX / Navigation
+
+- `stage-3/screen-map.md` — Stage 3.1: карта экранов MVP, навигационная модель, основные UX-потоки, состояния экранов и MVP/Post-MVP разделение на уровне UX-навигации.
+- `stage-3/required-fields-and-acceptance-criteria.md` — Stage 3.2: required/optional/derived fields, missing data behaviour и acceptance criteria для MVP search flows.
+
+Stage 3 отвечает за UX-структуру, навигацию, search flows, required fields, acceptance criteria и MVP/Post-MVP UX boundaries. Stage 4 остается отдельным будущим этапом Visual Design / UI Concept: visual style, layout direction, UI components, design system, typography, colors и возможные wireframes/mockups.
 
 ## Правила ведения product-документации
 

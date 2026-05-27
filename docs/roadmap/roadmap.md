@@ -13,10 +13,10 @@
 
 | Item | Status |
 |---|---|
-| Current stage | После Stage 2 Minor Cleanup |
-| Last completed stage | Stage 2 — Use Cases & Edge Cases |
-| Next planned step | Stage 3 — MVP Boundaries & Acceptance Criteria |
-| Stage 3 | Not started |
+| Current stage | Stage 3 — MVP UX / Navigation |
+| Last completed stage | Stage 3.2 — Required Fields & Acceptance Criteria |
+| Next planned step | Stage 3.3 — MVP Search Flow Details |
+| Stage 3 | In progress |
 | Code/API/DB/UI implementation | Not started |
 
 ## MVP Scope Note
@@ -31,13 +31,12 @@
 
 ## Open Decisions
 
-- Минимальный required field set для hotel search, flight search и combined search.
 - Входит ли Level 3 coordinated combined search в MVP.
-- Какой объем open destination discovery нужен в MVP.
+- Какой объем provider-backed open destination discovery нужен в MVP.
 - Когда и в каком виде будет предоставлен контракт существующего travel API.
 - Adapter design, provider error taxonomy, reliability и production-hardening.
 - Долгосрочная история, авторизация и account-level storage.
-- Acceptance criteria для Stage 3.
+- Детальные MVP search flow steps и UX consistency review для Stage 3.
 
 ## Stage 0 — Product Framing
 
@@ -161,20 +160,21 @@
 - На Stage 3 превратить Stage 2 use cases и edge cases в финальные MVP boundaries и acceptance criteria.
 - Сохранить запрет на API contracts, DB schema, UI mockups и код до соответствующих этапов.
 
-## Stage 3 — MVP Boundaries & Acceptance Criteria
+## Stage 3 — MVP UX / Navigation
 
-**Status:** Not started / Planned.
+**Status:** In progress.
 
-**Goal:** определить финальные границы MVP, функциональные требования в финальном виде и acceptance criteria.
+**Goal:** определить UX-структуру MVP, navigation model, search flow boundaries, required fields и acceptance criteria для пользовательских потоков без перехода к визуальному дизайну, API, архитектуре или реализации.
 
-**Planned artifacts checklist:**
+**Artifacts checklist:**
 
-- [ ] Финализированные MVP boundaries.
-- [ ] Acceptance criteria для MVP use cases.
-- [ ] Решение по Level 3 coordinated combined search.
-- [ ] Required fields per intent.
+- [x] Stage 3.1 — MVP Screen Map / UX Navigation: `docs/product/stage-3/screen-map.md`.
+- [x] Stage 3.2 — Required Fields & Acceptance Criteria: `docs/product/stage-3/required-fields-and-acceptance-criteria.md`.
+- [ ] MVP Search Flow Details.
+- [ ] Combined Search UX Decision.
 - [ ] MVP/Post-MVP split для session persistence, resume и authorization.
-- [ ] Carryover list для architecture/technical stages.
+- [ ] UX Consistency Review.
+- [ ] Carryover list для visual design, architecture и technical stages.
 
 **Entry criteria:**
 
@@ -189,19 +189,19 @@
 
 **Exit criteria:**
 
-- MVP scope финализирован.
-- Acceptance criteria описаны и проверяемы.
+- MVP UX scope финализирован.
+- Required fields и acceptance criteria описаны и проверяемы.
 - Open/Post-MVP пункты отделены от MVP.
 - Real travel API integration сохранена в MVP scope без проектирования контракта до его предоставления.
-- Stage 4 может начинаться без неявного расширения MVP.
+- Stage 4 может начинаться без неявного расширения MVP и без смешивания UX-навигации с visual design.
 
 ## Future Stages
 
-### Stage 4 — UX/UI Concept
+### Stage 4 — Visual Design / UI Concept
 
 **Status:** Planned.
 
-**Scope:** UX-концепция, основные состояния, структура диалога и отображение результатов без реализации UI.
+**Scope:** visual style, layout direction, UI components, design system, typography, colors, high-level visual concept и wireframes/mockups, если они будут предусмотрены отдельной задачей. Stage 4 не подменяет Stage 3 UX structure, navigation model, search flows и acceptance criteria.
 
 ### Stage 5 — Technical Architecture
 

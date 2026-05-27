@@ -32,6 +32,7 @@ Travel Assistant — приватный проект для разработки
 - `docs/product/stage-0/` — Этап 0: продуктовая рамка, первичные сценарии, границы MVP, допущения и открытые вопросы.
 - `docs/product/stage-1/` — Этап 1: бизнес-сценарии, требования, user journeys, assumptions и consistency review.
 - `docs/product/stage-2/` — Этап 2: use cases, edge cases, assistant behaviour rules, combined search levels и data requirements.
+- `docs/product/stage-3/` — Этап 3: MVP UX / Navigation, screen map, navigation model, UX flows, required fields и acceptance criteria.
 - `docs/PROJECT_BRIEF.md` — продуктовый контекст, пользователи, ключевые сценарии и открытые продуктовые вопросы.
 - `docs/ARCHITECTURE.md` — целевая архитектура, границы слоев и технические принципы.
 - `docs/roadmap/roadmap.md` — главный roadmap проекта: статусы этапов, чеклисты артефактов, open questions, carryover и следующий шаг.
@@ -45,7 +46,7 @@ Travel Assistant — приватный проект для разработки
 
 ## Начало работы
 
-Текущий статус: Этап 0, Этап 1 и Этап 2 завершены, Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Следующий шаг — Этап 3: MVP Boundaries & Acceptance Criteria; он еще не начат. Техническая архитектура, каркас приложения и сервисов добавляются только на соответствующих будущих этапах roadmap.
+Текущий статус: Этап 0, Этап 1 и Этап 2 завершены, Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Stage 3 — MVP UX / Navigation начат; Stage 3.1 Screen Map и Stage 3.2 Required Fields & Acceptance Criteria выполнены. Следующий шаг — Stage 3.3: MVP Search Flow Details. Техническая архитектура, визуальный дизайн, каркас приложения и сервисов добавляются только на соответствующих будущих этапах roadmap.
 
 ## Рабочий процесс Codex
 

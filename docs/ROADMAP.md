@@ -2,7 +2,7 @@
 
 Этот документ описывает верхнеуровневый список этапов и не является источником текущих статусов. Главный roadmap со статусами, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Детальный порядок задач реализации и вех ведется отдельно в `docs/development/roadmap.md` и `docs/development/milestones.md` и следует primary roadmap.
 
-Текущий прогресс: Stage 0, Stage 1 и Stage 2 завершены; Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Следующий шаг — Stage 3, но Stage 3 не начат. При расхождении статусов приоритет у `docs/roadmap/roadmap.md`.
+Текущий прогресс: Stage 0, Stage 1 и Stage 2 завершены; Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Stage 3 — MVP UX / Navigation начат; Stage 3.1 Screen Map и Stage 3.2 Required Fields & Acceptance Criteria выполнены. При расхождении статусов приоритет у `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -26,18 +26,19 @@
 - Зафиксировать ключевые пограничные случаи.
 - Разделить обязательные и дополнительные сценарии.
 
-## Этап 3 — границы MVP и функциональные требования
+## Этап 3 — MVP UX / Navigation
 
-- Определить финальные границы MVP.
-- Описать functional requirements.
-- Зафиксировать acceptance criteria.
-- Отделить MVP от будущего объема работ.
+- Определить screen map и navigation model MVP.
+- Описать основные UX flows и screen states.
+- Зафиксировать required fields и acceptance criteria для MVP user flows.
+- Принять UX-решение по combined search.
+- Отделить MVP UX boundaries от будущего объема работ.
 
-## Этап 4 — UX/UI-концепция
+## Этап 4 — Visual Design / UI Concept
 
-- Описать UX-концепцию.
-- Определить основные экраны и состояния.
-- Продумать отображение уточнений, вариантов, сравнений и объяснений.
+- Описать visual style и layout direction.
+- Определить UI components, typography, colors и design system direction.
+- Подготовить wireframes или mockups, если они предусмотрены отдельной задачей.
 - Сохранить возможность будущих мобильных и кроссплатформенных клиентов.
 
 ## Этап 5 — техническая архитектура
