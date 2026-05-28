@@ -14,29 +14,52 @@
 | Item | Status |
 |---|---|
 | Current stage | Stage 3 — MVP UX / Navigation |
-| Last completed stage | Stage 3.3 — MVP Search Flow Details |
-| Next planned step | Stage 3 Combined Search UX Decision |
+| Last completed stage | Stage 3.5 — MVP v1 Hotel-Only Scope Refocus |
+| Next planned step | Stage 3 hotel-only UX consistency review |
 | Stage 3 | In progress |
 | Code/API/DB/UI implementation | Not started |
 
 ## MVP Scope Note
 
-- Интеграция с существующим travel API входит в MVP.
+- MVP v1 сфокусирован только на hotel search: natural-language hotel request, clarification, hotel results, hotel ranking/explanation, hotel details, hotel save/shortlist и базовое hotel comparison.
+- Flight search исключен из MVP v1 и является следующим расширением после реализации hotel search flow.
+- Combined hotel + flight search исключен из MVP v1 и возвращается после появления flight search flow.
+- Интеграция с существующим travel API входит в MVP v1 для hotel offers.
 - В организации уже есть travel API; его контракт должен быть предоставлен на соответствующем техническом этапе.
 - Mock/fake providers, provider abstractions и contract placeholders допустимы только как промежуточные средства разработки.
-- Финальный MVP должен использовать предоставленный API-контракт для получения реальных travel offers.
+- Финальный MVP v1 должен использовать предоставленный API-контракт для получения реальных hotel offers.
 - Stage 0/1/2 не проектируют API-контракт, endpoints, DTO, database schema, provider adapter или UI-макеты.
 - Provider/API data является primary source of truth для travel facts.
 - LLM/assistant не должен выдумывать provider facts и должен отделять provider facts, assistant assumptions и unknown data.
 
 ## Open Decisions
 
-- Входит ли Level 3 coordinated combined search в MVP.
-- Какой объем provider-backed open destination discovery нужен в MVP.
+- Какой объем provider-backed open destination discovery нужен в MVP v1, если он применим к hotel search.
 - Когда и в каком виде будет предоставлен контракт существующего travel API.
 - Adapter design, provider error taxonomy, reliability и production-hardening.
 - Долгосрочная история, авторизация и account-level storage.
 - UX consistency review для Stage 3.
+
+## Stage 3 Dashboard
+
+Этот раздел является компактной рабочей панелью текущего этапа. Детальные продуктовые решения остаются в Stage 3 документах, а статус и следующий шаг фиксируются здесь.
+
+| Area | Status | Source / next step |
+|---|---|---|
+| Screen map and navigation model | Completed | `docs/product/stage-3/screen-map.md` |
+| Required fields and acceptance criteria | Completed | `docs/product/stage-3/required-fields-and-acceptance-criteria.md` |
+| MVP search flow details | Completed | `docs/product/stage-3/mvp-search-flow-details.md` |
+| Combined Search UX Decision | Superseded for MVP v1 | `docs/product/stage-3/combined-search-ux-decision.md` сохранен как historical decision; combined перенесен за MVP v1. |
+| MVP v1 Hotel-Only Scope Refocus | Completed | MVP v1 ограничен hotel search; flight является next expansion, combined — later expansion. |
+| Session persistence / resume / authorization split | Deferred | Нужно уточнять только после hotel-only UX consistency review, если останется relevant для MVP v1. |
+| UX Consistency Review | Next | Проверить Stage 3 документы после hotel-only refocus. |
+| Stage 3 carryover list | Pending | Подготовить переносы для Stage 4, Stage 5 и technical stages после review. |
+
+**Stage 3 blockers / open inputs:**
+
+- Нужно проверить, что Stage 3 UX/acceptance docs больше не требуют flight или combined для MVP v1.
+- Нужно не начинать Stage 4 Visual Design / UI Concept до закрытия Stage 3 UX consistency review.
+- Нужно не начинать Stage 5 Technical Architecture до явной задачи на архитектурный этап.
 
 ## Stage 0 — Product Framing
 
@@ -95,6 +118,7 @@
 - NFR-001 - NFR-015 зафиксированы.
 - Booking и payment исключены из MVP.
 - Provider abstraction и LLM provider abstraction зафиксированы как обязательные границы.
+- Later scope note: прежние flight и combined MVP recommendations superseded для MVP v1; flight search — next expansion после hotel flow, combined — later expansion после flight flow.
 
 **Open questions:**
 
@@ -139,17 +163,17 @@
 - EC-001 - EC-035 зафиксированы.
 - ABR-001 - ABR-018 зафиксированы.
 - Combined search разделен на 4 уровня:
-  - Level 1 — Combined intent recognition: In MVP.
-  - Level 2 — Same-dialog hotel and flight assistance: In MVP.
-  - Level 3 — Coordinated combined search: Open for Stage 3.
+  - Level 1 — Combined intent recognition: superseded for MVP v1; future expansion.
+  - Level 2 — Same-dialog hotel and flight assistance: superseded for MVP v1; future expansion after flight flow.
+  - Level 3 — Coordinated combined search: superseded for MVP v1; later expansion after flight flow.
   - Level 4 — Full combined package ranking: Post-MVP/Open.
 - Provider/API data зафиксирована как primary source of truth для travel facts.
 - LLM/assistant не должен выдумывать provider facts.
+- MVP v1 scope refocus: Stage 2 flight/combined recommendations сохраняются как historical traceability, но не являются разрешением реализовывать flight/combined в MVP v1.
 
 **Open questions:**
 
 - Минимальный required field set для каждого intent.
-- MVP-решение по Level 3 coordinated combined search.
 - Open destination discovery.
 - Конкретный API-контракт существующего travel API.
 - Adapter design, error handling taxonomy, reliability и production-hardening.
@@ -171,8 +195,10 @@
 - [x] Stage 3.1 — MVP Screen Map / UX Navigation: `docs/product/stage-3/screen-map.md`.
 - [x] Stage 3.2 — Required Fields & Acceptance Criteria: `docs/product/stage-3/required-fields-and-acceptance-criteria.md`.
 - [x] Stage 3.3 — MVP Search Flow Details: `docs/product/stage-3/mvp-search-flow-details.md`.
-- [ ] Combined Search UX Decision.
-- [ ] MVP/Post-MVP split для session persistence, resume и authorization.
+- [x] Stage 3.4 — Combined Search UX Decision: `docs/product/stage-3/combined-search-ux-decision.md` (superseded for MVP v1).
+- [x] Stage 3.5 — MVP v1 Hotel-Only Scope Refocus.
+- [ ] Hotel-only UX Consistency Review.
+- [ ] MVP/Post-MVP split для session persistence, resume и authorization, если нужен после hotel-only review.
 - [ ] UX Consistency Review.
 - [ ] Carryover list для visual design, architecture и technical stages.
 
@@ -192,7 +218,8 @@
 - MVP UX scope финализирован.
 - Required fields и acceptance criteria описаны и проверяемы.
 - Open/Post-MVP пункты отделены от MVP.
-- Real travel API integration сохранена в MVP scope без проектирования контракта до его предоставления.
+- Flight search и combined hotel+flight не требуются для MVP v1 и перенесены в future scope.
+- Real travel API integration сохранена в MVP v1 scope для hotel offers без проектирования контракта до его предоставления.
 - Stage 4 может начинаться без неявного расширения MVP и без смешивания UX-навигации с visual design.
 
 ## Future Stages
@@ -219,7 +246,7 @@
 
 **Status:** Planned.
 
-**Scope:** реализация согласованного MVP, включая интеграцию с существующим travel API после предоставления API-контракта.
+**Scope:** реализация согласованного hotel-only MVP v1, включая интеграцию с существующим travel API для hotel offers после предоставления API-контракта. Flight search — следующий expansion после hotel flow; combined hotel+flight — более поздний expansion после flight flow.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 

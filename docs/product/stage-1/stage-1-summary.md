@@ -1,5 +1,7 @@
 # Stage 1 — резюме
 
+> MVP v1 scope update: прежние упоминания flight search и combined search как возможной части MVP сохранены как historical traceability. Актуальное решение для MVP v1: только hotel search. Flight search является next expansion после hotel flow; combined hotel+flight — later expansion после flight flow.
+
 ## Что было зафиксировано
 
 - Целевая аудитория Travel Assistant и различия между casual, business, family, budget и premium travellers.
@@ -15,7 +17,7 @@
 
 - Естественный текстовый запрос как основной вход.
 - Подбор отелей по естественному запросу.
-- Подбор перелетов по естественному запросу.
+- Подбор перелетов по естественному запросу — next expansion после hotel-only MVP v1.
 - Уточняющие вопросы при неполных данных.
 - Обработка противоречивых и нереалистичных запросов.
 - Базовое ранжирование результатов.
@@ -25,7 +27,7 @@
 - Возврат к текущему поиску в рамках доступного контекста.
 - Интеграция с существующим travel API для получения реальных travel offers.
 - Работа через provider abstractions, mock/fake providers и contract placeholders на ранних этапах разработки до предоставления реального API-контракта.
-- Combined intent recognition может быть частью MVP, но full combined package ranking остается Open до решения Stage 2/3.
+- Combined intent recognition и combined search не входят в MVP v1; они возвращаются после реализации flight search flow.
 
 ## Что не входит в MVP
 
@@ -67,8 +69,7 @@
 
 ## Основные открытые вопросы
 
-- Входит ли полный combined search в MVP или остается расширением.
-- Какие параметры обязательны перед hotel и flight search.
+- Какие параметры обязательны перед hotel search в MVP v1.
 - Что считать успешной рекомендацией.
 - Как работать с открытым направлением вроде "куда-нибудь в теплое место".
 - Какой объем сохранения результата нужен в MVP.
@@ -84,8 +85,7 @@
 
 ## Рекомендации для следующего этапа
 
-- Согласовать, входит ли S-03 в MVP полностью или как ограниченный сценарий.
-- Определить минимальные обязательные параметры для hotel search и flight search.
+- Определить минимальные обязательные параметры для hotel search.
 - Превратить S-01 - S-10 в проверяемые use cases без технических контрактов.
 - Отдельно зафиксировать правила объяснений: facts, assumptions, unknowns, provider errors.
 - Подготовить основу для Stage 3: финальные MVP boundaries и acceptance criteria.

@@ -1,5 +1,7 @@
 # Этап 0 — первичные сценарии
 
+> MVP v1 scope update: этот Stage 0 документ сохраняется как historical traceability. Актуальный MVP v1 реализует hotel search; flight search и combined hotel+flight являются future expansion.
+
 ## Цель документа
 
 Зафиксировать основные пользовательские сценарии верхнего уровня. Это не user stories, не функциональная спецификация и не критерии приемки MVP.

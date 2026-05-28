@@ -2,7 +2,7 @@
 
 Этот раздел содержит продуктовую документацию Travel Assistant. Документы фиксируют пользовательскую ценность, сценарии, границы MVP, открытые вопросы и правила движения по этапам до начала технической реализации.
 
-Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Stage 2 Minor Cleanup выполнен; текущий этап — Stage 3: MVP UX / Navigation. Stage 3.1 Screen Map, Stage 3.2 Required Fields & Acceptance Criteria и Stage 3.3 MVP Search Flow Details выполнены; Stage 3 остается открытым до завершения combined search UX decision и UX consistency review.
+Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Этот index описывает карту product-документов, но не является источником текущего статуса этапов.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -36,11 +36,12 @@
 
 ## Этап 3 — MVP UX / Navigation
 
-- `stage-3/screen-map.md` — Stage 3.1: карта экранов MVP, навигационная модель, основные UX-потоки, состояния экранов и MVP/Post-MVP разделение на уровне UX-навигации.
-- `stage-3/required-fields-and-acceptance-criteria.md` — Stage 3.2: required/optional/derived fields, missing data behaviour и acceptance criteria для MVP search flows.
-- `stage-3/mvp-search-flow-details.md` — Stage 3.3: подробные MVP search flows для hotel, flight, combined, open destination, refinement, save/shortlist и recovery states.
+- `stage-3/screen-map.md` — Stage 3.1: карта экранов hotel-only MVP v1, навигационная модель, основные UX-потоки, состояния экранов и MVP/Post-MVP разделение.
+- `stage-3/required-fields-and-acceptance-criteria.md` — Stage 3.2: required/optional/derived fields, missing data behaviour и acceptance criteria для hotel search flow.
+- `stage-3/mvp-search-flow-details.md` — Stage 3.3: подробный MVP v1 hotel search flow, refinement, save/shortlist и recovery states.
+- `stage-3/combined-search-ux-decision.md` — Stage 3.4: historical decision по limited Level 3 coordinated combined search; superseded для MVP v1 решением о hotel-only scope.
 
-Stage 3 отвечает за UX-структуру, навигацию, search flows, required fields, acceptance criteria и MVP/Post-MVP UX boundaries. Stage 4 остается отдельным будущим этапом Visual Design / UI Concept: visual style, layout direction, UI components, design system, typography, colors и возможные wireframes/mockups.
+Stage 3 отвечает за UX-структуру, навигацию, hotel search flow, required fields, acceptance criteria и MVP/Post-MVP UX boundaries для MVP v1. Актуальные завершенные и открытые Stage 3 work items ведутся в primary roadmap. Flight search является next expansion после hotel flow, combined hotel+flight — later expansion после flight flow. Stage 4 остается отдельным будущим этапом Visual Design / UI Concept.
 
 ## Правила ведения product-документации
 
@@ -48,4 +49,4 @@ Stage 3 отвечает за UX-структуру, навигацию, search 
 - Каждый этап должен иметь понятный результат и не должен выполнять работу следующих этапов.
 - Технические детали должны вытекать из требований, а не подменять их.
 - Спорные архитектурные решения в будущих этапах фиксируются через ADR в `docs/decisions/`.
-- Интеграция с существующим travel API входит в MVP; до предоставления API-контракта внутренние travel API рассматриваются как источники-провайдеры за абстракциями, а ранняя разработка может использовать mock/fake providers и contract placeholders без преждевременного проектирования контракта.
+- Интеграция с существующим travel API входит в MVP v1 для hotel offers; до предоставления API-контракта внутренние travel API рассматриваются как источники-провайдеры за абстракциями, а ранняя разработка может использовать mock/fake providers и contract placeholders без преждевременного проектирования контракта.

@@ -1,5 +1,7 @@
 # Stage 1 Consistency Review
 
+> MVP v1 scope update: этот review отражает состояние Stage 1 на момент его проведения. Последующее решение о hotel-only MVP v1 supersedes flight/combined MVP assumptions; они остаются historical traceability и future scope.
+
 ## 1. Review scope
 
 Проверялись документы Stage 1:

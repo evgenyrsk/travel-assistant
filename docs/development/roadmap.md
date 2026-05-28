@@ -58,17 +58,17 @@ Primary roadmap со статусами этапов, чеклистами ар�
 
 **Цель:** отделить минимальный рабочий сценарий от будущих возможностей.
 
-**Результат:** согласованный MVP: пользователь пишет запрос, ассистент уточняет недостающие параметры, ищет предложения через provider abstractions, ранжирует их и объясняет выбор. На ранних шагах допустимы mock/fake providers и contract placeholders, но финальный MVP должен использовать предоставленный контракт существующего travel API.
+**Результат:** согласованный hotel-only MVP v1: пользователь пишет hotel request, ассистент уточняет недостающие параметры, ищет hotel offers через provider abstraction, ранжирует их и объясняет выбор. На ранних шагах допустимы mock/fake providers и contract placeholders, но финальный MVP v1 должен использовать предоставленный контракт существующего travel API для hotel offers.
 
 **Файлы и модули:** `docs/PROJECT_BRIEF.md`, `docs/ROADMAP.md`, `docs/development/roadmap.md`, `docs/development/milestones.md`; отдельный документ по границам MVP только если будет явно создан отдельной задачей.
 
 **Критерии готовности:**
 - есть список того, что входит и не входит в границы MVP;
-- определены границы provider abstractions, mock/fake providers и contract placeholders;
-- описан end-to-end сценарий MVP;
+- определены границы hotel provider abstraction, mock/fake providers и contract placeholders;
+- описан end-to-end hotel search сценарий MVP v1;
 - есть критерии приемки MVP.
 
-**Не входит:** реальные платежи, бронирования, проектирование нового travel API-контракта до предоставления существующего контракта, мобильные и desktop-клиенты.
+**Не входит:** flight search, combined hotel+flight search, реальные платежи, бронирования, проектирование нового travel API-контракта до предоставления существующего контракта, мобильные и desktop-клиенты.
 
 ## 4. System Architecture
 
@@ -96,7 +96,7 @@ Primary roadmap со статусами этапов, чеклистами ар�
 **Файлы и модули:** будущие `services/backend/domain/`, `docs/domain/model.md`.
 
 **Критерии готовности:**
-- описаны `TripRequest`, `TravelerPreferences`, `TravelOffer`, `FlightOption`, `HotelOption`, `ConversationState`;
+- описаны hotel-focused `TripRequest`, `TravelerPreferences`, `TravelOffer`, `HotelOption`, `ConversationState`; `FlightOption` переносится в next expansion;
 - определены обязательные и опциональные поля;
 - зафиксированы доменные инварианты;
 - модель не зависит от Ktor, React, PostgreSQL или конкретного LLM-провайдера.
@@ -167,9 +167,25 @@ Primary roadmap со статусами этапов, чеклистами ар�
 
 **Не входит:** сложный graph runtime, multi-agent execution, долгосрочная память и реальные бронирования.
 
-## 10. Flight Search Abstraction
+## 10. Hotel Search Abstraction
 
-**Цель:** создать интерфейс поиска перелетов.
+**Цель:** создать интерфейс поиска отелей для MVP v1.
+
+**Результат:** `HotelSearchClient` или аналогичный порт, mock/fake provider для ранней разработки и доменные модели проживания.
+
+**Файлы и модули:** будущие `services/backend/domain/travel/`, `services/backend/infrastructure/travel/hotels/`.
+
+**Критерии готовности:**
+- поиск отелей вызывается через интерфейс;
+- есть mock/fake данные для ранней проверки до предоставления API-контракта;
+- ошибки поиска описаны отдельно от HTTP/provider-ошибок;
+- модель не привязана к конкретному внешнему API.
+
+**Не входит:** real-time availability, бронирование, отзывы, карты, платежи, flight search и production-hardening.
+
+## 11. Flight Search Abstraction
+
+**Цель:** создать интерфейс поиска перелетов как next expansion после hotel MVP v1.
 
 **Результат:** `FlightSearchClient` или аналогичный порт, mock/fake provider для ранней разработки и доменные модели перелетов.
 
@@ -181,29 +197,13 @@ Primary roadmap со статусами этапов, чеклистами ар�
 - ошибки поиска описаны отдельно от HTTP/provider-ошибок;
 - модель не привязана к конкретному внешнему API.
 
-**Не входит:** финальная интеграция с авиапоиском до предоставления API-контракта, покупка билетов, live pricing и production-hardening.
-
-## 11. Hotel Search Abstraction
-
-**Цель:** создать интерфейс поиска отелей.
-
-**Результат:** `HotelSearchClient` или аналогичный порт, mock/fake provider для ранней разработки и доменные модели проживания.
-
-**Файлы и модули:** будущие `services/backend/domain/travel/`, `services/backend/infrastructure/travel/hotels/`.
-
-**Критерии готовности:**
-- поиск отелей вызывается через интерфейс;
-- есть mock/fake данные для ранней проверки до предоставления API-контракта;
-- модель поддерживает цену, локацию, рейтинг и базовые удобства;
-- провайдера можно заменить без изменения use cases.
-
-**Не входит:** real-time availability, бронирование, отзывы, карты и платежи.
+**Не входит:** MVP v1, финальная интеграция с авиапоиском до предоставления API-контракта, покупка билетов, live pricing и production-hardening.
 
 ## 12. Offer Matching and Ranking
 
 **Цель:** сопоставлять найденные предложения с предпочтениями пользователя.
 
-**Результат:** базовый сервис ранжирования, который сортирует предложения и формирует причины рекомендации; ранняя проверка может использовать mock/fake offers, а финальный MVP должен работать с offers из существующего travel API.
+**Результат:** базовый сервис ранжирования, который сортирует hotel offers и формирует причины рекомендации; ранняя проверка может использовать mock/fake hotel offers, а финальный MVP v1 должен работать с hotel offers из существующего travel API.
 
 **Файлы и модули:** будущие `services/backend/domain/matching/`, `services/backend/application/usecase/`.
 
@@ -251,13 +251,13 @@ Primary roadmap со статусами этапов, чеклистами ар�
 
 **Цель:** показать найденные предложения в удобном виде.
 
-**Результат:** UI для карточек перелетов, отелей и комбинированных travel offers.
+**Результат:** UI для карточек отелей в MVP v1; flight cards и combined travel offers остаются future expansion.
 
 **Файлы и модули:** будущие `app/web/components/results/`, DTO mappings, UI states.
 
 **Критерии готовности:**
-- результаты отображаются структурированно;
-- видны цена, даты, маршрут, отель и причины рекомендации;
+- hotel results отображаются структурированно;
+- видны цена, даты, локация, отель и причины рекомендации;
 - есть состояния empty/loading/error;
 - UI не зависит от mock-провайдера напрямую.
 

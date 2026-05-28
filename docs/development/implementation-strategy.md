@@ -137,8 +137,8 @@
 
 ## Правила для travel search-задач
 
-- Flight и hotel search должны быть отдельными портами.
-- Mock/fake providers должны возвращать достаточно богатые данные для проверки ranking и UI до подключения предоставленного API-контракта.
+- MVP v1 начинается с hotel search port; flight search port добавляется отдельным expansion после hotel flow.
+- Mock/fake hotel provider должен возвращать достаточно богатые данные для проверки ranking и UI до подключения предоставленного API-контракта.
 - Внешние DTO провайдеров не должны становиться внутренней доменной моделью.
 - Реальные учетные данные API не должны появляться в репозитории.
 - Кеширование через Redis добавлять только после появления понятного сценария и ключей кеша.
@@ -157,11 +157,13 @@
 2. Создать backend skeleton и health endpoint.
 3. Добавить `LlmClient` abstraction и mock-реализацию.
 4. Создать `TravelAssistantOrchestrator` с clarification flow.
-5. Добавить абстракции поиска перелетов/отелей и mock-провайдеры.
-6. Добавить offer matching and ranking.
+5. Добавить hotel search abstraction и mock hotel provider.
+6. Добавить hotel offer matching and ranking.
 7. Создать web skeleton.
 8. Реализовать Chat UI.
-9. Реализовать Search Results UI.
-10. Собрать end-to-end MVP flow.
+9. Реализовать Hotel Search Results UI.
+10. Собрать end-to-end hotel MVP flow.
 11. Добавить тестовый, security и observability baseline.
 12. Подготовить Docker/local development и production readiness checklist.
+
+Flight search добавляется отдельным expansion после end-to-end hotel MVP flow. Combined hotel+flight добавляется после flight flow.

@@ -1,5 +1,7 @@
 # Stage 2 Consistency & Documentation Structure Review
 
+> MVP v1 scope update: этот review отражает состояние Stage 2 на момент его проведения. Последующее решение о hotel-only MVP v1 supersedes flight/combined MVP recommendations; они остаются historical traceability и future scope.
+
 ## Цель review
 
 Проверить согласованность Stage 2 с Stage 0, Stage 1, Stage 1 Scope Correction и текущей roadmap-структурой. Review оценивает полноту use cases, edge cases, assistant behaviour rules, combined search decision, provider/API data handling, структуру документации, навигацию, дублирование и языковую согласованность.
@@ -100,8 +102,8 @@ Combined search разделен на четыре уровня:
 
 Рекомендация Stage 2:
 
-- Level 1 — In MVP.
-- Level 2 — In MVP.
+- Level 1 — historical Stage 2 recommendation; superseded for MVP v1.
+- Level 2 — historical Stage 2 recommendation; superseded for MVP v1.
 - Level 3 — Open for Stage 3.
 - Level 4 — Post-MVP/Open.
 
@@ -280,7 +282,7 @@ Stage 2 Minor Cleanup — Language & Roadmap Navigation Polish выполнен 
 ## Deferred follow-up actions
 
 - На Stage 3 финализировать MVP boundaries и acceptance criteria.
-- На Stage 3 принять решение по Level 3 coordinated combined search.
+- Stage 3 later superseded Level 3 for MVP v1 through hotel-only scope refocus.
 - На Stage 3 уточнить required fields per intent.
 - После получения API-контракта выполнить отдельную техническую проработку provider/API contract usage без ретроактивного изменения Stage 2.
 - На Stage 5 пересмотреть `docs/ARCHITECTURE.md` и решить, нужны ли ADR/design docs по provider integration и orchestration.

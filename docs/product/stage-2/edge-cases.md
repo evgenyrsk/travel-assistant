@@ -1,5 +1,7 @@
 # Stage 2 — Edge Cases
 
+> MVP v1 scope update: этот документ сохраняется как historical traceability. Edge cases про flight search и combined search относятся к future scope после hotel-only MVP v1.
+
 ## Цель документа
 
 Зафиксировать edge cases для Travel Assistant без технической реализации. Edge cases помогают Stage 3 уточнить MVP boundaries и acceptance criteria.
@@ -9,8 +11,8 @@
 | ID | Категория | Описание | Пример пользовательского запроса | Ожидаемое поведение ассистента | Задавать уточнение | Вызывать provider | Fallback-поведение | Связанные use cases | MVP status |
 |---|---|---|---|---|---|---|---|---|---|
 | EC-001 | Missing data | Нет дат для hotel search. | "Найди отель в Барселоне." | Уточнить даты или допустимую гибкость. | yes | no | Попросить даты/период. | UC-01, UC-04 | In MVP |
-| EC-002 | Missing data | Нет города отправления для flight search. | "Хочу в Рим на выходные." | Уточнить origin. | yes | no | Сохранить destination и период как known parameters. | UC-02, UC-04 | In MVP |
-| EC-003 | Missing data | Неясно, нужен отель, перелет или оба. | "Хочу поездку в Париж." | Уточнить intent: hotel, flight или combined. | yes | no | Продолжить после выбора intent. | UC-03, UC-04 | In MVP |
+| EC-002 | Missing data | Нет города отправления для flight search. | "Хочу в Рим на выходные." | Future-scope для MVP v1; предложить hotel search, если релевантно. | yes | no | Сохранить destination и период как known parameters for future. | UC-02, UC-04 | Future scope after MVP v1 |
+| EC-003 | Missing data | Неясно, нужен отель, перелет или оба. | "Хочу поездку в Париж." | В MVP v1 уточнить, нужен ли hotel search; flight/combined обозначить как future scope. | yes | no | Продолжить с hotel search после выбора intent. | UC-03, UC-04 | In MVP v1 для hotel; future scope для flight/combined |
 | EC-004 | Missing data | Нет бюджета. | "Хочу хороший отель в центре." | Уточнить budget или предложить price tiers. | yes | open | Можно искать только если бюджет не критичен и это явно обозначено. | UC-01, UC-04 | In MVP |
 | EC-005 | Missing data | Нет количества гостей/пассажиров. | "Нужен отель на неделю." | Уточнить guests/passengers, если влияет на цену/availability. | yes | no | Сохранить остальные параметры. | UC-01, UC-02, UC-04 | In MVP |
 | EC-006 | Missing data | Нет длительности или return date. | "Хочу слетать в Лиссабон в июне." | Уточнить длительность или даты возврата. | yes | no | Не обещать цены без дат. | UC-02, UC-04 | In MVP |

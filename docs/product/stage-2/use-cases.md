@@ -1,5 +1,7 @@
 # Stage 2 — Use Cases
 
+> MVP v1 scope update: этот документ сохраняется как historical traceability. Актуальный MVP v1 ограничен hotel search. Use cases про flight search и combined search являются future scope и не разрешают реализацию flight/combined в MVP v1.
+
 ## Цель документа
 
 Развернуть сценарии Stage 1 в проверяемые use cases без перехода к API contracts, DTO, database schema, UI-макетам, prompt engineering или реализации providers.
@@ -71,7 +73,7 @@ Stage 2 учитывает Stage 1 Scope Correction: интеграция с с�
 2. Ассистент извлекает origin, destination, dates, passengers, budget, stops, baggage и time preferences.
 3. Ассистент уточняет критичные пробелы.
 4. Ассистент получает flight offers через provider abstraction.
-5. В финальном MVP flight offers должны приходить из существующего travel API по предоставленному контракту.
+5. В future flight expansion flight offers должны приходить из существующего travel API по предоставленному контракту.
 6. Ассистент ранжирует варианты по цене, длительности, пересадкам, времени и ограничениям.
 
 **Альтернативные потоки:** "на выходные" без дат; прямых рейсов нет; багаж неизвестен; бюджет конфликтует с датами.
@@ -109,8 +111,8 @@ Stage 2 учитывает Stage 1 Scope Correction: интеграция с с�
 2. Ассистент выделяет shared constraints: origin, destination или destination type, dates/duration, total budget, travelers.
 3. Ассистент отделяет hotel preferences от flight preferences.
 4. Ассистент уточняет критичные пробелы.
-5. Для MVP минимум: поддерживает один диалог с hotel и flight assistance в общем контексте.
-6. Coordinated search может быть In MVP или Open до Stage 3.
+5. Для future combined expansion минимум: поддерживает один диалог с hotel и flight assistance в общем контексте.
+6. Coordinated search не входит в MVP v1 и может вернуться после flight flow.
 7. Full package ranking как единая сущность остается Post-MVP или Open.
 
 **Альтернативные потоки:** направление открыто; хватает данных только для одного типа поиска; общий бюджет нужно разложить на flight/hotel assumptions.
@@ -123,7 +125,7 @@ Stage 2 учитывает Stage 1 Scope Correction: интеграция с с�
 
 **Ожидаемый результат:** пользователь понимает, что ассистент может сделать в рамках combined request и какие ограничения остаются.
 
-**MVP status:** Open частично: Level 1 и Level 2 In MVP; Level 3 Open for Stage 3; Level 4 Post-MVP/Open.
+**MVP status:** Superseded for MVP v1; future scope after hotel flow and flight flow.
 
 **Заметки:** см. `combined-search-levels.md`.
 

@@ -1,5 +1,7 @@
 # Stage 2 — Assistant Behaviour Rules
 
+> MVP v1 scope update: этот документ сохраняется как historical traceability. Правила, относящиеся к flight search и combined search, не являются active MVP v1 requirements.
+
 ## Цель документа
 
 Описать продуктовые правила поведения ассистента. Это не system prompt, не prompt engineering и не техническая оркестрация LLM.
@@ -8,10 +10,10 @@
 
 | ID | Правило | Обоснование | Примеры | Связанные use cases | MVP status |
 |---|---|---|---|---|---|
-| ABR-001 | Ассистент должен сначала определить intent: hotel, flight, combined, compare, save, resume или unsupported action. | Без intent нельзя понять required data и допустимый следующий шаг. | "Найди отель", "сравни эти два", "забронируй". | UC-01, UC-02, UC-03, UC-14 | In MVP |
+| ABR-001 | Ассистент должен сначала определить intent: hotel, compare, save, resume или unsupported action; flight/combined являются future-scope fallback для MVP v1. | Без intent нельзя понять required data и допустимый следующий шаг. | "Найди отель", "сравни эти два", "забронируй". | UC-01, UC-02, UC-03, UC-14 | In MVP v1 для hotel; future scope для flight/combined |
 | ABR-002 | Ассистент задает уточнение, если отсутствует параметр, без которого search будет ненадежным. | Неполный search ведет к случайным результатам. | Нет дат, origin, destination, travelers. | UC-04 | In MVP |
 | ABR-003 | Ассистент не должен требовать все возможные параметры сразу. | Диалог должен оставаться естественным. | Сначала спросить даты, затем бюджет, если он критичен. | UC-04 | In MVP |
-| ABR-004 | Ассистент может начать search только когда required data достаточно для выбранного intent. | Это снижает риск ложных offers и плохого ranking. | Для flight search нужен origin/destination/dates или явно заданная flexibility. | UC-01, UC-02, UC-04 | In MVP |
+| ABR-004 | Ассистент может начать hotel search только когда required data достаточно для hotel intent. | Это снижает риск ложных offers и плохого ranking. | Для hotel search нужны destination/dates/guests/rooms или подтвержденные assumptions. | UC-01, UC-02, UC-04 | In MVP v1 для hotel; future scope для flight |
 | ABR-005 | Provider/API data является primary source of truth для цен, availability, расписаний, параметров offers, ограничений и freshness. | LLM не является источником travel facts. | Цена рейса, рейтинг отеля, багаж, cancellation availability. | UC-06, UC-13, UC-15 | In MVP |
 | ABR-006 | Assistant assumptions должны быть отделены от provider facts. | Пользователь должен понимать, что проверено, а что предположено. | "Предполагаю, что под недорого вы имеете в виду до 120 евро." | UC-06, UC-09, UC-10 | In MVP |
 | ABR-007 | Unknown data должно быть явно помечено. | Отсутствующие данные нельзя превращать в уверенные выводы. | "Информация о багаже не получена от provider." | UC-05, UC-06, UC-13 | In MVP |

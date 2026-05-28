@@ -1,5 +1,7 @@
 # Этап 0 — границы MVP
 
+> MVP v1 scope update: этот Stage 0 документ сохраняется как historical traceability. Актуальный MVP v1 ограничен hotel search. Flight search — next expansion после hotel flow; combined hotel+flight — later expansion после flight flow.
+
 ## Цель документа
 
 Зафиксировать предварительную рамку MVP на самом верхнем уровне. Это не финальная спецификация MVP и не разрешение начинать реализацию.

@@ -38,40 +38,41 @@
 
 ## 3. MVP UX Scope
 
-В UX scope MVP входят:
+В UX scope MVP v1 входят:
 
 - web-first entry point с естественным текстовым запросом;
 - основной AI chat interface как главный способ взаимодействия;
 - уточнение недостающих параметров поездки без превращения сценария в длинную форму;
-- отображение результатов отелей и перелетов в структурированном виде;
-- базовое сравнение нескольких вариантов;
-- просмотр деталей одного offer;
-- сохранение offer или подборки в рамках текущей search session;
+- отображение результатов отелей в структурированном виде;
+- базовое сравнение нескольких hotel offers;
+- просмотр деталей одного hotel offer;
+- сохранение hotel offer или подборки в рамках текущей search session;
 - возврат к текущему поиску и уточнение запроса;
 - empty, loading, error и no results states;
 - явное отображение unknown data, provider limitations и freshness, если данные доступны на продуктовом уровне.
 
-В MVP UX scope не входят:
+В MVP v1 UX scope не входят:
 
+- flight search; это следующий product expansion после реализации hotel search flow;
+- combined hotel+flight search; это later expansion после появления flight search flow;
 - бронирование и оплата;
 - полноценный личный кабинет;
 - долгосрочная история поездок с авторизацией;
 - mobile app как отдельный первый клиент;
 - сложные фильтры, карта, календарь цен и package builder;
-- full combined package ranking как единая сущность, если Stage 3 отдельно не подтвердит Level 3/Level 4 scope;
 - pixel-perfect layout и дизайн-система.
 
 ## 4. Основные пользовательские входы
 
-Основные входы в MVP:
+Основные входы в MVP v1:
 
 | Entry point | Назначение | MVP status |
 |---|---|---|
-| Новый естественный запрос в chat | Старт hotel, flight или combined сценария | In MVP |
+| Новый естественный запрос в chat | Старт hotel search сценария | In MVP v1 |
 | Ответ на уточняющий вопрос | Заполнение missing required data | In MVP |
 | Выбор offer из results overview | Переход к offer details или сравнению | In MVP |
-| Команда сравнения | Сравнение 2-5 offers или saved candidates | In MVP в базовом виде |
-| Команда сохранения | Сохранение offer или подборки в текущей session | In MVP для текущей session |
+| Команда сравнения | Сравнение 2-5 hotel offers или saved candidates | In MVP v1 в базовом виде |
+| Команда сохранения | Сохранение hotel offer или подборки в текущей session | In MVP v1 для текущей session |
 | Возврат к текущему поиску | Продолжение активной search session | In MVP для текущей session |
 | Запрос booking/payment | Безопасный отказ и предложение поддерживаемого next step | In MVP fallback |
 
@@ -83,10 +84,9 @@ AI chat является главным entry point MVP. Стартовый эк
 |---|---|---|---|
 | Start / Entry screen | Начать новый travel request | Chat input, короткий контекст текущей возможности, пустое состояние results | In MVP |
 | AI Chat Interface | Вести диалог, уточнять параметры, объяснять результаты | Сообщения пользователя и ассистента, уточнения, команды save/compare/resume | In MVP |
-| Trip Parameters / Clarification Area | Показать извлеченные параметры и missing fields | Intent, destination, origin, dates, guests/passengers, budget, preferences, unknown fields | In MVP |
-| Results Overview | Показать найденные offers после поиска | Список hotel cards, flight cards или разделенные группы результатов | In MVP |
+| Trip Parameters / Clarification Area | Показать извлеченные параметры и missing fields | Intent, destination, dates, guests, rooms, budget, preferences, unknown fields | In MVP |
+| Results Overview | Показать найденные hotel offers после поиска | Список hotel cards | In MVP |
 | Hotel Result Cards | Кратко показать варианты отелей | Название, локация, цена, даты, рейтинг/review score, amenities, freshness/unknown markers, reason summary | In MVP |
-| Flight Result Cards | Кратко показать варианты перелетов | Airline, route, departure/arrival, duration, stops, baggage availability, price, freshness/unknown markers, reason summary | In MVP |
 | Offer Details | Показать детали одного offer | Provider facts, assumptions, unknown data, explanation, actions: save, compare, back to results | In MVP |
 | Saved / Shortlisted Results | Показать сохраненные варианты текущей session | Saved offers, saved comparison set, freshness warning, return to search/results | In MVP для текущей session |
 | Comparison View / Area | Сравнить выбранные offers | Trade-offs, provider facts, unknown fields, assistant recommendation | In MVP в базовом виде |
@@ -107,7 +107,7 @@ AI chat является главным entry point MVP. Стартовый эк
 - Start screen переходит в active chat после первого запроса.
 - Clarification area появляется, когда ассистент извлек параметры и видит missing required или useful fields.
 - Results overview появляется после успешного поиска через provider/API data source или временные mock/fake providers на ранней разработке.
-- Hotel offers и flight offers визуально и навигационно разделяются по типу, чтобы пользователь не путал проживание, перелеты и combined context.
+- MVP v1 results показывают hotel offers; future flight/combined results должны быть отделены по типу, когда эти расширения будут добавлены.
 - Offer details открывается из карточки результата или из saved/shortlisted results.
 - Comparison view открывается из results overview, offer details, chat-команды сравнения или saved list.
 - Saved/shortlisted results доступны из active session и из offer details.
@@ -121,9 +121,8 @@ Start / Entry
   -> AI Chat Interface
   -> Clarification Area
   -> Loading State
-  -> Results Overview
+      -> Results Overview
       -> Hotel Result Cards
-      -> Flight Result Cards
       -> Offer Details
           -> Save / Shortlist
           -> Comparison View
@@ -135,12 +134,7 @@ Start / Entry
   -> AI Chat Interface for refinement
 ```
 
-Combined search в MVP должен поддерживать как минимум Level 1 и Level 2:
-
-- Level 1: ассистент распознает combined intent.
-- Level 2: ассистент помогает искать hotel и flight в одной search session с общим контекстом.
-
-Level 3 coordinated combined search остается open для решения Stage 3, а full package ranking не должен появляться как скрытое UX-обещание.
+Flight search и combined search не входят в MVP v1. Flight search является next expansion после hotel flow; combined search возвращается в roadmap после реализации flight flow.
 
 ## 7. Основные UX-потоки
 
@@ -148,7 +142,7 @@ Level 3 coordinated combined search остается open для решения 
 
 1. Пользователь открывает web MVP.
 2. Видит рабочий chat entry point, а не marketing landing page.
-3. Вводит естественный запрос: hotel, flight или combined.
+3. Вводит естественный hotel request.
 4. Ассистент определяет intent и извлекает параметры.
 5. Если данных достаточно, пользователь видит loading state поиска.
 6. Если данных недостаточно, пользователь видит уточнение в chat и/или clarification area.
@@ -165,19 +159,11 @@ Level 3 coordinated combined search остается open для решения 
 6. Results overview показывает hotel result cards.
 7. Пользователь открывает offer details, сравнивает или сохраняет вариант.
 
-Hotel offers должны отличаться от flight offers заголовком типа, hotel-specific полями и объяснением, связанным с локацией, ценой, качеством, amenities и unknown data.
+Hotel offers должны показывать hotel-specific поля и объяснение, связанное с локацией, ценой, качеством, amenities и unknown data.
 
-### 7.3 Поиск авиабилетов через AI assistant
+### 7.3 Future expansion: поиск авиабилетов
 
-1. Пользователь описывает перелет естественным языком.
-2. Ассистент определяет flight intent.
-3. Clarification area показывает origin, destination, dates, passengers, baggage, stops/time preferences, budget.
-4. Ассистент уточняет критичные пробелы: город отправления, даты, пассажиры, багаж или пересадки.
-5. Loading state показывает, что выполняется поиск flight offers.
-6. Results overview показывает flight result cards.
-7. Пользователь открывает детали, сравнивает по цене/времени/пересадкам или меняет ограничения.
-
-Flight offers должны отличаться route-first структурой, полями расписания, длительности, пересадок, багажа и цены.
+Flight search не входит в MVP v1. После реализации hotel search flow он становится следующим расширением и должен получить отдельные required fields, result cards, details, comparison и provider handling.
 
 ### 7.4 Сравнение результатов
 
@@ -212,7 +198,7 @@ Offer details не должен обещать booking/payment, price guarantee 
 
 1. Пользователь просит вернуться к текущему поиску или меняет часть условий.
 2. Ассистент показывает восстановленные параметры, сохраненные offers и unknown/stale data.
-3. Если пользователь меняет даты, бюджет, район, пересадки или baggage, система явно показывает, какие results устарели.
+3. Если пользователь меняет даты, бюджет, район, guests/rooms или amenities, система явно показывает, какие hotel results устарели.
 4. При необходимости поиск повторяется.
 5. Пользователь возвращается к results overview, comparison view или saved list.
 
@@ -223,13 +209,13 @@ MVP поддерживает возврат в рамках текущей searc
 | State | Где применяется | UX-смысл | MVP expectation |
 |---|---|---|---|
 | Empty | Start, results area, saved list | Пользователь еще не начал поиск или ничего не сохранил | Показать возможность начать через chat |
-| Intent detected | Chat, clarification area | Ассистент понял hotel/flight/combined/compare/save/resume intent | Показать найденный тип запроса |
+| Intent detected | Chat, clarification area | Ассистент понял hotel/compare/save/resume intent | Показать найденный тип запроса |
 | Missing required data | Chat, clarification area | Нужны параметры до поиска | Задать минимально достаточное уточнение |
 | Ready to search | Chat, clarification area | Данных достаточно для provider search | Показать summary параметров и перейти к loading |
 | Loading: assistant thinking | Chat | Ассистент интерпретирует запрос или формирует ответ | Не обещать результаты до provider facts |
 | Loading: provider search | Results area | Выполняется поиск offers | Явно показать, что идет поиск вариантов |
 | Partial data | Results, offer details, comparison | Provider вернул неполные facts | Пометить unknown fields |
-| Results available | Results overview | Offers найдены и ранжированы | Разделить hotel и flight offers |
+| Results available | Results overview | Hotel offers найдены и ранжированы | Показать hotel offers |
 | No results | Results area, chat | Поиск выполнен, но offers не найдены | Объяснить и предложить 1-3 изменения constraints |
 | Provider error | Error state, chat | Источник данных недоступен или вернул ошибку | Отличать от no results и предложить retry/fallback |
 | Contradictory request | Chat, clarification area | Constraints конфликтуют | Назвать конфликт и предложить ослабление |
@@ -244,9 +230,9 @@ MVP поддерживает возврат в рамках текущей searc
 | Entry point | AI chat как главный вход | Мультиканальные entry points, voice, attachments |
 | Results display | Structured results рядом с chat или под ним | Сложные dashboards, карта, календарь цен |
 | Hotel search | Hotel result cards и details | Расширенные фильтры, reviews deep dive, room-level booking |
-| Flight search | Flight result cards и details | Fare rules deep dive, seat selection, ticketing |
-| Combined search | Level 1 и Level 2 | Level 3 open for Stage 3; Level 4 package ranking Post-MVP/Open |
-| Comparison | Базовое сравнение 2-5 offers | Advanced comparison matrices, weighted scoring UI |
+| Flight search | Не входит в MVP v1 | Next expansion после hotel flow |
+| Combined search | Не входит в MVP v1 | Later expansion после flight flow |
+| Comparison | Базовое сравнение 2-5 hotel offers | Advanced comparison matrices, weighted scoring UI |
 | Save/shortlist | В текущей search session | Account-level storage, долгосрочная история, sync |
 | Resume | Текущая session | История всех поисков, поиск по истории, multi-device resume |
 | Provider data | Real provider/API facts for final MVP | Production-hardening, adapter taxonomy, SLA/error hardening |
@@ -255,9 +241,7 @@ MVP поддерживает возврат в рамках текущей searc
 
 ## 10. Открытые вопросы
 
-- Нужно ли включать Level 3 coordinated combined search в MVP, и если да, какой минимальный UX должен показывать coordination без обещания full package ranking?
-- Какие required fields считаются минимальными для hotel search, flight search и combined intent?
-- Какой объем open destination discovery входит в MVP: только уточнение или поиск направлений при поддержке provider capabilities?
+- Какой объем open destination discovery входит в MVP v1 для hotel search: только уточнение или поиск направлений при поддержке provider capabilities?
 - Каким должен быть MVP-уровень session persistence без авторизации?
 - Какие freshness/source markers должны быть видны пользователю на уровне UX, если provider/API возвращает такие данные?
 
@@ -270,7 +254,8 @@ MVP поддерживает возврат в рамках текущей searc
 - React/Next.js/Kotlin/Ktor код;
 - API contracts, DTO, OpenAPI, database schema и provider adapter design;
 - LLM prompt engineering, tool calling и orchestration implementation;
-- финализация всех MVP acceptance criteria;
+- flight search и combined hotel+flight search;
+- финализация всех MVP acceptance criteria за пределами hotel-only flow;
 - изменение Stage 0-2 документов;
 - закрытие всего Stage 3;
 - начало Stage 4 как отдельного Visual Design / UI Concept этапа;
