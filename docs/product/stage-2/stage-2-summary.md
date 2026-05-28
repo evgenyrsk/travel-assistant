@@ -1,5 +1,7 @@
 # Stage 2 — резюме
 
+> MVP v1 scope update: Stage 2 сохраняется как historical traceability. Актуальный MVP v1 ограничен hotel search. Flight search является next expansion после hotel flow; combined hotel+flight — later expansion после flight flow. Прежние Stage 2 MVP recommendations по flight/combined superseded для MVP v1.
+
 ## Что было зафиксировано
 
 - Use cases UC-01 - UC-15 на основе Stage 1 scenarios S-01 - S-10.
@@ -13,8 +15,8 @@
 Stage 2 покрывает:
 
 - hotel search;
-- flight search;
-- combined search request;
+- flight search как future expansion после MVP v1;
+- combined search request как later expansion после flight flow;
 - clarification;
 - comparison;
 - explanation;
@@ -54,23 +56,23 @@ Stage 2 покрывает:
 
 ## Решение по combined search
 
-- **Level 1 — Combined intent recognition:** In MVP.
-- **Level 2 — Same-dialog hotel and flight assistance:** In MVP.
-- **Level 3 — Coordinated combined search:** Open for Stage 3.
+- **Level 1 — Combined intent recognition:** superseded for MVP v1; future expansion.
+- **Level 2 — Same-dialog hotel and flight assistance:** superseded for MVP v1; future expansion after flight flow.
+- **Level 3 — Coordinated combined search:** superseded for MVP v1; later expansion after flight flow.
 - **Level 4 — Full combined package ranking:** Post-MVP or Open.
 
 Это закрывает MJ-S1-001 на уровне Stage 2 recommendation: combined search больше не трактуется как единый неделимый объем.
 
 ## Data requirements for MVP
 
-Для MVP нужны:
+Для MVP v1 нужны:
 
 - search request data;
 - hotel offer data;
-- flight offer data;
 - search session data;
 - provider/API data handling;
-- combined search data минимум для Level 1/2, а Level 3 остается Open.
+
+Flight offer data и combined search data перенесены в future expansion.
 
 ## Учет Stage 1 Scope Correction
 
@@ -100,11 +102,10 @@ LLM/assistant может структурировать, объяснять и �
 
 ## Что переносится на Stage 3
 
-- Финализация MVP boundaries и acceptance criteria.
-- Решение по Level 3 combined search.
+- Финализация hotel-only MVP v1 boundaries и acceptance criteria.
 - Уточнение required fields per intent.
 - Уточнение supported fallback для open destination и partial provider data.
-- Разделение MVP/Post-MVP для session persistence и resume behaviour.
+- Разделение MVP/Post-MVP для session persistence и resume behaviour, если это остается relevant для hotel-only MVP v1.
 
 ## Readiness for Stage 3
 

@@ -1,15 +1,17 @@
-# Архитектурные заметки
+# Предварительные архитектурные ориентиры
 
-Этот документ описывает целевую архитектуру и границы ответственности. Практический порядок реализации описан отдельно в `docs/development/implementation-strategy.md`.
+Этот документ фиксирует рабочие архитектурные гипотезы и защитные границы до отдельного Stage 5 Technical Architecture.
 
-## Целевой стек
+Он не является финальной архитектурой, ADR, API-контрактом, database schema, provider adapter design или разрешением начинать техническую реализацию. Практический порядок реализации описан отдельно в `docs/development/implementation-strategy.md`, а актуальный этап и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
+
+## Рабочие гипотезы стека
 
 - Backend: Kotlin + Ktor.
 - Frontend: Next.js + React + Tailwind + shadcn/ui.
 - Данные: PostgreSQL; Redis только при наличии понятного сценария кэширования.
 - AI: независимый от провайдера `LlmClient`.
-- Оркестрация: собственный `TravelAssistantOrchestrator` с возможностью будущего перехода к state-machine или LangGraph-like модели.
-- Интеграции: travel API скрываются за интерфейсами провайдеров перелетов и отелей; на ранних этапах допустимы mock/fake providers и contract placeholders до предоставления API-контракта существующего travel API.
+- Оркестрация: простая собственная логика с возможностью будущего перехода к state-machine или LangGraph-like модели, если это будет подтверждено требованиями.
+- Интеграции: для MVP v1 travel API скрывается за hotel provider abstraction; flight provider abstraction относится к next expansion после hotel flow. На ранних этапах допустимы mock/fake providers и contract placeholders до предоставления API-контракта существующего travel API.
 
 ## Начальные границы
 
@@ -20,7 +22,7 @@ scripts/   Будущие local development и automation helpers.
 tests/     Будущие shared fixtures, integration tests и end-to-end scenarios.
 ```
 
-## Возможные компоненты
+## Возможные области будущего проектирования
 
 - Процесс планирования поездки.
 - Профиль предпочтений.
@@ -37,3 +39,4 @@ tests/     Будущие shared fixtures, integration tests и end-to-end scena
 - Считать API провайдеров заменяемыми адаптерами.
 - Держать доменную логику независимой от Ktor, Next.js, PostgreSQL, Redis и конкретных LLM-провайдеров.
 - Не хранить секреты в репозитории.
+- Финальные архитектурные решения, публичные контракты, provider adapter design и выборы с долгосрочными последствиями фиксировать на соответствующем roadmap-этапе и через ADR, если решение требует ADR.

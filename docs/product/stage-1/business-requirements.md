@@ -1,5 +1,7 @@
 # Stage 1 — бизнес-требования
 
+> MVP v1 scope update: этот документ сохраняется как historical traceability. `MVP status: In MVP` для flight search и combined search superseded решением о hotel-only MVP v1. Flight search — next expansion после hotel flow; combined hotel+flight — later expansion после flight flow.
+
 ## Цель документа
 
 Зафиксировать бизнес-требования Travel Assistant с traceability к сценариям Stage 1. Документ не выбирает технический стек и не задает API-контракты.
@@ -199,7 +201,7 @@
 
 ### BR-015. Работа через абстрактные providers
 
-**Описание:** бизнес-логика продукта должна рассматривать источники offers по отелям и перелетам как заменяемые providers. Интеграция с существующим travel API входит в MVP, но на уровне Stage 1 не проектируется новый API-контракт и не выбираются финальные adapter implementations.
+**Описание:** бизнес-логика продукта должна рассматривать источники offers как заменяемые providers. Для MVP v1 это относится к hotel offers; flight providers относятся к future expansion. На уровне Stage 1 не проектируется новый API-контракт и не выбираются финальные adapter implementations.
 
 **Rationale:** предоставленный travel API должен использоваться в финальном MVP для получения реальных travel offers, при этом продуктовая модель не должна преждевременно подстраиваться под непредоставленный контракт. На ранних этапах разработки допустимы provider abstractions, mock/fake providers и contract placeholders.
 

@@ -1,5 +1,7 @@
 # Stage 1 — функциональные требования
 
+> MVP v1 scope update: этот документ сохраняется как historical traceability. `MVP status: In MVP` для flight search и combined search superseded решением о hotel-only MVP v1. Active MVP v1 functional scope ограничен hotel search flow.
+
 ## Цель документа
 
 Зафиксировать функциональные требования Stage 1 с traceability к бизнес-сценариям. Документ описывает поведение продукта, но не задает API-контракты, UI-макеты или техническую реализацию.
@@ -75,7 +77,7 @@
 
 ## FR-005. Поиск авиабилетов через абстрактный provider
 
-**Описание:** ассистент должен получать flight offers через абстрактный provider. Финальный MVP должен использовать предоставленный контракт существующего travel API для реальных flight offers, но Stage 1 не проектирует этот контракт заранее.
+**Описание:** ассистент должен получать flight offers через абстрактный provider в future flight expansion. Это superseded для MVP v1; Stage 1 не проектирует этот контракт заранее.
 
 **Источник требования:** BR-008, BR-015, S-02.
 

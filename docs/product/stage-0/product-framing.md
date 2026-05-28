@@ -1,5 +1,7 @@
 # Этап 0 — продуктовая рамка
 
+> MVP v1 scope update: этот Stage 0 документ сохраняется как historical traceability. Актуальный MVP v1 ограничен hotel search; flight search и combined hotel+flight являются future expansion.
+
 ## Цель документа
 
 Зафиксировать исходную постановку Travel Assistant на уровне продукта: что создается, для кого, какую пользовательскую ценность несет и какие границы важно сохранить до следующих этапов.

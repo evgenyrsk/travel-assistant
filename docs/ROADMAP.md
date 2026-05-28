@@ -2,7 +2,7 @@
 
 Этот документ описывает верхнеуровневый список этапов и не является источником текущих статусов. Главный roadmap со статусами, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Детальный порядок задач реализации и вех ведется отдельно в `docs/development/roadmap.md` и `docs/development/milestones.md` и следует primary roadmap.
 
-Текущий прогресс: Stage 0, Stage 1 и Stage 2 завершены; Stage 2 Consistency Review и Stage 2 Minor Cleanup выполнены. Следующий шаг — Stage 3, но Stage 3 не начат. При расхождении статусов приоритет у `docs/roadmap/roadmap.md`.
+Актуальный прогресс, текущий этап, завершенные work items и следующий шаг фиксируются только в `docs/roadmap/roadmap.md`. Этот документ намеренно остается кратким списком этапов.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -26,25 +26,27 @@
 - Зафиксировать ключевые пограничные случаи.
 - Разделить обязательные и дополнительные сценарии.
 
-## Этап 3 — границы MVP и функциональные требования
+## Этап 3 — MVP UX / Navigation
 
-- Определить финальные границы MVP.
-- Описать functional requirements.
-- Зафиксировать acceptance criteria.
-- Отделить MVP от будущего объема работ.
+- Определить screen map и navigation model MVP.
+- Описать основные UX flows и screen states.
+- Зафиксировать required fields и acceptance criteria для MVP user flows.
+- Зафиксировать hotel-only scope для MVP v1.
+- Перенести flight search в next expansion, а combined search — в later expansion после flight flow.
+- Отделить MVP UX boundaries от будущего объема работ.
 
-## Этап 4 — UX/UI-концепция
+## Этап 4 — Visual Design / UI Concept
 
-- Описать UX-концепцию.
-- Определить основные экраны и состояния.
-- Продумать отображение уточнений, вариантов, сравнений и объяснений.
+- Описать visual style и layout direction.
+- Определить UI components, typography, colors и design system direction.
+- Подготовить wireframes или mockups, если они предусмотрены отдельной задачей.
 - Сохранить возможность будущих мобильных и кроссплатформенных клиентов.
 
 ## Этап 5 — техническая архитектура
 
 - Описать архитектурные границы.
 - Зафиксировать подход к AI/LLM-абстракции.
-- Зафиксировать подход к абстракциям провайдеров отелей и перелетов.
+- Зафиксировать подход к hotel provider abstraction для MVP v1 и future flight provider abstraction для следующего расширения.
 - Определить ответственность backend, frontend, domain и integrations.
 
 ## Этап 6 — подготовка реализации
@@ -58,7 +60,7 @@
 
 - Реализовать согласованный MVP.
 - Собрать основной end-to-end сценарий.
-- Подключить существующий travel API по предоставленному контракту для финального MVP; на ранних шагах использовать mock/fake providers и contract placeholders.
+- Подключить существующий travel API по предоставленному контракту для hotel offers; на ранних шагах использовать mock/fake providers и contract placeholders.
 - Проверить базовое ранжирование и объяснения.
 
 ## Этап 8 — улучшение AI/LLM-оркестрации

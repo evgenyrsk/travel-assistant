@@ -1,5 +1,7 @@
 # Stage 2 — Data Requirements
 
+> MVP v1 scope update: этот документ сохраняется как historical traceability. Для MVP v1 required data ограничены hotel search. Flight offer data и combined search data перенесены в future expansion.
+
 ## Цель документа
 
 Описать продуктовые требования к данным без database schema, API schema, DTO, OpenAPI или provider adapter implementation.
@@ -11,7 +13,7 @@
 - LLM/assistant не должен выдумывать provider facts.
 - Если provider data отсутствует, неполная или устаревшая, это должно быть явно отмечено как unknown data или provider limitation.
 - Assistant assumptions должны храниться и отображаться отдельно от provider facts.
-- Финальный MVP должен использовать предоставленный API-контракт для получения реальных travel offers.
+- Финальный MVP v1 должен использовать предоставленный API-контракт для получения реальных hotel offers.
 - Stage 2 не проектирует API-контракт.
 
 ## Группы данных
@@ -20,8 +22,8 @@
 |---|---|---|---|---|
 | Search request data | yes | Позволяет определить intent, понять required fields, уточнить пробелы и выполнить поиск. | UC-01, UC-02, UC-03, UC-04, UC-11, UC-12 | Не является API request schema. |
 | Hotel offer data | yes | Нужно для hotel search, ranking, comparison и explanation. | UC-01, UC-05, UC-06, UC-13, UC-15 | Финальный MVP получает реальные hotel offers из предоставленного travel API. |
-| Flight offer data | yes | Нужно для flight search, ranking, comparison и explanation. | UC-02, UC-05, UC-06, UC-13, UC-15 | Финальный MVP получает реальные flight offers из предоставленного travel API. |
-| Combined search data | open | Нужно для Level 2/3 combined behaviour; объем зависит от Stage 3 решения. | UC-03, UC-11, UC-12 | Level 1/2 In MVP; Level 3 Open; Level 4 Post-MVP/Open. |
+| Flight offer data | no for MVP v1 | Нужно для future flight search, ranking, comparison и explanation. | UC-02, UC-05, UC-06, UC-13, UC-15 | Next expansion после hotel flow. |
+| Combined search data | no for MVP v1 | Нужно для future combined behaviour. | UC-03, UC-11, UC-12 | Later expansion после flight flow. |
 | Search session data | yes | Нужно для уточнений, сохранения, сравнения, resume и изменений в search. | UC-04, UC-07, UC-08, UC-12 | Не задает storage model. |
 | Provider/API data handling | yes | Нужно для anti-hallucination, explainability, unknown handling и real offers в MVP. | UC-06, UC-09, UC-13, UC-15 | API contract остается open input для будущих технических этапов. |
 
@@ -73,7 +75,7 @@
 
 ## Flight offer data
 
-**Требуется для MVP:** yes.
+**Требуется для MVP v1:** no; next expansion после hotel flow.
 
 **Поля:**
 - airline;
@@ -89,7 +91,7 @@
 - data freshness;
 - confidence/unknown fields.
 
-**Зачем нужно:** flight offers должны поддерживать базовое сравнение цены, времени, пересадок и удобства.
+**Зачем нужно:** в future flight expansion flight offers должны поддерживать базовое сравнение цены, времени, пересадок и удобства.
 
 **Связанные use cases:** UC-02, UC-05, UC-06, UC-13, UC-15.
 
@@ -97,7 +99,7 @@
 
 ## Combined search data
 
-**Требуется для MVP:** open.
+**Требуется для MVP v1:** no; later expansion после flight flow.
 
 **Поля:**
 - shared dates;

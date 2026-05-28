@@ -1,5 +1,7 @@
 # Stage 1 — допущения, открытые вопросы и риски
 
+> MVP v1 scope update: flight search и combined search больше не входят в MVP v1. Эти разделы остаются как historical traceability и future-scope context. MVP v1 ограничен hotel search; flight search — next expansion; combined hotel+flight — later expansion после flight flow.
+
 ## Цель документа
 
 Собрать допущения, открытые вопросы и риски Stage 1. Эти пункты не закрываются техническими решениями в рамках текущего этапа.
@@ -21,9 +23,9 @@
 
 Ранняя ценность продукта — подобрать, сравнить и объяснить варианты, а не провести оплату или бронирование.
 
-### A-003. Комбинированный поиск важен, но его MVP-объем открыт
+### A-003. Комбинированный поиск важен, но не входит в MVP v1
 
-Combined search является важной продуктовой целью, но может быть включен в MVP полностью или ограниченно после уточнения Stage 2/3. Combined intent recognition может быть частью MVP, а full combined package ranking остается Open до отдельного решения.
+Combined search является важной продуктовой целью, но не входит в MVP v1. Он возвращается как future expansion после hotel flow и flight flow.
 
 ## Business assumptions
 
@@ -93,7 +95,7 @@ Stage 1 может описывать продуктовые состояния,
 
 ### Q-001. Должен ли комбинированный поиск входить в MVP полностью?
 
-Нужно решить, будет ли MVP поддерживать полный сценарий "перелет + отель" или начнет с независимых hotel и flight searches.
+Superseded for MVP v1. Combined search не входит в hotel-only MVP v1 и возвращается после flight flow.
 
 ### Q-002. Какие параметры обязательны перед первым поиском отелей?
 
@@ -101,7 +103,7 @@ Stage 1 может описывать продуктовые состояния,
 
 ### Q-003. Какие параметры обязательны перед первым поиском перелетов?
 
-Нужно уточнить минимальный набор для reliable flight search.
+Superseded for MVP v1. Нужно уточнять на future flight expansion после реализации hotel search flow.
 
 ### Q-004. Что считать успешной рекомендацией?
 
@@ -147,7 +149,7 @@ Stage 1 может описывать продуктовые состояния,
 
 **Likelihood:** Medium.
 
-**Possible mitigation:** зафиксировать combined search как Open до финального MVP scope.
+**Possible mitigation:** зафиксировано решением о hotel-only MVP v1: combined search переносится в later expansion после flight flow.
 
 **Stage where it should be resolved:** Stage 3.
 

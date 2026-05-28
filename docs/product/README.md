@@ -2,7 +2,7 @@
 
 Этот раздел содержит продуктовую документацию Travel Assistant. Документы фиксируют пользовательскую ценность, сценарии, границы MVP, открытые вопросы и правила движения по этапам до начала технической реализации.
 
-Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Stage 2 Minor Cleanup выполнен; текущий следующий шаг: Stage 3 — MVP Boundaries & Acceptance Criteria, но Stage 3 еще не начат.
+Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Этот index описывает карту product-документов, но не является источником текущего статуса этапов.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -34,10 +34,22 @@
 - `stage-2/stage-2-consistency-review.md` — review Stage 2 и структуры документации: consistency, traceability, combined search, provider/API data handling, navigation, duplication и language notes.
 - Stage 2 Minor Cleanup — follow-up cleanup по language notes и roadmap navigation polish; результат зафиксирован в `stage-2/stage-2-consistency-review.md` и primary roadmap.
 
+## Этап 3 — MVP UX / Navigation
+
+- `stage-3/screen-map.md` — Stage 3.1: карта экранов hotel-only MVP v1, навигационная модель, основные UX-потоки, состояния экранов и MVP/Post-MVP разделение.
+- `stage-3/required-fields-and-acceptance-criteria.md` — Stage 3.2: required/optional/derived fields, missing data behaviour и acceptance criteria для hotel search flow.
+- `stage-3/mvp-search-flow-details.md` — Stage 3.3: подробный MVP v1 hotel search flow, refinement, save/shortlist и recovery states.
+- `stage-3/combined-search-ux-decision.md` — Stage 3.4: historical decision по limited Level 3 coordinated combined search; superseded для MVP v1 решением о hotel-only scope.
+- `stage-3/stage-3-hotel-only-consistency-review.md` — Stage 3.5: контрольный review после hotel-only refocus; проверяет, что flight/combined scope отделен от active MVP v1.
+- `stage-3/stage-3-summary-and-carryover.md` — Stage 3.6: итоговый Hotel-Only MVP v1 UX baseline и carryover для Stage 4, architecture, API/provider contract, implementation и future expansions.
+- `stage-3/stage-3-plan-reconciliation.md` — Stage 3.7: completion audit, сверяющий original Stage 3 plan, actual deliverables, superseded scope и carryover.
+
+Stage 3 отвечает за UX-структуру, навигацию, hotel search flow, required fields, acceptance criteria и MVP/Post-MVP UX boundaries для MVP v1. Итоговый Stage 3 UX baseline зафиксирован в `stage-3/stage-3-summary-and-carryover.md`, а актуальные статусы этапов ведутся в primary roadmap. Flight search является next expansion после hotel flow, combined hotel+flight — later expansion после flight flow. Stage 4 остается отдельным будущим этапом Visual Design / UI Concept.
+
 ## Правила ведения product-документации
 
 - Сначала фиксируются продуктовые цели, сценарии и границы, затем требования, UX, архитектура и реализация.
 - Каждый этап должен иметь понятный результат и не должен выполнять работу следующих этапов.
 - Технические детали должны вытекать из требований, а не подменять их.
 - Спорные архитектурные решения в будущих этапах фиксируются через ADR в `docs/decisions/`.
-- Интеграция с существующим travel API входит в MVP; до предоставления API-контракта внутренние travel API рассматриваются как источники-провайдеры за абстракциями, а ранняя разработка может использовать mock/fake providers и contract placeholders без преждевременного проектирования контракта.
+- Интеграция с существующим travel API входит в MVP v1 для hotel offers; до предоставления API-контракта внутренние travel API рассматриваются как источники-провайдеры за абстракциями, а ранняя разработка может использовать mock/fake providers и contract placeholders без преждевременного проектирования контракта.

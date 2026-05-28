@@ -1,5 +1,7 @@
 # Stage 1 — пользовательские пути
 
+> MVP v1 scope update: этот документ сохраняется как historical traceability. Journeys про flight search и combined search являются future scope и не входят в hotel-only MVP v1.
+
 ## Цель документа
 
 Описать пользовательские пути Travel Assistant без проектирования UI, API или технической архитектуры. Экранные состояния указаны только на продуктовом уровне.
