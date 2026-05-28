@@ -44,7 +44,19 @@
 - `stage-3/stage-3-summary-and-carryover.md` — Stage 3.6: итоговый Hotel-Only MVP v1 UX baseline и carryover для Stage 4, architecture, API/provider contract, implementation и future expansions.
 - `stage-3/stage-3-plan-reconciliation.md` — Stage 3.7: completion audit, сверяющий original Stage 3 plan, actual deliverables, superseded scope и carryover.
 
-Stage 3 отвечает за UX-структуру, навигацию, hotel search flow, required fields, acceptance criteria и MVP/Post-MVP UX boundaries для MVP v1. Итоговый Stage 3 UX baseline зафиксирован в `stage-3/stage-3-summary-and-carryover.md`, а актуальные статусы этапов ведутся в primary roadmap. Flight search является next expansion после hotel flow, combined hotel+flight — later expansion после flight flow. Stage 4 остается отдельным будущим этапом Visual Design / UI Concept.
+Stage 3 отвечает за UX-структуру, навигацию, hotel search flow, required fields, acceptance criteria и MVP/Post-MVP UX boundaries для MVP v1. Итоговый Stage 3 UX baseline зафиксирован в `stage-3/stage-3-summary-and-carryover.md`, а актуальные статусы этапов ведутся в primary roadmap. Flight search является next expansion после hotel flow, combined hotel+flight — later expansion после flight flow. Stage 4 использует этот baseline как вход для Visual Design & UX System.
+
+## Этап 4 — Visual Design & UX System
+
+- `stage-4/visual-design-direction.md` — цель Stage 4, роль визуального дизайна, дизайн-принципы, желаемое ощущение интерфейса, visual style direction, баланс chat/results и границы этапа.
+- `stage-4/design-system-foundations.md` — foundational design system: draft color system, semantic roles, typography, spacing, radius, elevation, layout, responsive behaviour, accessibility и states.
+- `stage-4/component-inventory.md` — MVP UI component inventory с назначением, использованием, состояниями, UX-правилами и MVP/future статусом.
+- `stage-4/screen-specifications.md` — screen-level specs для Entry, chat, clarification, hotel results, offer details, saved results, error/no results и future flight/combined screens.
+- `stage-4/interaction-patterns.md` — UX interaction patterns для clarification, understood request, parameter changes, comparison, saving, loading, partial/no results, confidence/rationale и facts/assumptions separation.
+- `stage-4/stage-4-summary-and-carryover.md` — итог Stage 4, созданные документы, ключевые design decisions, carryover на следующие этапы и consciously not done items.
+- `stage-4/stage-4-consistency-review.md` — Stage 4.1: consistency review Stage 4 относительно Stage 0-3 и roadmap; проверяет MVP scope, UX alignment, data clarity, hidden implementation commitments, accessibility/responsive readiness и carryover quality.
+
+Stage 4 отвечает за visual/UX direction поверх Stage 3 Hotel-Only MVP v1 baseline. Он не создает production UI, React/Next.js components, design-token implementation, API contracts или architecture decisions. Flight search и combined hotel+flight остаются future expansion и не становятся active MVP v1 UI.
 
 ## Правила ведения product-документации
 

@@ -13,10 +13,11 @@
 
 | Item | Status |
 |---|---|
-| Current stage | Stage 3 — MVP UX / Navigation completed |
-| Last completed stage | Stage 3.7 — Stage 3 Plan Reconciliation / Completion Audit |
-| Next planned step | Select next task explicitly; Stage 4 is planned but not started |
+| Current stage | Stage 4 — Visual Design & UX System completed |
+| Last completed stage | Stage 4.1 — Visual Design Consistency Review |
+| Next planned step | Select next task explicitly; Stage 5 Technical Architecture is planned but not started |
 | Stage 3 | Completed |
+| Stage 4 | Completed |
 | Code/API/DB/UI implementation | Not started |
 
 ## MVP Scope Note
@@ -61,8 +62,33 @@
 - Stage 3 UX/acceptance docs проверены: flight и combined не требуются для MVP v1.
 - Stage 3 Summary & Carryover завершен.
 - Stage 3 Plan Reconciliation подтвердил, что обязательные Stage 3 работы не пропущены.
-- Stage 4 Visual Design / UI Concept не начат.
+- Historical note: на момент закрытия Stage 3 Stage 4 еще не был начат; теперь Stage 4 завершен отдельным documentation pack.
 - Нужно не начинать Stage 5 Technical Architecture до явной задачи на архитектурный этап.
+
+## Stage 4 Dashboard
+
+Этот раздел фиксирует завершенный Stage 4 documentation pack. Детальные visual/UX решения находятся в Stage 4 документах, а этот roadmap отражает только статус и carryover.
+
+| Area | Status | Source / next step |
+|---|---|---|
+| Visual Design Direction | Completed | `docs/product/stage-4/visual-design-direction.md` |
+| Design System Foundations | Completed | `docs/product/stage-4/design-system-foundations.md` |
+| Component Inventory | Completed | `docs/product/stage-4/component-inventory.md` |
+| Screen Specifications | Completed | `docs/product/stage-4/screen-specifications.md` |
+| Interaction Patterns | Completed | `docs/product/stage-4/interaction-patterns.md` |
+| Stage 4 Summary & Carryover | Completed | `docs/product/stage-4/stage-4-summary-and-carryover.md` |
+| Stage 4.1 Visual Design Consistency Review | Completed | `docs/product/stage-4/stage-4-consistency-review.md`; verdict: Passed with minor wording fixes. |
+| Frontend implementation | Not started | Stage 4 intentionally created documentation only. |
+| Stage 5 Technical Architecture | Not started | Must be selected as a separate task. |
+
+**Stage 4 closure notes:**
+
+- Stage 4 опирается на Hotel-Only MVP v1 baseline и не меняет MVP scope.
+- Visual design direction, foundational system, component inventory, screen specs and interaction patterns зафиксированы как product/design documentation.
+- Draft palette and design foundations are not final implementation tokens.
+- Flight and combined UI remain future expansion references, not active MVP v1 scope.
+- Production code, React components, Tailwind/shadcn configuration, API contracts, architecture and implementation were not started.
+- Stage 4.1 consistency review completed; minor wording fixes clarified combined chat/results composition and user-provided constraints separation.
 
 ## Stage 0 — Product Framing
 
@@ -224,16 +250,54 @@
 - Open/Post-MVP пункты отделены от MVP.
 - Flight search и combined hotel+flight не требуются для MVP v1 и перенесены в future scope.
 - Real travel API integration сохранена в MVP v1 scope для hotel offers без проектирования контракта до его предоставления.
-- Stage 4 может начинаться без неявного расширения MVP и без смешивания UX-навигации с visual design.
+- Stage 4 был выполнен без неявного расширения MVP и без смешивания UX-навигации с implementation.
 - Stage 3 summary and carryover зафиксированы.
 
+## Stage 4 — Visual Design & UX System
+
+**Status:** Completed.
+
+**Goal:** зафиксировать visual style direction, foundational design system, component inventory, screen-level specifications и interaction patterns для Travel Assistant поверх Stage 3 Hotel-Only MVP v1 UX baseline.
+
+**Artifacts checklist:**
+
+- [x] `docs/product/stage-4/visual-design-direction.md`
+- [x] `docs/product/stage-4/design-system-foundations.md`
+- [x] `docs/product/stage-4/component-inventory.md`
+- [x] `docs/product/stage-4/screen-specifications.md`
+- [x] `docs/product/stage-4/interaction-patterns.md`
+- [x] `docs/product/stage-4/stage-4-summary-and-carryover.md`
+- [x] Stage 4.1 — Visual Design Consistency Review: `docs/product/stage-4/stage-4-consistency-review.md`
+- [x] Product documentation index updated: `docs/product/README.md`
+- [x] Root documentation map updated: `README.md`
+
+**Key results:**
+
+- Visual direction: modern, clean, calm, trusted, travel-oriented and AI-assisted.
+- Chat-first, not chat-only: chat remains the main entry point, while structured hotel results are shown separately.
+- Design system foundations describe semantic color roles, typography, spacing, layout, states and accessibility without final implementation tokens.
+- MVP component inventory is hotel-first and marks flight/combined components as future expansion.
+- Screen specifications cover active MVP screens and explicitly mark flight/combined screens as future.
+- Interaction patterns define clarification, understood request, refinement, comparison, save/shortlist, loading, no results, partial/provider error, rationale and facts/assumptions separation.
+- Stage 4.1 review confirmed alignment with Stage 0-3 and roadmap; no critical or major findings found.
+
+**Open questions:**
+
+- Final brand colors and design tokens.
+- Hotel imagery availability from provider/API.
+- Minimum source/freshness markers available from existing travel API.
+- Session persistence level without authorization.
+- Accessibility gates for frontend implementation.
+- Whether confidence/rationale labels should appear at card, details or comparison level.
+
+**Recommendations / carryover:**
+
+- Use Stage 4 as input for Stage 5 Technical Architecture, but not as technical contract.
+- Do not start frontend implementation until the appropriate roadmap stage.
+- Convert component inventory into implementation backlog only after architecture and implementation preparation stages.
+- Refine hotel card/details fields after existing travel API contract is provided.
+
 ## Future Stages
-
-### Stage 4 — Visual Design / UI Concept
-
-**Status:** Planned.
-
-**Scope:** visual style, layout direction, UI components, design system, typography, colors, high-level visual concept и wireframes/mockups, если они будут предусмотрены отдельной задачей. Stage 4 не подменяет Stage 3 UX structure, navigation model, search flows и acceptance criteria.
 
 ### Stage 5 — Technical Architecture
 
