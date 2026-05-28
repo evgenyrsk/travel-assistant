@@ -13,10 +13,10 @@
 
 | Item | Status |
 |---|---|
-| Current stage | Stage 3 — MVP UX / Navigation |
-| Last completed stage | Stage 3.5 — MVP v1 Hotel-Only Scope Refocus |
-| Next planned step | Stage 3 hotel-only UX consistency review |
-| Stage 3 | In progress |
+| Current stage | Stage 3 — MVP UX / Navigation completed |
+| Last completed stage | Stage 3.7 — Stage 3 Plan Reconciliation / Completion Audit |
+| Next planned step | Select next task explicitly; Stage 4 is planned but not started |
+| Stage 3 | Completed |
 | Code/API/DB/UI implementation | Not started |
 
 ## MVP Scope Note
@@ -38,7 +38,7 @@
 - Когда и в каком виде будет предоставлен контракт существующего travel API.
 - Adapter design, provider error taxonomy, reliability и production-hardening.
 - Долгосрочная история, авторизация и account-level storage.
-- UX consistency review для Stage 3.
+- Следующий этап или cleanup task должен быть выбран отдельной задачей.
 
 ## Stage 3 Dashboard
 
@@ -51,14 +51,17 @@
 | MVP search flow details | Completed | `docs/product/stage-3/mvp-search-flow-details.md` |
 | Combined Search UX Decision | Superseded for MVP v1 | `docs/product/stage-3/combined-search-ux-decision.md` сохранен как historical decision; combined перенесен за MVP v1. |
 | MVP v1 Hotel-Only Scope Refocus | Completed | MVP v1 ограничен hotel search; flight является next expansion, combined — later expansion. |
-| Session persistence / resume / authorization split | Deferred | Нужно уточнять только после hotel-only UX consistency review, если останется relevant для MVP v1. |
-| UX Consistency Review | Next | Проверить Stage 3 документы после hotel-only refocus. |
-| Stage 3 carryover list | Pending | Подготовить переносы для Stage 4, Stage 5 и technical stages после review. |
+| Session persistence / resume / authorization split | Carried over | `docs/product/stage-3/stage-3-summary-and-carryover.md`; решить на будущих этапах без преждевременной DB/auth architecture. |
+| UX Consistency Review | Completed | `docs/product/stage-3/stage-3-hotel-only-consistency-review.md`; verdict: Passed with minor notes. |
+| Stage 3 Summary & Carryover | Completed | `docs/product/stage-3/stage-3-summary-and-carryover.md`; Stage 3 can be closed. |
+| Stage 3 Plan Reconciliation / Completion Audit | Completed | `docs/product/stage-3/stage-3-plan-reconciliation.md`; verdict: Complete with carryover. |
 
-**Stage 3 blockers / open inputs:**
+**Stage 3 closure notes:**
 
-- Нужно проверить, что Stage 3 UX/acceptance docs больше не требуют flight или combined для MVP v1.
-- Нужно не начинать Stage 4 Visual Design / UI Concept до закрытия Stage 3 UX consistency review.
+- Stage 3 UX/acceptance docs проверены: flight и combined не требуются для MVP v1.
+- Stage 3 Summary & Carryover завершен.
+- Stage 3 Plan Reconciliation подтвердил, что обязательные Stage 3 работы не пропущены.
+- Stage 4 Visual Design / UI Concept не начат.
 - Нужно не начинать Stage 5 Technical Architecture до явной задачи на архитектурный этап.
 
 ## Stage 0 — Product Framing
@@ -186,7 +189,7 @@
 
 ## Stage 3 — MVP UX / Navigation
 
-**Status:** In progress.
+**Status:** Completed.
 
 **Goal:** определить UX-структуру MVP, navigation model, search flow boundaries, required fields и acceptance criteria для пользовательских потоков без перехода к визуальному дизайну, API, архитектуре или реализации.
 
@@ -197,10 +200,11 @@
 - [x] Stage 3.3 — MVP Search Flow Details: `docs/product/stage-3/mvp-search-flow-details.md`.
 - [x] Stage 3.4 — Combined Search UX Decision: `docs/product/stage-3/combined-search-ux-decision.md` (superseded for MVP v1).
 - [x] Stage 3.5 — MVP v1 Hotel-Only Scope Refocus.
-- [ ] Hotel-only UX Consistency Review.
-- [ ] MVP/Post-MVP split для session persistence, resume и authorization, если нужен после hotel-only review.
-- [ ] UX Consistency Review.
-- [ ] Carryover list для visual design, architecture и technical stages.
+- [x] Stage 3.5 — Hotel-Only UX Consistency Review: `docs/product/stage-3/stage-3-hotel-only-consistency-review.md`.
+- [x] Stage 3.6 — Stage 3 Summary & Carryover: `docs/product/stage-3/stage-3-summary-and-carryover.md`.
+- [x] Stage 3.7 — Stage 3 Plan Reconciliation / Completion Audit: `docs/product/stage-3/stage-3-plan-reconciliation.md`.
+- [x] MVP/Post-MVP split для session persistence, resume и authorization перенесен в carryover без технического проектирования.
+- [x] Carryover list для visual design, architecture и technical stages.
 
 **Entry criteria:**
 
@@ -221,6 +225,7 @@
 - Flight search и combined hotel+flight не требуются для MVP v1 и перенесены в future scope.
 - Real travel API integration сохранена в MVP v1 scope для hotel offers без проектирования контракта до его предоставления.
 - Stage 4 может начинаться без неявного расширения MVP и без смешивания UX-навигации с visual design.
+- Stage 3 summary and carryover зафиксированы.
 
 ## Future Stages
 

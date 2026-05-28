@@ -1,5 +1,7 @@
 # Stage 1 — бизнес-сценарии
 
+> MVP v1 scope update: этот документ сохраняется как historical traceability. Сценарии про flight search и combined search являются future scope и не входят в hotel-only MVP v1.
+
 ## Цель документа
 
 Описать ключевые бизнес-сценарии Travel Assistant на уровне продукта. Документ не задает API, UI-макеты, схему данных или техническую архитектуру.

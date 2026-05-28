@@ -40,8 +40,11 @@
 - `stage-3/required-fields-and-acceptance-criteria.md` — Stage 3.2: required/optional/derived fields, missing data behaviour и acceptance criteria для hotel search flow.
 - `stage-3/mvp-search-flow-details.md` — Stage 3.3: подробный MVP v1 hotel search flow, refinement, save/shortlist и recovery states.
 - `stage-3/combined-search-ux-decision.md` — Stage 3.4: historical decision по limited Level 3 coordinated combined search; superseded для MVP v1 решением о hotel-only scope.
+- `stage-3/stage-3-hotel-only-consistency-review.md` — Stage 3.5: контрольный review после hotel-only refocus; проверяет, что flight/combined scope отделен от active MVP v1.
+- `stage-3/stage-3-summary-and-carryover.md` — Stage 3.6: итоговый Hotel-Only MVP v1 UX baseline и carryover для Stage 4, architecture, API/provider contract, implementation и future expansions.
+- `stage-3/stage-3-plan-reconciliation.md` — Stage 3.7: completion audit, сверяющий original Stage 3 plan, actual deliverables, superseded scope и carryover.
 
-Stage 3 отвечает за UX-структуру, навигацию, hotel search flow, required fields, acceptance criteria и MVP/Post-MVP UX boundaries для MVP v1. Актуальные завершенные и открытые Stage 3 work items ведутся в primary roadmap. Flight search является next expansion после hotel flow, combined hotel+flight — later expansion после flight flow. Stage 4 остается отдельным будущим этапом Visual Design / UI Concept.
+Stage 3 отвечает за UX-структуру, навигацию, hotel search flow, required fields, acceptance criteria и MVP/Post-MVP UX boundaries для MVP v1. Итоговый Stage 3 UX baseline зафиксирован в `stage-3/stage-3-summary-and-carryover.md`, а актуальные статусы этапов ведутся в primary roadmap. Flight search является next expansion после hotel flow, combined hotel+flight — later expansion после flight flow. Stage 4 остается отдельным будущим этапом Visual Design / UI Concept.
 
 ## Правила ведения product-документации
 

@@ -487,7 +487,7 @@ These are UX-role patterns, not production prompts.
 
 ## 17. Recommendations
 
-- Следующим Stage 3 шагом провести hotel-only UX Consistency Review.
-- После review зафиксировать MVP/Post-MVP split для session persistence, resume и authorization, если это остается relevant для MVP v1.
+- Hotel-only UX Consistency Review завершен в `docs/product/stage-3/stage-3-hotel-only-consistency-review.md`.
+- Stage 3 Summary & Carryover завершен в `docs/product/stage-3/stage-3-summary-and-carryover.md`; session persistence, resume и authorization перенесены в carryover без технического проектирования.
 - На будущих технических этапах сверить required fields и flow states с предоставленным travel API contract.
 - На Stage 4 не менять product flow decisions без явного product review; Stage 4 должен заниматься visual/UI concept поверх уже описанных UX flows.

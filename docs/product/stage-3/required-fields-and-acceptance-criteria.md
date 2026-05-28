@@ -340,6 +340,6 @@ Acceptance criteria:
 ## 15. Recommendations
 
 - Stage 3.3 MVP Search Flow Details описан в `docs/product/stage-3/mvp-search-flow-details.md` на основе этих required fields.
-- Провести hotel-only UX Consistency Review для Stage 3.
-- После review зафиксировать MVP/Post-MVP split для session persistence, resume и authorization, если он остается relevant для MVP v1.
+- Hotel-only UX Consistency Review завершен в `docs/product/stage-3/stage-3-hotel-only-consistency-review.md`.
+- Stage 3 Summary & Carryover завершен в `docs/product/stage-3/stage-3-summary-and-carryover.md`; session persistence, resume и authorization перенесены в carryover без технического проектирования.
 - На будущих технических этапах сверить required fields с предоставленным API-контрактом, не меняя этот документ задним числом без product review.

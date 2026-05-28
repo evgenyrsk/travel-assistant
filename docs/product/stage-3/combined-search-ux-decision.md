@@ -118,7 +118,7 @@ MVP-level coordination может проверять:
 ## 8. Последствия для Stage 3
 
 - Open question по MVP-статусу Level 3 coordinated combined search superseded для MVP v1: limited Level 3 не входит в hotel-only MVP v1.
-- Stage 3 все еще не завершен: нужен hotel-only UX Consistency Review.
-- После hotel-only review нужно решить, нужен ли отдельный MVP/Post-MVP split для session persistence, resume и authorization в MVP v1.
+- Hotel-only UX Consistency Review завершен в `docs/product/stage-3/stage-3-hotel-only-consistency-review.md`.
+- Stage 3 Summary & Carryover завершен в `docs/product/stage-3/stage-3-summary-and-carryover.md`; session persistence, resume и authorization перенесены в carryover без технического проектирования.
 - Stage 4 не должен менять это решение без отдельного product review.
 - Stage 5 должен учитывать решение как продуктовую границу, но не считать этот документ API или architecture contract.
