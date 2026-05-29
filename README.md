@@ -36,8 +36,11 @@ Travel Assistant — приватный проект для разработки
 - `docs/product/stage-4/` — Этап 4: Visual Design & UX System, visual direction, design system foundations, component inventory, screen specifications и interaction patterns.
 - `docs/PROJECT_BRIEF.md` — продуктовый контекст, пользователи, ключевые сценарии и открытые продуктовые вопросы.
 - `docs/ARCHITECTURE.md` — предварительные архитектурные ориентиры и защитные границы до Stage 5 Technical Architecture.
+- `docs/architecture/README.md` — индекс архитектурной документации и Stage 5 architecture baseline.
 - `docs/roadmap/roadmap.md` — главный roadmap проекта: статусы этапов, чеклисты артефактов, open questions, carryover и следующий шаг.
 - `docs/ROADMAP.md` — краткий верхнеуровневый список этапов, не источник текущих статусов.
+- `docs/reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
+- `docs/reviews/roadmap-structure-and-process-fitness-review.md` — review структуры roadmap и process fitness перед Stage 6.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
 - `docs/development/roadmap.md` — secondary roadmap разработки; следует primary roadmap и не заменяет статусы этапов.
 - `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки; не источник статусов продуктовых этапов.

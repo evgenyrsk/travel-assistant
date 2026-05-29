@@ -43,6 +43,7 @@
 Перед любым изменением прочитай релевантные текущие документы:
 
 - `README.md`;
+- `docs/roadmap/roadmap.md`;
 - `docs/ROADMAP.md`;
 - `docs/PROJECT_BRIEF.md`;
 - `docs/ARCHITECTURE.md`;
@@ -60,11 +61,13 @@
 
 1. Явный запрос пользователя в текущей задаче.
 2. ADR в `docs/decisions/`, только если эта директория реально существует в текущем репозитории и ADR применимы к задаче.
-3. Поэтапный roadmap в `docs/development/roadmap.md`.
-4. Milestones в `docs/development/milestones.md`.
-5. Стратегия реализации в `docs/development/implementation-strategy.md`.
-6. Продуктовые и архитектурные документы: `docs/PROJECT_BRIEF.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`.
-7. `README.md` и index-документы для навигации.
+3. Primary roadmap в `docs/roadmap/roadmap.md` как source of truth по stage status, roadmap progression, stage boundaries, carryover и следующему разрешенному шагу.
+4. Secondary development roadmap в `docs/development/roadmap.md` как future/planned reference material, который следует primary roadmap и не заменяет текущие статусы этапов.
+5. Milestones в `docs/development/milestones.md`.
+6. Стратегия реализации в `docs/development/implementation-strategy.md`.
+7. Продуктовые и архитектурные документы: `docs/PROJECT_BRIEF.md`, `docs/ARCHITECTURE.md`.
+8. `docs/ROADMAP.md` как краткий верхнеуровневый список этапов и navigation summary, не конкурирующий source of truth по текущим статусам.
+9. `README.md` и index-документы для навигации.
 
 Если документы противоречат друг другу, не выбирай молча удобную версию. Следуй более приоритетному источнику, зафиксируй конфликт в разделе `Открытые вопросы` и не выполняй работу, которая может нарушить roadmap, границы задачи или ADR.
 

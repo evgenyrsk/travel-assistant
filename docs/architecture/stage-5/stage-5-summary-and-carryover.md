@@ -1,14 +1,14 @@
 # Stage 5 — Summary & Carryover
 
-## Purpose
+## Назначение
 
-This document summarizes Stage 5 Technical Architecture / System Design for Travel Assistant and captures carryover for future stages.
+Этот документ резюмирует Stage 5 Technical Architecture / System Design для Travel Assistant и фиксирует carryover для будущих этапов.
 
-Stage 5 established architecture boundaries for Hotel-Only MVP v1 without starting production implementation, API contracts, database schema, provider adapters, vendor/tool selection or implementation backlog.
+Stage 5 установил архитектурные границы для Hotel-Only MVP v1 без начала production implementation, API contracts, database schema, provider adapters, vendor/tool selection или implementation backlog.
 
-## Stage 5 Completed Deliverables
+## Завершенные deliverables Stage 5
 
-Stage 5 completed:
+Stage 5 завершил:
 
 - `architecture-scope-and-principles.md`;
 - `system-context-and-boundaries.md`;
@@ -20,41 +20,41 @@ Stage 5 completed:
 - `architecture-decisions-draft.md`;
 - `stage-5-consistency-review.md`.
 
-This document closes the Stage 5 summary and carryover record.
+Этот документ закрывает summary и carryover record Stage 5.
 
-## Architecture Baseline Established
+## Установленный architecture baseline
 
-Stage 5 established:
+Stage 5 установил:
 
 - hotel-only MVP boundary;
-- system context and external/future boundaries;
-- conceptual domain concepts and responsibility boundaries;
-- conceptual application orchestration boundaries;
-- provider, LLM and frontend/backend integration boundaries;
-- data ownership, volatility and storage boundaries;
-- architecture-level NFR and quality boundaries;
-- draft architecture decision inventory and future ADR candidates.
+- system context и external/future boundaries;
+- концептуальные domain concepts и responsibility boundaries;
+- концептуальные границы application orchestration;
+- границы provider, LLM и frontend/backend integration;
+- границы data ownership, volatility и storage;
+- architecture-level NFR и quality boundaries;
+- draft architecture decision inventory и future ADR candidates.
 
-## Confirmed Architecture Guardrails
+## Подтвержденные architecture guardrails
 
-- MVP v1 remains hotel-only.
-- Provider facts are source-owned.
-- User constraints are traceable to user input or clarification.
-- Assistant assumptions are labeled and separated from facts.
-- Unknown data remains unknown.
-- LLM assists but does not own hotel facts.
-- Current-session state is not account history.
-- Current-session shortlist is not persistent saved trips, cross-device sync or full-auth account storage.
-- Future expansion requires product decision and likely ADR when architecture boundaries change.
-- No API/DB contracts should be created before the relevant roadmap step.
-- Stage 5 architecture docs must not be read as production implementation plan.
+- MVP v1 остается hotel-only.
+- Provider facts являются source-owned.
+- User constraints трассируются к user input или clarification.
+- Assistant assumptions помечены и отделены от facts.
+- Unknown data остается unknown.
+- LLM помогает, но не владеет hotel facts.
+- Current-session state не является account history.
+- Current-session shortlist не является persistent saved trips, cross-device sync или full-auth account storage.
+- Future expansion требует product decision и, вероятно, ADR при изменении architecture boundaries.
+- API/DB contracts не должны создаваться до соответствующего roadmap step.
+- Stage 5 architecture docs не должны читаться как production implementation plan.
 
-## Deferred Decisions
+## Отложенные решения
 
-The following decisions remain deferred:
+Следующие решения остаются deferred:
 
-- concrete hotel provider/API contract;
-- concrete LLM provider/model;
+- конкретный hotel provider/API contract;
+- конкретный LLM provider/model;
 - prompt/guardrail implementation;
 - DB/storage technology;
 - API/OpenAPI contracts;
@@ -64,43 +64,43 @@ The following decisions remain deferred:
 - booking/payment architecture;
 - flight/combined itinerary architecture.
 
-## Carryover to Next Stage
+## Carryover to next stage
 
-The next stage should preserve:
+Следующий этап должен сохранить:
 
 - facts/assumptions/unknowns separation;
 - provider-agnostic hotel boundary;
 - chat-first, not chat-only UX;
-- Search Intent Summary as UX/domain bridge;
-- Hotel Offer Card as central comparison surface;
-- no hidden account history or full auth;
-- no flight, combined itinerary, booking or payment in MVP v1;
-- source/freshness uncertainty as a visible concept;
-- current-session shortlist as session-level selection aid only.
+- Search Intent Summary как UX/domain bridge;
+- Hotel Offer Card как central comparison surface;
+- отсутствие hidden account history или full auth;
+- отсутствие flight, combined itinerary, booking или payment в MVP v1;
+- source/freshness uncertainty как visible concept;
+- current-session shortlist только как session-level selection aid.
 
-The next stage should not treat this carryover as an implementation backlog. It is architectural context for future planning.
+Следующий этап не должен трактовать этот carryover как implementation backlog. Это архитектурный контекст для будущего planning.
 
-## Risks to Watch
+## Риски для контроля
 
-- Current-session shortlist may accidentally turn into account history.
-- Provider abstraction may prematurely become an API contract.
-- LLM boundary may blur and start creating or rewriting provider facts.
-- Future expansion may be misread as MVP scope.
-- NFRs may become DevOps/security/testing backlog too early.
-- Existing travel API constraints may pressure provider DTOs into domain concepts.
-- Search Intent Summary editability may introduce persistence assumptions if not decided explicitly.
+- Current-session shortlist может случайно превратиться в account history.
+- Provider abstraction может преждевременно превратиться в API contract.
+- LLM boundary может размыться и начать создавать или переписывать provider facts.
+- Future expansion может быть ошибочно прочитан как MVP scope.
+- NFRs могут слишком рано превратиться в DevOps/security/testing backlog.
+- Ограничения existing travel API могут продавить provider DTOs в domain concepts.
+- Editability Search Intent Summary может ввести persistence assumptions, если не будет явно решена.
 
-## Recommended Next Step
+## Рекомендуемый следующий шаг
 
-Stage 5 is complete because the consistency review found no Critical or Major blockers.
+Stage 5 завершен, потому что consistency review не нашел Critical или Major blockers.
 
-The next stage should be started only by separate explicit request.
+Следующий этап должен начинаться только по отдельному явному запросу.
 
-Do not start Stage 6 in this task.
+Не начинай Stage 6 в этой задаче.
 
 ## Non-goals
 
-This document does not define:
+Этот документ не определяет:
 
 - production code;
 - API contracts;

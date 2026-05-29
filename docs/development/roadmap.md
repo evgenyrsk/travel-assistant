@@ -4,6 +4,14 @@
 
 Primary roadmap со статусами этапов, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Верхнеуровневый список этапов находится в `docs/ROADMAP.md`. Этот файл является secondary roadmap разработки: он детализирует будущую реализацию, следует primary roadmap и не должен использоваться как альтернативный источник статусов или основание для преждевременного начала будущих этапов.
 
+## Статус и правила активации
+
+На момент pre-Stage 6 cleanup Stage 0-5 завершены, Stage 6 остается Planned / not started, а Code/API/DB/UI implementation не начат.
+
+Разделы ниже являются future/planned reference material. Они не являются активным backlog, не запускают implementation и не разрешают создавать API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production code.
+
+Любой пункт из этого secondary roadmap активируется только отдельной явной задачей после соответствующего шага primary roadmap в `docs/roadmap/roadmap.md`. Если wording этого документа конфликтует с primary roadmap или Stage 5 architecture baseline, приоритет имеют primary roadmap и Stage 5 baseline.
+
 ## 0. Перезапуск проекта и продуктовая рамка
 
 **Цель:** зафиксировать исходную постановку продукта, границы проекта, цели, пользовательскую ценность и рабочие правила дальнейшей разработки.
@@ -107,6 +115,8 @@ Primary roadmap со статусами этапов, чеклистами ар�
 
 **Цель:** описать контракты между клиентами и backend.
 
+**Статус:** future reference only; не активная задача и не разрешение создавать API/OpenAPI contracts до отдельного explicit roadmap step.
+
 **Результат:** черновик HTTP API для чата, получения результатов, истории и пользовательских предпочтений.
 
 **Файлы и модули:** будущие `docs/api/contracts.md`, `services/backend/api/`, OpenAPI-файл при необходимости.
@@ -122,6 +132,8 @@ Primary roadmap со статусами этапов, чеклистами ар�
 ## 7. Backend skeleton
 
 **Цель:** создать минимальный backend foundation на Kotlin + Ktor.
+
+**Статус:** future reference only; не активная задача до явного старта соответствующего implementation step.
 
 **Результат:** запускаемое backend-приложение с health endpoint, конфигурацией и слоями приложения.
 

@@ -5,20 +5,28 @@
 Связанные документы:
 
 - `docs/ROADMAP.md` — краткий верхнеуровневый список этапов.
-- `docs/development/roadmap.md` — детальный roadmap разработки и будущих implementation-задач.
-- `docs/development/milestones.md` — вехи и контрольные точки реализации.
+- `docs/development/roadmap.md` — secondary roadmap разработки и future/planned reference material, не active implementation backlog.
+- `docs/development/milestones.md` — future/planned вехи и контрольные точки реализации, не источник текущих статусов.
 - `docs/product/README.md` — индекс продуктовых документов.
+- `docs/architecture/README.md` — индекс архитектурной документации и Stage 5 architecture baseline.
+- `docs/reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
+- `docs/reviews/roadmap-structure-and-process-fitness-review.md` — review структуры roadmap и process fitness перед Stage 6 cleanup.
 
 ## Current Status
 
 | Item | Status |
 |---|---|
-| Current stage | Stage 5 — Technical Architecture / System Design completed |
+| Current stage | Pre-Stage 6 roadmap cleanup completed; Stage 6 is planned but not started |
 | Last completed stage | Stage 5.9 — Stage 5 Consistency Review / Completion Audit |
-| Next planned step | Select next task explicitly; Stage 6 is planned but not started |
+| Next planned step | Select next task explicitly; Stage 6 remains planned / not started until explicitly activated |
+| Stage 0 | Completed |
+| Stage 1 | Completed |
+| Stage 2 | Completed |
 | Stage 3 | Completed |
 | Stage 4 | Completed |
+| Stage 4.1 | Completed |
 | Stage 5 | Completed |
+| Stage 6 | Planned / not started |
 | Code/API/DB/UI implementation | Not started |
 
 ## MVP Scope Note
@@ -38,15 +46,15 @@
 
 - Какой объем provider-backed open destination discovery нужен в MVP v1, если он применим к hotel search.
 - Когда и в каком виде будет предоставлен контракт существующего travel API.
-- Adapter design, provider error taxonomy, reliability и production-hardening.
+- Deferred technical decisions: adapter design, provider error taxonomy, reliability и production-hardening.
 - Долгосрочная история, авторизация и account-level storage.
 - Следующий этап или cleanup task должен быть выбран отдельной задачей.
 
 ## Stage 3 Dashboard
 
-Этот раздел является компактной рабочей панелью текущего этапа. Детальные продуктовые решения остаются в Stage 3 документах, а статус и следующий шаг фиксируются здесь.
+Этот раздел является компактным historical/status summary завершенного Stage 3. Детальные продуктовые решения остаются в Stage 3 документах; текущий следующий шаг фиксируется только в `Current Status`.
 
-| Area | Status | Source / next step |
+| Area | Status | Source / note |
 |---|---|---|
 | Screen map and navigation model | Completed | `docs/product/stage-3/screen-map.md` |
 | Required fields and acceptance criteria | Completed | `docs/product/stage-3/required-fields-and-acceptance-criteria.md` |
@@ -63,14 +71,14 @@
 - Stage 3 UX/acceptance docs проверены: flight и combined не требуются для MVP v1.
 - Stage 3 Summary & Carryover завершен.
 - Stage 3 Plan Reconciliation подтвердил, что обязательные Stage 3 работы не пропущены.
-- Historical note: на момент закрытия Stage 3 Stage 4 еще не был начат; теперь Stage 4 завершен отдельным documentation pack.
-- Нужно не начинать Stage 5 Technical Architecture до явной задачи на архитектурный этап.
+- Historical note: на момент закрытия Stage 3 Stage 4 еще не был начат; теперь Stage 4, Stage 4.1 и Stage 5 завершены отдельными documentation packs.
+- Stage 3 не является разрешением начинать implementation, API/OpenAPI contracts, DB schema, storage model или account/auth history.
 
 ## Stage 4 Dashboard
 
 Этот раздел фиксирует завершенный Stage 4 documentation pack. Детальные visual/UX решения находятся в Stage 4 документах, а этот roadmap отражает только статус и carryover.
 
-| Area | Status | Source / next step |
+| Area | Status | Source / note |
 |---|---|---|
 | Visual Design Direction | Completed | `docs/product/stage-4/visual-design-direction.md` |
 | Design System Foundations | Completed | `docs/product/stage-4/design-system-foundations.md` |
@@ -295,10 +303,10 @@
 
 - Use Stage 4 as input for Stage 5 Technical Architecture, but not as technical contract.
 - Do not start frontend implementation until the appropriate roadmap stage.
-- Convert component inventory into implementation backlog only after architecture and implementation preparation stages.
+- Keep component inventory as product/design documentation until a separate explicit implementation-stage task activates implementation planning.
 - Refine hotel card/details fields after existing travel API contract is provided.
 
-## Future Stages
+## Stage 5 and Future Stages
 
 ### Stage 5 — Technical Architecture
 
@@ -333,9 +341,19 @@
 
 ### Stage 6 — Implementation Preparation
 
-**Status:** Planned.
+**Status:** Planned / not started.
 
-**Scope:** задачи реализации, контракты, тестовая стратегия, mock/fake providers, contract placeholders и локальный workflow.
+**Scope:** scoped implementation-preparation planning, task framing, validation strategy, mock/fake provider approach, contract-placeholder boundaries and local workflow boundaries.
+
+**Activation condition:** Stage 6 starts only after a separate explicit task activates Stage 6 planning/scope definition. Completing pre-Stage 6 reviews or cleanup does not start Stage 6.
+
+**Scope boundaries:** Stage 6 may define implementation-preparation scope, sequencing, validation approach, local workflow boundaries and conceptual boundaries for mock/fake providers and contract placeholders. It must preserve MVP v1 hotel-only scope and the Stage 5 architecture baseline.
+
+**Explicit exclusions:** Stage 6 does not automatically create API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog, production implementation, provider-specific integration code or Stage 7 implementation tasks.
+
+**Quality gate:** Stage 6 can be considered ready to close only after its planning artifacts clearly separate allowed implementation-preparation work from excluded API/DB/storage/auth/DevOps/testing/production work, and after any concrete contract or implementation artifact has been authorized by a separate explicit roadmap step.
+
+**Clarification:** Any concrete contract artifact must be explicitly authorized by a separate Stage 6 task and must stay aligned with the provided existing travel API contract and the Stage 5 architecture baseline.
 
 ### Stage 7 — MVP Implementation
 
@@ -361,8 +379,13 @@
 
 **Scope:** развитие за пределы первой платформы без переписывания продуктовой и доменной логики.
 
+**Future stage activation rule:** Planned stages are not active backlog. Each future stage starts only after a separate explicit roadmap task activates it and confirms required preceding decisions.
+
 ## Roadmap Rules
 
+- This roadmap is a stage-based project map and source of truth for stage status/progression; it is not a task tracker, implementation backlog, ADR registry, architecture spec or product requirements document.
+- `docs/ROADMAP.md` is a top-level stage summary, not a competing source of current status.
+- Development docs are secondary future/planned references and must follow this primary roadmap.
 - Не начинать следующий этап без явной задачи.
 - Не менять порядок этапов без отдельного решения.
 - Не выполнять recommendations в рамках cleanup или review задач.

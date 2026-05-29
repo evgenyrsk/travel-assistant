@@ -1,25 +1,25 @@
 # Stage 5.5 — Integration Architecture
 
-## Purpose
+## Назначение
 
-This document describes conceptual integration architecture for Travel Assistant MVP v1.
+Этот документ описывает conceptual integration architecture для Travel Assistant MVP v1.
 
-It defines boundaries between the application layer, assistant/LLM layer, hotel provider abstraction, provider source and optional infrastructure concerns. It keeps integration thinking aligned with hotel-only MVP scope and the Stage 5 facts / assumptions / unknowns separation.
+Он определяет boundaries между application layer, assistant/LLM layer, hotel provider abstraction, provider source и optional infrastructure concerns. Он сохраняет integration thinking aligned with hotel-only MVP scope и facts / assumptions / unknowns separation Stage 5.
 
-This document is not an API specification, OpenAPI contract, SDK design, vendor selection or implementation plan.
+Этот документ не является API specification, OpenAPI contract, SDK design, vendor selection или implementation plan.
 
-## Integration Scope for MVP v1
+## Integration scope для MVP v1
 
-MVP v1 integration architecture includes:
+Integration architecture MVP v1 включает:
 
 - hotel-only provider integration boundary;
 - LLM / AI layer integration boundary;
 - frontend/backend interaction boundary at conceptual level;
 - optional telemetry/logging boundary;
-- optional session-level persistence boundary if needed for current-session shortlist;
-- source/freshness/unknown-data handling as an integration concern.
+- optional session-level persistence boundary, если нужна для current-session shortlist;
+- source/freshness/unknown-data handling как integration concern.
 
-MVP v1 integration architecture explicitly excludes:
+Integration architecture MVP v1 явно исключает:
 
 - flight providers;
 - booking providers;
@@ -30,34 +30,34 @@ MVP v1 integration architecture explicitly excludes:
 - post-booking support systems;
 - production-grade integration contracts.
 
-## Integration Principles
+## Integration principles / принципы интеграции
 
-- Provider-agnostic architecture: product and domain concepts should not depend on a specific provider.
+- Provider-agnostic architecture: product и domain concepts не должны зависеть от specific provider.
 - Facts are source-owned: hotel facts come from provider/source data, not from assistant inference.
-- Assumptions are assistant-owned and must stay separate from provider facts.
+- Assumptions are assistant-owned и должны оставаться separate from provider facts.
 - Unknown data must not be filled silently.
-- Integrations must support MVP hotel-only scope.
+- Integrations должны поддерживать MVP hotel-only scope.
 - Future expansion must not leak into the MVP integration boundary.
-- Integration design should enable replacement of providers later without changing product/domain concepts.
-- Stage 5 does not introduce vendor lock-in.
+- Integration design должен позволять later replacement of providers без изменения product/domain concepts.
+- Stage 5 не вводит vendor lock-in.
 
-## Hotel Provider Integration Boundary
+## Hotel provider integration boundary
 
-The hotel provider integration boundary is the conceptual source of hotel offers and provider facts.
+Hotel provider integration boundary является conceptual source of hotel offers and provider facts.
 
-It may eventually connect to an internal company API. Until the existing contract is provided and handled in a later appropriate stage, Stage 5 keeps the provider boundary conceptual and provider-agnostic.
+Eventually он может подключаться к internal company API. До предоставления existing contract и его обработки на later appropriate stage Stage 5 держит provider boundary conceptual and provider-agnostic.
 
-The hotel provider source may provide hotel availability, prices, policies, amenities, location, rating and related hotel facts when available. These are source-owned facts and should be treated as distinct from assistant reasoning.
+Hotel provider source может предоставлять hotel availability, prices, policies, amenities, location, rating и related hotel facts when available. Это source-owned facts, и они должны treated as distinct from assistant reasoning.
 
-The provider source may also return incomplete, unavailable or stale data. Missing and stale data must remain visible as unknown or freshness-limited, especially when decision-critical.
+Provider source также может вернуть incomplete, unavailable или stale data. Missing и stale data должны оставаться visible as unknown или freshness-limited, especially when decision-critical.
 
-The hotel provider boundary does not own user intent, Search Intent Summary, assistant explanations, ranking language or user-facing assumptions.
+Hotel provider boundary не owns user intent, Search Intent Summary, assistant explanations, ranking language или user-facing assumptions.
 
-This document does not create provider interfaces, provider method names, API payloads, OpenAPI specs, mapping tables or concrete provider choices.
+Этот документ не создает provider interfaces, provider method names, API payloads, OpenAPI specs, mapping tables или concrete provider choices.
 
-## LLM / AI Integration Boundary
+## LLM / AI integration boundary
 
-The LLM / AI layer may support:
+LLM / AI layer может поддерживать:
 
 - clarification;
 - summarization;
@@ -67,7 +67,7 @@ The LLM / AI layer may support:
 - uncertainty communication;
 - user-facing language generation.
 
-The LLM must not:
+LLM не должен:
 
 - fabricate provider facts;
 - silently override user constraints;
@@ -75,39 +75,39 @@ The LLM must not:
 - convert assumptions into hotel attributes;
 - hide decision-critical unknown data.
 
-LLM outputs that are assumptions must be labeled conceptually. The LLM should operate on separated inputs: user constraints, provider facts, assistant assumptions and unknowns.
+LLM outputs, которые являются assumptions, должны быть conceptually labeled. LLM должен работать с separated inputs: user constraints, provider facts, assistant assumptions и unknowns.
 
-This document does not choose a model, define prompt templates, create an LLM API contract or describe token/cost optimization.
+Этот документ не выбирает model, не определяет prompt templates, не создает LLM API contract и не описывает token/cost optimization.
 
-## Frontend / Backend Integration Boundary
+## Frontend / backend integration boundary
 
-At conceptual level, the frontend presents assistant conversation, Search Intent Summary, Results View and Hotel Offer Cards.
+На conceptual level frontend показывает assistant conversation, Search Intent Summary, Results View и Hotel Offer Cards.
 
-The backend/application coordinates orchestration, provider abstraction and assistant/LLM boundary. It preserves domain rules, handles conceptual application state and keeps provider facts, user constraints, assistant assumptions and unknown data separate.
+Backend/application coordinates orchestration, provider abstraction и assistant/LLM boundary. Он сохраняет domain rules, handles conceptual application state и держит provider facts, user constraints, assistant assumptions и unknown data separated.
 
-The frontend must not invent provider facts. It must preserve uncertainty markers, unknown data and freshness limitations when these affect user decisions.
+Frontend не должен invent provider facts. Он должен сохранять uncertainty markers, unknown data и freshness limitations, когда они влияют на user decisions.
 
-Refinements and corrections flow back into the application/domain conceptually so Search Intent Summary and results context can stay aligned with user input.
+Refinements и corrections conceptually flow back into application/domain, чтобы Search Intent Summary и results context оставались aligned with user input.
 
-This document does not describe endpoint names, request/response schemas or transport details beyond the conceptual client/server boundary.
+Этот документ не описывает endpoint names, request/response schemas или transport details beyond conceptual client/server boundary.
 
-## Source, Freshness and Confidence Boundary
+## Source, freshness and confidence boundary
 
-Provider facts may need source/freshness indicators, depending on what the provider source returns.
+Provider facts могут требовать source/freshness indicators, depending on what provider source returns.
 
-Stale or unknown freshness should be represented conceptually rather than hidden. If the system cannot verify freshness, it should not imply that old price, availability or policy data is current.
+Stale или unknown freshness should be represented conceptually rather than hidden. Если system не может verify freshness, он не должен imply that old price, availability or policy data is current.
 
-Assistant confidence must not be confused with provider data freshness. A hotel can be a strong assistant match based on visible constraints while still having unknown cancellation policy, unavailable source marker or stale price data.
+Assistant confidence не должно смешиваться с provider data freshness. Hotel может быть strong assistant match based on visible constraints, но все еще иметь unknown cancellation policy, unavailable source marker или stale price data.
 
-Decision-critical unknowns should remain visible. Exact representation is deferred to later API/domain detail stages after provider capabilities are known.
+Decision-critical unknowns должны оставаться visible. Exact representation deferred to later API/domain detail stages after provider capabilities are known.
 
-This section does not define concrete fields.
+Этот section не определяет concrete fields.
 
-## Optional Telemetry / Logging Boundary
+## Optional telemetry / logging boundary
 
-Telemetry and logging are architecture considerations, not Stage 5 implementation work.
+Telemetry и logging являются architecture considerations, а не Stage 5 implementation work.
 
-They may be useful for understanding:
+Они могут быть useful для понимания:
 
 - failed searches;
 - unclear intents;
@@ -115,62 +115,62 @@ They may be useful for understanding:
 - LLM quality;
 - repeated uncertainty or missing-data patterns.
 
-Telemetry/logging must not become product analytics implementation in Stage 5. It should avoid collecting unnecessary personal data, especially free-form travel text beyond what is needed for future quality and reliability analysis.
+Telemetry/logging не должны становиться product analytics implementation в Stage 5. Они должны avoid collecting unnecessary personal data, especially free-form travel text beyond what is needed for future quality and reliability analysis.
 
-Exact telemetry design is deferred. This document does not create event names, schemas, tools or storage requirements.
+Exact telemetry design deferred. Этот документ не создает event names, schemas, tools или storage requirements.
 
-## Optional Session Persistence Boundary
+## Optional session persistence boundary
 
-Stage 3/4 confirm current-session shortlist as MVP UX, but not account history or full persistence.
+Stage 3/4 подтверждают current-session shortlist как MVP UX, но не account history или full persistence.
 
-Session-level persistence may be considered only to support the current session experience, such as returning to selected hotel offers, comparison candidates, Search Intent Summary, stale markers and freshness warnings.
+Session-level persistence может рассматриваться only to support current session experience, например returning to selected hotel offers, comparison candidates, Search Intent Summary, stale markers и freshness warnings.
 
-It is not:
+Это не:
 
 - account history;
 - user profile;
 - permanent saved trips;
 - full-auth requirement;
 - cross-device sync;
-- booking or payment storage.
+- booking или payment storage.
 
-Freshness of shortlisted hotel offers is not guaranteed unless provider/source data confirms it.
+Freshness shortlisted hotel offers не guaranteed, если provider/source data не подтверждает.
 
-This document does not create database schema, storage model or auth design.
+Этот документ не создает database schema, storage model или auth design.
 
-## Integration Failure Modes at Conceptual Level
+## Integration failure modes на conceptual level
 
 ### Hotel provider unavailable
 
-The system should represent provider unavailability as a source problem, not as proof that no hotel offers exist.
+System должен представлять provider unavailability как source problem, а не как proof that no hotel offers exist.
 
 ### Provider returns incomplete facts
 
-Available facts may be shown if useful, while missing facts remain unknown and affect explanation confidence.
+Available facts могут быть shown if useful, while missing facts remain unknown and affect explanation confidence.
 
 ### Provider data freshness unknown
 
-Unknown freshness should remain visible conceptually and should not be replaced by assistant confidence.
+Unknown freshness должна оставаться visible conceptually и не должна заменяться assistant confidence.
 
 ### LLM output conflicts with provider facts
 
-Provider facts override assistant assumptions. The assistant output should be corrected, constrained or relabeled as an assumption.
+Provider facts override assistant assumptions. Assistant output should be corrected, constrained or relabeled as an assumption.
 
 ### LLM output conflicts with user constraints
 
-User-provided constraints and corrections override assistant assumptions. The conflict should be surfaced rather than hidden.
+User-provided constraints и corrections override assistant assumptions. Conflict should be surfaced rather than hidden.
 
 ### Frontend cannot display all uncertainty details
 
-Decision-critical uncertainty should remain visible. Less critical detail may be progressively disclosed, but must not disappear in a way that changes meaning.
+Decision-critical uncertainty должна оставаться visible. Less critical detail может быть progressively disclosed, но не должен disappear in a way that changes meaning.
 
 ### User changes intent after results
 
-The application should preserve clarity about changed context and stale results. Future-scope intent changes must not silently activate flight, combined, booking or payment flows.
+Application should preserve clarity about changed context and stale results. Future-scope intent changes must not silently activate flight, combined, booking or payment flows.
 
-This section does not create retry policy, error codes, fallback implementation, incident process or support workflow.
+Этот section не создает retry policy, error codes, fallback implementation, incident process или support workflow.
 
-## Mermaid Integration Diagram
+## Mermaid integration diagram
 
 ```mermaid
 flowchart LR
@@ -199,9 +199,9 @@ flowchart LR
     app -. future only .-> futureAccount
 ```
 
-The diagram is conceptual. It does not show endpoints, payloads, database tables, queues, concrete vendors, SDKs or classes.
+Диаграмма conceptual. Она не показывает endpoints, payloads, database tables, queues, concrete vendors, SDKs или classes.
 
-## Future Expansion Integration Boundaries
+## Integration boundaries для future expansion
 
 Flights require a separate provider abstraction and product/domain decision.
 
@@ -211,21 +211,21 @@ Account history/full auth require identity and persistence architecture.
 
 Combined itinerary requires multi-domain orchestration beyond hotel-only MVP.
 
-None of these should be prepared as MVP implementation tasks.
+Ничто из этого не должно быть prepared as MVP implementation tasks.
 
-## Open Questions
+## Open questions
 
-- What minimum hotel provider capabilities are required before API contract design?
-- How should provider freshness be represented conceptually before exact provider fields are known?
-- Does session shortlist need refresh persistence within MVP, or only active-session memory?
-- What telemetry is acceptable in MVP without overengineering analytics or logging?
-- How should LLM outputs be validated against provider facts conceptually without defining implementation mechanisms now?
+- Какие minimum hotel provider capabilities требуются before API contract design?
+- Как conceptually представлять provider freshness до знания exact provider fields?
+- Нужна ли session shortlist refresh persistence within MVP или достаточно active-session memory?
+- Какая telemetry допустима в MVP без overengineering analytics или logging?
+- Как conceptually валидировать LLM outputs against provider facts без определения implementation mechanisms сейчас?
 
-These questions are architecture-level inputs, not implementation tasks.
+Эти вопросы являются architecture-level inputs, а не implementation tasks.
 
-## Non-goals
+## Non-goals / что не входит
 
-This document does not define:
+Этот документ не определяет:
 
 - OpenAPI;
 - API payloads;
@@ -239,4 +239,4 @@ This document does not define:
 - payment/booking integration;
 - implementation backlog.
 
-It also does not start Stage 5.6 or Stage 6.
+Он также не начинает Stage 5.6 или Stage 6.

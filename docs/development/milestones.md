@@ -2,6 +2,14 @@
 
 Вехи описывают контрольные точки разработки. Каждая веха должна завершаться проверяемым результатом, который можно использовать как основу для следующего этапа. Этот документ не является источником статусов продуктовых этапов: текущий статус, следующий шаг, stage gates и carryover фиксируются в primary roadmap `docs/roadmap/roadmap.md`.
 
+## Статус и правила активации
+
+На момент pre-Stage 6 cleanup Stage 0-5 завершены, Stage 6 остается Planned / not started, а Code/API/DB/UI implementation не начат.
+
+Вехи ниже являются future/planned reference material, а не активным backlog. Они не разрешают начинать backend/frontend implementation, создавать API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production code.
+
+Каждая веха активируется только отдельной явной задачей после соответствующего шага primary roadmap. Если веха звучит конкретнее, чем текущий primary roadmap, она должна читаться как будущий ориентир, а не как текущая задача.
+
 ## Веха 0 — основа проекта
 
 **Цель:** подготовить структуру проекта, документацию, правила разработки, базовые соглашения и продуктовую рамку Этапа 0.

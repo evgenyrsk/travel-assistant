@@ -51,10 +51,10 @@
 
 ## Этап 6 — подготовка реализации
 
-- Подготовить задачи реализации.
-- Уточнить подход к provider abstractions, mock/fake providers, contract placeholders и использованию предоставленного travel API-контракта.
-- Подготовить контракты и стратегию проверки.
-- Подготовить локальный рабочий процесс.
+- Подготовить рамку будущих задач реализации.
+- Уточнить подход к provider abstractions, mock/fake providers, contract placeholders и использованию предоставленного travel API-контракта на уровне scope/planning.
+- Подготовить стратегию проверки и границы локального рабочего процесса.
+- Не создавать API/OpenAPI contracts, endpoint specs, DB schema, storage model или production implementation без отдельной явной Stage 6 задачи.
 
 ## Этап 7 — реализация MVP
 

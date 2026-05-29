@@ -1,16 +1,16 @@
 # Stage 5.1 — Architecture Scope & Principles
 
-## Purpose
+## Назначение
 
-Stage 5 translates the product, requirements, UX and visual-design decisions from Stage 0-4 into architecture boundaries and principles for Travel Assistant.
+Stage 5 переводит продуктовые решения, требования, UX и visual-design decisions из Stage 0-4 в архитектурные границы и принципы Travel Assistant.
 
-This stage defines how future system design should protect the hotel-only MVP v1 scope, separate domain/application responsibilities, keep provider and LLM integrations replaceable, and preserve the distinction between user-provided constraints, provider facts, assistant assumptions and unknown data.
+Этот этап определяет, как future system design должен защищать hotel-only MVP v1 scope, разделять domain/application responsibilities, сохранять provider и LLM integrations заменяемыми и поддерживать различие между user-provided constraints, provider facts, assistant assumptions и unknown data.
 
-Stage 5 is not an implementation stage. It does not create production code, API contracts, database schema, UI components, provider adapters or implementation tasks.
+Stage 5 не является implementation stage. Он не создает production code, API contracts, database schema, UI components, provider adapters или implementation tasks.
 
-## Stage 5 Scope
+## Scope Stage 5
 
-Stage 5 may define:
+Stage 5 может определять:
 
 - system architecture;
 - domain/application boundaries;
@@ -18,13 +18,13 @@ Stage 5 may define:
 - provider integration boundaries;
 - data ownership boundaries;
 - MVP non-functional architecture considerations;
-- architecture decisions that affect future implementation.
+- architecture decisions, влияющие на будущую implementation.
 
-Stage 5 should turn prior product and UX commitments into stable architectural constraints without starting Stage 6 implementation preparation or Stage 7 production development.
+Stage 5 должен превратить предыдущие product и UX commitments в стабильные architectural constraints без старта Stage 6 implementation preparation или Stage 7 production development.
 
-## Explicitly Out of Scope
+## Explicitly out of scope
 
-The following are explicitly out of scope for Stage 5.1 and must not be introduced by this document:
+Следующее явно находится вне scope Stage 5.1 и не должно вводиться этим документом:
 
 - production code;
 - database migrations;
@@ -38,74 +38,74 @@ The following are explicitly out of scope for Stage 5.1 and must not be introduc
 - account history;
 - implementation backlog.
 
-## MVP v1 Scope Guardrails
+## MVP v1 scope guardrails
 
-MVP v1 is hotel-only.
+MVP v1 является hotel-only.
 
-The assistant helps clarify user intent, explain options, compare hotel offers and guide decision-making. It must not imply that booking, payment, flight search, combined itinerary planning or account history are available in MVP v1.
+Assistant помогает уточнять user intent, объяснять options, сравнивать hotel offers и поддерживать decision-making. Он не должен подразумевать, что booking, payment, flight search, combined itinerary planning или account history доступны в MVP v1.
 
-Future expansion sections may mention flights, combined itinerary, booking, payments, full authorization or account history only as future context. They must remain explicitly marked as future expansion and must not become active MVP v1 requirements.
+Разделы future expansion могут упоминать flights, combined itinerary, booking, payments, full authorization или account history только как future context. Они должны оставаться явно помеченными как future expansion и не должны становиться active MVP v1 requirements.
 
-## Required Constraints from Stage 0-4
+## Required constraints from Stage 0-4
 
-Stage 5 architecture work must preserve these constraints from Stage 0-4:
+Архитектурная работа Stage 5 должна сохранять эти constraints из Stage 0-4:
 
-- The product is chat-first, not chat-only.
-- A results view exists alongside the assistant conversation.
-- Search Intent Summary is an explicit UX/domain concept.
-- Hotel Offer Card is central to MVP hotel comparison.
-- Provider facts must be separated from assistant assumptions.
-- User-provided constraints must be separated from provider facts.
-- Unknown data must not be fabricated.
-- The assistant may reason, but must distinguish assumptions from facts.
+- Продукт является chat-first, not chat-only.
+- Results view существует рядом с assistant conversation.
+- Search Intent Summary является явным UX/domain concept.
+- Hotel Offer Card является central для MVP hotel comparison.
+- Provider facts должны быть отделены от assistant assumptions.
+- User-provided constraints должны быть отделены от provider facts.
+- Unknown data не должна выдумываться.
+- Assistant может рассуждать, но должен отличать assumptions от facts.
 
-The architecture should make these distinctions visible in future domain and application boundaries so that provider data, user input and assistant reasoning do not collapse into one ambiguous model.
+Architecture должна делать эти distinctions видимыми в будущих domain и application boundaries, чтобы provider data, user input и assistant reasoning не схлопывались в одну неоднозначную модель.
 
-## Architecture Principles
+## Архитектурные принципы
 
 ### Domain-first boundaries
 
-Domain concepts should be described before framework, storage, transport or provider details. Future implementation should keep domain logic independent from web framework, database, UI and concrete LLM/provider SDKs.
+Domain concepts должны описываться до framework, storage, transport или provider details. Будущая implementation должна сохранять domain logic независимой от web framework, database, UI и concrete LLM/provider SDKs.
 
 ### Provider-agnostic integrations
 
-Hotel search must be represented behind provider-agnostic boundaries. Provider-specific facts, errors and limitations should be translated at integration boundaries rather than leaking into domain or UX concepts.
+Hotel search должен быть представлен за provider-agnostic boundaries. Provider-specific facts, errors и limitations должны переводиться на integration boundaries, а не протекать в domain или UX concepts.
 
 ### AI-assisted but not AI-owned facts
 
-The assistant can interpret, summarize, compare and explain, but provider/API data remains the source of truth for hotel facts. LLM output must not become the authoritative source for availability, price, hotel attributes or provider-originated travel facts.
+Assistant может interpret, summarize, compare и explain, но provider/API data остается source of truth для hotel facts. LLM output не должен становиться authoritative source для availability, price, hotel attributes или provider-originated travel facts.
 
 ### Explicit uncertainty handling
 
-Architecture must preserve uncertainty as a first-class concern. Unknown data, missing fields, unavailable provider facts and assistant assumptions should remain distinguishable in future models and flows.
+Architecture должна сохранять uncertainty как first-class concern. Unknown data, missing fields, unavailable provider facts и assistant assumptions должны оставаться различимыми в будущих models и flows.
 
 ### MVP-first, expansion-ready
 
-Architecture should serve the hotel-only MVP v1 first while leaving clear extension points for later flight search, combined itinerary, booking, account history and deeper authorization. Extension readiness must not pull future scope into MVP v1.
+Architecture должна сначала обслуживать hotel-only MVP v1, оставляя clear extension points для будущего flight search, combined itinerary, booking, account history и deeper authorization. Extension readiness не должна втягивать future scope в MVP v1.
 
 ### No hidden scope expansion
 
-Architecture documents must not smuggle future product features into current requirements. Any expansion beyond hotel-only MVP v1 requires a later product decision and, where the choice affects long-term architecture, likely an ADR.
+Architecture documents не должны протаскивать future product features в текущие requirements. Любое expansion за пределы hotel-only MVP v1 требует будущего product decision и, если выбор влияет на long-term architecture, вероятно ADR.
 
 ### Architecture before implementation
 
-Stage 5 documents architectural boundaries and decisions before implementation preparation. It must not define production classes, migrations, endpoint contracts, UI tasks or delivery backlog.
+Stage 5 документирует architectural boundaries и decisions до implementation preparation. Он не должен определять production classes, migrations, endpoint contracts, UI tasks или delivery backlog.
 
 ### Readable documentation for future coding agents
 
-Architecture documents should be concise, explicit and easy for future coding agents to follow. They should make scope limits, source-of-truth rules and future-expansion boundaries hard to miss.
+Architecture documents должны быть краткими, явными и простыми для future coding agents. Они должны делать scope limits, source-of-truth rules и future-expansion boundaries трудно пропускаемыми.
 
-## Future Expansion Policy
+## Политика future expansion
 
-Future features may be mentioned only as context for extensibility and risk management.
+Future features могут упоминаться только как context for extensibility и risk management.
 
-Future expansion notes must not define detailed MVP requirements, detailed UX requirements, provider contracts, database models or implementation tasks for future areas.
+Future expansion notes не должны определять detailed MVP requirements, detailed UX requirements, provider contracts, database models или implementation tasks для future areas.
 
-Activating flight search, booking, payment flows, account history, full authorization or combined itinerary planning requires a later product decision. If the activation changes architecture boundaries, public contracts, provider strategy, data ownership or security posture, it likely also requires an ADR.
+Активация flight search, booking, payment flows, account history, full authorization или combined itinerary planning требует будущего product decision. Если активация меняет architecture boundaries, public contracts, provider strategy, data ownership или security posture, вероятно также требуется ADR.
 
-## Stage 5 Deliverables Preview
+## Stage 5 deliverables preview
 
-Future Stage 5 work may create these documents as separate tasks. This list is a planning preview, not an instruction to create them now:
+Будущая работа Stage 5 может создать эти документы отдельными задачами. Этот список является planning preview, а не инструкцией создавать их сейчас:
 
 - `system-context-and-boundaries.md`
 - `domain-model-and-boundaries.md`
@@ -117,16 +117,16 @@ Future Stage 5 work may create these documents as separate tasks. This list is a
 - `stage-5-summary-and-carryover.md`
 - `stage-5-consistency-review.md`
 
-## Open Questions
+## Open questions
 
-- Which architecture decisions in Stage 5 require ADRs rather than ordinary architecture notes?
-- What minimum hotel provider capabilities are required by the existing travel API contract once it is provided?
-- How should future domain/application boundaries represent user-provided constraints, provider facts, assistant assumptions and unknown data without prematurely defining implementation classes?
-- What data ownership boundaries are needed for save/shortlist in MVP v1 without introducing account history or full authorization?
-- Which MVP non-functional constraints are architectural requirements, and which should remain implementation-stage acceptance criteria?
+- Какие architecture decisions в Stage 5 требуют ADR, а не обычных architecture notes?
+- Какие минимальные hotel provider capabilities требуются existing travel API contract, когда он будет предоставлен?
+- Как future domain/application boundaries должны представлять user-provided constraints, provider facts, assistant assumptions и unknown data без преждевременного определения implementation classes?
+- Какие data ownership boundaries нужны для save/shortlist в MVP v1 без введения account history или full authorization?
+- Какие MVP non-functional constraints являются architectural requirements, а какие должны оставаться implementation-stage acceptance criteria?
 
-## Non-goals
+## Non-goals / что не входит
 
-This document does not select production-level implementation details, introduce code, define API contracts, design a database schema, create UI implementation work or start development.
+Этот документ не выбирает production-level implementation details, не вводит code, не определяет API contracts, не проектирует database schema, не создает UI implementation work и не начинает development.
 
-It establishes Stage 5 scope, guardrails and principles so that later architecture documents can proceed without changing roadmap order or expanding hotel-only MVP v1.
+Он устанавливает Stage 5 scope, guardrails и principles, чтобы последующие architecture documents могли двигаться дальше без изменения roadmap order или расширения hotel-only MVP v1.

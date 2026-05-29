@@ -1,16 +1,16 @@
 # Stage 5.4 — Application Orchestration
 
-## Purpose
+## Назначение
 
-This document describes conceptual application orchestration for Travel Assistant MVP v1.
+Этот документ описывает conceptual application orchestration для Travel Assistant MVP v1.
 
-Application orchestration coordinates user intent, assistant/LLM support, hotel provider abstraction, results view and domain boundaries. Its purpose is to keep the hotel-only MVP coherent across conversation, Search Intent Summary, hotel retrieval, explanations, comparisons and current-session shortlist.
+Application orchestration координирует user intent, assistant/LLM support, hotel provider abstraction, results view и domain boundaries. Ее цель — сохранять hotel-only MVP coherent across conversation, Search Intent Summary, hotel retrieval, explanations, comparisons и current-session shortlist.
 
-This document does not define production implementation, API contracts, classes, interfaces, state machine code, queues, events, deployment topology or database model.
+Этот документ не определяет production implementation, API contracts, classes, interfaces, state machine code, queues, events, deployment topology или database model.
 
-## Orchestration Scope for MVP v1
+## Orchestration scope для MVP v1
 
-MVP v1 orchestration covers:
+Orchestration MVP v1 покрывает:
 
 - user request intake;
 - clarification of hotel search intent;
@@ -19,9 +19,9 @@ MVP v1 orchestration covers:
 - separation of provider facts, user constraints, assistant assumptions and unknown data;
 - explanation and comparison of hotel offers;
 - coordination between assistant conversation and results view;
-- current-session shortlist handling as confirmed by Stage 3/4.
+- current-session shortlist handling, как подтверждено Stage 3/4.
 
-MVP v1 orchestration explicitly excludes:
+Orchestration MVP v1 явно исключает:
 
 - flight orchestration;
 - combined itinerary orchestration;
@@ -31,9 +31,9 @@ MVP v1 orchestration explicitly excludes:
 - production provider workflow;
 - support/admin workflows.
 
-## Application Layer Responsibilities
+## Application layer responsibilities
 
-At conceptual level, the application layer is responsible for:
+На conceptual level application layer отвечает за:
 
 - preserving MVP scope;
 - coordinating assistant and provider abstraction;
@@ -44,11 +44,11 @@ At conceptual level, the application layer is responsible for:
 - deciding when results view can be shown conceptually;
 - maintaining current-session UI/application state at conceptual level.
 
-These responsibilities do not imply concrete services, classes, modules, package names or implementation structure.
+Эти responsibilities не подразумевают concrete services, classes, modules, package names или implementation structure.
 
-## Conceptual Orchestration Flow
+## Conceptual orchestration flow
 
-At a high level:
+На high level:
 
 1. User provides an initial travel request.
 2. Assistant/application identifies missing decision-critical constraints.
@@ -61,27 +61,27 @@ At a high level:
 9. Frontend presents conversation, Search Intent Summary and Results View.
 10. User may refine constraints or shortlist options within the current session.
 
-This is a conceptual flow, not a sequence diagram, endpoint design, request/response payload design, retry strategy, caching strategy or database write plan.
+Это conceptual flow, а не sequence diagram, endpoint design, request/response payload design, retry strategy, caching strategy или database write plan.
 
-## Orchestration States / Phases
+## Orchestration states / phases
 
-The following are conceptual phases, not implementation states. They are not a state machine specification and do not define transitions, guards, events or state IDs.
+Следующее является conceptual phases, а не implementation states. Это не state machine specification и не определяет transitions, guards, events или state IDs.
 
 ### Intent capture
 
-**Purpose:** Understand whether the user is asking for a supported hotel-related flow, a clarification-first open destination flow or an unsupported/future-scope action.
+**Purpose:** Понять, запрашивает ли user supported hotel-related flow, clarification-first open destination flow или unsupported/future-scope action.
 
 **Input concept:** User Request.
 
-**Output concept:** Initial Search Intent Summary direction or a future-scope/unsupported response.
+**Output concept:** Initial Search Intent Summary direction или future-scope/unsupported response.
 
-**Key boundaries:** MVP v1 supports hotel-only intent. Flight, combined, booking and payment requests receive safe boundary communication.
+**Key boundaries:** MVP v1 supports hotel-only intent. Flight, combined, booking и payment requests получают safe boundary communication.
 
-**What must not happen:** The system must not start flight/combined retrieval, imply booking/payment capability or silently treat broad trip planning as full itinerary orchestration.
+**What must not happen:** System не должен start flight/combined retrieval, imply booking/payment capability или silently treat broad trip planning as full itinerary orchestration.
 
 ### Clarification
 
-**Purpose:** Ask only for decision-critical missing information before hotel retrieval.
+**Purpose:** Задавать вопросы только о decision-critical missing information before hotel retrieval.
 
 **Input concept:** User Request, User-provided Constraints, missing required constraints, assistant assumptions.
 
@@ -89,11 +89,11 @@ The following are conceptual phases, not implementation states. They are not a s
 
 **Key boundaries:** Clarification should stay focused and avoid turning the product into a long form. User corrections override assistant assumptions.
 
-**What must not happen:** The assistant must not fabricate missing user constraints, hide material ambiguity or launch provider retrieval when required constraints are missing.
+**What must not happen:** Assistant не должен fabricate missing user constraints, hide material ambiguity или launch provider retrieval when required constraints are missing.
 
 ### Intent summary
 
-**Purpose:** Maintain a human-readable bridge between conversation and results.
+**Purpose:** Поддерживать human-readable bridge between conversation and results.
 
 **Input concept:** User-provided Constraints, assistant clarifications, visible assumptions, unknown data.
 
@@ -105,19 +105,19 @@ The following are conceptual phases, not implementation states. They are not a s
 
 ### Hotel retrieval
 
-**Purpose:** Retrieve hotel-only offers through provider abstraction when the search is sufficiently understood.
+**Purpose:** Retrieve hotel-only offers through provider abstraction, когда search sufficiently understood.
 
 **Input concept:** Hotel Search Intent and Search Intent Summary.
 
-**Output concept:** Hotel Offers, available Provider Facts, missing provider data or provider unavailability signal at conceptual level.
+**Output concept:** Hotel Offers, available Provider Facts, missing provider data или provider unavailability signal на conceptual level.
 
 **Key boundaries:** Provider/source data owns hotel facts. Provider abstraction hides concrete provider details.
 
-**What must not happen:** The application must not call flight, booking or payment providers as part of MVP v1, and must not convert provider limitations into invented facts.
+**What must not happen:** Application must not call flight, booking or payment providers as part of MVP v1, and must not convert provider limitations into invented facts.
 
 ### Results explanation
 
-**Purpose:** Help the user understand why offers match, where trade-offs exist and what remains uncertain.
+**Purpose:** Помочь user понять, why offers match, where trade-offs exist and what remains uncertain.
 
 **Input concept:** Hotel Offers, Provider Facts, User-provided Constraints, Assistant Assumptions, Unknown Data.
 
@@ -137,11 +137,11 @@ The following are conceptual phases, not implementation states. They are not a s
 
 **Key boundaries:** User corrections override assumptions. Provider facts remain source-owned.
 
-**What must not happen:** The system must not silently rerank against changed hard constraints or hide that previous results may be stale.
+**What must not happen:** System must not silently rerank against changed hard constraints or hide that previous results may be stale.
 
-### Current-session shortlist
+### Current-session shortlist / shortlist текущей сессии
 
-**Purpose:** Let the user temporarily save useful hotel offers or comparison candidates within the active search session.
+**Purpose:** Let user temporarily save useful hotel offers or comparison candidates within active search session.
 
 **Input concept:** Selected Hotel Offer or comparison set, current Search Intent Summary, provider facts, assumptions and unknowns.
 
@@ -151,9 +151,9 @@ The following are conceptual phases, not implementation states. They are not a s
 
 **What must not happen:** Shortlist must not imply account history, persistent saved trips, booking, full auth, cross-device sync or guaranteed fresh price/availability.
 
-## Assistant / LLM Boundary
+## Assistant / LLM boundary
 
-The LLM may:
+LLM может:
 
 - clarify;
 - summarize;
@@ -163,7 +163,7 @@ The LLM may:
 - communicate uncertainty;
 - ask follow-up questions.
 
-The LLM must not:
+LLM не должен:
 
 - fabricate provider facts;
 - silently override user constraints;
@@ -171,32 +171,32 @@ The LLM must not:
 - imply booking/payment/flight capabilities in MVP;
 - hide unknown data when decision-critical.
 
-LLM output supports orchestration and user understanding. It does not own provider facts, final decisions or MVP scope.
+LLM output supports orchestration and user understanding. Он не owns provider facts, final decisions или MVP scope.
 
-## Provider Abstraction Boundary
+## Provider abstraction boundary
 
-The provider abstraction is the conceptual source boundary for hotel facts.
+Provider abstraction является conceptual source boundary для hotel facts.
 
-It:
+Она:
 
 - provides hotel facts through an abstracted source boundary;
 - hides concrete provider details from application/domain concepts;
 - supports future replacement or integration without changing product scope;
 - remains hotel-only in MVP v1.
 
-It does not include flight providers, booking providers or payment providers in MVP. This document does not create provider interfaces, provider method names, API contracts or concrete provider choices.
+Она не включает flight providers, booking providers или payment providers in MVP. Этот документ не создает provider interfaces, provider method names, API contracts или concrete provider choices.
 
-## Frontend / Results Coordination Boundary
+## Frontend / results coordination boundary
 
-Orchestration supports the UX by keeping the experience chat-first, not chat-only.
+Orchestration поддерживает UX, сохраняя experience chat-first, not chat-only.
 
-The assistant conversation remains the primary guidance surface for clarification, explanation and refinement. The results view provides structured hotel comparison through Search Intent Summary, Hotel Offer Cards, details, comparison and current-session shortlist.
+Assistant conversation остается primary guidance surface для clarification, explanation и refinement. Results view предоставляет structured hotel comparison through Search Intent Summary, Hotel Offer Cards, details, comparison и current-session shortlist.
 
-Search Intent Summary bridges conversation and results. Hotel Offer Cards must not hide uncertainty, freshness limitations or unknown data when these affect user decisions. User refinements should update the intent conceptually and make changed or stale context visible.
+Search Intent Summary bridges conversation and results. Hotel Offer Cards не должны hide uncertainty, freshness limitations или unknown data, когда они affect user decisions. User refinements должны conceptually update intent и make changed or stale context visible.
 
-This section does not design UI components, layouts, props or frontend implementation details.
+Этот section не проектирует UI components, layouts, props или frontend implementation details.
 
-## Handling Refinements and Corrections
+## Handling refinements and corrections
 
 Conceptual rules:
 
@@ -206,19 +206,19 @@ Conceptual rules:
 - stale assumptions should be discarded or relabeled;
 - changes may require fresh hotel retrieval conceptually.
 
-Refinement can change dates, destination, guests, rooms, budget, location preferences, amenities, hard constraints or priority trade-offs. The system should preserve clarity about what changed and what previous results may no longer satisfy.
+Refinement может менять dates, destination, guests, rooms, budget, location preferences, amenities, hard constraints или priority trade-offs. System should preserve clarity about what changed and what previous results may no longer satisfy.
 
-This section does not define algorithms, caching, invalidation or event handling.
+Этот section не определяет algorithms, caching, invalidation или event handling.
 
-## Failure / Uncertainty Handling at Orchestration Level
+## Failure / uncertainty handling на orchestration level
 
 ### Missing user constraints
 
-The assistant should ask focused clarification before hotel retrieval when decision-critical constraints are missing.
+Assistant should ask focused clarification before hotel retrieval when decision-critical constraints are missing.
 
 ### Missing provider data
 
-The system may still show useful hotel offers when critical facts are available, but missing fields must remain unknown and should affect explanation confidence.
+System may still show useful hotel offers when critical facts are available, but missing fields must remain unknown and should affect explanation confidence.
 
 ### Provider unavailable
 
@@ -226,11 +226,11 @@ Provider unavailability should be presented as a source problem, not as proof th
 
 ### Conflicting constraints
 
-The assistant should surface the conflict and ask which constraint matters most or whether the user wants to relax one.
+Assistant should surface the conflict and ask which constraint matters most or whether user wants to relax one.
 
 ### Too many results
 
-The assistant may ask for priorities or summarize trade-offs. It must not invent hidden ranking facts to force a recommendation.
+Assistant may ask for priorities or summarize trade-offs. It must not invent hidden ranking facts to force a recommendation.
 
 ### No useful hotel matches
 
@@ -238,21 +238,21 @@ No useful matches should be separated from provider error and paired with concep
 
 ### Low-confidence assistant interpretation
 
-The assistant should label uncertainty, ask a follow-up question or show the assumption rather than silently treating the interpretation as fact.
+Assistant should label uncertainty, ask a follow-up question or show the assumption rather than silently treating interpretation as fact.
 
-This section does not define error codes, retry policy, observability implementation or support workflow.
+Этот section не определяет error codes, retry policy, observability implementation или support workflow.
 
-## Current-session Shortlist Boundary
+## Boundary current-session shortlist
 
-Stage 3/4 confirm save/shortlist within the current search session.
+Stage 3/4 подтверждают save/shortlist within current search session.
 
-Current-session Shortlist is:
+Current-session Shortlist:
 
-- a temporary session-level selection aid;
+- temporary session-level selection aid;
 - scoped to hotel offers and comparison candidates;
 - connected to current user constraints, provider facts, assumptions and unknowns.
 
-It is not:
+Это не:
 
 - account history;
 - persistent saved trips;
@@ -261,9 +261,9 @@ It is not:
 - payment;
 - cross-device sync.
 
-Freshness of shortlisted offers must not be guaranteed unless provider/source data confirms it.
+Freshness shortlisted offers must not be guaranteed unless provider/source data confirms it.
 
-## Mermaid Diagram
+## Mermaid diagram
 
 ```mermaid
 flowchart LR
@@ -289,21 +289,21 @@ flowchart LR
     orchestration -. outside MVP .-> future
 ```
 
-The diagram is conceptual. It does not show endpoints, tables, classes, queues, modules, payloads or deployment topology.
+Диаграмма conceptual. Она не показывает endpoints, tables, classes, queues, modules, payloads или deployment topology.
 
-## Future Expansion Orchestration Boundaries
+## Orchestration boundaries для future expansion
 
-Flights would require a separate orchestration area.
+Flights require a separate orchestration area.
 
-Combined itinerary would require multi-domain composition across separately established hotel and flight flows.
+Combined itinerary require multi-domain composition across separately established hotel and flight flows.
 
-Booking/payment would require transactional orchestration, compliance and reliability decisions.
+Booking/payment require transactional orchestration, compliance and reliability decisions.
 
-Account history/full auth would require identity and persistence scope.
+Account history/full auth require identity and persistence scope.
 
-None of these are part of MVP v1 orchestration.
+Ничто из этого не является частью MVP v1 orchestration.
 
-## Open Questions
+## Open questions
 
 - What minimum completeness is needed before hotel retrieval for broad or open destination requests?
 - Should Search Intent Summary be editable directly, only confirmable, or corrected through conversation in MVP?
@@ -311,11 +311,11 @@ None of these are part of MVP v1 orchestration.
 - How much uncertainty should be shown in Results View before it becomes overwhelming?
 - Does current-session shortlist need persistence across browser refresh within MVP, or only active-session memory?
 
-These questions are architecture-level inputs, not implementation tasks.
+Эти вопросы являются architecture-level inputs, а не implementation tasks.
 
-## Non-goals
+## Non-goals / что не входит
 
-This document does not define:
+Этот документ не определяет:
 
 - state machine implementation;
 - API contracts;
@@ -327,4 +327,4 @@ This document does not define:
 - production integrations;
 - implementation backlog.
 
-It also does not start Stage 5.5 or Stage 6.
+Он также не начинает Stage 5.5 или Stage 6.

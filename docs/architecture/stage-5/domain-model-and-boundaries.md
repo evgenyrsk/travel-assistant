@@ -1,16 +1,16 @@
 # Stage 5.3 — Domain Model & Responsibility Boundaries
 
-## Purpose
+## Назначение
 
-This document describes the conceptual domain model for Travel Assistant MVP v1.
+Этот документ описывает conceptual domain model для Travel Assistant MVP v1.
 
-It is an architecture-level domain model: it names the core business concepts, their responsibilities and their relationships so later technical work can preserve the hotel-only MVP scope and the facts / assumptions / unknowns separation from Stage 0-4.
+Это architecture-level domain model: он называет core business concepts, их responsibilities и relationships, чтобы последующая technical work могла сохранить hotel-only MVP scope и facts / assumptions / unknowns separation из Stage 0-4.
 
-This document does not define DTOs, database schema, API contracts, classes, interfaces, enums, package structure or module structure.
+Этот документ не определяет DTOs, database schema, API contracts, classes, interfaces, enums, package structure или module structure.
 
-## MVP v1 Domain Scope
+## Domain scope MVP v1 / доменный scope MVP v1
 
-The MVP v1 domain covers:
+Domain MVP v1 покрывает:
 
 - hotel-only assistant experience;
 - clarification of user travel intent;
@@ -19,7 +19,7 @@ The MVP v1 domain covers:
 - results view alongside assistant conversation;
 - explicit handling of facts, assumptions and unknowns.
 
-The MVP v1 domain explicitly excludes:
+Domain MVP v1 явно исключает:
 
 - flights;
 - combined itinerary;
@@ -30,106 +30,106 @@ The MVP v1 domain explicitly excludes:
 - loyalty;
 - post-booking support.
 
-Future expansion concepts may be named for boundary clarity, but they are not part of the MVP v1 domain model.
+Future expansion concepts могут называться для clarity of boundary, но они не являются частью MVP v1 domain model.
 
-## Core Domain Concepts
+## Core domain concepts
 
 ### User / Traveler
 
-The person who describes travel needs, provides constraints and preferences, reviews hotel options and makes the final decision.
+Человек, который описывает travel needs, предоставляет constraints and preferences, reviews hotel options и принимает final decision.
 
-The user owns the decision. The system can clarify, explain and compare, but it must not imply that the assistant has booked, guaranteed or finalized anything for the user.
+User owns the decision. System может clarify, explain и compare, но не должен подразумевать, что assistant booked, guaranteed или finalized что-либо за пользователя.
 
 ### User Request
 
-The initial message or series of messages from the user.
+Initial message или серия messages от user.
 
-It may contain explicit constraints, preferences, trade-offs, corrections, ambiguous terms and unsupported requests. A user request is the source material for clarification and Search Intent Summary, not an API payload.
+Может содержать explicit constraints, preferences, trade-offs, corrections, ambiguous terms и unsupported requests. User request является source material для clarification и Search Intent Summary, а не API payload.
 
-### User-provided Constraints
+### User-provided constraints
 
-Constraints explicitly received from the user, such as:
+Constraints, явно полученные от user, например:
 
 - destination;
-- dates or travel period;
-- budget or price preference;
+- dates или travel period;
+- budget или price preference;
 - guests;
 - rooms;
 - preferences;
 - hard constraints;
 - trade-offs.
 
-User-provided constraints must be traceable to user input or later user clarification. The system must not add as a user fact something the user did not say or confirm.
+User-provided constraints должны быть traceable к user input или later user clarification. System не должен добавлять как user fact то, что user не сказал или не подтвердил.
 
 ### Search Intent Summary
 
-A normalized, human-readable representation of the current hotel search intent.
+Normalized, human-readable representation текущего hotel search intent.
 
-It acts as a UX/domain bridge between the assistant conversation and structured results. It should show what the system understood, what is missing, what came from user input, what is an assistant assumption and what remains unknown.
+Он действует как UX/domain bridge между assistant conversation и structured results. Он должен показывать, что system understood, what is missing, what came from user input, what is an assistant assumption и what remains unknown.
 
-Search Intent Summary must stay traceable to user input and assistant clarifications. It is not an API payload, DTO or persistence schema.
+Search Intent Summary должен оставаться traceable to user input and assistant clarifications. Это не API payload, DTO или persistence schema.
 
 ### Hotel Search Intent
 
-The conceptual internal intent to retrieve hotel offers for the current search.
+Conceptual internal intent для retrieval hotel offers в current search.
 
-It represents readiness to perform hotel-only retrieval after sufficient clarification. It does not describe request payload shape, endpoint design, query format or implementation flow.
+Он представляет readiness to perform hotel-only retrieval после достаточного clarification. Он не описывает request payload shape, endpoint design, query format или implementation flow.
 
 ### Hotel Offer
 
-A hotel option shown to the user as a domain concept.
+Hotel option, shown to user as domain concept.
 
-A Hotel Offer may include provider facts, missing fields and explainable highlights. It may be used in results view, details, comparison and current-session shortlist. It must not be treated as database schema, provider DTO or frontend component props.
+Hotel Offer может включать provider facts, missing fields и explainable highlights. Он может использоваться в results view, details, comparison и current-session shortlist. Он не должен трактоваться как database schema, provider DTO или frontend component props.
 
-### Provider Facts
+### Provider facts
 
-Data that comes from provider/source data.
+Data, приходящая из provider/source data.
 
 Examples include:
 
 - hotel name;
 - location;
 - price;
-- rating or review score;
+- rating или review score;
 - amenities;
 - cancellation policy;
 - availability;
 - room information;
 - source/freshness when available.
 
-Provider facts must be separated from assistant assumptions. Provider facts override assistant assumptions when they conflict.
+Provider facts должны быть separated from assistant assumptions. Provider facts override assistant assumptions when they conflict.
 
-### Assistant Assumptions
+### Assistant assumptions
 
-Reasoned interpretations or inferences made by the assistant.
+Reasoned interpretations или inferences, made by assistant.
 
-Examples may include interpreting "cheap", "quiet", "near center", "good for family", budget tier or default room assumption. These must be explicitly represented as assumptions when they affect search, ranking, explanation or comparison.
+Examples могут включать интерпретацию "cheap", "quiet", "near center", "good for family", budget tier или default room assumption. Они должны быть explicitly represented as assumptions, когда влияют на search, ranking, explanation или comparison.
 
 Assistant assumptions cannot replace provider facts and must be correctable by the user.
 
-### Unknown Data
+### Unknown data
 
-Data that is not available from the provider/source or the user.
+Data, которая недоступна из provider/source или user.
 
-Unknown data must not be fabricated. It should be represented as unknown, not available or needing confirmation when it matters to the decision.
+Unknown data must not be fabricated. Ее нужно представлять как unknown, not available или needing confirmation, когда это важно для decision.
 
-Unknown data can coexist with a useful Hotel Offer, but it should affect confidence, wording and comparison caveats.
+Unknown data может coexist with useful Hotel Offer, но должна affect confidence, wording and comparison caveats.
 
 ### Hotel Comparison
 
-A conceptual explanation of trade-offs between hotel offers.
+Conceptual explanation of trade-offs between hotel offers.
 
-Hotel Comparison may use provider facts, user-provided constraints and explicitly labeled assistant assumptions. It must not invent advantages, guarantees, availability, quietness, accessibility, policies or other hotel attributes that are not backed by provider/source data or user-confirmed constraints.
+Hotel Comparison может использовать provider facts, user-provided constraints и explicitly labeled assistant assumptions. Он не должен invent advantages, guarantees, availability, quietness, accessibility, policies или other hotel attributes, которые не backed by provider/source data или user-confirmed constraints.
 
-### Current-session Shortlist
+### Current-session Shortlist / shortlist текущей сессии
 
-A temporary selection of hotel offers or a small comparison set within the current search session.
+Temporary selection of hotel offers или small comparison set в current search session.
 
-Stage 3/4 confirm current-session save/shortlist as part of MVP UX. It is not account history, a persistent profile, a personal cabinet, cross-device sync or full persistence.
+Stage 3/4 подтверждают current-session save/shortlist как часть MVP UX. Это не account history, persistent profile, personal cabinet, cross-device sync или full persistence.
 
-Current-session Shortlist should preserve enough conceptual context to avoid misrepresenting old price, availability, assumptions or unknown fields as current facts.
+Current-session Shortlist должен сохранять enough conceptual context, чтобы не misrepresent old price, availability, assumptions или unknown fields as current facts.
 
-## Responsibility Boundaries
+## Responsibility boundaries
 
 ### User owns
 
@@ -146,7 +146,7 @@ Current-session Shortlist should preserve enough conceptual context to avoid mis
 - comparison;
 - uncertainty communication.
 
-The assistant does not own provider facts.
+Assistant не owns provider facts.
 
 ### Provider owns
 
@@ -162,7 +162,7 @@ The assistant does not own provider facts.
 - enforcing separation between facts, assumptions and unknowns;
 - preserving MVP boundaries.
 
-This is a responsibility boundary, not a class/module decomposition.
+Это responsibility boundary, а не class/module decomposition.
 
 ### Frontend owns
 
@@ -170,50 +170,50 @@ This is a responsibility boundary, not a class/module decomposition.
 - keeping uncertainty markers visible;
 - not presenting assumptions as facts.
 
-The frontend should not hide decision-critical unknowns or make future expansion actions look available in MVP v1.
+Frontend не должен hide decision-critical unknowns или make future expansion actions look available in MVP v1.
 
-## Facts / Assumptions / Unknowns Model
+## Facts / assumptions / unknowns model
 
 ### Provider fact
 
-A provider fact is a claim about a hotel or offer that came from provider/source data. It may still have freshness or source limitations, but it is not created by the assistant.
+Provider fact — claim about hotel или offer, пришедший из provider/source data. Он может иметь freshness или source limitations, но не создается assistant.
 
-Conceptual handling: show it as a fact with source/freshness context when available.
+Conceptual handling: показывать как fact с source/freshness context, когда available.
 
 ### User-provided constraint
 
-A user-provided constraint is a requirement, preference or trade-off stated or confirmed by the user.
+User-provided constraint — requirement, preference или trade-off, stated or confirmed by user.
 
-Conceptual handling: keep it traceable to user input and do not present it as provider-verified unless a provider/source confirms it.
+Conceptual handling: сохранять traceable к user input и не presenting as provider-verified, если provider/source не подтверждает.
 
 ### Assistant assumption
 
-An assistant assumption is an interpretation or inference used to make the experience useful when the user has not provided precise wording.
+Assistant assumption — interpretation или inference, используемый, чтобы experience был useful, когда user не дал precise wording.
 
-Conceptual handling: label it as an assumption, make it correctable and avoid using it as a hard fact.
+Conceptual handling: label it as assumption, make it correctable and avoid using it as hard fact.
 
 ### Unknown data
 
-Unknown data is information that neither the user nor provider/source data currently confirms.
+Unknown data — information, которую currently не подтверждает ни user, ни provider/source data.
 
 Conceptual handling: keep it visible when decision-critical and avoid filling it with assistant guesses.
 
 ### Conceptual conflict handling
 
-When user language, provider facts, assistant assumptions and unknown data do not align, the system should preserve the conflict rather than collapsing it into false certainty.
+Когда user language, provider facts, assistant assumptions и unknown data не совпадают, system should preserve the conflict rather than collapsing it into false certainty.
 
 Examples:
 
-- User says "near center", but provider has only approximate location. The system should describe location fit cautiously and avoid claiming verified centrality unless source data supports it.
-- User asks for a "quiet hotel", but provider has no noise data. The system can treat quietness as a user-provided preference and unknown provider fact; it should not claim the hotel is quiet.
-- Assistant infers "good for family", but provider only has amenities. The system can explain the assumption using available amenities, while labeling family suitability as an interpretation.
-- Price exists, but freshness is unknown. The system can show the provider price with a freshness caveat rather than presenting it as guaranteed current price.
+- User says "near center", but provider has only approximate location. System should describe location fit cautiously and avoid claiming verified centrality unless source data supports it.
+- User asks for a "quiet hotel", but provider has no noise data. System can treat quietness as user-provided preference and unknown provider fact; it should not claim the hotel is quiet.
+- Assistant infers "good for family", but provider only has amenities. System can explain the assumption using available amenities, while labeling family suitability as an interpretation.
+- Price exists, but freshness is unknown. System can show provider price with freshness caveat rather than presenting it as guaranteed current price.
 
-This section defines conceptual handling only. It does not define an algorithm, data model fields or scoring method.
+Этот section определяет только conceptual handling. Он не определяет algorithm, data model fields или scoring method.
 
-## Domain Relationships
+## Domain relationships / доменные связи
 
-At conceptual level:
+На conceptual level:
 
 - User Request expresses or updates User-provided Constraints.
 - Assistant clarification helps form Search Intent Summary.
@@ -221,7 +221,7 @@ At conceptual level:
 - Hotel Search Intent leads to hotel-only retrieval through provider abstraction in later architecture context.
 - Hotel Offer is built around Provider Facts, may expose Unknown Data and may be explained with Assistant Assumptions.
 - Hotel Comparison compares Hotel Offers against User-provided Constraints using provider facts first and labeled assumptions only where needed.
-- Current-session Shortlist references selected Hotel Offers within the active search session and does not become account history.
+- Current-session Shortlist references selected Hotel Offers within active search session and does not become account history.
 
 ```mermaid
 flowchart TD
@@ -255,9 +255,9 @@ flowchart TD
     comparison --> shortlist
 ```
 
-This is not a class diagram, database ERD, DTO map or implementation structure.
+Это не class diagram, database ERD, DTO map или implementation structure.
 
-## Domain Rules
+## Domain rules / доменные правила
 
 - Hotel Offer must not include invented provider facts.
 - Assistant may explain and compare, but must label assumptions.
@@ -268,9 +268,9 @@ This is not a class diagram, database ERD, DTO map or implementation structure.
 - Missing provider data should not block explanation, but must affect confidence and wording.
 - MVP domain must remain hotel-only.
 
-## Future Expansion Domain Boundaries
+## Domain boundaries для future expansion
 
-The following are future-only domain areas:
+Следующие domain areas являются future-only:
 
 - Flight Offer;
 - Combined Itinerary;
@@ -281,9 +281,9 @@ The following are future-only domain areas:
 - Loyalty;
 - Post-booking support.
 
-They may be revisited after later product decisions and, where they affect architecture boundaries or long-term contracts, likely ADRs. This document does not model their relationships, responsibilities or data concepts as part of MVP v1.
+Они могут быть revisited after later product decisions и, где влияют на architecture boundaries или long-term contracts, вероятно через ADRs. Этот документ не моделирует их relationships, responsibilities или data concepts как часть MVP v1.
 
-## Open Questions
+## Open questions
 
 - What is the exact conceptual freshness model for provider hotel data?
 - What minimum provider facts are required for a useful Hotel Offer Card?
@@ -291,11 +291,11 @@ They may be revisited after later product decisions and, where they affect archi
 - Should Search Intent Summary support direct user correction in MVP, or only display understood intent while corrections happen through conversation?
 - What current-session shortlist context is necessary to avoid implying account history or guaranteed fresh provider facts?
 
-These questions are architecture/product boundary inputs, not implementation tasks.
+Эти вопросы являются architecture/product boundary inputs, а не implementation tasks.
 
-## Non-goals
+## Non-goals / что не входит
 
-This document does not define:
+Этот документ не определяет:
 
 - DTOs;
 - classes;
@@ -309,4 +309,4 @@ This document does not define:
 - implementation backlog;
 - future expansion implementation.
 
-It also does not start Stage 5.4 or Stage 6.
+Он также не начинает Stage 5.4 или Stage 6.
