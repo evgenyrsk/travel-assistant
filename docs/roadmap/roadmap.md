@@ -13,11 +13,12 @@
 
 | Item | Status |
 |---|---|
-| Current stage | Stage 4 — Visual Design & UX System completed |
-| Last completed stage | Stage 4.1 — Visual Design Consistency Review |
-| Next planned step | Select next task explicitly; Stage 5 Technical Architecture is planned but not started |
+| Current stage | Stage 5 — Technical Architecture / System Design completed |
+| Last completed stage | Stage 5.9 — Stage 5 Consistency Review / Completion Audit |
+| Next planned step | Select next task explicitly; Stage 6 is planned but not started |
 | Stage 3 | Completed |
 | Stage 4 | Completed |
+| Stage 5 | Completed |
 | Code/API/DB/UI implementation | Not started |
 
 ## MVP Scope Note
@@ -79,7 +80,7 @@
 | Stage 4 Summary & Carryover | Completed | `docs/product/stage-4/stage-4-summary-and-carryover.md` |
 | Stage 4.1 Visual Design Consistency Review | Completed | `docs/product/stage-4/stage-4-consistency-review.md`; verdict: Passed with minor wording fixes. |
 | Frontend implementation | Not started | Stage 4 intentionally created documentation only. |
-| Stage 5 Technical Architecture | Not started | Must be selected as a separate task. |
+| Stage 5 Technical Architecture | Completed | Stage 5.9 consistency review found no Critical/Major blockers. |
 
 **Stage 4 closure notes:**
 
@@ -301,9 +302,34 @@
 
 ### Stage 5 — Technical Architecture
 
-**Status:** Planned.
+**Status:** Completed.
 
 **Scope:** архитектурные границы, компоненты, AI/LLM abstraction, provider abstraction, backend/frontend/domain/integrations responsibilities.
+
+**Artifacts checklist:**
+
+- [x] Stage 5.1 — Architecture Scope & Principles: `docs/architecture/stage-5/architecture-scope-and-principles.md`
+- [x] Stage 5.2 — System Context & Boundaries: `docs/architecture/stage-5/system-context-and-boundaries.md`
+- [x] Stage 5.3 — Domain Model & Responsibility Boundaries: `docs/architecture/stage-5/domain-model-and-boundaries.md`
+- [x] Stage 5.4 — Application Orchestration: `docs/architecture/stage-5/application-orchestration.md`
+- [x] Stage 5.5 — Integration Architecture: `docs/architecture/stage-5/integration-architecture.md`
+- [x] Stage 5.6 — Data & Storage Boundaries: `docs/architecture/stage-5/data-and-storage-boundaries.md`
+- [x] Stage 5.7 — Non-functional Requirements / Architecture Quality Attributes: `docs/architecture/stage-5/non-functional-requirements.md`
+- [x] Stage 5.8 — Architecture Decisions Draft: `docs/architecture/stage-5/architecture-decisions-draft.md`
+- [x] Stage 5.9 — Stage 5 Consistency Review / Completion Audit: `docs/architecture/stage-5/stage-5-consistency-review.md`
+- [x] Stage 5 Summary & Carryover: `docs/architecture/stage-5/stage-5-summary-and-carryover.md`
+
+**Guardrails:**
+
+- Stage 5 is architecture documentation and system design, not production implementation.
+- MVP v1 remains hotel-only.
+- Flight search, combined itinerary, booking/payment flows, account history and full auth remain future expansion.
+- Stage 5 must preserve separation between user-provided constraints, provider facts, assistant assumptions and unknown data.
+- Stage 5 must not create production code, API contracts, database schema, UI implementation or implementation backlog.
+
+**Next step:**
+
+- Select the next task explicitly. Stage 6 is planned but not started.
 
 ### Stage 6 — Implementation Preparation
 

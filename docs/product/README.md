@@ -58,6 +58,21 @@ Stage 3 отвечает за UX-структуру, навигацию, hotel s
 
 Stage 4 отвечает за visual/UX direction поверх Stage 3 Hotel-Only MVP v1 baseline. Он не создает production UI, React/Next.js components, design-token implementation, API contracts или architecture decisions. Flight search и combined hotel+flight остаются future expansion и не становятся active MVP v1 UI.
 
+## Этап 5 — Technical Architecture / System Design
+
+- `../architecture/stage-5/architecture-scope-and-principles.md` — Stage 5.1: scope, guardrails and principles для technical architecture; фиксирует, что Stage 5 переводит решения Stage 0-4 в архитектурные границы без production-кода, API contracts, database schema или implementation backlog.
+- `../architecture/stage-5/system-context-and-boundaries.md` — Stage 5.2: context-level system actors, external dependencies, MVP boundaries, boundary rules and future expansion boundaries без API contracts, database schema или implementation plan.
+- `../architecture/stage-5/domain-model-and-boundaries.md` — Stage 5.3: conceptual domain model and responsibility boundaries для hotel-only MVP v1 без DTO, classes, interfaces, database schema, API payloads или implementation backlog.
+- `../architecture/stage-5/application-orchestration.md` — Stage 5.4: conceptual application orchestration between user intent, assistant/LLM, hotel provider abstraction, Search Intent Summary and results view без state machine implementation, API contracts, DTO/classes/interfaces или queues/events.
+- `../architecture/stage-5/integration-architecture.md` — Stage 5.5: conceptual integration architecture for hotel provider, LLM/AI, frontend/backend, optional telemetry and optional current-session persistence boundaries без OpenAPI, API payloads, provider SDK, concrete vendors или implementation backlog.
+- `../architecture/stage-5/data-and-storage-boundaries.md` — Stage 5.6: conceptual data ownership, volatility and storage boundaries for hotel-only MVP v1 без DB schema, ERD, migrations, tables/fields/indexes, storage technology или retention policy.
+- `../architecture/stage-5/non-functional-requirements.md` — Stage 5.7: architecture-level non-functional requirements and quality attributes для hotel-only MVP v1 без production SLO/SLA, deployment topology, monitoring stack, security implementation, test plan или implementation backlog.
+- `../architecture/stage-5/architecture-decisions-draft.md` — Stage 5.8: draft-level inventory of architecture decisions, ADR candidates, deferred decisions and guardrails без создания отдельных ADR, API/DB contracts, vendor/tool selection или implementation backlog.
+- `../architecture/stage-5/stage-5-consistency-review.md` — Stage 5.9: consistency review / completion audit для Stage 5 architecture docs; проверяет scope safety, roadmap alignment, no API/DB/implementation leakage и readiness to close Stage 5.
+- `../architecture/stage-5/stage-5-summary-and-carryover.md` — Stage 5 summary: итог архитектурного baseline и carryover к будущим этапам без запуска Stage 6 или implementation backlog.
+
+Stage 5 отвечает за архитектурные границы и принципы для hotel-only MVP v1. Он должен сохранять разделение user-provided constraints, provider facts, assistant assumptions и unknown data. Flight search, combined itinerary, booking/payment flows, account history и full auth остаются future expansion и не становятся active MVP v1 scope.
+
 ## Правила ведения product-документации
 
 - Сначала фиксируются продуктовые цели, сценарии и границы, затем требования, UX, архитектура и реализация.
