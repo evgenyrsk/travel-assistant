@@ -4,7 +4,11 @@
 
 ## Контроль roadmap
 
-- Перед изменением файлов прочитай текущий roadmap и релевантные milestones.
+- Перед изменением файлов прочитай `docs/roadmap/roadmap.md` как primary roadmap и source of truth по статусам этапов и progression.
+- Используй `docs/ROADMAP.md` только как navigation overview, а не как competing source of truth.
+- Используй `docs/development/*` как future/reference material, а не как active implementation backlog.
+- Для продуктовых и архитектурных задач учитывай compact baselines: `docs/product/product-baseline.md` и `docs/architecture/architecture-baseline.md`, если они существуют и применимы.
+- Для документационных задач следуй `docs/guides/documentation-style-guide.md`.
 - Проект ведется поэтапно: сначала требования, пользовательские сценарии, границы MVP и критерии приемки; затем доменная модель и архитектурные ограничения; только после этого техническая реализация.
 - Не переопределяй roadmap.
 - Не меняй порядок этапов roadmap.
@@ -23,6 +27,8 @@
 - Не трогай unrelated files.
 - Не добавляй новые документы, директории, шаблоны, зависимости или tooling без явного запроса.
 - Не создавай автоматически `docs/product/`, `docs/architecture/stage-*`, `docs/product/stage-*` или `docs/decisions/`.
+- Не создавай Stage 6 deliverables, если Stage 6 не активирован отдельной задачей.
+- Не создавай API/OpenAPI contracts, endpoint specs, DB schema/storage model, auth/security/DevOps/testing backlog или production code без явной roadmap activation.
 - Не добавляй backend/frontend skeleton без явного запроса и соответствующего этапа roadmap.
 - Предпочитай mock/fake providers и contract placeholders, пока API-контракт существующего travel API не предоставлен и доменные модели не стабилизированы.
 - Избегай захардкоженных допущений о внешних API, учетных данных и поведении, специфичном для провайдера.
@@ -32,6 +38,7 @@
 
 - Проверяй ADR только если `docs/decisions/` реально существует в текущем репозитории и ADR применимы к задаче.
 - Если `docs/decisions/` отсутствует, не ссылайся на ADR как на обязательный источник.
+- Не превращай ADR candidates, drafts или decision inventory в accepted ADR.
 - Не создавай ADR автоматически.
 - Если задача конфликтует с ADR, выполни только безопасную часть и вынеси конфликт в `Открытые вопросы`.
 

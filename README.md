@@ -2,6 +2,8 @@
 
 Travel Assistant — приватный проект для разработки AI-помощника по планированию путешествий.
 
+README является входной картой проекта: он помогает понять назначение репозитория и найти ключевые документы. README не является roadmap, product spec, architecture spec, task tracker или implementation backlog.
+
 ## Цели
 
 - Помогать пользователям планировать поездки с учетом направлений, дат, бюджета и предпочтений.
@@ -29,6 +31,7 @@ Travel Assistant — приватный проект для разработки
 - `README.md` — главная входная точка проекта и краткая навигация.
 - `AGENTS.md` — обязательные правила для Codex/AI-агентов внутри этого репозитория.
 - `docs/product/README.md` — входная точка в продуктовую документацию.
+- `docs/product/product-baseline.md` — актуальное компактное продуктовое состояние после Stage 0-5.
 - `docs/product/stage-0/` — Этап 0: продуктовая рамка, первичные сценарии, границы MVP, допущения и открытые вопросы.
 - `docs/product/stage-1/` — Этап 1: бизнес-сценарии, требования, user journeys, assumptions и consistency review.
 - `docs/product/stage-2/` — Этап 2: use cases, edge cases, assistant behaviour rules, combined search levels и data requirements.
@@ -36,12 +39,19 @@ Travel Assistant — приватный проект для разработки
 - `docs/product/stage-4/` — Этап 4: Visual Design & UX System, visual direction, design system foundations, component inventory, screen specifications и interaction patterns.
 - `docs/PROJECT_BRIEF.md` — продуктовый контекст, пользователи, ключевые сценарии и открытые продуктовые вопросы.
 - `docs/ARCHITECTURE.md` — предварительные архитектурные ориентиры и защитные границы до Stage 5 Technical Architecture.
-- `docs/roadmap/roadmap.md` — главный roadmap проекта: статусы этапов, чеклисты артефактов, open questions, carryover и следующий шаг.
-- `docs/ROADMAP.md` — краткий верхнеуровневый список этапов, не источник текущих статусов.
+- `docs/architecture/README.md` — индекс архитектурной документации и Stage 5 architecture baseline.
+- `docs/architecture/architecture-baseline.md` — актуальное компактное архитектурное состояние после Stage 5.
+- `docs/roadmap/roadmap.md` — primary roadmap и source of truth по статусам этапов, progression, carryover и следующему разрешенному шагу.
+- `docs/ROADMAP.md` — краткий navigation overview этапов, не competing roadmap и не источник текущих статусов.
+- `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, guardrails и безопасного рефакторинга документации.
+- `docs/reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
+- `docs/reviews/roadmap-structure-and-process-fitness-review.md` — review структуры roadmap и process fitness перед Stage 6.
+- `docs/reviews/global-documentation-quality-review.md` — глобальный review качества документации перед controlled documentation refactoring.
+- `docs/reviews/documentation-refactoring-plan.md` — план будущего controlled documentation refactoring; не active backlog и не разрешение на массовую правку.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
-- `docs/development/roadmap.md` — secondary roadmap разработки; следует primary roadmap и не заменяет статусы этапов.
+- `docs/development/roadmap.md` — secondary roadmap разработки; future/reference material, следует primary roadmap и не заменяет статусы этапов.
 - `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки; не источник статусов продуктовых этапов.
-- `docs/development/implementation-strategy.md` — практическая стратегия реализации и правила декомпозиции задач; не primary roadmap.
+- `docs/development/implementation-strategy.md` — будущая стратегия реализации и правила декомпозиции задач; не primary roadmap и не active implementation backlog.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
 - `.github/` — GitHub templates для постановки задач и описания pull requests.
 
@@ -49,7 +59,7 @@ Travel Assistant — приватный проект для разработки
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Техническая архитектура, визуальный дизайн, каркас приложения и сервисов добавляются только на соответствующих будущих этапах roadmap.
+Текущий baseline: Stage 0-5 завершены, Stage 6 остается Planned / not started, Code/API/DB/UI implementation не начат. Stage 6 запускается только отдельной явной roadmap-задачей; API/OpenAPI contracts, DB schema/storage model, auth/security/DevOps/testing backlog и production code не создаются без explicit roadmap activation.
 
 ## Рабочий процесс Codex
 

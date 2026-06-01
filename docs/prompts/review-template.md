@@ -8,6 +8,10 @@
 - Релевантный этап roadmap:
 - Релевантная веха:
 - Документы, которые нужно прочитать перед началом:
+- Primary roadmap и source of truth по статусам: `docs/roadmap/roadmap.md`
+- Product baseline, если применимо: `docs/product/product-baseline.md`
+- Architecture baseline, если применимо: `docs/architecture/architecture-baseline.md`
+- Documentation style guide, если review касается документации: `docs/guides/documentation-style-guide.md`
 - ADR, которые нужно проверить, если есть:
 
 ## Фокус ревью
@@ -22,6 +26,8 @@
 - сломанные или устаревшие ссылки в документации;
 - несоответствие README/index-документов;
 - конфликт между задачей, roadmap и ADR;
+- превращение future/reference documents в active implementation backlog;
+- превращение ADR candidates или decision inventory в accepted ADR;
 - изменения публичных контрактов без документации;
 - захардкоженные детали провайдеров, учетные данные или допущения о внешних API;
 - отсутствующие шаги проверки.
@@ -36,6 +42,8 @@
 - Меняет ли оно порядок этапов?
 - Начинает ли оно следующий этап без явного запроса?
 - Соответствует ли изменение текущему этапу roadmap и вехе?
+- Не трактует ли оно `docs/development/*` как active implementation backlog?
+- Не подменяет ли `docs/roadmap/roadmap.md` документом `docs/ROADMAP.md` или development roadmap?
 
 ### Разрастание границ задачи
 
@@ -49,6 +57,7 @@
 - Соблюдены ли существующие ADR?
 - Требует ли изменение нового ADR или обновления существующего?
 - Есть ли конфликт между задачей, roadmap и ADR?
+- Не превращены ли ADR candidates, drafts или decision inventory в accepted ADR?
 
 ### Ссылки в документации
 
@@ -63,6 +72,7 @@
 - Добавляет ли оно infrastructure до соответствующего этапа roadmap?
 - Создает ли backend/frontend skeleton, если задача относится к продуктовой или аналитической проработке?
 - Использует ли технические ориентиры как разрешение расширить границы задачи?
+- Создает ли изменение API/OpenAPI contracts, endpoint specs, DB schema/storage model, auth/security/DevOps/testing backlog или production code до явной roadmap activation?
 
 ## Формат финального отчета
 

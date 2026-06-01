@@ -1,8 +1,26 @@
 # Roadmap
 
-Этот документ описывает верхнеуровневый список этапов и не является источником текущих статусов. Главный roadmap со статусами, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Детальный порядок задач реализации и вех ведется отдельно в `docs/development/roadmap.md` и `docs/development/milestones.md` и следует primary roadmap.
+Этот документ является кратким navigation overview по этапам Travel Assistant. Он помогает быстро увидеть порядок этапов и перейти к нужным roadmap-документам.
 
-Актуальный прогресс, текущий этап, завершенные work items и следующий шаг фиксируются только в `docs/roadmap/roadmap.md`. Этот документ намеренно остается кратким списком этапов.
+Primary roadmap и source of truth по статусам этапов, progression, carryover, границам этапов и следующему разрешенному шагу находится в `docs/roadmap/roadmap.md`.
+
+`docs/ROADMAP.md` не является competing roadmap, task tracker или implementation backlog. Детальный порядок будущей разработки и вехи находятся в `docs/development/roadmap.md` и `docs/development/milestones.md`; эти документы являются future/reference material и следуют primary roadmap.
+
+## Текущий статус
+
+| Этап | Статус |
+|---|---|
+| Stage 0 | Completed |
+| Stage 1 | Completed |
+| Stage 2 | Completed |
+| Stage 3 | Completed |
+| Stage 4 | Completed |
+| Stage 4.1 | Completed |
+| Stage 5 | Completed |
+| Stage 6 | Planned / not started |
+| Code/API/DB/UI implementation | Not started |
+
+Stage 6 не начат. Stage 6 не означает автоматическое создание API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production implementation. Подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -51,10 +69,10 @@
 
 ## Этап 6 — подготовка реализации
 
-- Подготовить задачи реализации.
-- Уточнить подход к provider abstractions, mock/fake providers, contract placeholders и использованию предоставленного travel API-контракта.
-- Подготовить контракты и стратегию проверки.
-- Подготовить локальный рабочий процесс.
+- Подготовить рамку будущих задач реализации.
+- Уточнить подход к provider abstractions, mock/fake providers, contract placeholders и использованию предоставленного travel API-контракта на уровне scope/planning.
+- Подготовить стратегию проверки и границы локального рабочего процесса.
+- Не создавать API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production implementation без отдельной явной roadmap-задачи.
 
 ## Этап 7 — реализация MVP
 

@@ -1,16 +1,16 @@
-# Stage 5.9 — Stage 5 Consistency Review / Completion Audit
+# Stage 5.9 — Consistency Review / Completion Audit Stage 5
 
-## Purpose
+## Назначение
 
-This document reviews the Stage 5 architecture documentation pack for consistency, scope safety and roadmap alignment.
+Этот документ проверяет architecture documentation pack Stage 5 на consistency, scope safety и roadmap alignment.
 
-It checks whether Stage 5 preserves the Hotel-Only MVP v1 baseline from Stage 3/4, keeps future expansion outside MVP, avoids premature implementation design and maintains the required separation between user-provided constraints, provider facts, assistant assumptions and unknown data.
+Он проверяет, сохраняет ли Stage 5 Hotel-Only MVP v1 baseline из Stage 3/4, оставляет ли future expansion вне MVP, избегает ли premature implementation design и поддерживает ли обязательное разделение между user-provided constraints, provider facts, assistant assumptions и unknown data.
 
-This review is not an implementation plan, API contract, database design, ADR, delivery backlog or Stage 6 preparation task.
+Этот review не является implementation plan, API contract, database design, ADR, delivery backlog или Stage 6 preparation task.
 
-## Reviewed Documents
+## Проверенные документы
 
-Stage 5 documents reviewed:
+Проверенные документы Stage 5:
 
 - `architecture-scope-and-principles.md`;
 - `system-context-and-boundaries.md`;
@@ -21,7 +21,7 @@ Stage 5 documents reviewed:
 - `non-functional-requirements.md`;
 - `architecture-decisions-draft.md`.
 
-Stage 3/4 baseline documents used for comparison:
+Baseline-документы Stage 3/4, использованные для сравнения:
 
 - `docs/product/stage-3/stage-3-summary-and-carryover.md`;
 - `docs/product/stage-3/stage-3-hotel-only-consistency-review.md`;
@@ -33,167 +33,167 @@ Stage 3/4 baseline documents used for comparison:
 - `docs/product/stage-4/component-inventory.md`;
 - `docs/product/stage-4/screen-specifications.md`.
 
-Historical Stage 0-2 documents were also checked as traceability context, with Stage 3 Hotel-Only MVP v1 taking precedence where earlier documents contain superseded broader scope.
+Historical Stage 0-2 documents также были проверены как traceability context. Stage 3 Hotel-Only MVP v1 имеет приоритет там, где более ранние документы содержат superseded broader scope.
 
-## Review Criteria
+## Критерии review
 
-The review checked that:
+Review проверял, что:
 
-- MVP v1 remains hotel-only;
-- no flight, combined itinerary, booking, payment, account history or full-auth scope leaks into MVP;
-- no production code is introduced;
-- no API/OpenAPI contracts are created;
-- no DB schema, ERD or migrations are created;
-- no DTOs, classes, interfaces, enums or module/package structure are defined;
-- no vendor, tool or concrete provider is selected;
-- no implementation backlog is created;
-- facts/assumptions/unknowns separation is preserved;
-- provider facts remain source-owned;
-- LLM does not own factual hotel data;
-- current-session state does not become account history;
-- future expansion is marked clearly.
+- MVP v1 остается hotel-only;
+- flight, combined itinerary, booking, payment, account history или full-auth scope не протекают в MVP;
+- production code не вводится;
+- API/OpenAPI contracts не создаются;
+- DB schema, ERD или migrations не создаются;
+- DTOs, classes, interfaces, enums или module/package structure не определяются;
+- vendor, tool или concrete provider не выбираются;
+- implementation backlog не создается;
+- facts/assumptions/unknowns separation сохраняется;
+- provider facts остаются source-owned;
+- LLM не владеет factual hotel data;
+- current-session state не становится account history;
+- future expansion ясно отмечен.
 
-## Consistency Findings
+## Consistency findings
 
 | Area | Status | Finding | Severity | Recommended action |
 |---|---|---|---|---|
-| MVP scope | Passed | Stage 5 consistently preserves Hotel-Only MVP v1 and treats hotel search, comparison, details and current-session shortlist as the active boundary. | None | None. |
-| Future expansion boundaries | Passed | Flights, combined itinerary, booking, payments, account history and full auth are consistently marked outside MVP/future-only. | None | Keep future sections visibly labeled in later docs. |
-| Domain model consistency | Passed | Domain concepts stay conceptual and preserve user constraints, provider facts, assistant assumptions and unknown data. | None | Use Stage 5.3 as baseline for later implementation preparation. |
-| Orchestration consistency | Passed | Orchestration remains conceptual and hotel-only; it does not define state machine implementation, endpoints, payloads or retry/caching policy. | None | Preserve conceptual phase boundaries in later Stage 6 work. |
-| Integration boundaries | Passed | Provider, LLM and frontend/backend boundaries are provider-agnostic and avoid concrete vendors, SDKs, interfaces or contracts. | None | Defer concrete provider/API mapping until existing contract is provided. |
-| Data/storage boundaries | Passed with watch item | Current-session state is separated from account history/full auth; refresh persistence remains open. | Minor | Keep refresh persistence as a future decision, not an assumed MVP requirement. |
-| NFR boundaries | Passed with watch item | NFRs remain architecture-level and avoid SLO/SLA, deployment, monitoring/security implementation or test backlog. | Minor | Prevent NFRs from becoming DevOps/security/testing backlog in Stage 6. |
-| Decision draft consistency | Passed | Decision inventory distinguishes confirmed decisions, deferred decisions and future ADR candidates without creating ADR files. | None | Create ADRs only when future triggers occur. |
-| Roadmap alignment | Passed | Stage 5 follows roadmap order and does not start Stage 6. | None | Mark Stage 5 complete after this review if no blockers remain. |
-| Documentation navigation | Passed | Product index and roadmap include Stage 5 architecture docs. | None | Add Stage 5.9 links as part of this task. |
+| MVP scope | Passed | Stage 5 последовательно сохраняет Hotel-Only MVP v1 и трактует hotel search, comparison, details и current-session shortlist как active boundary. | None | None. |
+| Future expansion boundaries | Passed | Flights, combined itinerary, booking, payments, account history и full auth последовательно отмечены как outside MVP/future-only. | None | Keep future sections visibly labeled in later docs. |
+| Domain model consistency | Passed | Domain concepts остаются conceptual и сохраняют user constraints, provider facts, assistant assumptions и unknown data. | None | Use Stage 5.3 as baseline for later implementation preparation. |
+| Orchestration consistency | Passed | Orchestration остается conceptual и hotel-only; она не определяет state machine implementation, endpoints, payloads или retry/caching policy. | None | Preserve conceptual phase boundaries in later Stage 6 work. |
+| Integration boundaries | Passed | Provider, LLM и frontend/backend boundaries остаются provider-agnostic и избегают concrete vendors, SDKs, interfaces или contracts. | None | Defer concrete provider/API mapping until existing contract is provided. |
+| Data/storage boundaries | Passed with watch item | Current-session state отделен от account history/full auth; refresh persistence остается open. | Minor | Keep refresh persistence as a future decision, not an assumed MVP requirement. |
+| NFR boundaries | Passed with watch item | NFRs остаются architecture-level и избегают SLO/SLA, deployment, monitoring/security implementation или test backlog. | Minor | Prevent NFRs from becoming DevOps/security/testing backlog in Stage 6. |
+| Decision draft consistency | Passed | Decision inventory различает confirmed decisions, deferred decisions и future ADR candidates без создания ADR files. | None | Create ADRs only when future triggers occur. |
+| Roadmap alignment | Passed | Stage 5 следует roadmap order и не начинает Stage 6. | None | Mark Stage 5 complete after this review if no blockers remain. |
+| Documentation navigation | Passed | Product index и roadmap включают Stage 5 architecture docs. | None | Add Stage 5.9 links as part of this task. |
 
-## Scope Leakage Review
+## Scope leakage review
 
 | Area | Present in MVP? | If mentioned, is it clearly future/outside MVP? | Risk level |
 |---|---|---|---|
-| Flights | No | Yes. Mentioned only as next/future expansion after hotel flow. | Low |
-| Combined itinerary | No | Yes. Marked as later expansion after flight flow. | Low |
-| Booking | No | Yes. Excluded from MVP and tied to future transactional decisions. | Low |
-| Payments | No | Yes. Excluded from MVP and tied to future compliance/security decisions. | Low |
-| Account history | No | Yes. Excluded from MVP; current-session shortlist is not account history. | Low |
-| Full auth | No | Yes. Excluded from MVP; future identity scope only. | Low |
-| Persistent saved trips | No | Yes. Excluded from MVP; current-session shortlist only. | Low |
-| Production provider integration | No | Yes. Real provider contract is deferred; provider boundary is conceptual. | Low |
-| API contracts | No | Yes. Repeatedly listed as non-goal/deferred. | Low |
-| DB schema | No | Yes. Repeatedly listed as non-goal/deferred. | Low |
-| Implementation backlog | No | Yes. Stage 5 docs keep recommendations and questions separate from tasks. | Low |
+| Flights | No | Yes. Упоминается только как next/future expansion after hotel flow. | Low |
+| Combined itinerary | No | Yes. Отмечен как later expansion after flight flow. | Low |
+| Booking | No | Yes. Исключен из MVP и связан с future transactional decisions. | Low |
+| Payments | No | Yes. Исключены из MVP и связаны с future compliance/security decisions. | Low |
+| Account history | No | Yes. Исключен из MVP; current-session shortlist не является account history. | Low |
+| Full auth | No | Yes. Исключен из MVP; только future identity scope. | Low |
+| Persistent saved trips | No | Yes. Исключены из MVP; только current-session shortlist. | Low |
+| Production provider integration | No | Yes. Real provider contract deferred; provider boundary conceptual. | Low |
+| API contracts | No | Yes. Многократно указаны как non-goal/deferred. | Low |
+| DB schema | No | Yes. Многократно указана как non-goal/deferred. | Low |
+| Implementation backlog | No | Yes. Stage 5 docs держат recommendations и questions отдельно от tasks. | Low |
 
-## Facts / Assumptions / Unknowns Review
+## Review facts / assumptions / unknowns separation
 
-Stage 5 preserves the data clarity requirements from Stage 3/4:
+Stage 5 сохраняет data clarity requirements из Stage 3/4:
 
-- user-provided constraints are separated from provider facts and remain traceable to user input or clarification;
-- provider facts are separated from assistant assumptions and remain source-owned;
-- unknown data is not fabricated and remains visible when decision-critical;
-- LLM explanations are grounded in user constraints and provider facts;
-- frontend boundaries state that uncertainty and freshness limitations must not be hidden;
-- freshness limitations are preserved conceptually and not replaced by assistant confidence;
+- user-provided constraints отделены от provider facts и остаются traceable к user input или clarification;
+- provider facts отделены от assistant assumptions и остаются source-owned;
+- unknown data не выдумывается и остается visible, когда decision-critical;
+- LLM explanations grounded in user constraints и provider facts;
+- frontend boundaries указывают, что uncertainty и freshness limitations не должны быть скрыты;
+- freshness limitations сохраняются conceptually и не заменяются assistant confidence;
 - provider facts override assistant assumptions;
 - user corrections override assistant assumptions.
 
-No Critical or Major issue found.
+Critical или Major issues не найдены.
 
-## Current-session Shortlist Review
+## Review current-session shortlist
 
-- Current-session shortlist remains current-session only.
-- It does not imply account history.
-- It does not imply full auth.
-- It does not imply persistent saved trips.
-- It does not imply cross-device sync.
-- It does not imply booking, payment, price guarantee or availability guarantee.
-- Refresh persistence remains open/deferred and is not promoted to a hard MVP requirement.
+- Current-session shortlist остается только current-session.
+- Он не подразумевает account history.
+- Он не подразумевает full auth.
+- Он не подразумевает persistent saved trips.
+- Он не подразумевает cross-device sync.
+- Он не подразумевает booking, payment, price guarantee или availability guarantee.
+- Refresh persistence остается open/deferred и не повышается до hard MVP requirement.
 
-Minor risk: later implementation preparation may accidentally treat current-session shortlist as account storage or persistent saved trips. This should remain a visible carryover risk.
+Minor risk: будущая implementation preparation может случайно трактовать current-session shortlist как account storage или persistent saved trips. Это должно оставаться visible carryover risk.
 
-## Architecture Depth Review
+## Review глубины архитектуры
 
-The Stage 5 documents stay at the intended architecture depth:
+Документы Stage 5 остаются на intended architecture depth:
 
-- no implementation algorithm;
-- no endpoint naming;
-- no payload design;
-- no DB fields/tables;
-- no ERD;
-- no concrete state machine spec;
-- no retry/caching policy;
-- no deployment topology;
-- no concrete monitoring stack;
-- no concrete security implementation;
-- no DevOps/security/testing backlog.
+- нет implementation algorithm;
+- нет endpoint naming;
+- нет payload design;
+- нет DB fields/tables;
+- нет ERD;
+- нет concrete state machine spec;
+- нет retry/caching policy;
+- нет deployment topology;
+- нет concrete monitoring stack;
+- нет concrete security implementation;
+- нет DevOps/security/testing backlog.
 
-No Critical or Major issue found.
+Critical или Major issues не найдены.
 
-## Open Questions Review
+## Review open questions
 
-Unresolved Stage 5 questions remain grouped as architecture inputs, not implementation tasks.
+Unresolved questions Stage 5 остаются сгруппированными как architecture inputs, а не implementation tasks.
 
 ### Provider capabilities/freshness
 
-- What minimum hotel provider capabilities are required once the existing travel API contract is provided?
-- What minimum provider facts are required for a useful Hotel Offer Card?
-- Which source/freshness markers are available from provider data?
-- How should provider freshness be represented conceptually before exact provider fields are known?
+- Какие minimum hotel provider capabilities требуются после предоставления existing travel API contract?
+- Какие minimum provider facts нужны для useful Hotel Offer Card?
+- Какие source/freshness markers доступны из provider data?
+- Как conceptually представлять provider freshness до знания exact provider fields?
 
 ### Search Intent Summary editability/correction
 
-- Should Search Intent Summary be directly editable, only confirmable or corrected through conversation?
-- Should Search Intent Summary corrections remain session-only or later become a domain event?
+- Должен ли Search Intent Summary быть directly editable, only confirmable или corrected through conversation?
+- Должны ли corrections Search Intent Summary оставаться session-only или позже становиться domain event?
 
-### Current-session shortlist refresh persistence
+### Refresh persistence current-session shortlist
 
-- Should current-session shortlist survive page refresh in MVP?
-- How long, if at all, may current-session search context live?
-- What context is needed to avoid implying account history or guaranteed fresh provider facts?
+- Должен ли current-session shortlist переживать page refresh в MVP?
+- Как долго, если вообще, может жить current-session search context?
+- Какой context нужен, чтобы не подразумевать account history или guaranteed fresh provider facts?
 
 ### LLM validation / assumptions visibility
 
-- How should LLM outputs be validated against provider facts conceptually?
-- How much LLM reasoning trace should be visible to users?
-- How visible should assumptions and unknowns be in UI surfaces?
+- Как conceptually валидировать LLM outputs against provider facts?
+- Какой объем LLM reasoning trace должен быть visible пользователям?
+- Насколько visible должны быть assumptions и unknowns в UI surfaces?
 
 ### Telemetry/privacy
 
-- What telemetry is acceptable for MVP quality and reliability without overengineering or privacy risk?
-- What level of diagnostic logging is acceptable before choosing tools or schemas?
+- Какая telemetry допустима для MVP quality и reliability без overengineering или privacy risk?
+- Какой уровень diagnostic logging допустим до выбора tools или schemas?
 
 ### Provider unavailable behavior
 
-- What minimum reliability behavior is expected when the hotel provider is unavailable?
-- Which qualitative reliability/performance expectations should become measurable later, if any?
+- Какое minimum reliability behavior ожидается, когда hotel provider unavailable?
+- Какие qualitative reliability/performance expectations позже должны стать measurable, если такие есть?
 
 ### Future security/threat model
 
-- What future review should define security and threat-model scope?
-- Which future architecture decisions require ADRs rather than ordinary architecture notes?
+- Какой future review должен определить security и threat-model scope?
+- Какие future architecture decisions требуют ADRs, а не ordinary architecture notes?
 
-## Stage 5 Completion Assessment
+## Stage 5 completion assessment
 
-Stage 5 can be considered complete.
+Stage 5 можно считать завершенным.
 
-Reasoning:
+Обоснование:
 
-- all planned Stage 5 architecture documents from Stage 5.1-5.8 were created;
-- this consistency review found no Critical or Major blockers;
-- MVP v1 remains hotel-only;
-- future expansion is clearly outside MVP;
-- no production code, API contracts, OpenAPI, DB schema, ERD, DTO/classes/interfaces, vendor/tool selection or implementation backlog were introduced;
-- Stage 5 consistently preserves provider facts, user-provided constraints, assistant assumptions and unknown data as distinct categories;
-- deferred decisions are identified without being prematurely resolved.
+- все planned Stage 5 architecture documents from Stage 5.1-5.8 созданы;
+- этот consistency review не нашел Critical или Major blockers;
+- MVP v1 остается hotel-only;
+- future expansion clearly outside MVP;
+- production code, API contracts, OpenAPI, DB schema, ERD, DTO/classes/interfaces, vendor/tool selection или implementation backlog не введены;
+- Stage 5 последовательно сохраняет provider facts, user-provided constraints, assistant assumptions и unknown data как distinct categories;
+- deferred decisions identified without being prematurely resolved.
 
-This completion assessment does not start Stage 6.
+Этот completion assessment не начинает Stage 6.
 
-## Recommendations
+## Recommendations / рекомендации
 
-- Start Stage 6 only by separate explicit request.
-- Before API contract work, obtain or provide the existing hotel offer API contract.
-- Preserve provider-agnostic boundary when future provider/API mapping begins.
-- Decide current-session refresh persistence before introducing any storage model.
-- Keep future flight, combined, booking, payment, account history and full auth behind separate product decisions and likely ADRs.
-- Create ADR files only when a future decision trigger occurs.
-- Keep Stage 6 preparation from becoming production implementation.
+- Начинать Stage 6 только по отдельному явному запросу.
+- До API contract work получить или предоставить existing hotel offer API contract.
+- Сохранять provider-agnostic boundary при будущем provider/API mapping.
+- Решить current-session refresh persistence до введения любого storage model.
+- Держать future flight, combined, booking, payment, account history и full auth за отдельными product decisions и вероятными ADRs.
+- Создавать ADR files только когда произойдет future decision trigger.
+- Не позволять Stage 6 preparation становиться production implementation.

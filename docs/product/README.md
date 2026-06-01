@@ -1,8 +1,16 @@
 # Продуктовая документация
 
-Этот раздел содержит продуктовую документацию Travel Assistant. Документы фиксируют пользовательскую ценность, сценарии, границы MVP, открытые вопросы и правила движения по этапам до начала технической реализации.
+Этот раздел содержит продуктовую документацию Travel Assistant. Этот README является index-документом: он помогает найти актуальный product baseline и historical stage artifacts, но не является самостоятельной product spec, roadmap или implementation backlog.
 
-Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Этот index описывает карту product-документов, но не является источником текущего статуса этапов.
+Главный roadmap со статусами этапов, progression, carryover и следующим разрешенным шагом находится в `docs/roadmap/roadmap.md`. Если статус этапа или следующий шаг важен для задачи, приоритет имеет primary roadmap.
+
+`product-baseline.md` фиксирует актуальное продуктовое состояние после Stage 0-5. Документы `stage-*` сохраняются как historical stage artifacts, deliverables и audit trail: они объясняют, как формировались решения, но не должны читаться как автоматическое расширение MVP scope.
+
+## Актуальный product baseline
+
+- `product-baseline.md` — актуальный компактный product baseline после Stage 0-5: hotel-only MVP v1 scope, явные исключения из MVP, core product flow, product guardrails, связь с historical stage artifacts и актуальный carryover.
+
+MVP v1 остается hotel-only. Flight search, combined itinerary, booking, payment и account history остаются вне MVP v1 до отдельного roadmap decision.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 

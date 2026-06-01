@@ -1,8 +1,18 @@
 # Roadmap разработки Travel Assistant
 
-Этот roadmap описывает пошаговую разработку AI-помощника для путешествий. Его цель — помогать формулировать небольшие, проверяемые задачи для последующей реализации через opencode.
+Этот roadmap описывает возможную будущую структуру разработки AI-помощника для путешествий. Его цель — помогать позже формулировать небольшие, проверяемые задачи для opencode, когда соответствующая реализация будет явно активирована в primary roadmap.
 
-Primary roadmap со статусами этапов, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Верхнеуровневый список этапов находится в `docs/ROADMAP.md`. Этот файл является secondary roadmap разработки: он детализирует будущую реализацию, следует primary roadmap и не должен использоваться как альтернативный источник статусов или основание для преждевременного начала будущих этапов.
+Primary roadmap со статусами этапов, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Верхнеуровневый список этапов находится в `docs/ROADMAP.md`. Этот файл является вторичным development reference: он не является альтернативным источником статусов, активным implementation backlog или разрешением начинать будущие этапы.
+
+## Статус и правила активации
+
+На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается в статусе `Planned / not started`, а реализация Code/API/DB/UI не начата.
+
+Разделы ниже являются справочными материалами для будущей реализации. Они описывают возможную future development structure, но не являются активным implementation backlog, task tracker или списком задач к немедленному выполнению.
+
+Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts.
+
+Любой пункт из этого secondary roadmap становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с `docs/roadmap/roadmap.md`. Если формулировка этого документа конфликтует с primary roadmap, product baseline или architecture baseline, приоритет имеют primary roadmap и baseline-документы.
 
 ## 0. Перезапуск проекта и продуктовая рамка
 
@@ -107,6 +117,8 @@ Primary roadmap со статусами этапов, чеклистами ар�
 
 **Цель:** описать контракты между клиентами и backend.
 
+**Статус:** future reference only; не активная задача и не разрешение создавать API/OpenAPI contracts до отдельного явного roadmap step.
+
 **Результат:** черновик HTTP API для чата, получения результатов, истории и пользовательских предпочтений.
 
 **Файлы и модули:** будущие `docs/api/contracts.md`, `services/backend/api/`, OpenAPI-файл при необходимости.
@@ -122,6 +134,8 @@ Primary roadmap со статусами этапов, чеклистами ар�
 ## 7. Backend skeleton
 
 **Цель:** создать минимальный backend foundation на Kotlin + Ktor.
+
+**Статус:** future reference only; не активная задача до явного старта соответствующего implementation step.
 
 **Результат:** запускаемое backend-приложение с health endpoint, конфигурацией и слоями приложения.
 
