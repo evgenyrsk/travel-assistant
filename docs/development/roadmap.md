@@ -1,16 +1,18 @@
 # Roadmap разработки Travel Assistant
 
-Этот roadmap описывает пошаговую разработку AI-помощника для путешествий. Его цель — помогать формулировать небольшие, проверяемые задачи для последующей реализации через opencode.
+Этот roadmap описывает возможную будущую структуру разработки AI-помощника для путешествий. Его цель — помогать позже формулировать небольшие, проверяемые задачи для opencode, когда соответствующая реализация будет явно активирована в primary roadmap.
 
-Primary roadmap со статусами этапов, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Верхнеуровневый список этапов находится в `docs/ROADMAP.md`. Этот файл является secondary roadmap разработки: он детализирует будущую реализацию, следует primary roadmap и не должен использоваться как альтернативный источник статусов или основание для преждевременного начала будущих этапов.
+Primary roadmap со статусами этапов, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Верхнеуровневый список этапов находится в `docs/ROADMAP.md`. Этот файл является secondary development reference: он не является альтернативным источником статусов, active implementation backlog или разрешением начинать будущие этапы.
 
 ## Статус и правила активации
 
-На момент pre-Stage 6 cleanup Stage 0-5 завершены, Stage 6 остается Planned / not started, а Code/API/DB/UI implementation не начат.
+На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается Planned / not started, а Code/API/DB/UI implementation не начат.
 
-Разделы ниже являются future/planned reference material. Они не являются активным backlog, не запускают implementation и не разрешают создавать API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production code.
+Разделы ниже являются future/reference material. Они описывают возможную будущую development structure, но не являются active implementation backlog, task tracker или списком задач к немедленному выполнению.
 
-Любой пункт из этого secondary roadmap активируется только отдельной явной задачей после соответствующего шага primary roadmap в `docs/roadmap/roadmap.md`. Если wording этого документа конфликтует с primary roadmap или Stage 5 architecture baseline, приоритет имеют primary roadmap и Stage 5 baseline.
+Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts.
+
+Любой пункт из этого secondary roadmap становится actionable только после отдельного explicit roadmap step или явно поставленной задачи, совместимой с `docs/roadmap/roadmap.md`. Если формулировка этого документа конфликтует с primary roadmap, product baseline или architecture baseline, приоритет имеют primary roadmap и baseline-документы.
 
 ## 0. Перезапуск проекта и продуктовая рамка
 

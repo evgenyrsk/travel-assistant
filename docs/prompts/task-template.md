@@ -7,12 +7,16 @@
 - Краткий контекст задачи:
 - Связанная веха:
 - Связанные решения или обсуждения:
+- Primary roadmap и source of truth по статусам: `docs/roadmap/roadmap.md`
+- Product baseline, если задача затрагивает MVP scope: `docs/product/product-baseline.md`
+- Architecture baseline, если задача затрагивает architecture scope: `docs/architecture/architecture-baseline.md`
 
 ## Текущий этап
 
 - Этап roadmap:
 - Почему задача относится именно к этому этапу:
 - Следующий этап, который нельзя начинать:
+- Future/reference документы, которые нельзя трактовать как active backlog:
 
 ## Задача
 
@@ -27,6 +31,11 @@
 
 - `README.md`
 - `AGENTS.md`
+- `docs/roadmap/roadmap.md`
+- `docs/ROADMAP.md`
+- `docs/guides/documentation-style-guide.md`, если задача документационная
+- `docs/product/product-baseline.md`, если задача затрагивает продуктовый scope
+- `docs/architecture/architecture-baseline.md`, если задача затрагивает архитектурный baseline
 - `docs/development/roadmap.md`
 - `docs/development/milestones.md`
 - `docs/development/implementation-strategy.md`
@@ -45,6 +54,8 @@
 
 - Roadmap и порядок этапов.
 - Следующий этап roadmap.
+- Stage 6 deliverables, если Stage 6 не активирован отдельной задачей.
+- API/OpenAPI contracts, endpoint specs, DB schema/storage model, auth/security/DevOps/testing backlog и production code, если они не активированы roadmap.
 - Unrelated files.
 - Реальные интеграции с travel API, если они не входят в текущий этап.
 - Реальные интеграции с LLM-провайдерами, если они не входят в текущий этап.
@@ -62,6 +73,8 @@
 - Не переопределять roadmap.
 - Не менять порядок этапов roadmap.
 - Не начинать следующий этап roadmap без явного запроса.
+- Не превращать future/reference documents в active implementation backlog.
+- Не превращать ADR candidates или decision inventory в accepted ADR.
 - Не расширять границы задачи, если это не требуется для выполнения задачи.
 - Не выполнять рекомендации.
 - Добавлять будущую работу только в раздел `Рекомендации, не выполнены`.

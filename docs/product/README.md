@@ -4,6 +4,10 @@
 
 Главный roadmap со статусами этапов, чеклистами выполненных артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Этот index описывает карту product-документов, но не является источником текущего статуса этапов.
 
+## Актуальный product baseline
+
+- `product-baseline.md` — актуальный компактный product baseline после Stage 0-5: hotel-only MVP v1 scope, явные исключения из MVP, core product flow, product guardrails, связь с historical stage artifacts и актуальный carryover.
+
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
 - `stage-0/product-framing.md` — исходная продуктовая постановка, проблема, аудитория, отличие от обычного поиска, роль AI/LLM, внутренних API и кроссплатформенности.

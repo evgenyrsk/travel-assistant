@@ -8,6 +8,16 @@
 
 Этот документ не является implementation plan, delivery backlog, API contract, database design или vendor selection. Отдельные ADRs могут быть позже созданы в `docs/decisions/`, если решение требует durable architectural record.
 
+## Статус документа
+
+- Type: Stage 5 historical architecture artifact.
+- Role: non-ADR decision inventory, draft notes и future ADR candidate list.
+- Accepted ADR status: не является accepted ADR и не создает accepted ADR files.
+- Backlog status: не является active backlog, task list или разрешением выполнять future decisions.
+- Implementation status: не создает production code, API/OpenAPI contracts, endpoint specs, DB schema/storage model, auth/security/DevOps/testing backlog, provider adapters или implementation work.
+
+Термин `candidate` в этом документе означает "возможный будущий ADR или future decision trigger". Термин `confirmed` означает, что соответствующий architecture guardrail подтвержден Stage 5 baseline, но не означает, что создан standalone accepted ADR.
+
 ## Scope decisions для MVP v1
 
 Этот decision draft покрывает только:
@@ -32,9 +42,11 @@
 - deployment/infrastructure decision;
 - production monitoring/security implementation decision.
 
-## Confirmed architecture decisions
+## Confirmed Stage 5 architecture guardrails (non-ADR)
 
-### ADR Candidate: MVP v1 остается hotel-only
+Следующие items являются подтвержденными architecture guardrails Stage 5 и potential future ADR candidates. Они не являются standalone accepted ADRs.
+
+### Guardrail / future ADR candidate: MVP v1 остается hotel-only
 
 **Status:** Confirmed by product/architecture scope.
 
@@ -48,7 +60,7 @@
 
 **Out of scope:** Flight search, combined itinerary, booking flow, payments, account history, full auth, loyalty и post-booking support.
 
-### ADR Candidate: Использовать provider-agnostic hotel provider boundary
+### Guardrail / future ADR candidate: Использовать provider-agnostic hotel provider boundary
 
 **Status:** Confirmed at architecture level.
 
@@ -62,7 +74,7 @@
 
 **Deferred implementation details:** Concrete API contract, provider adapter design, method names, DTO mapping, error taxonomy, retry behavior и production hardening.
 
-### ADR Candidate: Разделять provider facts, user constraints, assistant assumptions и unknown data
+### Guardrail / future ADR candidate: Разделять provider facts, user constraints, assistant assumptions и unknown data
 
 **Status:** Confirmed.
 
@@ -78,7 +90,7 @@
 
 **Deferred representation details:** Exact metadata, fields, UI labels, API payload shapes, storage representation и validation mechanisms.
 
-### ADR Candidate: LLM помогает, но не владеет factual hotel data
+### Guardrail / future ADR candidate: LLM помогает, но не владеет factual hotel data
 
 **Status:** Confirmed.
 
@@ -94,7 +106,7 @@
 
 **Deferred prompt/model details:** Concrete model selection, prompt templates, guardrail implementation, model routing, LLM validation method, token strategy и evaluation datasets.
 
-### ADR Candidate: Chat-first, not chat-only architecture
+### Guardrail / future ADR candidate: Chat-first, not chat-only architecture
 
 **Status:** Confirmed from Stage 3/4.
 
@@ -109,7 +121,7 @@
 
 **Deferred UI/API details:** Screen implementation, component props, endpoint contracts, client/server transport и direct editability of Search Intent Summary.
 
-### ADR Candidate: Только current-session state, без account history/full auth в MVP
+### Guardrail / future ADR candidate: Только current-session state, без account history/full auth в MVP
 
 **Status:** Confirmed boundary, with open questions around refresh persistence.
 
@@ -246,7 +258,9 @@ flowchart TD
 
 Диаграмма conceptual. Это не module architecture, deployment topology, package structure, API design или implementation plan.
 
-## ADR candidate table
+## Decision inventory and future ADR candidate table
+
+Эта таблица является inventory. Она не принимает ADR и не создает backlog.
 
 | Decision / ADR candidate | Current status | MVP impact | Future trigger | Needs separate ADR later? |
 |---|---|---|---|---|

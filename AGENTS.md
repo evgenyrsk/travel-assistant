@@ -47,9 +47,12 @@
 - `docs/ROADMAP.md`;
 - `docs/PROJECT_BRIEF.md`;
 - `docs/ARCHITECTURE.md`;
+- `docs/product/product-baseline.md`, если задача затрагивает продуктовый scope или MVP baseline;
+- `docs/architecture/architecture-baseline.md`, если задача затрагивает архитектурный baseline;
 - `docs/development/roadmap.md`;
 - `docs/development/milestones.md`;
 - `docs/development/implementation-strategy.md`;
+- `docs/guides/documentation-style-guide.md` для задач документации и documentation refactoring;
 - релевантные файлы в `docs/prompts/`;
 - существующие шаблоны `.github/*`, связанные с задачей.
 
@@ -61,13 +64,15 @@
 
 1. Явный запрос пользователя в текущей задаче.
 2. ADR в `docs/decisions/`, только если эта директория реально существует в текущем репозитории и ADR применимы к задаче.
-3. Primary roadmap в `docs/roadmap/roadmap.md` как source of truth по stage status, roadmap progression, stage boundaries, carryover и следующему разрешенному шагу.
-4. Secondary development roadmap в `docs/development/roadmap.md` как future/planned reference material, который следует primary roadmap и не заменяет текущие статусы этапов.
-5. Milestones в `docs/development/milestones.md`.
-6. Стратегия реализации в `docs/development/implementation-strategy.md`.
-7. Продуктовые и архитектурные документы: `docs/PROJECT_BRIEF.md`, `docs/ARCHITECTURE.md`.
-8. `docs/ROADMAP.md` как краткий верхнеуровневый список этапов и navigation summary, не конкурирующий source of truth по текущим статусам.
-9. `README.md` и index-документы для навигации.
+3. Primary roadmap в `docs/roadmap/roadmap.md` как source of truth по статусам этапов, roadmap progression, границам этапов, carryover и следующему разрешенному шагу.
+4. Product baseline в `docs/product/product-baseline.md` как компактное актуальное состояние MVP scope, если файл существует и применим к задаче.
+5. Architecture baseline в `docs/architecture/architecture-baseline.md` как компактное актуальное состояние conceptual architecture, если файл существует и применим к задаче.
+6. Secondary development roadmap в `docs/development/roadmap.md` как future/reference material, который следует primary roadmap, не заменяет текущие статусы этапов и не является active implementation backlog.
+7. Milestones в `docs/development/milestones.md` как future/reference checkpoints, не источник текущих статусов.
+8. Стратегия реализации в `docs/development/implementation-strategy.md` как future/reference material до явной активации implementation.
+9. Продуктовые и архитектурные документы: `docs/PROJECT_BRIEF.md`, `docs/ARCHITECTURE.md`.
+10. `docs/ROADMAP.md` как краткий верхнеуровневый список этапов и navigation summary, не конкурирующий source of truth по текущим статусам.
+11. `README.md` и index-документы для навигации.
 
 Если документы противоречат друг другу, не выбирай молча удобную версию. Следуй более приоритетному источнику, зафиксируй конфликт в разделе `Открытые вопросы` и не выполняй работу, которая может нарушить roadmap, границы задачи или ADR.
 

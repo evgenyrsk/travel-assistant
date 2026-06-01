@@ -29,6 +29,7 @@ Travel Assistant — приватный проект для разработки
 - `README.md` — главная входная точка проекта и краткая навигация.
 - `AGENTS.md` — обязательные правила для Codex/AI-агентов внутри этого репозитория.
 - `docs/product/README.md` — входная точка в продуктовую документацию.
+- `docs/product/product-baseline.md` — актуальный компактный product baseline после Stage 0-5.
 - `docs/product/stage-0/` — Этап 0: продуктовая рамка, первичные сценарии, границы MVP, допущения и открытые вопросы.
 - `docs/product/stage-1/` — Этап 1: бизнес-сценарии, требования, user journeys, assumptions и consistency review.
 - `docs/product/stage-2/` — Этап 2: use cases, edge cases, assistant behaviour rules, combined search levels и data requirements.
@@ -37,10 +38,14 @@ Travel Assistant — приватный проект для разработки
 - `docs/PROJECT_BRIEF.md` — продуктовый контекст, пользователи, ключевые сценарии и открытые продуктовые вопросы.
 - `docs/ARCHITECTURE.md` — предварительные архитектурные ориентиры и защитные границы до Stage 5 Technical Architecture.
 - `docs/architecture/README.md` — индекс архитектурной документации и Stage 5 architecture baseline.
+- `docs/architecture/architecture-baseline.md` — актуальный компактный architecture baseline после Stage 5.
 - `docs/roadmap/roadmap.md` — главный roadmap проекта: статусы этапов, чеклисты артефактов, open questions, carryover и следующий шаг.
 - `docs/ROADMAP.md` — краткий верхнеуровневый список этапов, не источник текущих статусов.
+- `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, guardrails и безопасного рефакторинга документации.
 - `docs/reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
 - `docs/reviews/roadmap-structure-and-process-fitness-review.md` — review структуры roadmap и process fitness перед Stage 6.
+- `docs/reviews/global-documentation-quality-review.md` — глобальный review качества документации перед controlled documentation refactoring.
+- `docs/reviews/documentation-refactoring-plan.md` — план будущего controlled documentation refactoring; не active backlog и не разрешение на массовую правку.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
 - `docs/development/roadmap.md` — secondary roadmap разработки; следует primary roadmap и не заменяет статусы этапов.
 - `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки; не источник статусов продуктовых этапов.

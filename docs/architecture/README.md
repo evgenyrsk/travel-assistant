@@ -13,6 +13,7 @@
 ## Основные ссылки
 
 - `../roadmap/roadmap.md` — primary roadmap и источник истины для текущего статуса этапов.
+- `architecture-baseline.md` — актуальный компактный architecture baseline после Stage 5.
 - `../reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
 
 ## Deliverables Stage 5

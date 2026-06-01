@@ -1,14 +1,18 @@
 # Вехи проекта Travel Assistant
 
-Вехи описывают контрольные точки разработки. Каждая веха должна завершаться проверяемым результатом, который можно использовать как основу для следующего этапа. Этот документ не является источником статусов продуктовых этапов: текущий статус, следующий шаг, stage gates и carryover фиксируются в primary roadmap `docs/roadmap/roadmap.md`.
+Вехи описывают возможные будущие контрольные точки разработки. Они помогают планировать маленькие проверяемые шаги после явной активации реализации, но не являются текущим backlog и не задают текущие статусы продуктовых этапов.
+
+Текущий статус, следующий шаг, stage gates и carryover фиксируются в primary roadmap `docs/roadmap/roadmap.md`.
 
 ## Статус и правила активации
 
-На момент pre-Stage 6 cleanup Stage 0-5 завершены, Stage 6 остается Planned / not started, а Code/API/DB/UI implementation не начат.
+На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается Planned / not started, а Code/API/DB/UI implementation не начат.
 
-Вехи ниже являются future/planned reference material, а не активным backlog. Они не разрешают начинать backend/frontend implementation, создавать API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production code.
+Вехи ниже являются future/reference material. Они не являются active implementation backlog, task tracker или разрешением начинать backend/frontend implementation.
 
-Каждая веха активируется только отдельной явной задачей после соответствующего шага primary roadmap. Если веха звучит конкретнее, чем текущий primary roadmap, она должна читаться как будущий ориентир, а не как текущая задача.
+Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts.
+
+Каждая веха становится actionable только после отдельного explicit roadmap step или явно поставленной задачи, совместимой с primary roadmap. Если веха звучит конкретнее, чем текущий primary roadmap, она должна читаться как будущий ориентир, а не как текущая задача.
 
 ## Веха 0 — основа проекта
 

@@ -1,394 +1,268 @@
 # Roadmap Progress — Travel Assistant
 
-Этот документ является **primary roadmap** проекта Travel Assistant. Он фиксирует этапы, текущий прогресс, артефакты, открытые вопросы, carryover и следующий шаг.
+Этот документ является **primary roadmap** проекта Travel Assistant. Он фиксирует статусы этапов, progression, границы этапов, quality gates, carryover и следующий разрешенный шаг.
 
-Связанные документы:
+Roadmap не является task tracker, product specification, architecture specification, ADR registry или implementation backlog. Детальные product baseline и architecture baseline вынесены в отдельные документы и указаны ниже.
 
-- `docs/ROADMAP.md` — краткий верхнеуровневый список этапов.
-- `docs/development/roadmap.md` — secondary roadmap разработки и future/planned reference material, не active implementation backlog.
-- `docs/development/milestones.md` — future/planned вехи и контрольные точки реализации, не источник текущих статусов.
-- `docs/product/README.md` — индекс продуктовых документов.
-- `docs/architecture/README.md` — индекс архитектурной документации и Stage 5 architecture baseline.
-- `docs/reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
-- `docs/reviews/roadmap-structure-and-process-fitness-review.md` — review структуры roadmap и process fitness перед Stage 6 cleanup.
+## 1. Текущий статус проекта
 
-## Current Status
-
-| Item | Status |
+| Пункт | Статус |
 |---|---|
-| Current stage | Pre-Stage 6 roadmap cleanup completed; Stage 6 is planned but not started |
-| Last completed stage | Stage 5.9 — Stage 5 Consistency Review / Completion Audit |
-| Next planned step | Select next task explicitly; Stage 6 remains planned / not started until explicitly activated |
-| Stage 0 | Completed |
-| Stage 1 | Completed |
-| Stage 2 | Completed |
-| Stage 3 | Completed |
-| Stage 4 | Completed |
-| Stage 4.1 | Completed |
-| Stage 5 | Completed |
-| Stage 6 | Planned / not started |
+| Текущий этап | Pre-Stage 6 roadmap cleanup завершен; Stage 6 остается Planned / not started |
+| Последний завершенный этап | Stage 5.9 — Stage 5 Consistency Review / Completion Audit |
+| Следующий планируемый шаг | Следующую задачу нужно выбрать явно; Stage 6 остается Planned / not started до отдельной активации |
 | Code/API/DB/UI implementation | Not started |
 
-## MVP Scope Note
+| Этап | Статус | Краткое описание |
+|---|---|---|
+| Stage 0 | Completed | Product framing, первичные сценарии, предварительные MVP boundaries и открытые вопросы. |
+| Stage 1 | Completed | Business requirements, user journeys, BR/FR/NFR, assumptions, риски и consistency review. |
+| Stage 2 | Completed | Use cases, edge cases, правила поведения ассистента, data requirements и combined search levels. |
+| Stage 3 | Completed | Hotel-only MVP UX, navigation, required fields, acceptance criteria и carryover. |
+| Stage 4 | Completed | Visual direction, основы design system, component inventory, screen specs и interaction patterns. |
+| Stage 4.1 | Completed | Visual design consistency review и небольшая правка формулировок. |
+| Stage 5 | Completed | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
+| Stage 6 | Planned / not started | Планирование подготовки к реализации; любые работы Stage 6 требуют отдельной явной активации. |
+| Stage 7 | Planned | Реализация hotel-only MVP после нужного планирования и отдельной явной активации. |
+| Stage 8 | Planned | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
+| Stage 9 | Planned | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
+| Stage 10 | Planned | Cross-platform expansion после стабилизации core product и architecture. |
 
-- MVP v1 сфокусирован только на hotel search: natural-language hotel request, clarification, hotel results, hotel ranking/explanation, hotel details, hotel save/shortlist и базовое hotel comparison.
-- Flight search исключен из MVP v1 и является следующим расширением после реализации hotel search flow.
-- Combined hotel + flight search исключен из MVP v1 и возвращается после появления flight search flow.
-- Интеграция с существующим travel API входит в MVP v1 для hotel offers.
-- В организации уже есть travel API; его контракт должен быть предоставлен на соответствующем техническом этапе.
-- Mock/fake providers, provider abstractions и contract placeholders допустимы только как промежуточные средства разработки.
-- Финальный MVP v1 должен использовать предоставленный API-контракт для получения реальных hotel offers.
-- Stage 0/1/2 не проектируют API-контракт, endpoints, DTO, database schema, provider adapter или UI-макеты.
-- Provider/API data является primary source of truth для travel facts.
-- LLM/assistant не должен выдумывать provider facts и должен отделять provider facts, assistant assumptions и unknown data.
+## 2. Правила управления roadmap
 
-## Open Decisions
+- `docs/roadmap/roadmap.md` является source of truth по статусам этапов, progression, границам этапов, carryover и следующему разрешенному шагу.
+- `docs/ROADMAP.md` является верхнеуровневым navigation overview, а не конкурирующим источником текущего статуса.
+- Документы `docs/development/*` являются future/reference material. Они не являются active implementation backlog и должны следовать этому roadmap.
+- Planned и future stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи.
+- Recommendations, carryover и future candidates не должны автоматически выполняться во время review или cleanup задач.
+- Implementation, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog и production code требуют отдельного явного roadmap step.
+- Product baseline и architecture baseline кратко фиксируют текущее состояние; roadmap должен ссылаться на них, а не дублировать их полностью.
+- ADR candidates, drafts и decision inventory не являются accepted ADR.
 
-- Какой объем provider-backed open destination discovery нужен в MVP v1, если он применим к hotel search.
-- Когда и в каком виде будет предоставлен контракт существующего travel API.
+## 3. Baseline-документы
+
+- `docs/product/product-baseline.md` — компактный actual product baseline после Stage 0-5.
+- `docs/architecture/architecture-baseline.md` — компактный actual architecture baseline после Stage 5.
+- `docs/decisions/README.md` — навигация и терминология для decisions / ADR.
+- `docs/guides/documentation-style-guide.md` — правила языка, структуры, терминологии, guardrails и безопасного refactoring документации.
+- `docs/reviews/documentation-refactoring-plan.md` — план controlled documentation refactoring; не active backlog.
+
+## 4. MVP Scope
+
+MVP v1 остается hotel-only:
+
+- AI-assisted hotel search and selection;
+- hotel request на естественном языке и уточнение запроса;
+- hotel results, ranking, comparison и explanation;
+- current-session shortlist only;
+- явное разделение provider facts, assistant assumptions и unknowns.
+
+Явно вне MVP v1:
+
+- flights;
+- combined itinerary / combined hotel + flight package;
+- booking;
+- payment;
+- account history and account-level storage;
+- loyalty/profile system;
+- production integrations за пределами явно активированной provider work.
+
+Provider/API data является source of truth для travel facts. LLM может интерпретировать, объяснять, ранжировать, резюмировать и уточнять, но не должна выдумывать цены, доступность, рейтинги, amenities или другие provider facts.
+
+## 5. Open Decisions and Carryover
+
+Эти пункты являются carryover и входными данными для будущих решений, а не active backlog:
+
+- Provider-backed open destination discovery для hotel search, если это потребуется для MVP v1.
+- Сроки и формат предоставления existing travel API contract.
 - Deferred technical decisions: adapter design, provider error taxonomy, reliability и production-hardening.
-- Долгосрочная история, авторизация и account-level storage.
-- Следующий этап или cleanup task должен быть выбран отдельной задачей.
+- Session persistence, resume behaviour, long-term history, authorization и account-level storage.
+- Следующий этап или cleanup task должны быть выбраны отдельной явной задачей.
 
-## Stage 3 Dashboard
+## 6. Completed Stages
 
-Этот раздел является компактным historical/status summary завершенного Stage 3. Детальные продуктовые решения остаются в Stage 3 документах; текущий следующий шаг фиксируется только в `Current Status`.
+### Stage 0 — Product Framing
 
-| Area | Status | Source / note |
-|---|---|---|
-| Screen map and navigation model | Completed | `docs/product/stage-3/screen-map.md` |
-| Required fields and acceptance criteria | Completed | `docs/product/stage-3/required-fields-and-acceptance-criteria.md` |
-| MVP search flow details | Completed | `docs/product/stage-3/mvp-search-flow-details.md` |
-| Combined Search UX Decision | Superseded for MVP v1 | `docs/product/stage-3/combined-search-ux-decision.md` сохранен как historical decision; combined перенесен за MVP v1. |
-| MVP v1 Hotel-Only Scope Refocus | Completed | MVP v1 ограничен hotel search; flight является next expansion, combined — later expansion. |
-| Session persistence / resume / authorization split | Carried over | `docs/product/stage-3/stage-3-summary-and-carryover.md`; решить на будущих этапах без преждевременной DB/auth architecture. |
-| UX Consistency Review | Completed | `docs/product/stage-3/stage-3-hotel-only-consistency-review.md`; verdict: Passed with minor notes. |
-| Stage 3 Summary & Carryover | Completed | `docs/product/stage-3/stage-3-summary-and-carryover.md`; Stage 3 can be closed. |
-| Stage 3 Plan Reconciliation / Completion Audit | Completed | `docs/product/stage-3/stage-3-plan-reconciliation.md`; verdict: Complete with carryover. |
+**Статус:** Completed.
 
-**Stage 3 closure notes:**
+**Назначение:** зафиксировать исходную продуктовую рамку, первичные сценарии, предварительные MVP boundaries и правила дальнейшей работы.
 
-- Stage 3 UX/acceptance docs проверены: flight и combined не требуются для MVP v1.
-- Stage 3 Summary & Carryover завершен.
-- Stage 3 Plan Reconciliation подтвердил, что обязательные Stage 3 работы не пропущены.
-- Historical note: на момент закрытия Stage 3 Stage 4 еще не был начат; теперь Stage 4, Stage 4.1 и Stage 5 завершены отдельными documentation packs.
-- Stage 3 не является разрешением начинать implementation, API/OpenAPI contracts, DB schema, storage model или account/auth history.
+**Ключевые артефакты:**
 
-## Stage 4 Dashboard
+- `docs/product/stage-0/product-framing.md`
+- `docs/product/stage-0/initial-scenarios.md`
+- `docs/product/stage-0/mvp-boundaries.md`
+- `docs/product/stage-0/assumptions-and-open-questions.md`
+- `docs/product/README.md`
 
-Этот раздел фиксирует завершенный Stage 4 documentation pack. Детальные visual/UX решения находятся в Stage 4 документах, а этот roadmap отражает только статус и carryover.
+**Заметка о завершении:** Stage 0 не фиксировал финальные технические решения. Приоритетные пользователи, сценарии и MVP boundaries были уточнены на следующих product stages.
 
-| Area | Status | Source / note |
-|---|---|---|
-| Visual Design Direction | Completed | `docs/product/stage-4/visual-design-direction.md` |
-| Design System Foundations | Completed | `docs/product/stage-4/design-system-foundations.md` |
-| Component Inventory | Completed | `docs/product/stage-4/component-inventory.md` |
-| Screen Specifications | Completed | `docs/product/stage-4/screen-specifications.md` |
-| Interaction Patterns | Completed | `docs/product/stage-4/interaction-patterns.md` |
-| Stage 4 Summary & Carryover | Completed | `docs/product/stage-4/stage-4-summary-and-carryover.md` |
-| Stage 4.1 Visual Design Consistency Review | Completed | `docs/product/stage-4/stage-4-consistency-review.md`; verdict: Passed with minor wording fixes. |
-| Frontend implementation | Not started | Stage 4 intentionally created documentation only. |
-| Stage 5 Technical Architecture | Completed | Stage 5.9 consistency review found no Critical/Major blockers. |
+### Stage 1 — Business Requirements
 
-**Stage 4 closure notes:**
+**Статус:** Completed.
 
-- Stage 4 опирается на Hotel-Only MVP v1 baseline и не меняет MVP scope.
-- Visual design direction, foundational system, component inventory, screen specs and interaction patterns зафиксированы как product/design documentation.
-- Draft palette and design foundations are not final implementation tokens.
-- Flight and combined UI remain future expansion references, not active MVP v1 scope.
-- Production code, React components, Tailwind/shadcn configuration, API contracts, architecture and implementation were not started.
-- Stage 4.1 consistency review completed; minor wording fixes clarified combined chat/results composition and user-provided constraints separation.
+**Назначение:** зафиксировать аудиторию, business scenarios, user journeys, BR/FR/NFR, assumptions, open questions и risks.
 
-## Stage 0 — Product Framing
+**Ключевые артефакты:**
 
-**Status:** Completed.
+- `docs/product/stage-1/target-audience.md`
+- `docs/product/stage-1/business-scenarios.md`
+- `docs/product/stage-1/user-journeys.md`
+- `docs/product/stage-1/business-requirements.md`
+- `docs/product/stage-1/functional-requirements.md`
+- `docs/product/stage-1/non-functional-requirements.md`
+- `docs/product/stage-1/assumptions-and-open-questions.md`
+- `docs/product/stage-1/stage-1-summary.md`
+- `docs/product/stage-1/stage-1-consistency-review.md`
 
-**Goal:** зафиксировать исходную продуктовую рамку, первичные сценарии, предварительные MVP boundaries и правила дальнейшей работы.
+**Заметка о завершении:** Booking и payment исключены из MVP. Более ранние flight и combined recommendations superseded для MVP v1; flight search является следующим расширением после hotel flow, а combined flow — более поздним расширением после flight flow.
 
-**Artifacts checklist:**
+**Carryover:** точный existing travel API contract, provider-backed discovery, recommendation criteria, persistence/authorization и язык uncertainty/provider-error остаются входными данными для будущих решений.
 
-- [x] `docs/product/stage-0/product-framing.md`
-- [x] `docs/product/stage-0/initial-scenarios.md`
-- [x] `docs/product/stage-0/mvp-boundaries.md`
-- [x] `docs/product/stage-0/assumptions-and-open-questions.md`
-- [x] Product documentation index: `docs/product/README.md`
+### Stage 2 — Use Cases & Edge Cases
 
-**Open questions:**
+**Статус:** Completed.
 
-- Приоритетные пользователи и сценарии MVP были уточнены в Stage 1.
-- Точные MVP boundaries перенесены на Stage 3.
-- Технические контракты и архитектурные решения не фиксировались на Stage 0.
+**Назначение:** развернуть Stage 1 scenarios в use cases, edge cases, assistant behaviour rules, combined search levels и product data requirements.
 
-**Recommendations / carryover:**
+**Ключевые артефакты:**
 
-- Сохранять поэтапный порядок: product framing → requirements → use cases → MVP boundaries → UX/architecture → implementation.
-- Не использовать Stage 0 как источник финальных технических решений.
+- `docs/product/stage-2/use-cases.md`
+- `docs/product/stage-2/edge-cases.md`
+- `docs/product/stage-2/assistant-behaviour-rules.md`
+- `docs/product/stage-2/combined-search-levels.md`
+- `docs/product/stage-2/data-requirements.md`
+- `docs/product/stage-2/stage-2-summary.md`
+- `docs/product/stage-2/stage-2-consistency-review.md`
 
-## Stage 1 — Business Requirements
+**Заметка о завершении:** Provider/API data подтверждена как source of truth для travel facts. Stage 2 flight/combined context сохранен для historical traceability, но не является разрешением реализовывать flights или combined itinerary в MVP v1.
 
-**Status:** Completed.
+**Carryover:** minimum required fields, open destination discovery, existing travel API contract, adapter/error/reliability decisions и session/auth questions остаются будущими входными данными.
 
-**Goal:** зафиксировать аудиторию, business scenarios, user journeys, BR/FR/NFR, assumptions, open questions и risks.
+### Stage 3 — MVP UX / Navigation
 
-**Artifacts checklist:**
+**Статус:** Completed.
 
-- [x] `docs/product/stage-1/target-audience.md`
-- [x] `docs/product/stage-1/business-scenarios.md`
-- [x] `docs/product/stage-1/user-journeys.md`
-- [x] `docs/product/stage-1/business-requirements.md`
-- [x] `docs/product/stage-1/functional-requirements.md`
-- [x] `docs/product/stage-1/non-functional-requirements.md`
-- [x] `docs/product/stage-1/assumptions-and-open-questions.md`
-- [x] `docs/product/stage-1/stage-1-summary.md`
-- [x] `docs/product/stage-1/stage-1-consistency-review.md`
+**Назначение:** определить UX-структуру hotel-only MVP, navigation model, search flow boundaries, required fields и acceptance criteria без API, архитектуры или implementation work.
 
-**Follow-ups checklist:**
+**Ключевые артефакты:**
 
-- [x] Stage 1 Consistency Review
-- [x] Stage 1 Follow-up Cleanup
-- [x] Stage 1 Scope Correction
+- `docs/product/stage-3/screen-map.md`
+- `docs/product/stage-3/required-fields-and-acceptance-criteria.md`
+- `docs/product/stage-3/mvp-search-flow-details.md`
+- `docs/product/stage-3/combined-search-ux-decision.md` — historical decision, superseded for MVP v1.
+- `docs/product/stage-3/stage-3-hotel-only-consistency-review.md`
+- `docs/product/stage-3/stage-3-summary-and-carryover.md`
+- `docs/product/stage-3/stage-3-plan-reconciliation.md`
 
-**Key results:**
+**Quality gate / заметка о завершении:** Stage 3 финализировал hotel-only MVP UX и acceptance criteria. Flight search и combined hotel+flight не требуются для MVP v1. Stage 3 не разрешает implementation, API/OpenAPI contracts, DB schema, storage model, auth/account history или UI code.
 
-- Business scenarios S-01 - S-10 зафиксированы.
-- BR-001 - BR-016 зафиксированы.
-- FR-001 - FR-014 зафиксированы.
-- NFR-001 - NFR-015 зафиксированы.
-- Booking и payment исключены из MVP.
-- Provider abstraction и LLM provider abstraction зафиксированы как обязательные границы.
-- Later scope note: прежние flight и combined MVP recommendations superseded для MVP v1; flight search — next expansion после hotel flow, combined — later expansion после flight flow.
+### Stage 4 — Visual Design & UX System
 
-**Open questions:**
+**Статус:** Completed.
 
-- Q-001: уровень поддержки combined search.
-- Q-002/Q-003: обязательные параметры hotel и flight search.
-- Q-004: критерии успешной рекомендации.
-- Q-005: open destination.
-- Q-006/Q-010: сохранение и авторизация.
-- Q-007/Q-009: порог уточнений и язык uncertainty/provider errors.
-- Q-012: когда будет предоставлен контракт существующего travel API.
+**Назначение:** зафиксировать visual style direction, design system foundations, component inventory, screen-level specifications и interaction patterns для hotel-only MVP.
 
-**Recommendations / carryover:**
+**Ключевые артефакты:**
 
-- Разделить combined intent recognition, same-dialog assistance, coordinated search и full package ranking.
-- Не проектировать API-контракт до предоставления существующего контракта.
-- На Stage 3 финализировать MVP boundaries и acceptance criteria.
+- `docs/product/stage-4/visual-design-direction.md`
+- `docs/product/stage-4/design-system-foundations.md`
+- `docs/product/stage-4/component-inventory.md`
+- `docs/product/stage-4/screen-specifications.md`
+- `docs/product/stage-4/interaction-patterns.md`
+- `docs/product/stage-4/stage-4-summary-and-carryover.md`
 
-## Stage 2 — Use Cases & Edge Cases
+**Заметка о завершении:** Stage 4 создал product/design documentation, а не frontend implementation. Draft palette, design foundations и component inventory не являются финальными implementation tokens.
 
-**Status:** Completed.
+**Carryover:** final design tokens, hotel imagery/source markers, session persistence level и accessibility gates остаются будущими входными данными.
 
-**Goal:** развернуть Stage 1 scenarios в use cases, edge cases, assistant behaviour rules, combined search levels и product data requirements.
+### Stage 4.1 — Visual Design Consistency Review
 
-**Artifacts checklist:**
+**Статус:** Completed.
 
-- [x] `docs/product/stage-2/use-cases.md`
-- [x] `docs/product/stage-2/edge-cases.md`
-- [x] `docs/product/stage-2/assistant-behaviour-rules.md`
-- [x] `docs/product/stage-2/combined-search-levels.md`
-- [x] `docs/product/stage-2/data-requirements.md`
-- [x] `docs/product/stage-2/stage-2-summary.md`
-- [x] `docs/product/stage-2/stage-2-consistency-review.md`
-
-**Follow-ups checklist:**
+**Назначение:** проверить Stage 4 documentation на согласованность со Stage 0-3, MVP scope и roadmap boundaries.
 
-- [x] Stage 2 Consistency Review
-- [x] Stage 2 Minor Cleanup — Language & Roadmap Navigation Polish
+**Ключевой артефакт:**
 
-**Key results:**
-
-- UC-01 - UC-15 зафиксированы.
-- EC-001 - EC-035 зафиксированы.
-- ABR-001 - ABR-018 зафиксированы.
-- Combined search разделен на 4 уровня:
-  - Level 1 — Combined intent recognition: superseded for MVP v1; future expansion.
-  - Level 2 — Same-dialog hotel and flight assistance: superseded for MVP v1; future expansion after flight flow.
-  - Level 3 — Coordinated combined search: superseded for MVP v1; later expansion after flight flow.
-  - Level 4 — Full combined package ranking: Post-MVP/Open.
-- Provider/API data зафиксирована как primary source of truth для travel facts.
-- LLM/assistant не должен выдумывать provider facts.
-- MVP v1 scope refocus: Stage 2 flight/combined recommendations сохраняются как historical traceability, но не являются разрешением реализовывать flight/combined в MVP v1.
+- `docs/product/stage-4/stage-4-consistency-review.md`
 
-**Open questions:**
-
-- Минимальный required field set для каждого intent.
-- Open destination discovery.
-- Конкретный API-контракт существующего travel API.
-- Adapter design, error handling taxonomy, reliability и production-hardening.
-- Session persistence, resume behaviour, long-term history и authorization.
-
-**Recommendations / carryover:**
-
-- На Stage 3 превратить Stage 2 use cases и edge cases в финальные MVP boundaries и acceptance criteria.
-- Сохранить запрет на API contracts, DB schema, UI mockups и код до соответствующих этапов.
-
-## Stage 3 — MVP UX / Navigation
-
-**Status:** Completed.
-
-**Goal:** определить UX-структуру MVP, navigation model, search flow boundaries, required fields и acceptance criteria для пользовательских потоков без перехода к визуальному дизайну, API, архитектуре или реализации.
-
-**Artifacts checklist:**
-
-- [x] Stage 3.1 — MVP Screen Map / UX Navigation: `docs/product/stage-3/screen-map.md`.
-- [x] Stage 3.2 — Required Fields & Acceptance Criteria: `docs/product/stage-3/required-fields-and-acceptance-criteria.md`.
-- [x] Stage 3.3 — MVP Search Flow Details: `docs/product/stage-3/mvp-search-flow-details.md`.
-- [x] Stage 3.4 — Combined Search UX Decision: `docs/product/stage-3/combined-search-ux-decision.md` (superseded for MVP v1).
-- [x] Stage 3.5 — MVP v1 Hotel-Only Scope Refocus.
-- [x] Stage 3.5 — Hotel-Only UX Consistency Review: `docs/product/stage-3/stage-3-hotel-only-consistency-review.md`.
-- [x] Stage 3.6 — Stage 3 Summary & Carryover: `docs/product/stage-3/stage-3-summary-and-carryover.md`.
-- [x] Stage 3.7 — Stage 3 Plan Reconciliation / Completion Audit: `docs/product/stage-3/stage-3-plan-reconciliation.md`.
-- [x] MVP/Post-MVP split для session persistence, resume и authorization перенесен в carryover без технического проектирования.
-- [x] Carryover list для visual design, architecture и technical stages.
-
-**Entry criteria:**
-
-- [x] Stage 0 completed.
-- [x] Stage 1 completed.
-- [x] Stage 1 Consistency Review completed.
-- [x] Stage 1 Follow-up Cleanup completed.
-- [x] Stage 1 Scope Correction completed.
-- [x] Stage 2 completed.
-- [x] Stage 2 Consistency Review completed.
-- [x] Stage 2 Minor Cleanup completed.
-
-**Exit criteria:**
-
-- MVP UX scope финализирован.
-- Required fields и acceptance criteria описаны и проверяемы.
-- Open/Post-MVP пункты отделены от MVP.
-- Flight search и combined hotel+flight не требуются для MVP v1 и перенесены в future scope.
-- Real travel API integration сохранена в MVP v1 scope для hotel offers без проектирования контракта до его предоставления.
-- Stage 4 был выполнен без неявного расширения MVP и без смешивания UX-навигации с implementation.
-- Stage 3 summary and carryover зафиксированы.
-
-## Stage 4 — Visual Design & UX System
-
-**Status:** Completed.
-
-**Goal:** зафиксировать visual style direction, foundational design system, component inventory, screen-level specifications и interaction patterns для Travel Assistant поверх Stage 3 Hotel-Only MVP v1 UX baseline.
-
-**Artifacts checklist:**
-
-- [x] `docs/product/stage-4/visual-design-direction.md`
-- [x] `docs/product/stage-4/design-system-foundations.md`
-- [x] `docs/product/stage-4/component-inventory.md`
-- [x] `docs/product/stage-4/screen-specifications.md`
-- [x] `docs/product/stage-4/interaction-patterns.md`
-- [x] `docs/product/stage-4/stage-4-summary-and-carryover.md`
-- [x] Stage 4.1 — Visual Design Consistency Review: `docs/product/stage-4/stage-4-consistency-review.md`
-- [x] Product documentation index updated: `docs/product/README.md`
-- [x] Root documentation map updated: `README.md`
-
-**Key results:**
-
-- Visual direction: modern, clean, calm, trusted, travel-oriented and AI-assisted.
-- Chat-first, not chat-only: chat remains the main entry point, while structured hotel results are shown separately.
-- Design system foundations describe semantic color roles, typography, spacing, layout, states and accessibility without final implementation tokens.
-- MVP component inventory is hotel-first and marks flight/combined components as future expansion.
-- Screen specifications cover active MVP screens and explicitly mark flight/combined screens as future.
-- Interaction patterns define clarification, understood request, refinement, comparison, save/shortlist, loading, no results, partial/provider error, rationale and facts/assumptions separation.
-- Stage 4.1 review confirmed alignment with Stage 0-3 and roadmap; no critical or major findings found.
-
-**Open questions:**
-
-- Final brand colors and design tokens.
-- Hotel imagery availability from provider/API.
-- Minimum source/freshness markers available from existing travel API.
-- Session persistence level without authorization.
-- Accessibility gates for frontend implementation.
-- Whether confidence/rationale labels should appear at card, details or comparison level.
-
-**Recommendations / carryover:**
-
-- Use Stage 4 as input for Stage 5 Technical Architecture, but not as technical contract.
-- Do not start frontend implementation until the appropriate roadmap stage.
-- Keep component inventory as product/design documentation until a separate explicit implementation-stage task activates implementation planning.
-- Refine hotel card/details fields after existing travel API contract is provided.
-
-## Stage 5 and Future Stages
+**Quality gate / заметка о завершении:** Verdict: passed with minor wording fixes. Stage 4.1 не начинал frontend implementation и не расширял MVP scope.
 
 ### Stage 5 — Technical Architecture
 
-**Status:** Completed.
+**Статус:** Completed.
 
-**Scope:** архитектурные границы, компоненты, AI/LLM abstraction, provider abstraction, backend/frontend/domain/integrations responsibilities.
+**Назначение:** зафиксировать conceptual architecture baseline, system boundaries, domain/data boundaries, orchestration, integration architecture, NFR guidance и decision inventory.
 
-**Artifacts checklist:**
+**Ключевые артефакты:**
 
-- [x] Stage 5.1 — Architecture Scope & Principles: `docs/architecture/stage-5/architecture-scope-and-principles.md`
-- [x] Stage 5.2 — System Context & Boundaries: `docs/architecture/stage-5/system-context-and-boundaries.md`
-- [x] Stage 5.3 — Domain Model & Responsibility Boundaries: `docs/architecture/stage-5/domain-model-and-boundaries.md`
-- [x] Stage 5.4 — Application Orchestration: `docs/architecture/stage-5/application-orchestration.md`
-- [x] Stage 5.5 — Integration Architecture: `docs/architecture/stage-5/integration-architecture.md`
-- [x] Stage 5.6 — Data & Storage Boundaries: `docs/architecture/stage-5/data-and-storage-boundaries.md`
-- [x] Stage 5.7 — Non-functional Requirements / Architecture Quality Attributes: `docs/architecture/stage-5/non-functional-requirements.md`
-- [x] Stage 5.8 — Architecture Decisions Draft: `docs/architecture/stage-5/architecture-decisions-draft.md`
-- [x] Stage 5.9 — Stage 5 Consistency Review / Completion Audit: `docs/architecture/stage-5/stage-5-consistency-review.md`
-- [x] Stage 5 Summary & Carryover: `docs/architecture/stage-5/stage-5-summary-and-carryover.md`
+- `docs/architecture/architecture-baseline.md`
+- `docs/architecture/stage-5/architecture-scope-and-principles.md`
+- `docs/architecture/stage-5/system-context-and-boundaries.md`
+- `docs/architecture/stage-5/domain-model-and-boundaries.md`
+- `docs/architecture/stage-5/application-orchestration.md`
+- `docs/architecture/stage-5/integration-architecture.md`
+- `docs/architecture/stage-5/data-and-storage-boundaries.md`
+- `docs/architecture/stage-5/non-functional-requirements.md`
+- `docs/architecture/stage-5/architecture-decisions-draft.md`
+- `docs/architecture/stage-5/stage-5-consistency-review.md`
+- `docs/architecture/stage-5/stage-5-summary-and-carryover.md`
 
-**Guardrails:**
+**Quality gate / заметка о завершении:** Stage 5.9 не нашел Critical/Major blockers. Stage 5 является conceptual architecture documentation и system design, а не production implementation.
 
-- Stage 5 is architecture documentation and system design, not production implementation.
-- MVP v1 remains hotel-only.
-- Flight search, combined itinerary, booking/payment flows, account history and full auth remain future expansion.
-- Stage 5 must preserve separation between user-provided constraints, provider facts, assistant assumptions and unknown data.
-- Stage 5 must not create production code, API contracts, database schema, UI implementation or implementation backlog.
+**Carryover:** сохранить hotel-only MVP scope, provider facts как source data, разделение facts/assumptions/unknowns, provider abstraction как conceptual boundary, а не API contract, и NFR как quality guidance, а не active DevOps/security/testing backlog.
 
-**Next step:**
-
-- Select the next task explicitly. Stage 6 is planned but not started.
+## 7. Планируемые и будущие этапы
 
 ### Stage 6 — Implementation Preparation
 
-**Status:** Planned / not started.
+**Статус:** Planned / not started.
 
-**Scope:** scoped implementation-preparation planning, task framing, validation strategy, mock/fake provider approach, contract-placeholder boundaries and local workflow boundaries.
+**Назначение:** scoped implementation-preparation planning, task framing, validation strategy, mock/fake provider approach, contract-placeholder boundaries и local workflow boundaries.
 
-**Activation condition:** Stage 6 starts only after a separate explicit task activates Stage 6 planning/scope definition. Completing pre-Stage 6 reviews or cleanup does not start Stage 6.
+**Условие активации:** Stage 6 начинается только после отдельной явной задачи, которая активирует Stage 6 planning/scope definition. Завершение reviews, documentation cleanup или controlled refactoring до Stage 6 не начинает Stage 6.
 
-**Scope boundaries:** Stage 6 may define implementation-preparation scope, sequencing, validation approach, local workflow boundaries and conceptual boundaries for mock/fake providers and contract placeholders. It must preserve MVP v1 hotel-only scope and the Stage 5 architecture baseline.
+**Границы scope:** Stage 6 может определить implementation-preparation scope, sequencing, validation approach, local workflow boundaries и conceptual boundaries для mock/fake providers и contract placeholders. Он должен сохранить hotel-only scope MVP v1 и Stage 5 architecture baseline.
 
-**Explicit exclusions:** Stage 6 does not automatically create API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog, production implementation, provider-specific integration code or Stage 7 implementation tasks.
+**Явные исключения:** Stage 6 не создает автоматически API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog, production implementation, provider-specific integration code или Stage 7 implementation tasks.
 
-**Quality gate:** Stage 6 can be considered ready to close only after its planning artifacts clearly separate allowed implementation-preparation work from excluded API/DB/storage/auth/DevOps/testing/production work, and after any concrete contract or implementation artifact has been authorized by a separate explicit roadmap step.
-
-**Clarification:** Any concrete contract artifact must be explicitly authorized by a separate Stage 6 task and must stay aligned with the provided existing travel API contract and the Stage 5 architecture baseline.
+**Quality gate:** Stage 6 может закрыться только после того, как planning artifacts явно отделят разрешенную implementation-preparation work от исключенной API/DB/storage/auth/DevOps/testing/production work. Любой конкретный contract или implementation artifact требует отдельного явного roadmap step.
 
 ### Stage 7 — MVP Implementation
 
-**Status:** Planned.
+**Статус:** Planned.
 
-**Scope:** реализация согласованного hotel-only MVP v1, включая интеграцию с существующим travel API для hotel offers после предоставления API-контракта. Flight search — следующий expansion после hotel flow; combined hotel+flight — более поздний expansion после flight flow.
+**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельной явной активации implementation. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
-**Status:** Planned.
+**Статус:** Planned.
 
-**Scope:** улучшение уточнений, объяснений, сравнения и устойчивости AI-поведения без привязки к одному LLM provider.
+**Границы:** улучшение уточнений, объяснений, сравнения и устойчивости AI behaviour без привязки продукта к одному LLM provider.
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Status:** Planned.
+**Статус:** Planned.
 
-**Scope:** adapter design, provider-specific error handling, reliability и production-hardening вокруг реального provider/API.
+**Границы:** adapter design, provider-specific error handling, reliability и production-hardening вокруг реального provider/API после предоставления и активации нужных контрактов.
 
 ### Stage 10 — Cross-platform Expansion
 
-**Status:** Planned.
+**Статус:** Planned.
 
-**Scope:** развитие за пределы первой платформы без переписывания продуктовой и доменной логики.
+**Границы:** расширение за пределы первой платформы без переписывания product и domain logic.
 
-**Future stage activation rule:** Planned stages are not active backlog. Each future stage starts only after a separate explicit roadmap task activates it and confirms required preceding decisions.
+**Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 
-## Roadmap Rules
+## 8. Связанные документы и audit trail
 
-- This roadmap is a stage-based project map and source of truth for stage status/progression; it is not a task tracker, implementation backlog, ADR registry, architecture spec or product requirements document.
-- `docs/ROADMAP.md` is a top-level stage summary, not a competing source of current status.
-- Development docs are secondary future/planned references and must follow this primary roadmap.
-- Не начинать следующий этап без явной задачи.
-- Не менять порядок этапов без отдельного решения.
-- Не выполнять recommendations в рамках cleanup или review задач.
-- Не создавать документы будущих этапов до соответствующей задачи.
-- Не проектировать API contracts, database schema, UI mockups или code до соответствующих этапов.
-- Спорные архитектурные решения фиксировать через ADR, если они появляются на будущих этапах.
+- `docs/ROADMAP.md` — верхнеуровневый overview roadmap.
+- `docs/product/README.md` — индекс продуктовой документации.
+- `docs/architecture/README.md` — индекс архитектурной документации.
+- `docs/development/roadmap.md` — secondary development roadmap; только future/reference material.
+- `docs/development/milestones.md` — development milestones; только future/reference checkpoints.
+- `docs/development/implementation-strategy.md` — implementation strategy; future/reference material до активации.
+- `docs/reviews/pre-stage-6-documentation-consistency-review.md` — documentation consistency review перед Stage 6.
+- `docs/reviews/roadmap-structure-and-process-fitness-review.md` — review структуры roadmap и process fitness.
+- `docs/reviews/global-documentation-quality-review.md` — глобальный review качества документации.
+- `docs/reviews/documentation-refactoring-plan.md` — план controlled documentation refactoring.
