@@ -4,9 +4,9 @@
 
 Документ не является primary roadmap. Актуальный статус этапов, чеклисты артефактов, stage gates, carryover и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
 
-На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается Planned / not started, а Code/API/DB/UI implementation не начат. Этот документ является future/reference material для будущих задач и не создает active implementation backlog.
+На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается в статусе `Planned / not started`, а реализация Code/API/DB/UI не начата. Этот документ является справочным материалом для будущих задач и не создает активный implementation backlog.
 
-Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Любой task format, milestone или implementation sequence ниже применяется только после отдельного explicit roadmap step или явно поставленной задачи, совместимой с primary roadmap.
+Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Любой task format, milestone или implementation sequence ниже применяется только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap.
 
 ## Общий подход
 
@@ -59,7 +59,7 @@
 
 Хорошая задача должна помещаться в один понятный pull request или один небольшой набор изменений. Если задача требует одновременно менять backend, frontend, API-контракты, persistence и UI, ее нужно разбить.
 
-Примеры хорошего разбиения для будущей явно разрешенной implementation/API задачи. Этот список не является текущим backlog и не активирует contract/code work:
+Примеры хорошего разбиения для будущей явно разрешенной implementation/API задачи. Этот список не является текущим backlog и не активирует работу над contract/code:
 - сначала описать API-контракт для chat endpoint, если отдельный roadmap step разрешил contract work;
 - затем создать backend route без оркестрации;
 - затем добавить use case;
@@ -159,9 +159,9 @@
 
 ## Порядок реализации MVP
 
-Этот порядок является future reference sequence, а не текущим backlog. Он показывает возможную последовательность после явной активации реализации, но не создает задачи сам по себе.
+Этот порядок является справочной последовательностью для будущей реализации, а не текущим backlog. Он показывает возможную последовательность после явной активации реализации, но не создает задачи сам по себе.
 
-Каждый пункт требует отдельного explicit roadmap step или явно поставленной задачи в соответствии с primary roadmap. Stage 6 planning не означает автоматическое создание API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production code.
+Каждый пункт требует отдельного явного roadmap step или явно поставленной задачи в соответствии с primary roadmap. Stage 6 planning не означает автоматическое создание API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production code.
 
 1. Зафиксировать требования, границы MVP и API-контракты.
 2. Создать backend skeleton и health endpoint.

@@ -6,13 +6,13 @@
 
 ## Статус и правила активации
 
-На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается Planned / not started, а Code/API/DB/UI implementation не начат.
+На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается в статусе `Planned / not started`, а реализация Code/API/DB/UI не начата.
 
-Вехи ниже являются future/reference material. Они не являются active implementation backlog, task tracker или разрешением начинать backend/frontend implementation.
+Вехи ниже являются справочными материалами для будущей реализации. Они не являются активным implementation backlog, task tracker или разрешением начинать backend/frontend implementation.
 
 Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts.
 
-Каждая веха становится actionable только после отдельного explicit roadmap step или явно поставленной задачи, совместимой с primary roadmap. Если веха звучит конкретнее, чем текущий primary roadmap, она должна читаться как будущий ориентир, а не как текущая задача.
+Каждая веха становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap. Если веха звучит конкретнее, чем текущий primary roadmap, она должна читаться как будущий ориентир, а не как текущая задача.
 
 ## Веха 0 — основа проекта
 

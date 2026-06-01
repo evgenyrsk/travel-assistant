@@ -2,18 +2,18 @@
 
 ## 1. Purpose
 
-Этот style guide задает единые правила для документации Travel Assistant перед controlled refactoring.
+Этот style guide задает единые правила для документации Travel Assistant перед контролируемым refactoring.
 
 Он нужен, чтобы:
 
 - сохранить единый язык и понятный стиль;
 - сделать структуру документации предсказуемой;
 - повысить читаемость для человека и AI/code agents;
-- отделить актуальный baseline от historical artifacts;
-- защитить проект от scope drift, premature implementation и случайного старта Stage 6;
+- отделить актуальный baseline от исторических артефактов;
+- защитить проект от scope drift, преждевременной реализации и случайного старта Stage 6;
 - уменьшить дублирование guardrails без потери важных ограничений.
 
-Style guide не меняет product requirements, architecture decisions, roadmap order, stage statuses или MVP scope. Stage 6 остается Planned / not started до отдельной явной задачи.
+Style guide не меняет product requirements, architecture decisions, порядок roadmap, статусы этапов или MVP scope. Stage 6 остается в статусе `Planned / not started` до отдельной явной задачи.
 
 ## 2. Documentation Language
 
@@ -39,7 +39,7 @@ Bad:
 
 Good:
 
-- Этап должен оставаться в статусе Planned / not started до отдельной явной задачи.
+- Этап должен оставаться в статусе `Planned / not started` до отдельной явной задачи.
 - Development docs являются справочными материалами для будущей реализации и не являются активным backlog.
 - Guardrails должны защищать границы задачи, но не делать документы нечитаемыми.
 
@@ -49,8 +49,8 @@ Good:
 
 | Term | Preferred Usage | Notes |
 |---|---|---|
-| roadmap | Можно не переводить. Использовать для `docs/roadmap/roadmap.md` и stage progression. | `docs/roadmap/roadmap.md` - primary roadmap и source of truth по статусам этапов. |
-| stage | Можно использовать как часть названий `Stage 0`, `Stage 6`. В связующем тексте допустимо "этап". | Не смешивать в одной фразе без необходимости: лучше "Stage 6 остается Planned / not started" или "Этап 6 остается Planned / not started". |
+| roadmap | Можно не переводить. Использовать для `docs/roadmap/roadmap.md` и progression этапов. | `docs/roadmap/roadmap.md` - primary roadmap и source of truth по статусам этапов. |
+| stage | Можно использовать как часть названий `Stage 0`, `Stage 6`. В связующем тексте допустимо "этап". | Не смешивать в одной фразе без необходимости: лучше "Stage 6 остается в статусе `Planned / not started`" или "Этап 6 остается в статусе `Planned / not started`". |
 | scope | Лучше объяснять по-русски как "границы", "объем", "рамки задачи". | Термин `MVP scope` допустим, если важно сохранить связь с roadmap. |
 | baseline | Можно не переводить, но пояснять как "актуальное состояние". | Использовать для current product/UX/architecture baseline, не для любого historical document. |
 | quality gate | Можно не переводить, если речь о review/checkpoint. | При первом упоминании пояснять: "контрольная проверка качества". |
@@ -61,7 +61,7 @@ Good:
 | provider | Можно не переводить. | Provider facts приходят от provider/source data, а не от LLM. |
 | OpenAPI | Не переводить. | OpenAPI contracts нельзя создавать без отдельного roadmap step. |
 | API contract | Можно использовать как technical term. | Provider abstraction не является API contract. |
-| implementation backlog | Лучше объяснять как "активный список задач реализации". | Future/reference docs не должны выглядеть как active implementation backlog. |
+| implementation backlog | Лучше объяснять как "активный список задач реализации". | Справочные документы о будущей реализации не должны выглядеть как активный implementation backlog. |
 | current-session shortlist | Можно использовать как established product term. | Это shortlist текущей сессии, не account history и не persistent saved trips. |
 | account history | Можно использовать как established product term. | Вне MVP v1; не создавать auth/account storage без отдельного решения. |
 
@@ -69,11 +69,11 @@ Good:
 
 - `README.md` - entry point и карта проекта. Он должен помогать понять, что читать первым, а не дублировать весь roadmap.
 - `docs/roadmap/roadmap.md` - primary roadmap и source of truth по stage status, progression, boundaries, carryover и следующему разрешенному шагу.
-- `docs/ROADMAP.md` - краткий навигационный overview этапов. Он не является competing source of truth по текущим статусам.
+- `docs/ROADMAP.md` - краткий навигационный overview этапов. Он не является конкурирующим source of truth по текущим статусам.
 - `docs/product/*` - product artifacts и product baseline. Stage documents сохраняют traceability, но не всегда являются актуальным MVP baseline.
 - `docs/architecture/*` - architecture baseline и architecture artifacts. Stage 5 documents являются текущим conceptual architecture baseline до отдельного будущего решения.
 - `docs/decisions/*` - accepted ADRs, drafts, candidates и decision inventory. Эти категории должны быть явно разделены.
-- `docs/development/*` - future/reference development material до явной активации implementation. Они не являются active backlog.
+- `docs/development/*` - справочные development materials для будущей реализации до явной активации implementation. Они не являются активным backlog.
 - `docs/reviews/*` - quality gates и audit trail. Reviews не заменяют roadmap и не должны становиться списком задач.
 - `docs/prompts/*` - шаблоны задач для AI/code agents. Они должны следовать primary roadmap и AGENTS.md.
 - `AGENTS.md` - рабочие правила для AI/code agents. Он может содержать ключевые guardrails, но не должен дублировать все подробности каждого документа.
@@ -82,9 +82,9 @@ Good:
 
 Actual baseline - это актуальное состояние продукта, UX, архитектуры, roadmap или process rules, на которое можно опираться перед новой задачей.
 
-Historical stage artifacts - документы, созданные в рамках этапов. Они сохраняют traceability и объясняют, как появились решения, но могут содержать superseded или future-only context.
+Historical stage artifacts - документы, созданные в рамках этапов. Они сохраняют traceability и объясняют, как появились решения, но могут содержать superseded-контекст или материалы только для будущих этапов.
 
-Reviews - проверочные документы. Они фиксируют findings, verdict, risks и audit trail. Они не являются roadmap и не должны быть источником текущего next step.
+Reviews - проверочные документы. Они фиксируют findings, verdict, risks и audit trail. Они не являются roadmap и не должны быть источником текущего следующего шага.
 
 Carryover - переносимые ограничения, вопросы и решения. Carryover не является активным backlog и не означает разрешение выполнять работу будущего этапа.
 
@@ -123,7 +123,7 @@ Roadmap не является:
 
 Roadmap должен оставаться читаемым. Он не должен дублировать полные product/architecture docs. Детали требований, UX и архитектуры должны жить в соответствующих baseline или stage artifact documents.
 
-Future stages не являются active backlog. Planned items нельзя выполнять без explicit activation. Stage 6 должен оставаться Planned / not started до отдельной явной задачи, которая активирует Stage 6 planning/scope definition.
+Future stages не являются активным backlog. Planned items нельзя выполнять без явной активации. Stage 6 должен оставаться в статусе `Planned / not started` до отдельной явной задачи, которая активирует Stage 6 planning/scope definition.
 
 ## 7. Product Documentation Style Rules
 
@@ -167,7 +167,7 @@ Architecture docs должны описывать conceptual architecture и arc
 - выбирать provider/vendor/tool без отдельного решения;
 - создавать production implementation plan, если это не активировано roadmap.
 
-LLM не создает provider facts. LLM может interpret, explain, rank, summarize и clarify, но не должен invent provider facts. Architecture docs должны сохранять разделение user-provided constraints, provider facts, assistant assumptions и unknown data.
+LLM не создает provider facts. LLM может интерпретировать, объяснять, ранжировать, резюмировать и уточнять, но не должен выдумывать provider facts. Architecture docs должны сохранять разделение user-provided constraints, provider facts, assistant assumptions и unknown data.
 
 ## 9. Decisions / ADR Style Rules
 

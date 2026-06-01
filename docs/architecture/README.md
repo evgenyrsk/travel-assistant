@@ -1,6 +1,6 @@
 # Архитектурная документация
 
-Эта директория содержит архитектурную документацию Travel Assistant.
+Эта директория содержит архитектурную документацию Travel Assistant. Этот README является index-документом: он помогает найти актуальный architecture baseline и Stage 5 artifacts, но не является implementation plan, architecture spec, API contract или backlog задач.
 
 ## Текущий статус
 
@@ -8,15 +8,17 @@
 - Stage 6 — Implementation Preparation: Planned / not started.
 - Code/API/DB/UI implementation: Not started.
 
-Документы Stage 5 являются текущим architecture baseline. Они описывают границы, ответственности и guardrails для hotel-only MVP v1. Они не являются implementation backlog, API/OpenAPI contract, endpoint specification, database schema, storage model, provider adapter design, auth/security/DevOps/testing plan или production implementation plan.
+`architecture-baseline.md` фиксирует актуальный compact architecture baseline после Stage 5. Документы Stage 5 сохраняются как historical architecture artifacts, deliverables и audit trail: они описывают границы, ответственности и guardrails для hotel-only MVP v1, но не являются implementation backlog, API/OpenAPI contract, endpoint specification, database schema, storage model, provider adapter design, auth/security/DevOps/testing plan или production implementation plan.
+
+Статусы этапов, progression и следующий разрешенный шаг фиксируются в primary roadmap `../roadmap/roadmap.md`.
 
 ## Основные ссылки
 
 - `../roadmap/roadmap.md` — primary roadmap и источник истины для текущего статуса этапов.
-- `architecture-baseline.md` — актуальный компактный architecture baseline после Stage 5.
+- `architecture-baseline.md` — актуальный compact architecture baseline после Stage 5.
 - `../reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
 
-## Deliverables Stage 5
+## Stage 5 artifacts
 
 - `stage-5/architecture-scope-and-principles.md` — scope Stage 5, guardrails и архитектурные принципы.
 - `stage-5/system-context-and-boundaries.md` — system context, акторы и boundary rules.

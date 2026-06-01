@@ -1,10 +1,18 @@
 # Documentation Refactoring Plan
 
+## Статус документа
+
+Этот документ является плановым артефактом и audit trail для будущего controlled documentation refactoring. Он фиксирует предложенный порядок безопасных documentation cleanup задач после global documentation quality review.
+
+План не является активным backlog, roadmap, task tracker или разрешением на массовую правку документации. Любая фаза или suggested task требует отдельной явной задачи и должна оставаться согласованной с `docs/roadmap/roadmap.md`.
+
+Stage 6 остается в статусе `Planned / not started`. Этот plan не начинает Stage 6, не создает implementation backlog, API/OpenAPI contracts, DB schema/storage model, auth/security/DevOps/testing backlog или production implementation.
+
 ## 1. Plan Context
 
 Этот plan создан после `docs/reviews/global-documentation-quality-review.md`, где итоговый verdict: Documentation needs controlled refactoring before Stage 6.
 
-Refactoring нужен не потому, что baseline сломан, а потому что документация стала тяжелой для чтения: actual baseline распределен по разным документам, stage artifacts смешиваются с historical context, roadmap перегружен, development docs выглядят как future backlog, guardrails дублируются, а русский и английский язык смешаны сильнее, чем нужно.
+Refactoring нужен не потому, что baseline сломан, а потому что документация стала тяжелой для чтения: actual baseline распределен по разным документам, stage artifacts смешиваются с historical context, roadmap перегружен, development docs выглядят как backlog будущей реализации, guardrails дублируются, а русский и английский язык смешаны сильнее, чем нужно.
 
 Refactoring должен быть controlled: маленькими задачами, без изменения смысла, без изменения product requirements и architecture decisions, без старта Stage 6.
 
@@ -18,7 +26,7 @@ Refactoring должен быть controlled: маленькими задача�
 - Stage 4.1 - Completed;
 - Stage 5 - Completed;
 - Stage 6 - Planned / not started;
-- Code/API/DB/UI implementation - Not started.
+- Реализация Code/API/DB/UI - Not started.
 
 ## 2. Refactoring Goals
 
@@ -30,7 +38,7 @@ Refactoring должен быть controlled: маленькими задача�
 - облегчить primary roadmap;
 - отделить historical artifacts от actual baseline;
 - централизовать guardrails;
-- улучшить navigation и source-of-truth clarity;
+- улучшить navigation и ясность source of truth;
 - сохранить product/architecture meaning;
 - защитить hotel-only MVP v1 scope;
 - сохранить Stage 6 в статусе Planned / not started до отдельной явной задачи.
@@ -42,7 +50,7 @@ Refactoring должен быть controlled: маленькими задача�
 - менять product requirements;
 - менять architecture decisions;
 - начинать Stage 6;
-- менять Stage 6 status на In Progress;
+- менять статус Stage 6 на In Progress;
 - создавать Stage 6 deliverables;
 - создавать API/OpenAPI contracts;
 - создавать DB schema/storage model;
@@ -52,7 +60,7 @@ Refactoring должен быть controlled: маленькими задача�
 - удалять historical audit trail;
 - расширять MVP;
 - возвращать flights, combined itinerary, booking или payment в MVP;
-- превращать future stages в active backlog;
+- превращать future stages в активный backlog;
 - превращать future ADR candidates в accepted ADR.
 
 ## 4. Proposed Target Documentation Structure
@@ -62,14 +70,14 @@ Refactoring должен быть controlled: маленькими задача�
 | Section | Intended Role | Expected Files | Notes |
 |---|---|---|---|
 | Root entry points | Быстрый вход в проект и маршруты чтения. | `README.md`, `AGENTS.md`, `docs/PROJECT_BRIEF.md`, `docs/ARCHITECTURE.md` | README должен быть коротким entry point. `docs/ARCHITECTURE.md` стоит явно маркировать как preliminary/historical после Stage 5. |
-| Roadmap and governance | Source of truth по stage status/progression и governance. | `docs/roadmap/roadmap.md`, `docs/ROADMAP.md`, `docs/guides/documentation-style-guide.md` | Primary roadmap не должен становиться backlog или archive всех stage details. |
+| Roadmap and governance | Source of truth по stage status/progression и governance. | `docs/roadmap/roadmap.md`, `docs/ROADMAP.md`, `docs/guides/documentation-style-guide.md` | Primary roadmap не должен становиться backlog или архивом всех stage details. |
 | Product baseline | Compact current MVP/product/UX baseline. | Proposed: `docs/product/product-baseline.md`; existing: `docs/product/README.md`, Stage 3/4 summaries | Baseline должен фиксировать hotel-only MVP v1 без переписывания historical docs. |
-| Product stage artifacts | Historical deliverables и traceability этапов. | `docs/product/stage-0/*` - `docs/product/stage-4/*` | Сохранять; маркировать как historical/stage artifacts where needed. |
+| Product stage artifacts | Historical deliverables и traceability этапов. | `docs/product/stage-0/*` - `docs/product/stage-4/*` | Сохранять; маркировать как historical/stage artifacts при необходимости. |
 | Architecture baseline | Compact current architecture baseline. | Proposed: `docs/architecture/architecture-baseline.md`; existing: `docs/architecture/README.md`, `docs/architecture/stage-5/*` | Baseline должен отделять conceptual architecture от future implementation. |
 | Architecture stage artifacts | Stage 5 architecture deliverables. | `docs/architecture/stage-5/*` | Сохранять как Stage 5 artifacts; не превращать в implementation backlog. |
 | Decisions / ADR | Accepted ADRs, drafts, candidates и inventory. | `docs/decisions/README.md`, future ADR files, `docs/architecture/stage-5/architecture-decisions-draft.md` | Accepted ADRs должны быть отдельно от candidates и non-ADR inventory. |
 | Reviews | Quality gates и audit trail. | `docs/reviews/*`, stage consistency reviews | Proposed: optional `docs/reviews/README.md` later. Reviews не заменяют roadmap. |
-| Development reference | Future/reference implementation material. | `docs/development/roadmap.md`, `docs/development/milestones.md`, `docs/development/implementation-strategy.md` | Должны явно оставаться non-active до отдельной roadmap activation. |
+| Development reference | Справочные implementation materials для будущей реализации. | `docs/development/roadmap.md`, `docs/development/milestones.md`, `docs/development/implementation-strategy.md` | Должны явно оставаться неактивными до отдельной roadmap activation. |
 | Prompts / agent rules | Шаблоны задач и правила AI/code agents. | `docs/prompts/*`, `.github/*`, `AGENTS.md` | Должны следовать primary roadmap и style guide. |
 
 ## 5. Actual Baseline Layer Proposal
@@ -132,7 +140,7 @@ Refactoring должен быть controlled: маленькими задача�
 
 - Улучшить future/reference framing development docs.
 - Синхронизировать prompts, GitHub templates, AGENTS.md и style guide.
-- Убедиться, что development docs не выглядят как active implementation backlog.
+- Убедиться, что development docs не выглядят как активный implementation backlog.
 
 ## 7. Recommended Before Stage 6
 
@@ -193,7 +201,7 @@ Allowed files:
 
 - proposed `docs/product/product-baseline.md`
 - `docs/product/README.md`
-- `README.md` only if navigation changes are needed
+- `README.md`, только если нужны navigation changes
 
 Forbidden changes:
 
@@ -214,7 +222,7 @@ Allowed files:
 
 - proposed `docs/architecture/architecture-baseline.md`
 - `docs/architecture/README.md`
-- `README.md` only if navigation changes are needed
+- `README.md`, только если нужны navigation changes
 
 Forbidden changes:
 
@@ -241,7 +249,7 @@ Forbidden changes:
 
 - менять stage statuses;
 - менять roadmap order;
-- добавлять active backlog;
+- добавлять активный backlog;
 - удалять governance;
 - начинать Stage 6.
 
@@ -289,7 +297,7 @@ Forbidden changes:
 - добавлять code/tooling.
 
 Expected output:
-Development docs framed as future/reference material; prompts follow primary roadmap and style guide.
+Development docs оформлены как справочные материалы для будущей реализации; prompts следуют primary roadmap и style guide.
 
 ## 10. Final Recommendation
 

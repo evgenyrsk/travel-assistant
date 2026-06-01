@@ -2,17 +2,17 @@
 
 Этот roadmap описывает возможную будущую структуру разработки AI-помощника для путешествий. Его цель — помогать позже формулировать небольшие, проверяемые задачи для opencode, когда соответствующая реализация будет явно активирована в primary roadmap.
 
-Primary roadmap со статусами этапов, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Верхнеуровневый список этапов находится в `docs/ROADMAP.md`. Этот файл является secondary development reference: он не является альтернативным источником статусов, active implementation backlog или разрешением начинать будущие этапы.
+Primary roadmap со статусами этапов, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Верхнеуровневый список этапов находится в `docs/ROADMAP.md`. Этот файл является вторичным development reference: он не является альтернативным источником статусов, активным implementation backlog или разрешением начинать будущие этапы.
 
 ## Статус и правила активации
 
-На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается Planned / not started, а Code/API/DB/UI implementation не начат.
+На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается в статусе `Planned / not started`, а реализация Code/API/DB/UI не начата.
 
-Разделы ниже являются future/reference material. Они описывают возможную будущую development structure, но не являются active implementation backlog, task tracker или списком задач к немедленному выполнению.
+Разделы ниже являются справочными материалами для будущей реализации. Они описывают возможную future development structure, но не являются активным implementation backlog, task tracker или списком задач к немедленному выполнению.
 
 Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts.
 
-Любой пункт из этого secondary roadmap становится actionable только после отдельного explicit roadmap step или явно поставленной задачи, совместимой с `docs/roadmap/roadmap.md`. Если формулировка этого документа конфликтует с primary roadmap, product baseline или architecture baseline, приоритет имеют primary roadmap и baseline-документы.
+Любой пункт из этого secondary roadmap становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с `docs/roadmap/roadmap.md`. Если формулировка этого документа конфликтует с primary roadmap, product baseline или architecture baseline, приоритет имеют primary roadmap и baseline-документы.
 
 ## 0. Перезапуск проекта и продуктовая рамка
 
@@ -117,7 +117,7 @@ Primary roadmap со статусами этапов, чеклистами ар�
 
 **Цель:** описать контракты между клиентами и backend.
 
-**Статус:** future reference only; не активная задача и не разрешение создавать API/OpenAPI contracts до отдельного explicit roadmap step.
+**Статус:** future reference only; не активная задача и не разрешение создавать API/OpenAPI contracts до отдельного явного roadmap step.
 
 **Результат:** черновик HTTP API для чата, получения результатов, истории и пользовательских предпочтений.
 

@@ -1,5 +1,13 @@
 # Review согласованности документации перед Stage 6
 
+## Статус документа
+
+Этот документ является audit trail и quality gate по согласованности документации перед Stage 6. Он фиксирует findings, verdict и рекомендации на момент review.
+
+Рекомендации в этом документе не являются активным backlog, roadmap или разрешением выполнять cleanup автоматически. Любая рекомендация требует отдельной явной задачи и должна оставаться согласованной с `docs/roadmap/roadmap.md`.
+
+Stage 6 остается в статусе `Planned / not started`. Этот review не начинает Stage 6, не создает implementation backlog, API/OpenAPI contracts, DB schema/storage model, auth/security/DevOps/testing backlog или production implementation.
+
 ## 1. Контекст review
 
 Этот review проведен перед началом Stage 6, чтобы проверить согласованность документационного baseline после завершения Stage 0 - Stage 5.
@@ -8,7 +16,7 @@
 
 - Stage 0 - Stage 5 завершены.
 - Stage 6 запланирован, но не начат.
-- Code/API/DB/UI implementation не начат.
+- Реализация Code/API/DB/UI не начата.
 - Эта задача является review-only.
 - Продуктовые и архитектурные решения в рамках этого review не менялись.
 
@@ -47,7 +55,7 @@ Review сфокусирован на согласованности докуме
 - OpenAPI/API contracts пока нет, если они явно не запланированы на будущий этап.
 - DB schema/storage model пока нет, если они явно не запланированы на будущий этап.
 - Provider facts должны приходить от providers, а не от LLM.
-- LLM может interpret, explain, rank, summarize и clarify, но не должен invent provider facts.
+- LLM может интерпретировать, объяснять, ранжировать, резюмировать и уточнять, но не должен выдумывать provider facts.
 - Разделение facts / assumptions / unknowns должно оставаться явным.
 
 ## 4. Summary findings
@@ -68,7 +76,7 @@ Review сфокусирован на согласованности докуме
 
 ## 5. Detailed findings
 
-### [MJ-001] Secondary development roadmap читается как active implementation backlog
+### [MJ-001] Secondary development roadmap читается как активный implementation backlog
 
 Severity: Major  
 Area: Development docs / Cross-doc  
@@ -80,13 +88,13 @@ Files:
 - `docs/roadmap/roadmap.md`
 
 Finding:
-Development roadmap и milestones содержат конкретные future implementation areas: API contracts, backend skeleton, LLM abstraction, hotel search abstraction, web skeleton, UI, tests, security и local development. Файлы указывают, что primary roadmap является source of truth и что development roadmap secondary, но уровень детализации все еще может быть ошибочно воспринят как active backlog до начала Stage 6 planning.
+Development roadmap и milestones содержат конкретные future implementation areas: API contracts, backend skeleton, LLM abstraction, hotel search abstraction, web skeleton, UI, tests, security и local development. Файлы указывают, что primary roadmap является source of truth, а development roadmap является secondary, но уровень детализации все еще может быть ошибочно воспринят как активный backlog до начала Stage 6 planning.
 
 Why it matters:
-Baseline проекта говорит, что Stage 6 planned but not started и implementation еще не начат. Детализированный implementation-oriented roadmap может подтолкнуть будущие задачи к преждевременному старту API/frontend/backend/storage/security work.
+Baseline проекта говорит, что Stage 6 находится в статусе `Planned / not started` и implementation еще не начат. Детализированный implementation-oriented roadmap может подтолкнуть будущие задачи к преждевременному старту API/frontend/backend/storage/security work.
 
 Recommendation:
-В отдельной cleanup-задаче уточнить, что development roadmap и milestones являются future reference material до тех пор, пока Stage 6 planning явно не выберет и не ограничит work. Сохранить их подчинение `docs/roadmap/roadmap.md` и не трактовать их пункты как текущие задачи.
+В отдельной cleanup-задаче уточнить, что development roadmap и milestones являются справочными материалами для будущей реализации до тех пор, пока Stage 6 planning явно не выберет и не ограничит work. Сохранить их подчинение `docs/roadmap/roadmap.md` и не трактовать их пункты как текущие задачи.
 
 Allowed timing:
 Before Stage 6.
@@ -103,7 +111,7 @@ Files:
 - `docs/development/implementation-strategy.md`
 
 Finding:
-Stage 6 корректно отмечен как Planned / not started, но в нескольких местах future preparation описана через wording вроде "контракты", "API Contracts" или "подготовить контракты". Architecture baseline говорит, что API/OpenAPI contracts или DB schema пока не существуют, а existing travel API contract должен быть предоставлен до concrete provider mapping. Текущее wording не является прямым противоречием, но достаточно широкое, чтобы его можно было прочитать как разрешение создавать OpenAPI/API contracts сразу при старте Stage 6.
+Stage 6 корректно отмечен как `Planned / not started`, но в нескольких местах future preparation описана через wording вроде "контракты", "API Contracts" или "подготовить контракты". Architecture baseline говорит, что API/OpenAPI contracts или DB schema пока не существуют, а existing travel API contract должен быть предоставлен до concrete provider mapping. Текущее wording не является прямым противоречием, но достаточно широкое, чтобы его можно было прочитать как разрешение создавать OpenAPI/API contracts сразу при старте Stage 6.
 
 Why it matters:
 Stage 6 не должен превращаться в преждевременную работу по API/OpenAPI, DB schema, storage model, auth, DevOps или production implementation. Contract preparation должен оставаться ограниченным existing travel API contract и явным Stage 6 planning.
@@ -293,7 +301,7 @@ Later / future stage.
 | Architecture documentation | `docs/product/README.md`, `docs/roadmap/roadmap.md` | Partial | Нет `docs/architecture/README.md`; Stage 5 обнаружим, но не из architecture-local index. |
 | Decisions / ADR | `docs/decisions/README.md` | Partial | Корректно говорит, что ADR files нет, но не упоминает Stage 5 decision inventory как non-ADR context. |
 | Roadmap | `docs/roadmap/roadmap.md`, `docs/ROADMAP.md` | Good | Primary/secondary split ясен; Stage 6 wording требует guardrail clarification. |
-| Development docs | `docs/development/roadmap.md`, `docs/development/milestones.md`, `docs/development/implementation-strategy.md` | Warning | Они явно secondary, но достаточно детальны, чтобы их можно было принять за active implementation backlog. |
+| Development docs | `docs/development/roadmap.md`, `docs/development/milestones.md`, `docs/development/implementation-strategy.md` | Warning | Они явно secondary, но достаточно детальны, чтобы их можно было принять за активный implementation backlog. |
 | Prompts / agent rules | `docs/prompts/*`, `AGENTS.md` | Good | Сильный roadmap/scope control; конфликта с review-only task не найдено. |
 
 ## 8. Scope boundary review
@@ -301,14 +309,14 @@ Later / future stage.
 | Boundary | Status | Evidence / Notes |
 |---|---|---|
 | MVP remains hotel-only | Pass | Primary roadmap, Stage 3/4 product docs и Stage 5 architecture docs последовательно сохраняют hotel-only MVP v1. |
-| Flights remain outside MVP | Pass | Flight search отмечен как next expansion after hotel flow. Historical Stage 1/2 mentions superseded. |
+| Flights remain outside MVP | Pass | Flight search отмечен как next expansion после hotel flow. Historical Stage 1/2 mentions superseded. |
 | Booking/payment remain outside MVP | Pass | Root brief, product docs, roadmap и architecture docs исключают booking/payment из MVP. |
 | Provider facts not created by LLM | Pass | Stage 3/4/5 многократно фиксируют provider facts как source-owned и запрещают LLM fabricating them. |
 | Provider abstraction not API contract | Pass | Stage 5 integration architecture и summary явно избегают API/OpenAPI contracts и provider DTOs. |
 | Current-session shortlist not account history | Pass | Stage 3 и Stage 5 отделяют current-session shortlist от account history, persistent saved trips и full auth. |
 | No premature DB/storage decision | Pass | Stage 5 data/storage docs избегают DB schema/storage model и откладывают DB/storage technology decisions. |
-| No premature implementation backlog | Warning | Stage 5 docs избегают backlog, но development roadmap/milestones являются детальным future implementation material и требуют более сильного "not active backlog" framing до Stage 6. |
-| Stage 6 not started | Pass | Primary roadmap говорит, что Stage 6 planned but not started; Stage 5 summary говорит не начинать Stage 6 в той задаче. |
+| No premature implementation backlog | Warning | Stage 5 docs избегают backlog, но development roadmap/milestones являются детальными материалами для будущей реализации и требуют более сильного framing "not active backlog" до Stage 6. |
+| Stage 6 not started | Pass | Primary roadmap говорит, что Stage 6 находится в статусе `Planned / not started`; Stage 5 summary говорит не начинать Stage 6 в той задаче. |
 
 ## 9. Recommended cleanup plan
 

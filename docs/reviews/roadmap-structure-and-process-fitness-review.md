@@ -1,5 +1,13 @@
 # Roadmap Structure and Process Fitness Review
 
+## Статус документа
+
+Этот документ является audit trail и quality gate по структуре roadmap и process fitness перед Stage 6. Он фиксирует findings, verdict и рекомендации на момент review.
+
+Рекомендации в этом документе не являются активным backlog, roadmap или разрешением выполнять cleanup автоматически. Любая рекомендация требует отдельной явной задачи и должна оставаться согласованной с `docs/roadmap/roadmap.md`.
+
+Stage 6 остается в статусе `Planned / not started`. Этот review не начинает Stage 6, не создает implementation backlog, API/OpenAPI contracts, DB schema/storage model, auth/security/DevOps/testing backlog или production implementation.
+
 ## 1. Review Context
 
 Этот review проводится перед началом Stage 6 как дополнительный review-only шаг после:
@@ -79,7 +87,7 @@
 - Explicit exclusions;
 - Required preceding decisions.
 
-Эта структура не требует масштабного rewrite. Ее можно вводить controlled cleanup-ом: сначала Stage 6 и Current Status, затем только наиболее неоднозначные sections.
+Эта структура не требует масштабного rewrite. Ее можно вводить через controlled cleanup: сначала Stage 6 и Current Status, затем только наиболее неоднозначные sections.
 
 ## 5. Findings Summary
 
@@ -114,7 +122,7 @@ Why it matters:
 AI/code agents обычно читают верхний status block первым. Неполный status baseline может создать сомнение, все ли pre-Stage 6 prerequisites закрыты.
 
 Recommendation:
-В controlled cleanup добавить в `Current Status` полный компактный status baseline Stage 0, Stage 1, Stage 2, Stage 3, Stage 4, Stage 4.1, Stage 5 и Stage 6 Planned / not started.
+В controlled cleanup добавить в `Current Status` полный компактный status baseline Stage 0, Stage 1, Stage 2, Stage 3, Stage 4, Stage 4.1, Stage 5 и Stage 6 `Planned / not started`.
 
 Allowed timing:
 Before Stage 6.
@@ -131,7 +139,7 @@ Finding:
 В начале roadmap есть отдельные `Stage 3 Dashboard` и `Stage 4 Dashboard`, затем ниже идут полноценные sections Stage 0-5. Эти dashboards частично дублируют body, а Stage 3 closure notes все еще говорят "Нужно не начинать Stage 5 Technical Architecture", хотя Stage 5 уже Completed.
 
 Why it matters:
-Dashboard sections могут быть полезны во время активного этапа, но после закрытия Stage 5 они ухудшают читаемость roadmap как source of truth и создают stale guidance для agents.
+Dashboard sections могут быть полезны во время активного этапа, но после закрытия Stage 5 они ухудшают читаемость roadmap как source of truth и создают устаревшие guidance для agents.
 
 Recommendation:
 В controlled cleanup либо свернуть Stage 3/4 dashboards в короткие historical notes, либо перенести их детали в соответствующие stage sections. Устаревший wording заменить на historical note без текущей инструкции "не начинать Stage 5".
@@ -177,7 +185,7 @@ Why it matters:
 Для AI/code agents это наиболее рискованная cross-doc ambiguity: secondary development roadmap может быть ошибочно принят за более приоритетный источник, чем main roadmap. Это повышает риск premature implementation.
 
 Recommendation:
-В controlled cleanup обновить `AGENTS.md`, чтобы `docs/roadmap/roadmap.md` был явно указан как primary roadmap и source of truth по этапам/статусам, а `docs/development/roadmap.md` был отмечен как secondary future/planned reference material.
+В controlled cleanup обновить `AGENTS.md`, чтобы `docs/roadmap/roadmap.md` был явно указан как primary roadmap и source of truth по этапам/статусам, а `docs/development/roadmap.md` был отмечен как secondary reference для future/planned development.
 
 Allowed timing:
 Before Stage 6.
@@ -278,7 +286,7 @@ Why it matters:
 Эти правила уже есть в других docs, но main roadmap как source of truth выиграет от компактного self-contained governance block.
 
 Recommendation:
-В controlled cleanup расширить `Roadmap Rules` 3-5 короткими bullets о роли roadmap и запрете трактовать future stages как active backlog.
+В controlled cleanup расширить `Roadmap Rules` 3-5 короткими bullets о роли roadmap и запрете трактовать future stages как активный backlog.
 
 Allowed timing:
 Before Stage 6.
@@ -303,7 +311,7 @@ Recommendation:
 Allowed timing:
 No immediate action.
 
-### [NT-002] Development docs после cleanup лучше отделены от active backlog
+### [NT-002] Development docs после cleanup лучше отделены от активного backlog
 
 Severity: Note  
 Area: Cross-doc alignment  
@@ -314,7 +322,7 @@ Files:
 - `docs/development/implementation-strategy.md`
 
 Finding:
-Development docs явно framed как future/planned reference material и не active implementation backlog.
+Development docs явно оформлены как reference для future/planned development и не являются активным implementation backlog.
 
 Why it matters:
 Это снижает риск premature implementation, хотя AGENTS.md еще нужно выровнять с primary roadmap.
@@ -355,7 +363,7 @@ No immediate action.
 | `docs/roadmap/roadmap.md` | Stage 4 carryover: "Convert component inventory into implementation backlog..." | Формулировка полезна как guardrail, но содержит backlog wording в completed stage. | Переформулировать как "не превращать component inventory в implementation tasks до явной Stage 6/implementation задачи". | During Stage 6 planning |
 | `docs/roadmap/roadmap.md` | `Open Decisions` item "Adapter design, provider error taxonomy, reliability и production-hardening" | Похоже на implementation backlog без stage owner. | Разделить как deferred technical decisions; не делать active tasks. | Before Stage 6 |
 | `docs/ROADMAP.md` | Stage 7 bullets | Кратко описывает подключение existing travel API; safe, но близко к implementation scope. | Сохранить как future stage note; при cleanup добавить, что Stage 7 активируется отдельно. | Later / future stage |
-| `docs/development/implementation-strategy.md` | `Порядок реализации MVP` | Это future reference sequence, но по форме похоже на backlog. | Оставить в development docs; не дублировать в main roadmap. | No immediate action |
+| `docs/development/implementation-strategy.md` | `Порядок реализации MVP` | Это справочная последовательность для будущей реализации, но по форме она похожа на backlog. | Оставить в development docs; не дублировать в main roadmap. | No immediate action |
 
 ## 8. Missing / Underrepresented Items Review
 
@@ -376,7 +384,7 @@ No immediate action.
 | Stage 0 | Completed | Good | Good | Partial | Good | Quality gate implicit through artifacts/open questions. |
 | Stage 1 | Completed | Good | Good | Good | Good | Consistency review listed. |
 | Stage 2 | Completed | Good | Good | Good | Good | Good scope guards around provider facts and no API/DB. |
-| Stage 3 | Completed | Good | Good | Good | Good | Dashboard duplication and stale Stage 5 note should be cleaned. |
+| Stage 3 | Completed | Good | Good | Good | Good | Dashboard дублирует часть body; устаревшую Stage 5 note стоит убрать. |
 | Stage 4 | Completed | Good | Good | Good | Good | Stage 4.1 represented; dashboard duplicates body. |
 | Stage 4.1 | Completed | Good | Good | Good | Partial | Present as Stage 4.1 consistency review, not as standalone stage section. |
 | Stage 5 | Completed | Good | Good | Good | Good | Located under Future Stages heading despite Completed status. |
@@ -391,9 +399,9 @@ No immediate action.
 | `docs/product/README.md` | Product docs index | Good | Stage 5 architecture links included; not source of status. |
 | `docs/architecture/README.md` | Architecture docs index | Good | Clear Stage 5 baseline and Stage 6 boundary. |
 | `docs/decisions/README.md` | ADR governance/index | Good | Correctly separates accepted ADRs from non-ADR decision inventory. |
-| `docs/development/roadmap.md` | Secondary future/planned development reference | Good | Well-framed as not active backlog after cleanup. |
-| `docs/development/milestones.md` | Future/planned milestones | Good | Well-framed as not active backlog after cleanup. |
-| `docs/development/implementation-strategy.md` | Future implementation task strategy | Good | Contains future sequence but explicitly not active backlog. |
+| `docs/development/roadmap.md` | Secondary reference для future/planned development | Good | После cleanup ясно указано, что это не активный backlog. |
+| `docs/development/milestones.md` | Future/planned milestones | Good | После cleanup ясно указано, что это не активный backlog. |
+| `docs/development/implementation-strategy.md` | Стратегия будущих implementation tasks | Good | Содержит future sequence, но явно не является активным backlog. |
 | `AGENTS.md` | Agent rules and source priority | Partial | Source priority should explicitly put `docs/roadmap/roadmap.md` above secondary development docs. |
 | `docs/prompts/*` | Task/review templates and Codex rules | Good | Consistent with review-only and roadmap control, though less specific than AGENTS. |
 
@@ -405,7 +413,7 @@ No immediate action.
 - Add link to this review in README and main roadmap navigation.
 - Clean stale Stage 3 dashboard note that says not to start Stage 5.
 - Clarify Stage 6 activation condition and explicit exclusions in main roadmap.
-- Update `AGENTS.md` source priority so `docs/roadmap/roadmap.md` is primary roadmap and `docs/development/roadmap.md` is secondary future/planned reference.
+- Обновить source priority в `AGENTS.md`: `docs/roadmap/roadmap.md` должен быть primary roadmap, а `docs/development/roadmap.md` - secondary reference для future/planned development.
 - Add compact roadmap role/governance bullets: not task tracker, not implementation backlog, not ADR registry, not architecture spec.
 
 ### Can be handled during Stage 6 planning

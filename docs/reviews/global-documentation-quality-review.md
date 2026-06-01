@@ -1,5 +1,13 @@
 # Global Documentation Quality Review
 
+## Статус документа
+
+Этот документ является audit trail и quality gate по качеству документации перед Stage 6. Он фиксирует findings, verdict и рекомендации на момент review.
+
+Рекомендации в этом документе не являются активным backlog, roadmap или разрешением выполнять cleanup автоматически. Любая рекомендация требует отдельной явной задачи и должна оставаться согласованной с `docs/roadmap/roadmap.md`.
+
+Stage 6 остается в статусе `Planned / not started`. Этот review не начинает Stage 6, не создает implementation backlog, API/OpenAPI contracts, DB schema/storage model, auth/security/DevOps/testing backlog или production implementation.
+
 ## 1. Review Context
 
 Этот review проводится перед дальнейшей работой над Stage 6, потому что документация Travel Assistant стала достаточно объемной и сложной для чтения после завершения нескольких продуктовых, UX, архитектурных и процессных этапов.
@@ -16,11 +24,11 @@
 - Pre-Stage 6 documentation review/cleanup выполнены;
 - Roadmap structure review/cleanup выполнены;
 - Stage 6 - Planned / not started;
-- Code/API/DB/UI implementation - Not started.
+- Реализация Code/API/DB/UI - Not started.
 
 Эта задача является review-only. Она не переписывает документацию, не меняет структуру файлов, не меняет продуктовые или архитектурные решения, не начинает Stage 6 и не создает implementation backlog.
 
-Цель review - оценить качество документации как проектной системы: читаемость, структуру, навигацию, единый язык, source-of-truth clarity, разделение актуального baseline и historical stage artifacts, а также безопасные направления будущего controlled refactoring перед Stage 6.
+Цель review - оценить качество документации как проектной системы: читаемость, структуру, навигацию, единый язык, ясность source of truth, разделение актуального baseline и исторических stage artifacts, а также безопасные направления будущего controlled refactoring перед Stage 6.
 
 ## 2. Review Scope
 
@@ -42,21 +50,21 @@ Review проверяет качество документации, а не к�
 
 Основные классы проблем:
 
-- Структура: документация выросла stage-by-stage, поэтому текущая карта похожа на набор этапных артефактов, а не на компактную систему baseline + history + reviews.
+- Структура: документация росла по этапам, поэтому текущая карта похожа на набор stage artifacts, а не на компактную систему baseline + history + reviews.
 - Навигация: entry points есть, но читателю не всегда ясно, какие документы читать для актуального состояния, а какие нужны только для traceability.
 - Дублирование: roadmap, README, product index, architecture index, development docs, reviews и agent rules повторяют одни и те же guardrails.
 - Смешение русского и английского: технические термины часто оправданы, но связующий текст нередко становится гибридным: `future/planned reference material`, `quality gate`, `carryover`, `scope boundaries`, `active backlog`.
-- Перегруженность guardrails: защита от premature implementation полезна, но repeated "not API/OpenAPI/DB/storage/auth/DevOps/testing backlog" встречается почти во всех зонах.
-- Unclear source of truth: primary roadmap сейчас обозначен достаточно ясно, но development docs и prompt templates все еще могут визуально конкурировать с ним из-за детализации.
-- Historical artifacts vs actual baseline: Stage 0-2 и часть Stage 3 documents сохраняют superseded flight/combined context, а Stage 5 documents содержат актуальный architecture baseline, но единого compact baseline layer нет.
-- Roadmap vs task tracker risk: primary roadmap улучшен, но вместе с development roadmap/milestones общая система всё еще может читаться как backlog будущей реализации.
+- Перегруженность guardrails: защита от преждевременной реализации полезна, но фразы вроде `not API/OpenAPI/DB/storage/auth/DevOps/testing backlog` повторяются почти во всех зонах.
+- Неясный source of truth: primary roadmap сейчас обозначен достаточно ясно, но development docs и prompt templates все еще могут визуально конкурировать с ним из-за детализации.
+- Historical artifacts vs actual baseline: Stage 0-2 и часть Stage 3 docs сохраняют superseded flight/combined context, а Stage 5 docs содержат актуальный architecture baseline, но единого компактного baseline layer нет.
+- Риск превращения roadmap в task tracker: primary roadmap улучшен, но вместе с development roadmap/milestones общая система всё еще может читаться как backlog будущей реализации.
 
 ## 4. Target Documentation Principles
 
 Целевые принципы для документации Travel Assistant:
 
 - Основной язык документации - русский.
-- Английские термины используются осознанно: названия файлов, технологий, артефактов, статусов roadmap, принятые technical terms и термины, где перевод ухудшает смысл.
+- Английские термины используются осознанно: названия файлов, технологий, артефактов, статусов roadmap, устойчивые technical terms и термины, где перевод ухудшает смысл.
 - Связующий текст пишется нормальным русским языком, без лишнего гибридного канцелярита.
 - `docs/roadmap/roadmap.md` - source of truth по этапам, статусам, stage progression, carryover и следующему разрешенному шагу.
 - `README.md` - entry point и навигационная карта, не архив и не копия roadmap.
@@ -64,9 +72,9 @@ Review проверяет качество документации, а не к�
 - Baseline docs - компактное актуальное состояние продукта/UX/архитектуры, которое читатель может использовать перед новой задачей без чтения всех historical artifacts.
 - ADR - только принятые архитектурные решения; candidates, drafts и inventories не должны выглядеть как accepted ADR.
 - Reviews - quality gates и audit trail; они не заменяют roadmap и не становятся списком задач.
-- Development docs - future/reference material до явной активации реализации; они не являются active backlog.
+- Development docs - справочные материалы для будущей реализации до явной активации; они не являются активным backlog.
 - Guardrails должны быть централизованы и ссылочно переиспользованы, а не размазаны по всем файлам.
-- Любой cleanup должен быть controlled refactoring документации без изменения product scope, architecture decisions, roadmap order или Stage 6 status.
+- Любой cleanup должен быть controlled refactoring документации без изменения product scope, architecture decisions, порядка roadmap или статуса Stage 6.
 
 ## 5. Findings Summary
 
@@ -123,13 +131,13 @@ Files:
 - `docs/product/README.md`
 
 Finding:
-Stage 0-2 documents часто содержат flight/combined content с top-level notes о hotel-only refocus и superseded context. Это безопасно с точки зрения scope, но ухудшает читаемость: документы выглядят одновременно как требования, архив и migration notes.
+Stage 0-2 documents часто содержат flight/combined content с верхними notes о hotel-only refocus и superseded context. Это безопасно с точки зрения scope, но ухудшает читаемость: документы выглядят одновременно как требования, архив и migration notes.
 
 Why it matters:
 Новый читатель может читать отдельный Stage 1/2 файл без контекста primary roadmap и принять старые labels или future scenarios за active MVP v1.
 
 Recommendation:
-Не переписывать historical docs в рамках review. В controlled cleanup отделить actual product baseline от historical stage artifacts через clear index labels: `Current baseline`, `Historical stage deliverables`, `Superseded / future context`.
+Не переписывать historical docs в рамках review. В controlled cleanup отделить actual product baseline от historical stage artifacts через ясные index labels: `Current baseline`, `Historical stage deliverables`, `Superseded / future context`.
 
 Allowed timing:
 - Before Stage 6
@@ -143,13 +151,13 @@ Files:
 - `docs/roadmap/roadmap.md`
 
 Finding:
-Primary roadmap уже лучше защищает source-of-truth role, но содержит status table, MVP notes, open decisions, dashboards, full completed stage sections, future stages и governance rules в одном длинном документе. Он частично выполняет роли status page, historical archive, governance document и navigation index.
+Primary roadmap уже лучше защищает роль source of truth, но содержит status table, MVP notes, open decisions, dashboards, полные sections завершенных этапов, future stages и governance rules в одном длинном документе. Он частично выполняет роли status page, historical archive, governance document и navigation index.
 
 Why it matters:
 Primary roadmap должен быстро отвечать на вопрос "где мы и что можно делать дальше". Когда он становится слишком плотным, риск неправильного чтения растет, несмотря на хорошие guardrails.
 
 Recommendation:
-В future cleanup не переписывать roadmap полностью, а облегчить чтение: оставить compact current status, stage map, key links, activation rules и minimal governance; archival detail держать в stage docs/reviews.
+В future cleanup не переписывать roadmap полностью, а облегчить чтение: оставить compact current status, stage map, key links, activation rules и minimal governance; архивные детали держать в stage docs/reviews.
 
 Allowed timing:
 - Before Stage 6
@@ -165,13 +173,13 @@ Files:
 - `docs/development/implementation-strategy.md`
 
 Finding:
-Development docs явно помечены как future/planned reference material, но их уровень детализации включает backend skeleton, API contracts, LLM abstraction, hotel search abstraction, web skeleton, testing, security, observability и Docker/local development.
+Development docs явно помечены как справочные материалы для будущей реализации, но их уровень детализации включает backend skeleton, API contracts, LLM abstraction, hotel search abstraction, web skeleton, testing, security, observability и Docker/local development.
 
 Why it matters:
-Даже с предупреждениями такие документы визуально похожи на backlog реализации. Перед Stage 6 это может подтолкнуть future tasks к API/DB/auth/testing/production scope раньше явной активации.
+Даже с предупреждениями такие документы визуально похожи на backlog реализации. Перед Stage 6 это может подтолкнуть будущие задачи к API/DB/auth/testing/production scope раньше явной активации.
 
 Recommendation:
-В controlled cleanup сохранить эти документы как reference, но усилить их separation from active work: короткий статус наверху, ссылки на primary roadmap, меньше backlog-like wording в заголовках и более явная роль "future reference".
+В controlled cleanup сохранить эти документы как reference, но усилить отделение от активной работы: короткий статус наверху, ссылки на primary roadmap, меньше backlog-like wording в заголовках и более явная роль "future reference".
 
 Allowed timing:
 - Before Stage 6
@@ -198,7 +206,7 @@ Why it matters:
 Повторение защищает проект, но делает документы служебными и тяжелыми. При будущих изменениях легко получить drift: одна копия guardrail обновится, другая останется старой.
 
 Recommendation:
-Сохранить guardrails, но централизовать их: один canonical process/style document или compact "Project governance rules", а в остальных документах оставить короткие ссылки и только локально важные ограничения.
+Сохранить guardrails, но централизовать их: один canonical process/style document или компактные `Project governance rules`, а в остальных документах оставить короткие ссылки и только локально важные ограничения.
 
 Allowed timing:
 - Before Stage 6
@@ -247,7 +255,7 @@ Why it matters:
 Если читатель попадает в review вместо primary roadmap, он может принять historical recommendations за текущий next step.
 
 Recommendation:
-Разделить роли: reviews - quality gates и historical audit; roadmap - current status and next step; baseline docs - актуальное состояние. В index pages явно маркировать reviews как historical/quality gate artifacts.
+Разделить роли: reviews - quality gates и historical audit; roadmap - текущий статус и следующий шаг; baseline docs - актуальное состояние. В index pages явно маркировать reviews как historical/quality gate artifacts.
 
 Allowed timing:
 - During Stage 6 planning
@@ -262,7 +270,7 @@ Files:
 - `docs/architecture/stage-5/*`
 
 Finding:
-Stage 5 дал сильный architecture baseline, но он разбит на десять документов. Architecture README перечисляет deliverables и guardrails, но не дает краткого "read this first" baseline summary с главными boundaries и decisions.
+Stage 5 дал сильный architecture baseline, но он разбит на десять документов. Architecture README перечисляет deliverables и guardrails, но не дает краткого baseline summary с пометкой "read this first" и главными boundaries и decisions.
 
 Why it matters:
 Перед Stage 6 нужно быстро понять architecture baseline без чтения всех Stage 5 files. Иначе возрастает риск перепутать conceptual architecture, future implementation и deferred decisions.
@@ -286,7 +294,7 @@ Finding:
 `docs/decisions/README.md` корректно говорит, что accepted ADRs отсутствуют. Но `architecture-decisions-draft.md` использует формулировки `ADR Candidate` и `Status: Confirmed`, что при чтении в изоляции может выглядеть как accepted ADR.
 
 Why it matters:
-Future ADR candidates must not be treated as accepted decisions. Ambiguous wording может привести к premature architecture lock-in или ошибочному выводу, что отдельный ADR уже принят.
+Future ADR candidates нельзя трактовать как accepted decisions. Двусмысленный wording может привести к premature architecture lock-in или ошибочному выводу, что отдельный ADR уже принят.
 
 Recommendation:
 Не менять decisions сейчас. В controlled cleanup унифицировать terminology: `Confirmed architecture guardrail`, `Deferred decision`, `ADR candidate`, `Accepted ADR`. Избегать сочетания `ADR Candidate` + `Confirmed` без пояснения статуса.
@@ -294,7 +302,7 @@ Recommendation:
 Allowed timing:
 - Before Stage 6
 
-### [MJ-010] Prompt/task templates слабее отражают current source-of-truth hierarchy
+### [MJ-010] Prompt/task templates слабее отражают текущую source-of-truth hierarchy
 
 Severity: Major  
 Area: Prompts / Agent rules  
@@ -309,10 +317,10 @@ Finding:
 `AGENTS.md` теперь явно задает priority order с primary roadmap. Но reusable task template и GitHub issue template в required reading сильнее подсвечивают development docs и не всегда явно называют `docs/roadmap/roadmap.md` как primary source of truth.
 
 Why it matters:
-Практические шаблоны часто копируются в новые задачи. Если они не несут тот же source-of-truth hierarchy, future agents могут стартовать от secondary roadmap и получить implementation bias.
+Практические шаблоны часто копируются в новые задачи. Если они не несут ту же source-of-truth hierarchy, future agents могут стартовать от secondary roadmap и получить implementation bias.
 
 Recommendation:
-В future process cleanup синхронизировать templates с `AGENTS.md`: primary roadmap first, development docs as secondary future/planned reference, ADR only if applicable.
+В future process cleanup синхронизировать templates с `AGENTS.md`: сначала primary roadmap, затем development docs как вторичные справочные материалы для будущей реализации, ADR только если применимо.
 
 Allowed timing:
 - Before Stage 6
@@ -471,7 +479,7 @@ Recommendation:
 Allowed timing:
 - Before Stage 6
 
-### [NT-001] Primary roadmap source-of-truth role в целом восстановлен
+### [NT-001] Роль primary roadmap как source of truth в целом восстановлена
 
 Severity: Note  
 Area: Roadmap  
@@ -596,7 +604,7 @@ Allowed timing:
 | `docs/architecture/README.md` | Architecture index и Stage 5 baseline entry. | Good, but could be stronger as read-first summary. | Добавить compact current architecture baseline и read order. |
 | `docs/decisions/README.md` | ADR governance/index. | Good but fragile around decision inventory. | Уточнить accepted ADR vs non-ADR decision inventory vocabulary. |
 | `AGENTS.md` | Canonical agent rules. | Strong but long. | После style guide вынести общие правила в central rule set или сократить дубли с prompts. |
-| `docs/development/roadmap.md` | Secondary future/planned development reference. | Clearly framed, still backlog-like. | Подчеркнуть non-active status и не использовать как current task list. |
+| `docs/development/roadmap.md` | Secondary reference для future/planned development. | Роль обозначена ясно, но форма всё еще похожа на backlog. | Подчеркнуть non-active status и не использовать как current task list. |
 | `docs/prompts/task-template.md` | Reusable task prompt. | Useful but source hierarchy weaker than AGENTS. | Обновить required reading order to include primary roadmap first. |
 | `docs/reviews/*` | Quality gates / audit trail. | Useful but no section index. | Добавить reviews index only if review zone remains active. |
 
