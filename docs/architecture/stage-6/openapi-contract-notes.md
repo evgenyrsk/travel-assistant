@@ -1,4 +1,4 @@
-# Stage 6.3 — OpenAPI Contract Notes
+# Stage 6.8 — OpenAPI Contract Notes
 
 ## Назначение
 
@@ -6,7 +6,7 @@
 
 - `openapi-draft.yaml`.
 
-Stage 6.1 создал первичный draft, Stage 6.2 провел review, а Stage 6.3 внес точечные contract fixes по Major findings и разрешенным Minor follow-ups. Документ описывает client-facing backend API между frontend и backend, но не создает backend implementation, frontend implementation, DB schema, migrations, provider-specific integration code или production workflow.
+Stage 6.1 создал первичный draft, Stage 6.2 провел review, Stage 6.3 внес точечные contract fixes по Major findings и разрешенным Minor follow-ups, а Stage 6.8 закрыл pre-implementation carryover decisions перед backend skeleton / generated clients. Документ описывает client-facing backend API между frontend и backend, но не создает backend implementation, frontend implementation, DB schema, migrations, provider-specific integration code или production workflow.
 
 ## Endpoints в MVP draft
 
@@ -36,6 +36,17 @@ Stage 6.3 закрывает Major findings Stage 6.2:
 - result-level metadata для partial/stale/freshness/provider degraded states;
 - resource-specific not-found errors для session, hotel search, hotel offer и shortlist item;
 - typed representations for provider facts, assistant assumptions, derived assumptions, user preferences and unknown data.
+
+## Stage 6.8 pre-implementation decisions
+
+Stage 6.8 принимает MVP contract decisions по carryover из Stage 6.7:
+
+- nested session-scoped 404 responses используют один `ErrorResponse` schema с operation-specific examples и distinct `ErrorResponse.code`;
+- inline `HotelOffer` остается достаточным для MVP offer details screen; dedicated offer details endpoint deferred;
+- `HotelOffersResponse` result envelope остается достаточным для async-friendly search status и terminal states; dedicated long-running status endpoint deferred;
+- current-session state не обещает account history, cross-device sync, long-term persistence или page-refresh guarantee.
+
+Эти решения не добавляют новые resource flows, booking/payment/account flows, provider-specific DTOs, backend/frontend implementation или DB/storage design.
 
 ## Search state pattern
 
@@ -91,7 +102,7 @@ Current-session shortlist в draft не является account history, persis
 - Provider facts, assistant assumptions, user-provided constraints и unknown data должны оставаться разделенными в response payloads.
 - Hotel search может быть asynchronous-friendly: `POST /hotel-searches` возвращает `202`, а results читаются через `GET /hotel-searches/{searchId}/offers`.
 - `completed_no_offers` отделен от `failed`, чтобы не смешивать отсутствие подходящих офферов с проблемой источника данных.
-- Session persistence ограничена current-session scope. Вопрос, переживает ли session page refresh, остается открытым.
+- Session persistence ограничена current-session scope. Page refresh может продолжить работу только если client сохраняет opaque `sessionId` и backend все еще считает session active; API не гарантирует long-term persistence, cross-device resume, account history или auth-linked storage.
 
 ## Ошибки
 
@@ -104,6 +115,8 @@ Draft фиксирует базовые error categories:
 - `HOTEL_OFFER_NOT_FOUND` — hotel offer не найден в текущем session/search context.
 - `SHORTLIST_ITEM_NOT_FOUND` — shortlist item не найден.
 - `INTERNAL_ERROR` — внутренняя ошибка backend.
+
+Session-scoped operations that can fail because of either a missing session or a missing nested resource use a shared 404 response component with examples for each possible `ErrorResponse.code`. Generated clients should branch on `ErrorResponse.code`, not on different response schemas.
 
 Точная provider error taxonomy, retry policy, user-facing wording и observability details остаются follow-up темами Stage 6.x / implementation stages.
 
@@ -123,15 +136,12 @@ OpenAPI draft следует Stage 5 baseline:
 ## Открытые вопросы для следующих Stage 6.x
 
 - Какие exact provider fields и freshness/source markers будут доступны после предоставления hotel provider/API contract?
-- Нужно ли current-session state переживать page refresh, и если да, на каком минимальном уровне?
-- Нужен ли отдельный endpoint для search status, если provider/LLM operations станут long-running, или result envelope достаточно?
 - Какой точный validation contract нужен для broad/open destination hotel requests?
 - Должен ли explanation/comparison endpoint поддерживать streaming, или обычного synchronous response достаточно для MVP draft?
 - Нужна ли отдельная contract review перед генерацией TypeScript/OpenAPI clients?
-- Нужен ли отдельный details endpoint, или inline `HotelOffer` достаточно для MVP offer details screen?
 
 ## Recommendations, not executed
 
 - После предоставления provider/API contract отдельно проверить mapping provider facts, freshness и limitations.
-- Отдельно решить current-session persistence/page refresh behavior before any DB schema or storage model.
-- Провести отдельную Stage 6.x review/remediation before client generation, если потребуется дальнейшая детализация details endpoint, long-running search status или generated clients.
+- Отдельно решить DB/storage/session retention model, если будущая задача требует persistence beyond current-session behavior.
+- Провести отдельную Stage 6.x review/remediation only if future generated clients require stricter conventions than the Stage 6.8 decisions provide.
