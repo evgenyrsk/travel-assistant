@@ -1,0 +1,1146 @@
+openapi: 3.1.0
+info:
+  title: Travel Assistant MVP Hotel API
+  summary: Draft frontend/backend API contract for the hotel-only MVP.
+  version: 0.1.1-draft
+  description: >
+    Stage 6.3 draft contract for Travel Assistant MVP v1. The API is hotel-only
+    and describes client-facing backend endpoints. It does not define provider
+    APIs, database schema, backend implementation, frontend implementation, or
+    provider-specific integration code.
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+servers:
+  - url: /api/v1
+    description: Relative API base path for local and deployed clients.
+tags:
+  - name: Health
+  - name: Assistant
+  - name: Hotel Search
+  - name: Shortlist
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Check backend availability.
+      operationId: getHealth
+      responses:
+        "200":
+          description: Backend is available.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /assistant/sessions:
+    post:
+      tags:
+        - Assistant
+      summary: Create a new assistant session.
+      description: >
+        Starts a hotel-only assistant session. The optional initial message can
+        begin intent capture and clarification. The session is current-session
+        state only and does not imply account history or cross-device storage.
+      operationId: createAssistantSession
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantMessageRequest"
+      responses:
+        "201":
+          description: Assistant session created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantMessageResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /assistant/sessions/{sessionId}/messages:
+    post:
+      tags:
+        - Assistant
+      summary: Continue an assistant session.
+      description: >
+        Adds a user message to an existing hotel-only assistant session and
+        returns the assistant response, updated session state, and any visible
+        search intent summary information.
+      operationId: continueAssistantSession
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantMessageRequest"
+      responses:
+        "200":
+          description: Assistant response for the session turn.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantMessageResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/SessionNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /hotel-searches:
+    post:
+      tags:
+        - Hotel Search
+      summary: Create a hotel search request.
+      description: >
+        Creates a hotel-only search request from confirmed or visible search
+        criteria. This endpoint calls the application/provider boundary
+        conceptually; it does not expose provider-specific payloads or provider
+        integration details.
+      operationId: createHotelSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HotelSearchRequest"
+      responses:
+        "202":
+          description: Hotel search accepted for processing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HotelSearchResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/SessionNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /hotel-searches/{searchId}/offers:
+    get:
+      tags:
+        - Hotel Search
+      summary: Get hotel offers for a search.
+      description: >
+        Returns hotel offers and search result state for a hotel-only search.
+        Provider facts, assistant assumptions, and unknown data remain separated
+        so the frontend can keep uncertainty visible.
+      operationId: getHotelOffers
+      parameters:
+        - $ref: "#/components/parameters/SearchId"
+      responses:
+        "200":
+          description: Hotel search result envelope, including terminal search states.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HotelOffersResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/HotelSearchNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /assistant/sessions/{sessionId}/shortlist:
+    get:
+      tags:
+        - Shortlist
+      summary: Get the current-session shortlist.
+      description: >
+        Returns shortlisted hotel offers for the current assistant session. The
+        shortlist is not account history, persistent saved trips, booking,
+        payment, or guaranteed fresh availability.
+      operationId: getSessionShortlist
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: Current-session shortlist.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShortlistResponse"
+        "404":
+          $ref: "#/components/responses/SessionNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /assistant/sessions/{sessionId}/shortlist/{offerId}:
+    put:
+      tags:
+        - Shortlist
+      summary: Add or update a hotel offer in the current-session shortlist.
+      operationId: upsertShortlistItem
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/OfferId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShortlistItemRequest"
+      responses:
+        "200":
+          description: Shortlist item added or updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShortlistItem"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/HotelOfferNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags:
+        - Shortlist
+      summary: Remove a hotel offer from the current-session shortlist.
+      operationId: removeShortlistItem
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/OfferId"
+      responses:
+        "204":
+          description: Shortlist item removed.
+        "404":
+          $ref: "#/components/responses/ShortlistItemNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /assistant/sessions/{sessionId}/explanations:
+    post:
+      tags:
+        - Assistant
+      summary: Explain or compare hotel offers.
+      description: >
+        Produces assistant explanation or comparison text for hotel offers in an
+        existing session. Explanations must be grounded in user-provided
+        constraints and provider facts, with assumptions and unknown data kept
+        visible.
+      operationId: createAssistantExplanation
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantExplanationRequest"
+      responses:
+        "200":
+          description: Assistant explanation or comparison.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantExplanationResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/HotelOfferNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  parameters:
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      description: Opaque assistant session identifier.
+    SearchId:
+      name: searchId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      description: Opaque hotel search identifier.
+    OfferId:
+      name: offerId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      description: Opaque hotel offer identifier.
+
+  responses:
+    ValidationError:
+      description: Request validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationErrorResponse"
+          examples:
+            missingDestination:
+              value:
+                code: VALIDATION_ERROR
+                message: Destination is required for hotel search.
+                requestId: req_123
+                fields:
+                  - field: criteria.destination
+                    message: Destination is required.
+    HotelSearchNotFound:
+      description: Hotel search was not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            hotelSearchNotFound:
+              value:
+                code: HOTEL_SEARCH_NOT_FOUND
+                message: Hotel search was not found.
+                requestId: req_123
+    HotelOfferNotFound:
+      description: Hotel offer was not found in the current session or search context.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            hotelOfferNotFound:
+              value:
+                code: HOTEL_OFFER_NOT_FOUND
+                message: Hotel offer was not found.
+                requestId: req_123
+    ShortlistItemNotFound:
+      description: Shortlist item was not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            shortlistItemNotFound:
+              value:
+                code: SHORTLIST_ITEM_NOT_FOUND
+                message: Shortlist item was not found.
+                requestId: req_123
+    SessionNotFound:
+      description: Assistant session was not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            sessionNotFound:
+              value:
+                code: SESSION_NOT_FOUND
+                message: Assistant session was not found.
+                requestId: req_123
+    InternalError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            internal:
+              value:
+                code: INTERNAL_ERROR
+                message: Internal server error.
+                requestId: req_123
+
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - service
+        - version
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+        service:
+          type: string
+          example: travel-assistant-backend
+        version:
+          type: string
+          example: 0.1.0
+        currentTime:
+          type: string
+          format: date-time
+
+    AssistantSession:
+      type: object
+      required:
+        - sessionId
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        sessionId:
+          type: string
+          description: Opaque current-session identifier.
+        status:
+          type: string
+          enum:
+            - collecting_requirements
+            - ready_for_search
+            - searching
+            - results_available
+            - search_failed
+            - no_offers_available
+            - closed
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        searchIntentSummary:
+          $ref: "#/components/schemas/SearchIntentSummary"
+
+    AssistantMessageRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 4000
+          description: User message for the assistant.
+        clientContext:
+          type: object
+          additionalProperties: false
+          properties:
+            locale:
+              type: string
+              example: en-US
+            timezone:
+              type: string
+              example: Europe/Moscow
+      additionalProperties: false
+
+    AssistantMessageResponse:
+      type: object
+      required:
+        - session
+        - assistantMessage
+      properties:
+        session:
+          $ref: "#/components/schemas/AssistantSession"
+        assistantMessage:
+          $ref: "#/components/schemas/AssistantMessage"
+        nextAction:
+          type: string
+          enum:
+            - ask_clarification
+            - ready_for_hotel_search
+            - show_hotel_results
+            - show_boundary_message
+            - none
+        hotelSearchRequest:
+          $ref: "#/components/schemas/HotelSearchRequest"
+
+    AssistantMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum:
+            - assistant
+            - user
+        content:
+          type: string
+        assumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssistantAssumption"
+        derivedAssumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/DerivedAssumption"
+        unknowns:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnknownData"
+
+    SearchIntentSummary:
+      type: object
+      description: >
+        User-facing summary of hotel search intent. It separates confirmed user
+        constraints, assistant assumptions, and unknown data.
+      additionalProperties: false
+      properties:
+        criteria:
+          $ref: "#/components/schemas/HotelSearchCriteria"
+        userProvidedConstraints:
+          type: array
+          items:
+            type: string
+        userPreferences:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserPreference"
+        assistantAssumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssistantAssumption"
+        derivedAssumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/DerivedAssumption"
+        unknowns:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnknownData"
+        missingRequiredFields:
+          type: array
+          items:
+            type: string
+
+    HotelSearchRequest:
+      type: object
+      required:
+        - sessionId
+        - criteria
+      properties:
+        sessionId:
+          type: string
+        criteria:
+          $ref: "#/components/schemas/HotelSearchCriteria"
+        searchIntentSummary:
+          $ref: "#/components/schemas/SearchIntentSummary"
+      additionalProperties: false
+
+    HotelSearchCriteria:
+      type: object
+      required:
+        - destination
+        - checkInDate
+        - checkOutDate
+        - guests
+      properties:
+        destination:
+          type: string
+          minLength: 1
+          description: Hotel destination as understood from user input or clarification.
+        checkInDate:
+          type: string
+          format: date
+        checkOutDate:
+          type: string
+          format: date
+        guests:
+          type: object
+          required:
+            - adults
+          properties:
+            adults:
+              type: integer
+              minimum: 1
+            children:
+              type: integer
+              minimum: 0
+              default: 0
+          additionalProperties: false
+        rooms:
+          type: integer
+          minimum: 1
+          description: >
+            Explicit room count. If omitted, a visible room_count
+            DerivedAssumption must be present before hotel search starts.
+        budget:
+          type: object
+          properties:
+            min:
+              type: number
+              minimum: 0
+            max:
+              type: number
+              minimum: 0
+            currency:
+              type: string
+              minLength: 3
+              maxLength: 3
+              example: EUR
+          additionalProperties: false
+        preferences:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserPreference"
+          description: User-stated preferences or soft constraints.
+        requiredAmenities:
+          type: array
+          items:
+            type: string
+        assistantAssumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssistantAssumption"
+        derivedAssumptions:
+          type: array
+          description: >
+            Required for visible room or guest assumptions when explicit fields
+            are omitted or inferred.
+          items:
+            $ref: "#/components/schemas/DerivedAssumption"
+        unknowns:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnknownData"
+      additionalProperties: false
+
+    HotelSearchResponse:
+      type: object
+      required:
+        - searchId
+        - status
+        - sessionId
+      properties:
+        searchId:
+          type: string
+        sessionId:
+          type: string
+        status:
+          type: string
+          enum:
+            - accepted
+            - searching
+            - completed_with_offers
+            - completed_no_offers
+            - failed
+        criteria:
+          $ref: "#/components/schemas/HotelSearchCriteria"
+        metadata:
+          $ref: "#/components/schemas/SearchResultMetadata"
+        failure:
+          $ref: "#/components/schemas/HotelSearchFailure"
+
+    HotelOffersResponse:
+      type: object
+      required:
+        - searchId
+        - status
+        - offers
+      properties:
+        searchId:
+          type: string
+        status:
+          type: string
+          enum:
+            - accepted
+            - searching
+            - completed_with_offers
+            - completed_no_offers
+            - failed
+        offers:
+          type: array
+          items:
+            $ref: "#/components/schemas/HotelOffer"
+        metadata:
+          $ref: "#/components/schemas/SearchResultMetadata"
+        failure:
+          $ref: "#/components/schemas/HotelSearchFailure"
+        providerFacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderFact"
+        userPreferences:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserPreference"
+        assumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssistantAssumption"
+        derivedAssumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/DerivedAssumption"
+        unknowns:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnknownData"
+
+    HotelOffer:
+      type: object
+      required:
+        - offerId
+        - hotelName
+        - location
+        - price
+      properties:
+        offerId:
+          type: string
+          description: Opaque client-facing offer identifier.
+        providerOfferRef:
+          type: string
+          description: Opaque provider reference, not a provider DTO.
+        hotelName:
+          type: string
+        location:
+          $ref: "#/components/schemas/HotelLocation"
+        price:
+          $ref: "#/components/schemas/HotelPrice"
+        rating:
+          $ref: "#/components/schemas/HotelRating"
+        amenities:
+          type: array
+          items:
+            $ref: "#/components/schemas/HotelAmenity"
+        cancellationPolicy:
+          type: string
+        availability:
+          type: string
+          enum:
+            - available
+            - limited
+            - unknown
+        source:
+          type: string
+          description: Human-readable source marker when available.
+        freshness:
+          type: string
+          enum:
+            - fresh
+            - stale
+            - unknown
+        matchSummary:
+          type: string
+          description: Assistant-generated summary grounded in criteria and provider facts.
+        providerFacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderFact"
+        assistantAssumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssistantAssumption"
+        derivedAssumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/DerivedAssumption"
+        unknowns:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnknownData"
+
+    SearchResultMetadata:
+      type: object
+      properties:
+        resultCompleteness:
+          type: string
+          enum:
+            - complete
+            - partial
+            - unknown
+        freshness:
+          type: string
+          enum:
+            - fresh
+            - stale
+            - unknown
+        providerState:
+          type: string
+          enum:
+            - available
+            - degraded
+            - unavailable
+            - failed
+            - unknown
+        refreshedAt:
+          type: string
+          format: date-time
+        warnings:
+          type: array
+          items:
+            type: string
+
+    HotelSearchFailure:
+      type: object
+      required:
+        - category
+        - message
+      properties:
+        category:
+          type: string
+          enum:
+            - provider_unavailable
+            - provider_failed
+            - search_failed
+            - unknown
+        message:
+          type: string
+        retryable:
+          type: boolean
+        occurredAt:
+          type: string
+          format: date-time
+
+    ProviderFact:
+      type: object
+      required:
+        - field
+        - value
+      properties:
+        field:
+          type: string
+        value:
+          type:
+            - string
+            - number
+            - boolean
+            - "null"
+        source:
+          type: string
+          description: Generic source label when available; not a provider DTO.
+        freshness:
+          type: string
+          enum:
+            - fresh
+            - stale
+            - unknown
+
+    UserPreference:
+      type: object
+      required:
+        - field
+        - value
+      properties:
+        field:
+          type: string
+        value:
+          type: string
+        strength:
+          type: string
+          enum:
+            - required
+            - preferred
+            - optional
+        source:
+          type: string
+          enum:
+            - user_message
+            - clarification
+
+    AssistantAssumption:
+      type: object
+      required:
+        - field
+        - value
+        - reason
+      properties:
+        field:
+          type: string
+        value:
+          type: string
+        reason:
+          type: string
+        needsConfirmation:
+          type: boolean
+          default: false
+
+    DerivedAssumption:
+      type: object
+      required:
+        - category
+        - field
+        - value
+        - reason
+      properties:
+        category:
+          type: string
+          enum:
+            - room_count
+            - guest_count
+            - date_interpretation
+            - budget_tier
+            - location_preference
+            - other
+        field:
+          type: string
+        value:
+          type:
+            - string
+            - number
+            - boolean
+        reason:
+          type: string
+        needsConfirmation:
+          type: boolean
+          default: true
+
+    UnknownData:
+      type: object
+      required:
+        - field
+        - reason
+      properties:
+        field:
+          type: string
+        reason:
+          type: string
+        decisionCritical:
+          type: boolean
+          default: false
+
+    HotelPrice:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          example: EUR
+        basis:
+          type: string
+          enum:
+            - per_night
+            - total_stay
+            - unknown
+        includesTaxesAndFees:
+          type: string
+          enum:
+            - yes
+            - no
+            - unknown
+        providerFreshness:
+          type: string
+          enum:
+            - fresh
+            - stale
+            - unknown
+
+    HotelLocation:
+      type: object
+      required:
+        - city
+        - country
+      properties:
+        city:
+          type: string
+        country:
+          type: string
+        address:
+          type: string
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        distanceToCenterKm:
+          type: number
+          minimum: 0
+
+    HotelRating:
+      type: object
+      properties:
+        value:
+          type: number
+          minimum: 0
+        scale:
+          type: number
+          minimum: 0
+          example: 10
+        reviewCount:
+          type: integer
+          minimum: 0
+        source:
+          type: string
+
+    HotelAmenity:
+      type: object
+      required:
+        - name
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        source:
+          type: string
+          enum:
+            - provider_fact
+            - assistant_assumption
+            - unknown
+
+    ShortlistItem:
+      type: object
+      required:
+        - itemId
+        - sessionId
+        - offerId
+        - addedAt
+      properties:
+        itemId:
+          type: string
+        sessionId:
+          type: string
+        offerId:
+          type: string
+        addedAt:
+          type: string
+          format: date-time
+        note:
+          type: string
+          maxLength: 1000
+        offer:
+          $ref: "#/components/schemas/HotelOffer"
+        freshness:
+          type: string
+          enum:
+            - fresh
+            - stale
+            - unknown
+
+    ShortlistItemRequest:
+      type: object
+      properties:
+        note:
+          type: string
+          maxLength: 1000
+      additionalProperties: false
+
+    ShortlistResponse:
+      type: object
+      required:
+        - sessionId
+        - items
+      properties:
+        sessionId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShortlistItem"
+
+    AssistantExplanationRequest:
+      type: object
+      required:
+        - offerIds
+        - mode
+      properties:
+        offerIds:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            type: string
+        mode:
+          type: string
+          enum:
+            - explain
+            - compare
+        question:
+          type: string
+          maxLength: 2000
+      additionalProperties: false
+
+    AssistantExplanationResponse:
+      type: object
+      required:
+        - mode
+        - content
+      properties:
+        mode:
+          type: string
+          enum:
+            - explain
+            - compare
+        content:
+          type: string
+        providerFactsUsed:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderFact"
+        assistantAssumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssistantAssumption"
+        derivedAssumptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/DerivedAssumption"
+        unknowns:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnknownData"
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - SESSION_NOT_FOUND
+            - HOTEL_SEARCH_NOT_FOUND
+            - HOTEL_OFFER_NOT_FOUND
+            - SHORTLIST_ITEM_NOT_FOUND
+            - INTERNAL_ERROR
+        message:
+          type: string
+        requestId:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+    ValidationErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - fields
+      properties:
+        code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+        message:
+          type: string
+        requestId:
+          type: string
+        fields:
+          type: array
+          items:
+            type: object
+            required:
+              - field
+              - message
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+              rejectedValue:
+                type:
+                  - string
+                  - number
+                  - boolean
+                  - "null"
