@@ -17,10 +17,11 @@ Primary roadmap и source of truth по статусам этапов, progressi
 | Stage 4 | Completed |
 | Stage 4.1 | Completed |
 | Stage 5 | Completed |
-| Stage 6 | Planned / not started |
+| Stage 6 | Completed; Stage 6.1-6.9 completed |
+| Stage 7 | Planned / not activated |
 | Code/API/DB/UI implementation | Not started |
 
-Stage 6 не начат. Stage 6 не означает автоматическое создание API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production implementation. Подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
+Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 6.1-6.9 завершены; следующий этап или cleanup task нужно выбрать явно. Stage 7 не активирован. Stage 6 не означает автоматическое создание backend/frontend implementation, DB schema, storage model, auth/security/DevOps/testing backlog, generated clients или production implementation. Подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -72,7 +73,7 @@ Stage 6 не начат. Stage 6 не означает автоматическ�
 - Подготовить рамку будущих задач реализации.
 - Уточнить подход к provider abstractions, mock/fake providers, contract placeholders и использованию предоставленного travel API-контракта на уровне scope/planning.
 - Подготовить стратегию проверки и границы локального рабочего процесса.
-- Не создавать API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production implementation без отдельной явной roadmap-задачи.
+- Не создавать backend/frontend implementation, DB schema, storage model, auth/security/DevOps/testing backlog или production implementation без отдельной явной roadmap-задачи.
 
 ## Этап 7 — реализация MVP
 
