@@ -5,7 +5,7 @@
 ## Текущий статус
 
 - Stage 5 — Technical Architecture / System Design: Completed.
-- Stage 6 — Implementation Preparation: Planned / not started.
+- Stage 6 — API Contracts / OpenAPI / Integration Boundary: Started; Stage 6.1-6.4 completed.
 - Code/API/DB/UI implementation: Not started.
 
 `architecture-baseline.md` фиксирует актуальный compact architecture baseline после Stage 5. Документы Stage 5 сохраняются как historical architecture artifacts, deliverables и audit trail: они описывают границы, ответственности и guardrails для hotel-only MVP v1, но не являются implementation backlog, API/OpenAPI contract, endpoint specification, database schema, storage model, provider adapter design, auth/security/DevOps/testing plan или production implementation plan.
@@ -17,6 +17,14 @@
 - `../roadmap/roadmap.md` — primary roadmap и источник истины для текущего статуса этапов.
 - `architecture-baseline.md` — актуальный compact architecture baseline после Stage 5.
 - `../reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
+
+## Stage 6 artifacts
+
+- `stage-6/openapi-draft.yaml` — Stage 6.1 primary OpenAPI 3.1 draft для MVP hotel-only frontend/backend API.
+- `stage-6/openapi-contract-notes.md` — notes к OpenAPI draft: MVP endpoints, exclusions, assumptions, open questions и связь со Stage 5 baseline.
+- `stage-6/openapi-contract-review.md` — Stage 6.2 review OpenAPI draft относительно Stage 2-5 product, UX и architecture baselines.
+- `stage-6/openapi-fixes-summary.md` — Stage 6.3 summary of OpenAPI fixes по Major findings Stage 6.2 и allowed Minor fixes.
+- `stage-6/post-fix-contract-review.md` — Stage 6.4 post-fix review of Stage 6.3 contract fixes and remaining readiness notes.
 
 ## Stage 5 artifacts
 
@@ -44,4 +52,4 @@
 
 ## Граница Stage 6
 
-Stage 6 не начат. Не создавай `docs/architecture/stage-6/`, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production code без отдельной явной roadmap-задачи, которая разрешает такую работу.
+Stage 6 начат только в рамках явно активированных contract tasks. Созданный и уточненный OpenAPI draft является documentation-level API contract draft, а не backend/frontend implementation, provider-specific contract, DB schema, storage model, auth/security/DevOps/testing backlog или production code.

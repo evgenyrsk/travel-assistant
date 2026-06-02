@@ -8,10 +8,10 @@ Roadmap не является task tracker, product specification, architecture 
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Pre-Stage 6 roadmap cleanup завершен; Stage 6 остается Planned / not started |
-| Последний завершенный этап | Stage 5.9 — Stage 5 Consistency Review / Completion Audit |
-| Следующий планируемый шаг | Следующую задачу нужно выбрать явно; Stage 6 остается Planned / not started до отдельной активации |
-| Code/API/DB/UI implementation | Not started |
+| Текущий этап | Stage 6 — API Contracts / OpenAPI / Integration Boundary начат; Stage 6.4 завершен |
+| Последний завершенный этап | Stage 6.4 — Post-fix Contract Review |
+| Следующий планируемый шаг | Следующую Stage 6.x задачу нужно выбрать явно; Stage 7 не активирован |
+| Code/API/DB/UI implementation | Not started; создан и уточнен только documentation-level OpenAPI draft |
 
 | Этап | Статус | Краткое описание |
 |---|---|---|
@@ -22,7 +22,7 @@ Roadmap не является task tracker, product specification, architecture 
 | Stage 4 | Completed | Visual direction, основы design system, component inventory, screen specs и interaction patterns. |
 | Stage 4.1 | Completed | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Completed | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
-| Stage 6 | Planned / not started | Планирование подготовки к реализации; любые работы Stage 6 требуют отдельной явной активации. |
+| Stage 6 | Started | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes and Stage 6.4 post-fix review completed, дальнейшие Stage 6.x tasks требуют отдельной явной активации. |
 | Stage 7 | Planned | Реализация hotel-only MVP после нужного планирования и отдельной явной активации. |
 | Stage 8 | Planned | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Planned | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
@@ -212,21 +212,38 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Carryover:** сохранить hotel-only MVP scope, provider facts как source data, разделение facts/assumptions/unknowns, provider abstraction как conceptual boundary, а не API contract, и NFR как quality guidance, а не active DevOps/security/testing backlog.
 
-## 7. Планируемые и будущие этапы
+## 7. Текущий и будущие этапы
 
-### Stage 6 — Implementation Preparation
+### Stage 6 — API Contracts / OpenAPI / Integration Boundary
 
-**Статус:** Planned / not started.
+**Статус:** Started. Stage 6.1, Stage 6.2, Stage 6.3 and Stage 6.4 completed by explicit roadmap tasks.
 
-**Назначение:** scoped implementation-preparation planning, task framing, validation strategy, mock/fake provider approach, contract-placeholder boundaries и local workflow boundaries.
+**Назначение:** API Contracts / OpenAPI / Integration Boundary и scoped implementation-preparation planning. Stage 6 должен сохранять hotel-only MVP v1, Stage 5 architecture baseline, provider-agnostic hotel boundary и отсутствие production implementation.
 
-**Условие активации:** Stage 6 начинается только после отдельной явной задачи, которая активирует Stage 6 planning/scope definition. Завершение reviews, documentation cleanup или controlled refactoring до Stage 6 не начинает Stage 6.
+**Условие активации:** Stage 6 начат отдельной явной задачей Stage 6.1. Любая следующая Stage 6.x работа должна быть выбрана отдельной явной задачей. Завершение Stage 6.1, Stage 6.2, Stage 6.3 или Stage 6.4 не начинает Stage 7 и не разрешает backend/frontend implementation.
 
-**Границы scope:** Stage 6 может определить implementation-preparation scope, sequencing, validation approach, local workflow boundaries и conceptual boundaries для mock/fake providers и contract placeholders. Он должен сохранить hotel-only scope MVP v1 и Stage 5 architecture baseline.
+**Границы scope:** Stage 6 может определять API/OpenAPI contract drafts, implementation-preparation scope, sequencing, validation approach, local workflow boundaries и conceptual boundaries для mock/fake providers и contract placeholders. Он должен сохранить hotel-only scope MVP v1 и Stage 5 architecture baseline.
 
-**Явные исключения:** Stage 6 не создает автоматически API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog, production implementation, provider-specific integration code или Stage 7 implementation tasks.
+**Completed Stage 6.1 artifacts:**
 
-**Quality gate:** Stage 6 может закрыться только после того, как planning artifacts явно отделят разрешенную implementation-preparation work от исключенной API/DB/storage/auth/DevOps/testing/production work. Любой конкретный contract или implementation artifact требует отдельного явного roadmap step.
+- `docs/architecture/stage-6/openapi-draft.yaml` — primary OpenAPI 3.1 draft для MVP hotel-only frontend/backend API.
+- `docs/architecture/stage-6/openapi-contract-notes.md` — notes по MVP endpoints, exclusions, assumptions, open questions и связи со Stage 5 baseline.
+
+**Completed Stage 6.2 artifact:**
+
+- `docs/architecture/stage-6/openapi-contract-review.md` — review OpenAPI draft относительно Stage 2-5 product, UX и architecture baselines; verdict: passed for continued Stage 6 contract work with follow-up findings before client generation or implementation.
+
+**Completed Stage 6.3 artifact:**
+
+- `docs/architecture/stage-6/openapi-fixes-summary.md` — summary of OpenAPI fixes closing Stage 6.2 Major findings and addressing allowed Minor fixes without provider-specific DTOs, implementation code or Stage 7 activation.
+
+**Completed Stage 6.4 artifact:**
+
+- `docs/architecture/stage-6/post-fix-contract-review.md` — post-fix review of Stage 6.3 contract fixes; verdict: passed for continued Stage 6 contract work with one Minor follow-up and no Critical/Major blockers.
+
+**Явные исключения:** Stage 6.1, Stage 6.2, Stage 6.3 и Stage 6.4 не создают backend implementation, frontend implementation, DB schema, storage model, auth/security/DevOps/testing backlog, production implementation, provider-specific integration code или Stage 7 implementation tasks. Следующие concrete contract, storage, auth, security, DevOps, testing или implementation artifacts требуют отдельной явной Stage 6.x или future-stage задачи.
+
+**Quality gate:** Stage 6 может закрыться только после того, как Stage 6 artifacts явно отделят разрешенную contract/preparation work от исключенной DB/storage/auth/DevOps/testing/production work. Любой следующий concrete contract, implementation artifact или expansion за пределы hotel-only требует отдельного явного roadmap step.
 
 ### Stage 7 — MVP Implementation
 
