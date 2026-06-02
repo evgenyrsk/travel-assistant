@@ -20,7 +20,7 @@ README является входной картой проекта: он пом�
 ├── .gitignore           # Правила исключения локальных и generated-файлов
 ├── .github/             # GitHub issue и pull request templates
 ├── app/                 # Будущий frontend/application слой
-├── services/            # Будущие backend/services модули
+├── services/            # Backend/services модули; services/backend содержит Stage 7.1 Spring Boot skeleton
 ├── docs/                # Продуктовая, roadmap, архитектурная и development-документация
 ├── tests/               # Будущие тесты, fixtures и e2e-сценарии
 └── scripts/             # Будущие скрипты разработки и автоматизации
@@ -52,6 +52,7 @@ README является входной картой проекта: он пом�
 - `docs/development/roadmap.md` — secondary roadmap разработки; future/reference material, следует primary roadmap и не заменяет статусы этапов.
 - `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки; не источник статусов продуктовых этапов.
 - `docs/development/implementation-strategy.md` — будущая стратегия реализации и правила декомпозиции задач; не primary roadmap и не active implementation backlog.
+- `services/backend/README.md` — инструкция запуска Stage 7.1 Spring Boot backend skeleton и список skeleton endpoints.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
 - `.github/` — GitHub templates для постановки задач и описания pull requests.
 
@@ -59,7 +60,7 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены, Code/API/DB/UI implementation не начат. Следующий этап или cleanup task нужно выбирать явно; Stage 7 остается Planned / not activated. Backend/frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без explicit roadmap activation.
+Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 активирован только в пределах Stage 7.1 backend skeleton. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной explicit roadmap activation.
 
 ## Рабочий процесс Codex
 
