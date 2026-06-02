@@ -59,7 +59,7 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-5 завершены, Stage 6 остается Planned / not started, Code/API/DB/UI implementation не начат. Stage 6 запускается только отдельной явной roadmap-задачей; API/OpenAPI contracts, DB schema/storage model, auth/security/DevOps/testing backlog и production code не создаются без explicit roadmap activation.
+Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены, Code/API/DB/UI implementation не начат. Следующий этап или cleanup task нужно выбирать явно; Stage 7 остается Planned / not activated. Backend/frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без explicit roadmap activation.
 
 ## Рабочий процесс Codex
 

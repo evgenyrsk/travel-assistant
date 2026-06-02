@@ -2,12 +2,12 @@ openapi: 3.1.0
 info:
   title: Travel Assistant MVP Hotel API
   summary: Draft frontend/backend API contract for the hotel-only MVP.
-  version: 0.1.1-draft
+  version: 0.1.2-draft
   description: >
-    Stage 6.3 draft contract for Travel Assistant MVP v1. The API is hotel-only
-    and describes client-facing backend endpoints. It does not define provider
-    APIs, database schema, backend implementation, frontend implementation, or
-    provider-specific integration code.
+    Stage 6.8 draft contract for Travel Assistant MVP v1. The API is
+    hotel-only and describes client-facing backend endpoints. It does not
+    define provider APIs, database schema, backend implementation, frontend
+    implementation, or provider-specific integration code.
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 servers:
   - url: /api/v1
@@ -201,7 +201,7 @@ paths:
         "400":
           $ref: "#/components/responses/ValidationError"
         "404":
-          $ref: "#/components/responses/HotelOfferNotFound"
+          $ref: "#/components/responses/SessionOrHotelOfferNotFound"
         "500":
           $ref: "#/components/responses/InternalError"
     delete:
@@ -216,7 +216,7 @@ paths:
         "204":
           description: Shortlist item removed.
         "404":
-          $ref: "#/components/responses/ShortlistItemNotFound"
+          $ref: "#/components/responses/SessionOrShortlistItemNotFound"
         "500":
           $ref: "#/components/responses/InternalError"
 
@@ -249,7 +249,7 @@ paths:
         "400":
           $ref: "#/components/responses/ValidationError"
         "404":
-          $ref: "#/components/responses/HotelOfferNotFound"
+          $ref: "#/components/responses/SessionOrHotelOfferNotFound"
         "500":
           $ref: "#/components/responses/InternalError"
 
@@ -320,6 +320,23 @@ components:
                 code: HOTEL_OFFER_NOT_FOUND
                 message: Hotel offer was not found.
                 requestId: req_123
+    SessionOrHotelOfferNotFound:
+      description: Assistant session or hotel offer was not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            sessionNotFound:
+              value:
+                code: SESSION_NOT_FOUND
+                message: Assistant session was not found.
+                requestId: req_123
+            hotelOfferNotFound:
+              value:
+                code: HOTEL_OFFER_NOT_FOUND
+                message: Hotel offer was not found.
+                requestId: req_123
     ShortlistItemNotFound:
       description: Shortlist item was not found.
       content:
@@ -327,6 +344,23 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
+            shortlistItemNotFound:
+              value:
+                code: SHORTLIST_ITEM_NOT_FOUND
+                message: Shortlist item was not found.
+                requestId: req_123
+    SessionOrShortlistItemNotFound:
+      description: Assistant session or shortlist item was not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            sessionNotFound:
+              value:
+                code: SESSION_NOT_FOUND
+                message: Assistant session was not found.
+                requestId: req_123
             shortlistItemNotFound:
               value:
                 code: SHORTLIST_ITEM_NOT_FOUND
@@ -381,6 +415,10 @@ components:
 
     AssistantSession:
       type: object
+      description: >
+        Current-session assistant state. It may be resumed only while the
+        opaque session exists; no account history, cross-device sync,
+        long-term persistence, or page-refresh guarantee is implied.
       required:
         - sessionId
         - status
