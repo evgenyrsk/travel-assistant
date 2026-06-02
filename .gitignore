@@ -23,6 +23,7 @@ node_modules/
 venv/
 
 # Build outputs
+.gradle/
 dist/
 build/
 out/

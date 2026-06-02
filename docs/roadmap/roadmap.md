@@ -8,10 +8,10 @@ Roadmap не является task tracker, product specification, architecture 
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 6 — API Contracts / OpenAPI / Integration Boundary завершен; Stage 6.9 завершен |
-| Последний завершенный этап | Stage 6.9 — Final Closure / Handoff to Implementation |
-| Следующий планируемый шаг | Следующий этап или cleanup task нужно выбрать явно; Stage 7 не активирован |
-| Code/API/DB/UI implementation | Not started; создан и уточнен только documentation-level OpenAPI draft |
+| Текущий этап | Stage 7 — MVP Implementation активирован только в пределах Stage 7.1 backend skeleton |
+| Последний завершенный этап | Stage 7.1 — Backend Skeleton Preparation / Activation |
+| Следующий планируемый шаг | Следующий Stage 7.x шаг или cleanup task нужно выбрать явно; Stage 7.2+ не активированы |
+| Code/API/DB/UI implementation | Minimal backend skeleton started; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started |
 
 | Этап | Статус | Краткое описание |
 |---|---|---|
@@ -23,7 +23,7 @@ Roadmap не является task tracker, product specification, architecture 
 | Stage 4.1 | Completed | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Completed | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Completed | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup and Stage 6.9 final closure / handoff completed. |
-| Stage 7 | Planned | Реализация hotel-only MVP после нужного планирования и отдельной явной активации. |
+| Stage 7 | In progress | Реализация hotel-only MVP активирована только для Stage 7.1 backend skeleton; Stage 7.2+ требуют отдельных явных задач. |
 | Stage 8 | Planned | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Planned | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Planned | Cross-platform expansion после стабилизации core product и architecture. |
@@ -259,7 +259,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Completed Stage 6.9 artifact:**
 
-- `docs/architecture/stage-6/stage-6-final-closure-and-handoff.md` — final closure / handoff to implementation; verdict: Stage 6 completed with non-blocking carryover; Stage 7 remains Planned / not activated and must start only through a separate explicit task.
+- `docs/architecture/stage-6/stage-6-final-closure-and-handoff.md` — final closure / handoff to implementation; verdict: Stage 6 completed with non-blocking carryover and recorded that Stage 7 had to start only through a separate explicit task.
 
 **Явные исключения:** Stage 6.1, Stage 6.2, Stage 6.3, Stage 6.4, Stage 6.5, Stage 6.6, Stage 6.7, Stage 6.8 и Stage 6.9 не создают backend implementation, frontend implementation, DB schema, storage model, auth/security/DevOps/testing backlog, production implementation, provider-specific integration code, generated clients или Stage 7 implementation tasks. Следующие concrete contract, storage, auth, security, DevOps, testing или implementation artifacts требуют отдельной явной future-stage задачи.
 
@@ -267,9 +267,18 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 7 — MVP Implementation
 
-**Статус:** Planned.
+**Статус:** In progress. Stage 7.1 completed by explicit roadmap task.
 
-**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельной явной активации implementation. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
+**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельной явной активации implementation. Stage 7 активирован только в пределах Stage 7.1 backend skeleton. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
+
+**Completed Stage 7.1 artifacts:**
+
+- `services/backend/` — minimal Spring Boot backend skeleton with application entrypoint, thin endpoint controllers, DTO/error skeletons and health smoke test.
+- `services/backend/README.md` — local backend run notes, skeleton endpoint list and explicit non-implemented scope.
+
+**Явные исключения Stage 7.1:** Stage 7.1 не реализует search business logic, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary или account flows.
+
+**Следующий шаг:** Stage 7.2 или любая последующая implementation task должны быть выбраны отдельной явной задачей. Stage 8+ остаются Planned.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
