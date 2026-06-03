@@ -45,4 +45,4 @@ Milestones помогают обсуждать размер и направле�
 
 ## Future merge note
 
-`docs/development/milestones.md` можно будет объединить с `docs/development/roadmap.md` отдельной cleanup-задачей, если проекту больше не нужен отдельный milestone vocabulary. В рамках Stage 7.0f-d файл сохранен как короткий reference document.
+`docs/development/milestones.md` можно будет объединить с `docs/development/roadmap.md` отдельной cleanup-задачей, если проекту больше не нужен отдельный milestone vocabulary. Файл сохранен как короткий reference document и не является active backlog.

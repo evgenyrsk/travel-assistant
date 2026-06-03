@@ -10,10 +10,10 @@
 - сделать структуру документации предсказуемой;
 - повысить читаемость для человека и AI/code agents;
 - отделить актуальный baseline от исторических артефактов;
-- защитить проект от scope drift, преждевременной реализации и случайного старта Stage 6;
+- защитить проект от scope drift, преждевременной реализации и случайного старта будущих roadmap steps;
 - уменьшить дублирование guardrails без потери важных ограничений.
 
-Style guide не меняет product requirements, architecture decisions, порядок roadmap, статусы этапов или MVP scope. Stage 6 остается в статусе `Planned / not started` до отдельной явной задачи.
+Style guide не меняет product requirements, architecture decisions, порядок roadmap, статусы этапов или MVP scope. Текущий статус этапов и следующий разрешенный шаг всегда фиксируются в `docs/roadmap/roadmap.md`.
 
 ## 2. Documentation Language
 
@@ -50,7 +50,7 @@ Good:
 | Term | Preferred Usage | Notes |
 |---|---|---|
 | roadmap | Можно не переводить. Использовать для `docs/roadmap/roadmap.md` и progression этапов. | `docs/roadmap/roadmap.md` - primary roadmap и source of truth по статусам этапов. |
-| stage | Можно использовать как часть названий `Stage 0`, `Stage 6`. В связующем тексте допустимо "этап". | Не смешивать в одной фразе без необходимости: лучше "Stage 6 остается в статусе `Planned / not started`" или "Этап 6 остается в статусе `Planned / not started`". |
+| stage | Можно использовать как часть названий `Stage 0`, `Stage 7`. В связующем тексте допустимо "этап". | Не смешивать в одной фразе без необходимости: лучше "Stage 7.2 не активирован без отдельной явной задачи" или "Следующий этап не начинается без отдельной явной задачи". |
 | scope | Лучше объяснять по-русски как "границы", "объем", "рамки задачи". | Термин `MVP scope` допустим, если важно сохранить связь с roadmap. |
 | baseline | Можно не переводить, но пояснять как "актуальное состояние". | Использовать для current product/UX/architecture baseline, не для любого historical document. |
 | quality gate | Можно не переводить, если речь о review/checkpoint. | При первом упоминании пояснять: "контрольная проверка качества". |
@@ -123,7 +123,7 @@ Roadmap не является:
 
 Roadmap должен оставаться читаемым. Он не должен дублировать полные product/architecture docs. Детали требований, UX и архитектуры должны жить в соответствующих baseline или stage artifact documents.
 
-Future stages не являются активным backlog. Planned items нельзя выполнять без явной активации. Stage 6 должен оставаться в статусе `Planned / not started` до отдельной явной задачи, которая активирует Stage 6 planning/scope definition.
+Future stages не являются активным backlog. Planned items нельзя выполнять без явной активации. Stage 7.2+ и будущие roadmap steps должны оставаться неактивными до отдельной явной задачи.
 
 ## 7. Product Documentation Style Rules
 
@@ -222,8 +222,8 @@ Documentation refactoring не должен менять смысл.
 - менять порядок этапов roadmap;
 - расширять MVP scope;
 - возвращать flights, combined itinerary, booking или payment в MVP;
-- начинать Stage 6;
-- создавать Stage 6 deliverables;
+- начинать следующий roadmap step без явной задачи;
+- создавать deliverables будущего roadmap step без явной задачи;
 - создавать API/OpenAPI contracts;
 - создавать DB schema/storage model;
 - создавать implementation backlog;

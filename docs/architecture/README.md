@@ -12,7 +12,7 @@ Stage 5/6/7 documents сохраняются как architecture audit trail, co
 
 - Stage 5 — Technical Architecture / System Design: Completed.
 - Stage 6 — API Contracts / OpenAPI / Integration Boundary: Completed; Stage 6.1-6.9 completed.
-- Stage 7 — MVP Implementation: In progress / awaiting explicit next task; Stage 7.0b backend skeleton correction to Kotlin + Ktor, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index cleanup, Stage 7.0f-c prompt/governance deduplication, Stage 7.0f-d development docs shortening and Stage 7.0f-e product/architecture index role labeling completed.
+- Stage 7 — MVP Implementation: In progress / awaiting explicit next task; Stage 7.0 stabilization and documentation cleanup завершены до Stage 7.0f-f включительно; Stage 7.2+ not activated.
 - Code/API/DB/UI implementation: minimal Kotlin + Ktor backend skeleton exists; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started.
 
 `architecture-baseline.md` фиксирует актуальный compact architecture baseline и подтверждает backend stack Kotlin + Ktor. Java/Spring Boot не является принятым Travel Assistant backend stack без явного будущего ADR и задачи, согласованной с roadmap. Документы Stage 5 сохраняются как historical architecture artifacts, deliverables и audit trail: они описывают границы, ответственности и guardrails для hotel-only MVP v1, но не являются implementation backlog, API/OpenAPI contract, endpoint specification, database schema, storage model, provider adapter design, auth/security/DevOps/testing plan или production implementation plan.
@@ -71,6 +71,7 @@ Unclear role: нет, все текущие файлы `docs/architecture/**` к
 - `../reviews/stage-7-prompt-governance-deduplication-cleanup.md` — Stage 7.0f-c prompt/governance deduplication cleanup.
 - `../reviews/stage-7-development-docs-merge-shortening-cleanup.md` — Stage 7.0f-d development docs merge/shortening cleanup.
 - `../reviews/stage-7-product-architecture-index-role-labels-cleanup.md` — Stage 7.0f-e product/architecture index role labels cleanup.
+- `../reviews/stage-7-roadmap-readability-cleanup.md` — Stage 7.0f-f roadmap readability cleanup.
 
 ## Stage 7 artifacts
 
@@ -118,4 +119,4 @@ Unclear role: нет, все текущие файлы `docs/architecture/**` к
 
 ## Граница Stage 6
 
-Stage 6 завершен как contract/documentation phase. Созданный и уточненный OpenAPI draft является documentation-level API contract draft, а не provider-specific contract, DB schema, storage model, auth/security/DevOps/testing backlog или production code. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Broader documentation cleanup остается pending.
+Stage 6 завершен как contract/documentation phase. Созданный и уточненный OpenAPI draft является documentation-level API contract draft, а не provider-specific contract, DB schema, storage model, auth/security/DevOps/testing backlog или production code. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Remaining documentation cleanup является bounded future cleanup candidate, а не open-ended blocker.
