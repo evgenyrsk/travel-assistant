@@ -45,16 +45,7 @@ README является входной картой проекта: он пом�
 - `docs/ROADMAP.md` — краткий navigation overview этапов, не competing roadmap и не источник текущих статусов.
 - `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, guardrails и безопасного рефакторинга документации.
 - `docs/reviews/README.md` — индекс review/audit artifacts и правила чтения historical/current cleanup reports.
-- `docs/reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
-- `docs/reviews/roadmap-structure-and-process-fitness-review.md` — review структуры roadmap и process fitness перед Stage 6.
-- `docs/reviews/global-documentation-quality-review.md` — глобальный review качества документации перед controlled documentation refactoring.
-- `docs/reviews/documentation-refactoring-plan.md` — план будущего controlled documentation refactoring; не active backlog и не разрешение на массовую правку.
-- `docs/reviews/documentation-redundancy-structure-audit.md` — Stage 7.0e audit избыточности и структуры документации.
-- `docs/reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a cleanup устаревшего status/navigation wording.
-- `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b cleanup index/role labeling для review artifacts.
-- `docs/reviews/stage-7-prompt-governance-deduplication-cleanup.md` — Stage 7.0f-c cleanup prompt/governance duplication.
-- `docs/reviews/stage-7-development-docs-merge-shortening-cleanup.md` — Stage 7.0f-d cleanup development docs merge/shortening.
-- `docs/reviews/stage-7-product-architecture-index-role-labels-cleanup.md` — Stage 7.0f-e cleanup product/architecture index role labels.
+- `docs/reviews/*.md` — audit trail, cleanup reports и historical reviews; читать через `docs/reviews/README.md`.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
 - `docs/development/roadmap.md` — compact development reference; future/reference material, не roadmap status source и не active backlog.
 - `docs/development/milestones.md` — compact milestone vocabulary; future/reference material, не источник статусов и не active backlog.
@@ -67,7 +58,7 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 corrective stabilization завершена через backend stack sync, замену Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index / historical labeling cleanup, Stage 7.0f-c prompt/governance deduplication cleanup, Stage 7.0f-d development docs shortening и Stage 7.0f-e product/architecture index role labels cleanup. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
+Текущий baseline: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`, а Stage 7.0 stabilization and documentation cleanup завершены до Stage 7.0f-f включительно. Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
 
 ## Рабочий процесс Codex
 

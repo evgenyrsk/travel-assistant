@@ -4,7 +4,7 @@
 
 Документ не является primary roadmap. Актуальный статус этапов, чеклисты артефактов, stage gates, carryover и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
 
-На момент Stage 7.0f-d Stage 0-6 завершены, Stage 7 прошел corrective documentation stabilization through Stage 7.0f-d, а Stage 7.2+ не активированы. Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает active implementation backlog.
+На момент Stage 7.0f-f Stage 0-6 завершены, Stage 7 прошел corrective stabilization and documentation cleanup до Stage 7.0f-f включительно, а Stage 7.2+ не активированы. Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает active implementation backlog.
 
 Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Любой task format, milestone или implementation sequence ниже применяется только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap.
 

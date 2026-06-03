@@ -28,12 +28,13 @@
 
 | Документ | Роль | Как читать |
 |---|---|---|
-| `documentation-redundancy-structure-audit.md` | Current active review context / Stage 7.0e audit | Последний deep audit структуры документации. Он подтверждает, что документация еще не clean/non-redundant, и рекомендует staged cleanup. |
+| `documentation-redundancy-structure-audit.md` | Review context / Stage 7.0e audit | Deep audit структуры документации. Его findings читаются как context для bounded cleanup tasks, а не как open-ended blocker. |
 | `stage-7-status-navigation-sync-cleanup.md` | Completed cleanup report / Stage 7.0f-a | Подтверждает, что stale active wording про pending restart readiness review удален из active/navigation/source-of-truth docs. |
 | `stage-7-reviews-index-historical-labeling-cleanup.md` | Completed cleanup report / Stage 7.0f-b | Фиксирует создание этого reviews index и минимальную historical role labeling работу. |
 | `stage-7-prompt-governance-deduplication-cleanup.md` | Completed cleanup report / Stage 7.0f-c | Фиксирует deduplication prompt/governance guidance вокруг `AGENTS.md`. |
 | `stage-7-development-docs-merge-shortening-cleanup.md` | Completed cleanup report / Stage 7.0f-d | Фиксирует сокращение `docs/development/**` до secondary reference layer. |
 | `stage-7-product-architecture-index-role-labels-cleanup.md` | Completed cleanup report / Stage 7.0f-e | Фиксирует role labels и source-of-truth hierarchy для `docs/product/**` и `docs/architecture/**`. |
+| `stage-7-roadmap-readability-cleanup.md` | Completed cleanup report / Stage 7.0f-f | Фиксирует сокращение roadmap-facing status wording и подтверждает, что roadmap remains source of truth. |
 
 ## Inventory review artifacts
 
@@ -44,12 +45,13 @@
 | `backend-skeleton-correction.md` | Completed cleanup report | Stage 7.0b report о замене Java/Spring Boot skeleton на Kotlin + Ktor skeleton. |
 | `stage-7-restart-readiness-review.md` | Historical readiness gate / reference-only after Stage 7.0f-a | Readiness review passed with minor notes. Subsequent status/navigation sync handled by Stage 7.0f-a. |
 | `product-baseline-status-cleanup.md` | Completed cleanup report | Follow-up cleanup after restart readiness review; confirms product baseline status wording was updated. |
-| `documentation-redundancy-structure-audit.md` | Current active review context | Stage 7.0e audit and current source for remaining documentation cleanup sequence. |
+| `documentation-redundancy-structure-audit.md` | Review context | Stage 7.0e audit and context for bounded remaining documentation cleanup candidates. |
 | `stage-7-status-navigation-sync-cleanup.md` | Completed cleanup report | Stage 7.0f-a narrow cleanup. Confirms Stage 7 is no longer blocked by backend stack drift or restart readiness review. |
 | `stage-7-reviews-index-historical-labeling-cleanup.md` | Completed cleanup report | Stage 7.0f-b narrow cleanup. Confirms reviews index and role labeling. |
 | `stage-7-prompt-governance-deduplication-cleanup.md` | Completed cleanup report | Stage 7.0f-c narrow cleanup. Confirms `AGENTS.md` as canonical governance and `docs/prompts/**` / `.github/**` as secondary guidance. |
 | `stage-7-development-docs-merge-shortening-cleanup.md` | Completed cleanup report | Stage 7.0f-d narrow cleanup. Confirms `docs/development/**` as secondary future/reference guidance. |
 | `stage-7-product-architecture-index-role-labels-cleanup.md` | Completed cleanup report | Stage 7.0f-e narrow cleanup. Confirms product/architecture source-of-truth hierarchy and index role labels. |
+| `stage-7-roadmap-readability-cleanup.md` | Completed cleanup report | Stage 7.0f-f narrow cleanup. Confirms primary roadmap readability cleanup without Stage 7.2 activation. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -69,6 +71,7 @@
 8. `docs/reviews/stage-7-prompt-governance-deduplication-cleanup.md`
 9. `docs/reviews/stage-7-development-docs-merge-shortening-cleanup.md`
 10. `docs/reviews/stage-7-product-architecture-index-role-labels-cleanup.md`
+11. `docs/reviews/stage-7-roadmap-readability-cleanup.md`
 
 ## Historical / superseded документы
 
@@ -88,10 +91,9 @@
 
 ## Remaining cleanup items
 
-Этот index не завершает broad documentation cleanup. Остаются отдельные future cleanup candidates:
+Этот index не превращает documentation cleanup в open-ended blocker. Остаются только bounded future cleanup candidates, если отдельная roadmap-aligned задача их активирует:
 
-- style guide stale wording cleanup;
-- roadmap readability cleanup;
+- style guide broader wording polish;
 - broader documentation redundancy cleanup.
 
 Эти items не являются active backlog и требуют отдельных явных roadmap-aligned задач.

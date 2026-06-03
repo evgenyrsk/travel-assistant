@@ -20,9 +20,9 @@
 
 ## Текущий статус
 
-На момент Stage 7.0f-d:
+На момент Stage 7.0f-f:
 
-- Stage 7 corrective stabilization прошла через backend stack sync, Kotlin + Ktor skeleton correction, restart readiness review, documentation redundancy audit, status/navigation sync, reviews index cleanup и prompt/governance deduplication.
+- Stage 7 corrective stabilization and documentation cleanup завершены до Stage 7.0f-f включительно.
 - Stage 7.2+ не активированы этим документом.
 - Business logic, provider integration, DB/storage, frontend, generated clients и production implementation не начинаются без отдельной явной roadmap-aligned задачи.
 
