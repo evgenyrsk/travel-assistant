@@ -2,11 +2,14 @@
 
 Используй этот шаблон для маленьких атомарных задач Travel Assistant. Заполняй только то, что нужно для конкретной задачи, но всегда фиксируй текущий этап и границы задачи.
 
+Canonical repository governance находится в `AGENTS.md`. Этот шаблон не заменяет `AGENTS.md`; он только помогает сформулировать конкретную задачу.
+
 ## Контекст
 
 - Краткий контекст задачи:
 - Связанная веха:
 - Связанные решения или обсуждения:
+- Canonical repository governance: `AGENTS.md`
 - Primary roadmap и source of truth по статусам: `docs/roadmap/roadmap.md`
 - Product baseline, если задача затрагивает MVP scope: `docs/product/product-baseline.md`
 - Architecture baseline, если задача затрагивает architecture scope: `docs/architecture/architecture-baseline.md`
@@ -53,42 +56,28 @@
 
 ## Что нельзя менять
 
-- Roadmap и порядок этапов.
-- Следующий этап roadmap.
-- Stage 6 deliverables, если Stage 6 не активирован отдельной задачей.
-- API/OpenAPI contracts, endpoint specs, DB schema/storage model, auth/security/DevOps/testing backlog и production code, если они не активированы roadmap.
-- Unrelated files.
-- Реальные интеграции с travel API, если они не входят в текущий этап.
-- Реальные интеграции с LLM-провайдерами, если они не входят в текущий этап.
-- Production-инфраструктура, если она не входит в текущий этап.
-- ADR и архитектурные решения, если задача явно не просит их менять.
+- Соблюдать `AGENTS.md`.
+- Не менять:
+  -
+  -
+- Не начинать следующий этап:
+- Не трогать unrelated files:
 
 ## Критерии приемки
 
-- 
-- 
-- 
+-
+-
+-
 
 ## Ограничения по roadmap и границам задачи
 
-- Не переопределять roadmap.
-- Не менять порядок этапов roadmap.
-- Не начинать следующий этап roadmap без явного запроса.
-- Не превращать future/reference documents в active implementation backlog.
-- Не начинать backend implementation без сверки backend stack с `docs/architecture/architecture-baseline.md`.
-- Не вводить Java/Spring Boot backend implementation без явного ADR и согласованной с roadmap задачи.
-- Если файлы реализации конфликтуют с подтвержденным stack Kotlin + Ktor, остановиться и зафиксировать архитектурное расхождение.
-- Не превращать ADR candidates или decision inventory в accepted ADR.
-- Не расширять границы задачи, если это не требуется для выполнения задачи.
-- Не выполнять рекомендации.
-- Добавлять будущую работу только в раздел `Рекомендации, не выполнены`.
-- Не трогать unrelated files.
-- Не добавлять реальные интеграции с travel API, если это явно не требуется текущим этапом roadmap.
-- Если задача конфликтует с roadmap или ADR, не выполнять спорную часть и указать конфликт в финальном отчете.
+Не дублируй полный набор global rules из `AGENTS.md`. Здесь укажи только task-specific constraints:
+
+-
 
 ## Формат финального отчета
 
-Финальный отчет должен содержать:
+Если задача не задает другой формат, используй обязательный формат из `AGENTS.md`. Если нужен task-specific отчет, перечисли разделы здесь:
 
 1. Созданные файлы
 2. Изменённые файлы

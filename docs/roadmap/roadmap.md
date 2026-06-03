@@ -8,8 +8,8 @@ Roadmap не является task tracker, product specification, architecture 
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 7 — MVP Implementation прошел corrective stabilization через backend skeleton correction, restart readiness review, Stage 7.0e documentation audit, Stage 7.0f-a status/navigation sync cleanup и Stage 7.0f-b reviews index cleanup; Stage 7.2+ не активированы |
-| Последний завершенный этап | Stage 7.0f-b — Reviews Index & Historical Artifact Labeling |
+| Текущий этап | Stage 7 — MVP Implementation прошел corrective stabilization через backend skeleton correction, restart readiness review, Stage 7.0e documentation audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index cleanup и Stage 7.0f-c prompt/governance deduplication cleanup; Stage 7.2+ не активированы |
+| Последний завершенный этап | Stage 7.0f-c — Prompt/Governance Deduplication |
 | Следующий планируемый шаг | Отдельная явная roadmap-aligned задача должна выбрать Stage 7.2 или оставшийся documentation cleanup; Stage 7.2+ не активированы |
 | Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend skeleton exists; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started |
 
@@ -23,7 +23,7 @@ Roadmap не является task tracker, product specification, architecture 
 | Stage 4.1 | Completed | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Completed | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Completed | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup and Stage 6.9 final closure / handoff completed. |
-| Stage 7 | In progress / awaiting explicit next task | Corrective stabilization completed through Kotlin + Ktor backend skeleton correction, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup and Stage 7.0f-b reviews index cleanup. Stage 7.2+ требуют отдельных явных задач. |
+| Stage 7 | In progress / awaiting explicit next task | Corrective stabilization completed through Kotlin + Ktor backend skeleton correction, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index cleanup and Stage 7.0f-c prompt/governance deduplication cleanup. Stage 7.2+ требуют отдельных явных задач. |
 | Stage 8 | Planned | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Planned | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Planned | Cross-platform expansion после стабилизации core product и architecture. |
@@ -269,7 +269,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 7 — MVP Implementation
 
-**Статус:** In progress / awaiting explicit next task. Stage 7.1 created initial backend skeleton, Stage 7.0a подтвердил backend stack decision на documentation/governance уровне, Stage 7.0b corrected backend skeleton to Kotlin + Ktor, Stage 7 restart readiness review passed with minor notes, Stage 7.0e completed documentation redundancy / structure audit, Stage 7.0f-a completed narrow status/navigation sync cleanup, and Stage 7.0f-b created reviews index / historical artifact labeling.
+**Статус:** In progress / awaiting explicit next task. Stage 7.1 created initial backend skeleton, Stage 7.0a подтвердил backend stack decision на documentation/governance уровне, Stage 7.0b corrected backend skeleton to Kotlin + Ktor, Stage 7 restart readiness review passed with minor notes, Stage 7.0e completed documentation redundancy / structure audit, Stage 7.0f-a completed narrow status/navigation sync cleanup, Stage 7.0f-b created reviews index / historical artifact labeling, and Stage 7.0f-c completed prompt/governance deduplication around `AGENTS.md`.
 
 **Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельной явной активации implementation. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2 или любая последующая implementation task не активированы. Подтвержденный backend stack — Kotlin + Ktor. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
 
@@ -286,6 +286,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 - `docs/reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a narrow status/navigation sync cleanup.
 - `docs/reviews/README.md` — reviews index and role labels for current, historical and superseded audit artifacts.
 - `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b cleanup report for reviews index / historical labeling.
+- `docs/reviews/stage-7-prompt-governance-deduplication-cleanup.md` — Stage 7.0f-c cleanup report for prompt/governance deduplication.
 
 **Явные исключения Stage 7.0b:** Stage 7.0b не реализует search business logic, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary или account flows.
 
@@ -327,3 +328,4 @@ Provider/API data является source of truth для travel facts. LLM мо
 - `docs/reviews/documentation-redundancy-structure-audit.md` — Stage 7.0e audit избыточности и структуры документации.
 - `docs/reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a cleanup устаревшего status/navigation wording.
 - `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b cleanup index/role labeling для review artifacts.
+- `docs/reviews/stage-7-prompt-governance-deduplication-cleanup.md` — Stage 7.0f-c cleanup prompt/governance duplication.
