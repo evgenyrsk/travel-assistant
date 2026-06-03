@@ -8,10 +8,10 @@ Roadmap не является task tracker, product specification, architecture 
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 7 — MVP Implementation активирован только в пределах Stage 7.1 backend skeleton |
-| Последний завершенный этап | Stage 7.1 — Backend Skeleton Preparation / Activation |
-| Следующий планируемый шаг | Следующий Stage 7.x шаг или cleanup task нужно выбрать явно; Stage 7.2+ не активированы |
-| Code/API/DB/UI implementation | Minimal backend skeleton started; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started |
+| Текущий этап | Stage 7 — MVP Implementation активирован только в пределах backend skeleton correction; дальнейшая implementation работа заблокирована до restart readiness review |
+| Последний завершенный этап | Stage 7.0b — Backend Skeleton Correction to Kotlin + Ktor |
+| Следующий планируемый шаг | Restart readiness review должен быть выбран явно; Stage 7.2+ не активированы |
+| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend skeleton exists; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started |
 
 | Этап | Статус | Краткое описание |
 |---|---|---|
@@ -23,7 +23,7 @@ Roadmap не является task tracker, product specification, architecture 
 | Stage 4.1 | Completed | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Completed | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Completed | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup and Stage 6.9 final closure / handoff completed. |
-| Stage 7 | In progress | Реализация hotel-only MVP активирована только для Stage 7.1 backend skeleton; Stage 7.2+ требуют отдельных явных задач. |
+| Stage 7 | In progress / blocked | Реализация hotel-only MVP активирована только для backend skeleton correction; дальнейшая implementation работа заблокирована до restart readiness review. Stage 7.2+ требуют отдельных явных задач. |
 | Stage 8 | Planned | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Planned | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Planned | Cross-platform expansion после стабилизации core product и architecture. |
@@ -38,6 +38,8 @@ Roadmap не является task tracker, product specification, architecture 
 - Implementation, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog и production code требуют отдельного явного roadmap step.
 - Product baseline и architecture baseline кратко фиксируют текущее состояние; roadmap должен ссылаться на них, а не дублировать их полностью.
 - ADR candidates, drafts и decision inventory не являются accepted ADR.
+- Подтвержденный backend stack Travel Assistant — Kotlin + Ktor. Java/Spring Boot не является принятым backend stack без явного будущего ADR и задачи, согласованной с roadmap.
+- Если implementation artifacts конфликтуют с architecture baseline по backend stack, дальнейшая implementation работа должна остановиться и зафиксировать архитектурное расхождение.
 
 ## 3. Baseline-документы
 
@@ -267,18 +269,21 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 7 — MVP Implementation
 
-**Статус:** In progress. Stage 7.1 completed by explicit roadmap task.
+**Статус:** In progress / blocked. Stage 7.1 created initial backend skeleton, Stage 7.0a подтвердил backend stack decision на documentation/governance уровне, Stage 7.0b corrected backend skeleton to Kotlin + Ktor. Дальнейшая Stage 7 implementation работа заблокирована до restart readiness review.
 
-**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельной явной активации implementation. Stage 7 активирован только в пределах Stage 7.1 backend skeleton. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
+**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельной явной активации implementation. Stage 7 активирован только в пределах backend skeleton correction, а дальнейшая implementation работа заблокирована до restart readiness review. Подтвержденный backend stack — Kotlin + Ktor. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
 
-**Completed Stage 7.1 artifacts:**
+**Completed Stage 7 skeleton artifacts:**
 
-- `services/backend/` — minimal Spring Boot backend skeleton with application entrypoint, thin endpoint controllers, DTO/error skeletons and health smoke test.
-- `services/backend/README.md` — local backend run notes, skeleton endpoint list and explicit non-implemented scope.
+- `services/backend/` — minimal Kotlin + Ktor backend skeleton with application entrypoint, health route and health endpoint test.
+- `services/backend/README.md` — local backend run notes, health endpoint list and explicit non-implemented scope.
+- `docs/reviews/project-consistency-audit.md` — global consistency audit that identified the backend stack blocker.
+- `docs/reviews/backend-stack-decision-sync.md` — Stage 7.0a backend stack decision and documentation sync handoff.
+- `docs/reviews/backend-skeleton-correction.md` — Stage 7.0b correction report for replacing Java/Spring Boot skeleton with Kotlin + Ktor.
 
-**Явные исключения Stage 7.1:** Stage 7.1 не реализует search business logic, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary или account flows.
+**Явные исключения Stage 7.0b:** Stage 7.0b не реализует search business logic, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary или account flows.
 
-**Следующий шаг:** Stage 7.2 или любая последующая implementation task должны быть выбраны отдельной явной задачей. Stage 8+ остаются Planned.
+**Следующий шаг:** restart readiness review должен быть выбран отдельной явной задачей. Stage 7.2 или любая последующая implementation task не активированы. Stage 8+ остаются Planned.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 

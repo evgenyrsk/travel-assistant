@@ -6,11 +6,13 @@
 
 ## Статус и правила активации
 
-На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается в статусе `Planned / not started`, а реализация Code/API/DB/UI не начата.
+На момент Stage 7.0b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, но дальнейшая Stage 7 implementation работа заблокирована до restart readiness review. Подтвержденный backend stack — Kotlin + Ktor.
 
 Вехи ниже являются справочными материалами для будущей реализации. Они не являются активным implementation backlog, task tracker или разрешением начинать backend/frontend implementation.
 
 Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts.
+
+Для backend implementation вехи должны сверяться с `docs/architecture/architecture-baseline.md`: backend stack — Kotlin + Ktor. Java/Spring Boot не является принятым stack без явного ADR и согласованной с roadmap задачи.
 
 Каждая веха становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap. Если веха звучит конкретнее, чем текущий primary roadmap, она должна читаться как будущий ориентир, а не как текущая задача.
 

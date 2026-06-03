@@ -10,6 +10,7 @@
 - Primary roadmap и source of truth по статусам: `docs/roadmap/roadmap.md`
 - Product baseline, если задача затрагивает MVP scope: `docs/product/product-baseline.md`
 - Architecture baseline, если задача затрагивает architecture scope: `docs/architecture/architecture-baseline.md`
+- Backend stack для implementation-задач: Kotlin + Ktor, если только будущий ADR явно не меняет это решение.
 
 ## Текущий этап
 
@@ -74,6 +75,9 @@
 - Не менять порядок этапов roadmap.
 - Не начинать следующий этап roadmap без явного запроса.
 - Не превращать future/reference documents в active implementation backlog.
+- Не начинать backend implementation без сверки backend stack с `docs/architecture/architecture-baseline.md`.
+- Не вводить Java/Spring Boot backend implementation без явного ADR и согласованной с roadmap задачи.
+- Если файлы реализации конфликтуют с подтвержденным stack Kotlin + Ktor, остановиться и зафиксировать архитектурное расхождение.
 - Не превращать ADR candidates или decision inventory в accepted ADR.
 - Не расширять границы задачи, если это не требуется для выполнения задачи.
 - Не выполнять рекомендации.
