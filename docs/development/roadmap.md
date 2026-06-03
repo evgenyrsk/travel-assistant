@@ -1,392 +1,67 @@
-# Roadmap разработки Travel Assistant
+# Development reference — Travel Assistant
 
-Этот roadmap описывает возможную будущую структуру разработки AI-помощника для путешествий. Его цель — помогать позже формулировать небольшие, проверяемые задачи для opencode, когда соответствующая реализация будет явно активирована в primary roadmap.
+Этот документ является compact development reference для будущих implementation-oriented задач Travel Assistant.
 
-Primary roadmap со статусами этапов, чеклистами артефактов, open questions, carryover и следующим шагом находится в `docs/roadmap/roadmap.md`. Верхнеуровневый список этапов находится в `docs/ROADMAP.md`. Этот файл является вторичным development reference: он не является альтернативным источником статусов, активным implementation backlog или разрешением начинать будущие этапы.
+Он не является primary roadmap, task tracker, active backlog, source of truth по статусам этапов или разрешением начинать Stage 7.2+. Актуальный roadmap status, stage gates, carryover и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
 
-## Статус и правила активации
+## Роль документа
 
-На момент Stage 7.0f-b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, restart readiness review прошел с minor notes, stale Stage 7 status/navigation wording синхронизирован, а `docs/reviews/README.md` классифицирует review/audit artifacts. Подтвержденный backend stack — Kotlin + Ktor.
+Используй этот файл только после того, как отдельная явная roadmap-aligned задача активировала соответствующую implementation работу.
 
-Разделы ниже являются справочными материалами для будущей реализации. Они описывают возможную future development structure, но не являются активным implementation backlog, task tracker или списком задач к немедленному выполнению.
+Приоритет источников:
 
-Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts.
+1. `docs/roadmap/roadmap.md` — статусы этапов и следующий разрешенный шаг.
+2. `AGENTS.md` — repository/agent governance.
+3. `docs/product/product-baseline.md` — product/MVP scope.
+4. `docs/architecture/architecture-baseline.md` — architecture baseline и backend stack.
+5. `docs/development/**` — справочная будущая development guidance.
 
-Для backend implementation этот secondary roadmap должен читаться через `docs/architecture/architecture-baseline.md`: backend stack — Kotlin + Ktor. Java/Spring Boot не является принятым stack без явного ADR и согласованной с roadmap задачи.
+Если этот документ конфликтует с primary roadmap или baseline-документами, приоритет имеют primary roadmap и baseline-документы.
 
-Любой пункт из этого secondary roadmap становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с `docs/roadmap/roadmap.md`. Stage 7.2+ не активированы этим документом, Stage 7.0f-a cleanup или Stage 7.0f-b reviews index cleanup. Если формулировка этого документа конфликтует с primary roadmap, product baseline или architecture baseline, приоритет имеют primary roadmap и baseline-документы.
+## Текущий статус
 
-## 0. Перезапуск проекта и продуктовая рамка
+На момент Stage 7.0f-d:
 
-**Цель:** зафиксировать исходную постановку продукта, границы проекта, цели, пользовательскую ценность и рабочие правила дальнейшей разработки.
+- Stage 7 corrective stabilization прошла через backend stack sync, Kotlin + Ktor skeleton correction, restart readiness review, documentation redundancy audit, status/navigation sync, reviews index cleanup и prompt/governance deduplication.
+- Stage 7.2+ не активированы этим документом.
+- Business logic, provider integration, DB/storage, frontend, generated clients и production implementation не начинаются без отдельной явной roadmap-aligned задачи.
 
-**Результат:** документационная основа Этапа 0 без технической реализации.
+## Development areas, reference only
 
-**Файлы и модули:** `docs/product/README.md`, `docs/product/stage-0/`, `docs/roadmap/roadmap.md`, `docs/decisions/README.md`, навигационные обновления в существующих документах.
+Ниже перечислены будущие development areas. Это не backlog и не порядок выполнения.
 
-**Критерии готовности:**
-- описана продуктовая идея Travel Assistant;
-- описаны основные сценарии верхнего уровня;
-- зафиксированы предварительные границы MVP;
-- зафиксированы принципы разработки;
-- собраны открытые вопросы;
-- roadmap верхнего уровня отражает Этап 0 - Этап 10.
+| Area | Как читать |
+|---|---|
+| Backend foundation | Только как ориентир для будущих Kotlin + Ktor задач после явной активации. |
+| Domain/application layers | Сохранять domain независимым от Ktor, Next.js, PostgreSQL, Redis и конкретных LLM/travel providers. |
+| LLM abstraction | Любой provider должен идти через `LlmClient`; real provider integration требует отдельной задачи. |
+| Hotel search abstraction | MVP v1 остается hotel-only; provider/API details должны быть за abstraction. |
+| Web frontend | Next.js + React + Tailwind + shadcn/ui остаются рабочей гипотезой, но frontend work не активирован этим документом. |
+| Testing / quality | Тесты добавляются вместе с явно активированными behavior/code changes. |
+| Security / observability / local development | Использовать как future readiness areas, не как текущий backlog. |
 
-**Не входит:** код, окончательный технический стек, детальная архитектура, OpenAPI, схема базы данных, UI, реальные API, mock-сервер и Этап 1.
+## Как формулировать будущие development tasks
 
-## 1. Repository & Process Setup
+Каждая будущая task должна:
 
-**Цель:** подготовить репозиторий, базовые соглашения и рабочий процесс.
+- ссылаться на явную roadmap activation;
+- указывать product/architecture baseline, если затрагивает scope или architecture;
+- иметь маленький проверяемый scope;
+- перечислять expected files/modules без преждевременной детализации;
+- фиксировать out-of-scope items;
+- содержать validation steps;
+- не выполнять соседние recommendations.
 
-**Результат:** понятная структура проекта, правила ветвления, формат задач, базовые документы для команды и код-агентов.
+## Что намеренно не фиксируется здесь
 
-**Файлы и модули:** `README.md`, `docs/`, `.gitignore`, будущие конфиги форматирования, CI, шаблоны задач.
+- текущий roadmap status;
+- порядок этапов;
+- Stage 7.2 start;
+- active implementation backlog;
+- API/OpenAPI contracts;
+- DB schema/storage model;
+- auth/security/DevOps/testing backlog;
+- production implementation plan;
+- provider-specific integration design.
 
-**Критерии готовности:**
-- описана структура репозитория;
-- зафиксированы правила разработки и проверки изменений;
-- есть базовая документация для запуска и навигации по проекту;
-- определен подход к маленьким атомарным задачам.
-
-**Не входит:** реализация backend, frontend, интеграций и production CI/CD.
-
-## 2. Продуктовые требования
-
-**Цель:** зафиксировать, какую пользовательскую проблему решает продукт и какие сценарии поддерживаются первыми.
-
-**Результат:** набор требований, пользовательских сценариев и ограничений для MVP.
-
-**Файлы и модули:** `docs/PROJECT_BRIEF.md`; дополнительные product-документы только если отдельная задача явно утверждает их структуру.
-
-**Критерии готовности:**
-- описаны основные пользователи;
-- описаны ключевые сценарии диалога;
-- определены обязательные и необязательные параметры поездки;
-- зафиксированы вопросы, которые требуют продуктового решения позже.
-
-**Не входит:** проектирование API, UI-макеты, доменная модель и код.
-
-## 3. Границы MVP
-
-**Цель:** отделить минимальный рабочий сценарий от будущих возможностей.
-
-**Результат:** согласованный hotel-only MVP v1: пользователь пишет hotel request, ассистент уточняет недостающие параметры, ищет hotel offers через provider abstraction, ранжирует их и объясняет выбор. На ранних шагах допустимы mock/fake providers и contract placeholders, но финальный MVP v1 должен использовать предоставленный контракт существующего travel API для hotel offers.
-
-**Файлы и модули:** `docs/PROJECT_BRIEF.md`, `docs/ROADMAP.md`, `docs/development/roadmap.md`, `docs/development/milestones.md`; отдельный документ по границам MVP только если будет явно создан отдельной задачей.
-
-**Критерии готовности:**
-- есть список того, что входит и не входит в границы MVP;
-- определены границы hotel provider abstraction, mock/fake providers и contract placeholders;
-- описан end-to-end hotel search сценарий MVP v1;
-- есть критерии приемки MVP.
-
-**Не входит:** flight search, combined hotel+flight search, реальные платежи, бронирования, проектирование нового travel API-контракта до предоставления существующего контракта, мобильные и desktop-клиенты.
-
-## 4. System Architecture
-
-**Цель:** описать высокоуровневую архитектуру web, backend, domain, integrations, persistence и AI-оркестрации.
-
-**Результат:** схема компонентов и границ ответственности.
-
-**Файлы и модули:** `docs/ARCHITECTURE.md`, будущие `services/backend/`, `app/web/`; дополнительные architecture-документы только если отдельная задача явно утверждает их структуру.
-
-**Критерии готовности:**
-- backend спроектирован как Kotlin + Ktor приложение;
-- frontend спроектирован как Next.js + React + Tailwind + shadcn/ui;
-- доменная логика отделена от framework-слоя;
-- travel-провайдеры и LLM-провайдеры описаны как заменяемые адаптеры;
-- PostgreSQL и Redis обозначены как инфраструктурные зависимости.
-
-**Не входит:** детальная реализация классов, миграций, UI и provider-интеграций.
-
-## 5. Domain Model
-
-**Цель:** определить основные сущности и value objects предметной области.
-
-**Результат:** согласованный черновик доменной модели для поездок, предпочтений, запросов, предложений и диалогового состояния.
-
-**Файлы и модули:** будущие `services/backend/domain/`, `docs/domain/model.md`.
-
-**Критерии готовности:**
-- описаны hotel-focused `TripRequest`, `TravelerPreferences`, `TravelOffer`, `HotelOption`, `ConversationState`; `FlightOption` переносится в next expansion;
-- определены обязательные и опциональные поля;
-- зафиксированы доменные инварианты;
-- модель не зависит от Ktor, React, PostgreSQL или конкретного LLM-провайдера.
-
-**Не входит:** SQL-схема, реальные API DTO, UI-модели и алгоритмы ранжирования.
-
-## 6. API Contracts
-
-**Цель:** описать контракты между клиентами и backend.
-
-**Статус:** future reference only; не активная задача и не разрешение создавать API/OpenAPI contracts до отдельного явного roadmap step.
-
-**Результат:** черновик HTTP API для чата, получения результатов, истории и пользовательских предпочтений.
-
-**Файлы и модули:** будущие `docs/api/contracts.md`, `services/backend/api/`, OpenAPI-файл при необходимости.
-
-**Критерии готовности:**
-- описаны endpoint-ы MVP;
-- описаны request/response DTO;
-- определены ошибки и статусы;
-- контракты не раскрывают внутренние детали оркестрации.
-
-**Не входит:** реализация endpoint-ов, авторизация, realtime-протоколы и мобильные SDK.
-
-## 7. Backend skeleton
-
-**Цель:** создать минимальный backend foundation на Kotlin + Ktor.
-
-**Статус:** future reference only; не активная задача до явного старта соответствующего implementation step.
-
-**Результат:** запускаемое backend-приложение с health endpoint, конфигурацией и слоями приложения.
-
-**Файлы и модули:** будущие `services/backend/`, Gradle-конфиги, Ktor application module, config files.
-
-**Критерии готовности:**
-- приложение собирается и запускается локально;
-- есть `/health` или аналогичный endpoint;
-- выделены слои API, application, domain, infrastructure;
-- конфигурация отделена от кода.
-
-**Не входит:** LLM-оркестрация, travel search, persistence и полноценная бизнес-логика.
-
-## 8. LLM Abstraction
-
-**Цель:** создать `LlmClient` abstraction для работы с языковыми моделями.
-
-**Результат:** интерфейс LLM-провайдера, mock-реализация и базовые модели запросов/ответов.
-
-**Файлы и модули:** будущие `services/backend/ai/`, `services/backend/domain/ai/`, тесты.
-
-**Критерии готовности:**
-- доменная логика не зависит от конкретного LLM-провайдера;
-- есть mock/stub клиент для локальной разработки и тестов;
-- описаны ошибки provider-слоя;
-- нет захардкоженных API keys.
-
-**Не входит:** интеграция с реальным провайдером, prompt optimization, streaming и tool calling.
-
-## 9. Travel Assistant Orchestration
-
-**Цель:** реализовать начальный `TravelAssistantOrchestrator`.
-
-**Результат:** orchestrator управляет intent extraction, slot filling, clarification flow, поиском и объяснением результата.
-
-**Файлы и модули:** будущие `services/backend/application/orchestration/`, `services/backend/domain/conversation/`.
-
-**Критерии готовности:**
-- оркестрация разбита на понятные шаги;
-- можно заменить реализацию на state-machine / LangGraph-like оркестрацию позже;
-- состояние диалога явно моделируется;
-- clarification flow покрывает недостающие параметры поездки.
-
-**Не входит:** сложный graph runtime, multi-agent execution, долгосрочная память и реальные бронирования.
-
-## 10. Hotel Search Abstraction
-
-**Цель:** создать интерфейс поиска отелей для MVP v1.
-
-**Результат:** `HotelSearchClient` или аналогичный порт, mock/fake provider для ранней разработки и доменные модели проживания.
-
-**Файлы и модули:** будущие `services/backend/domain/travel/`, `services/backend/infrastructure/travel/hotels/`.
-
-**Критерии готовности:**
-- поиск отелей вызывается через интерфейс;
-- есть mock/fake данные для ранней проверки до предоставления API-контракта;
-- ошибки поиска описаны отдельно от HTTP/provider-ошибок;
-- модель не привязана к конкретному внешнему API.
-
-**Не входит:** real-time availability, бронирование, отзывы, карты, платежи, flight search и production-hardening.
-
-## 11. Flight Search Abstraction
-
-**Цель:** создать интерфейс поиска перелетов как next expansion после hotel MVP v1.
-
-**Результат:** `FlightSearchClient` или аналогичный порт, mock/fake provider для ранней разработки и доменные модели перелетов.
-
-**Файлы и модули:** будущие `services/backend/domain/travel/`, `services/backend/infrastructure/travel/flights/`.
-
-**Критерии готовности:**
-- поиск перелетов вызывается через интерфейс;
-- есть mock/fake данные для ранней проверки до предоставления API-контракта;
-- ошибки поиска описаны отдельно от HTTP/provider-ошибок;
-- модель не привязана к конкретному внешнему API.
-
-**Не входит:** MVP v1, финальная интеграция с авиапоиском до предоставления API-контракта, покупка билетов, live pricing и production-hardening.
-
-## 12. Offer Matching and Ranking
-
-**Цель:** сопоставлять найденные предложения с предпочтениями пользователя.
-
-**Результат:** базовый сервис ранжирования, который сортирует hotel offers и формирует причины рекомендации; ранняя проверка может использовать mock/fake hotel offers, а финальный MVP v1 должен работать с hotel offers из существующего travel API.
-
-**Файлы и модули:** будущие `services/backend/domain/matching/`, `services/backend/application/usecase/`.
-
-**Критерии готовности:**
-- критерии ранжирования явно описаны;
-- результат содержит объяснение выбора;
-- можно протестировать ranking без Ktor и внешних API;
-- поведение воспроизводимо на mock/fake данных до подключения предоставленного API-контракта.
-
-**Не входит:** ML ranking, персонализация на истории пользователя, A/B testing.
-
-## 13. Web frontend skeleton
-
-**Цель:** создать базовый web-клиент.
-
-**Результат:** Next.js + React + Tailwind + shadcn/ui приложение с базовой структурой страниц и компонентов.
-
-**Файлы и модули:** будущие `app/web/`, компоненты UI, frontend-конфиги.
-
-**Критерии готовности:**
-- приложение запускается локально;
-- настроены Tailwind и shadcn/ui;
-- выделены области для chat, results, preferences;
-- API-клиент изолирован от компонентов.
-
-**Не входит:** полноценная визуальная полировка, мобильное приложение, desktop-клиент.
-
-## 14. Chat UI
-
-**Цель:** реализовать пользовательский чат как основной интерфейс Travel Assistant.
-
-**Результат:** UI для ввода запроса, отображения сообщений, уточняющих вопросов и ответов ассистента.
-
-**Файлы и модули:** будущие `app/web/components/chat/`, `app/web/app/`, frontend state.
-
-**Критерии готовности:**
-- пользователь может отправить свободный запрос;
-- UI показывает сообщения пользователя и ассистента;
-- поддержаны loading/error states;
-- компоненты не содержат бизнес-логики оркестрации.
-
-**Не входит:** streaming, voice input, attachments, полноценная история с аккаунтом.
-
-## 15. Search Results UI
-
-**Цель:** показать найденные предложения в удобном виде.
-
-**Результат:** UI для карточек отелей в MVP v1; flight cards и combined travel offers остаются future expansion.
-
-**Файлы и модули:** будущие `app/web/components/results/`, DTO mappings, UI states.
-
-**Критерии готовности:**
-- hotel results отображаются структурированно;
-- видны цена, даты, локация, отель и причины рекомендации;
-- есть состояния empty/loading/error;
-- UI не зависит от mock-провайдера напрямую.
-
-**Не входит:** checkout, бронирование, сравнение на карте, сложные фильтры.
-
-## 16. User Preferences
-
-**Цель:** сохранить и использовать базовые предпочтения пользователя.
-
-**Результат:** модель предпочтений и простой flow их передачи в backend.
-
-**Файлы и модули:** будущие `services/backend/domain/preferences/`, `app/web/components/preferences/`, persistence позже.
-
-**Критерии готовности:**
-- поддержаны бюджет, стиль поездки, тип проживания, ограничения по датам;
-- preferences могут участвовать в matching/ranking;
-- модель не зависит от UI-компонентов;
-- определено, что хранится временно, а что позже попадет в PostgreSQL.
-
-**Не входит:** полноценный профиль, авторизация, синхронизация между устройствами.
-
-## 17. Conversation History
-
-**Цель:** поддержать историю диалога для текущего сценария.
-
-**Результат:** backend и web могут отображать и использовать историю текущей conversation session.
-
-**Файлы и модули:** будущие `services/backend/domain/conversation/`, `services/backend/application/conversation/`, `app/web/components/chat/`.
-
-**Критерии готовности:**
-- у conversation есть идентификатор;
-- сообщения имеют роль, время и содержимое;
-- orchestrator получает нужный контекст;
-- определена стратегия будущего хранения в PostgreSQL.
-
-**Не входит:** аккаунты, поиск по истории, long-term memory.
-
-## 18. Testing Strategy
-
-**Цель:** определить и внедрить базовую стратегию тестирования.
-
-**Результат:** набор уровней тестов: domain unit tests, application tests, API tests, frontend component tests и e2e smoke tests.
-
-**Файлы и модули:** будущие `tests/`, backend test source sets, frontend test setup, `docs/testing.md`.
-
-**Критерии готовности:**
-- определены обязательные тесты для бизнес-логики;
-- mock-провайдеры используются в тестах;
-- acceptance criteria задач включают validation steps;
-- локальная проверка документирована.
-
-**Не входит:** полное покрытие, performance testing, production monitoring.
-
-## 19. Security Baseline
-
-**Цель:** зафиксировать минимальные правила безопасности.
-
-**Результат:** baseline по secrets, input validation, error handling, CORS и защите внешних интеграций.
-
-**Файлы и модули:** будущие `docs/security.md`, backend config, middleware, validation utilities.
-
-**Критерии готовности:**
-- секреты не хранятся в репозитории;
-- входные данные валидируются;
-- ошибки не раскрывают внутренние детали;
-- CORS и rate limiting описаны для дальнейшей реализации.
-
-**Не входит:** полноценная авторизация, compliance, threat modeling enterprise-уровня.
-
-## 20. Observability Baseline
-
-**Цель:** подготовить минимальную наблюдаемость системы.
-
-**Результат:** подход к structured logging, request ids, basic metrics и диагностике оркестрации.
-
-**Файлы и модули:** будущие `docs/observability.md`, backend logging config, middleware.
-
-**Критерии готовности:**
-- запросы можно связать по request id;
-- ошибки и ключевые этапы оркестрации логируются;
-- sensitive data не попадает в логи;
-- определены базовые метрики.
-
-**Не входит:** production tracing, dashboards, alerting.
-
-## 21. Docker and Local Development
-
-**Цель:** упростить локальный запуск backend, frontend и инфраструктуры.
-
-**Результат:** Docker Compose для PostgreSQL, Redis и сервисов при необходимости.
-
-**Файлы и модули:** будущие `docker-compose.yml`, Dockerfiles, `.env.example`, `scripts/`.
-
-**Критерии готовности:**
-- локальный запуск описан одной понятной инструкцией;
-- PostgreSQL и Redis запускаются локально;
-- переменные окружения документированы;
-- mock/fake providers работают без внешних учетных данных до подключения предоставленного API-контракта.
-
-**Не входит:** production deployment, Kubernetes, cloud infrastructure.
-
-## 22. Production Readiness Checklist
-
-**Цель:** собрать список требований перед переходом к production-ready разработке.
-
-**Результат:** checklist для надежности, безопасности, наблюдаемости, данных, интеграций и UX.
-
-**Файлы и модули:** будущие `docs/production-readiness.md`, README, release checklist.
-
-**Критерии готовности:**
-- checklist покрывает backend, frontend, data, AI, security и operations;
-- ясно, что обязательно для MVP, а что для production;
-- риски вынесены явно;
-- checklist можно использовать перед релизом.
-
-**Не входит:** фактический production launch, SLA, юридические документы и реальные договоры с travel-провайдерами.
+Для этих вопросов используй explicit roadmap task и relevant source-of-truth documents.
