@@ -4,7 +4,7 @@
 
 Документ не является primary roadmap. Актуальный статус этапов, чеклисты артефактов, stage gates, carryover и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
 
-На момент controlled documentation cleanup Stage 0-5 завершены, Stage 6 остается в статусе `Planned / not started`, а реализация Code/API/DB/UI не начата. Этот документ является справочным материалом для будущих задач и не создает активный implementation backlog.
+На момент Stage 7.0b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, но дальнейшая Stage 7 implementation работа заблокирована до restart readiness review. Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает активный implementation backlog.
 
 Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Любой task format, milestone или implementation sequence ниже применяется только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap.
 
@@ -16,7 +16,7 @@
 - Каждый новый модуль должен иметь понятную ответственность.
 - Избегать преждевременного проектирования travel API-контракта до того, как пользователь предоставит существующий контракт.
 - Использовать mock/fake providers и contract placeholders до стабилизации доменной модели и получения API-контракта.
-- Проектировать backend так, чтобы позже можно было относительно спокойно перейти с Ktor на Spring, если потребуется.
+- Проектировать backend на Kotlin + Ktor; переход на Spring или другой backend framework возможен только через явный ADR и согласованную с roadmap задачу.
 - Не завязывать доменную логику на конкретный framework.
 - Не завязывать LLM-оркестрацию на конкретного провайдера.
 - Предпочитать интерфейсы и use cases в application/domain слоях, а детали Ktor, PostgreSQL, Redis, LLM и travel API держать в infrastructure/adapters.
@@ -79,7 +79,7 @@
 
 ### backend-refactor
 
-Полезен после появления работающего backend-кода. Помогает выделять domain/application/infrastructure слои, уменьшать связанность и готовить код к будущей миграции с Ktor на другой framework.
+Полезен после появления работающего backend-кода. Помогает выделять domain/application/infrastructure слои, уменьшать связанность и сохранять framework boundaries. Миграция с Ktor на другой backend framework требует явного ADR и согласованной с roadmap задачи.
 
 ### ai-llm-architect
 

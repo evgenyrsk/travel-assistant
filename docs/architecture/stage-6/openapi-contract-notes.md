@@ -96,7 +96,7 @@ Current-session shortlist в draft не является account history, persis
 
 ## Assumptions
 
-- API описывает frontend/backend boundary для Next.js + React + TypeScript frontend и Spring Boot backend, но сам contract остается framework-agnostic.
+- API описывает frontend/backend boundary для Next.js + React + TypeScript frontend и backend. После Stage 7.0a подтвержденный backend stack — Kotlin + Ktor; Java/Spring Boot не является текущим источником истины по stack. Сам contract остается framework-agnostic.
 - `sessionId`, `searchId`, `offerId` и `providerOfferRef` являются opaque identifiers.
 - Hotel offers приходят через абстракцию `HotelOfferProvider`; draft не раскрывает real provider contract.
 - Provider facts, assistant assumptions, user-provided constraints и unknown data должны оставаться разделенными в response payloads.

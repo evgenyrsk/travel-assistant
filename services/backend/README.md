@@ -1,15 +1,15 @@
 # Travel Assistant Backend
 
-Минимальный Spring Boot backend skeleton для Stage 7.1.
+Минимальный Kotlin + Ktor backend skeleton для Stage 7.0b.
 
-Backend создается как foundation для hotel-only MVP v1 и следует Stage 6 OpenAPI draft:
+Backend исправляет ранее задокументированный stack drift и остается только foundation для hotel-only MVP v1. Skeleton следует Stage 6 OpenAPI draft на уровне health endpoint:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
 ## Запуск
 
 ```bash
-./gradlew bootRun
+./gradlew run
 ```
 
 Команду нужно запускать из директории `services/backend`.
@@ -22,30 +22,23 @@ Backend создается как foundation для hotel-only MVP v1 и сле�
 
 ## Skeleton endpoints
 
-Все endpoints находятся под `/api/v1`:
+Все endpoints находятся под `/api/v1`. В Stage 7.0b реализован только:
 
 - `GET /health`
-- `POST /assistant/sessions`
-- `POST /assistant/sessions/{sessionId}/messages`
-- `POST /hotel-searches`
-- `GET /hotel-searches/{searchId}/offers`
-- `GET /assistant/sessions/{sessionId}/shortlist`
-- `PUT /assistant/sessions/{sessionId}/shortlist/{offerId}`
-- `DELETE /assistant/sessions/{sessionId}/shortlist/{offerId}`
-- `POST /assistant/sessions/{sessionId}/explanations`
 
-Explanation и comparison представлены одним Stage 6 endpoint:
-`POST /assistant/sessions/{sessionId}/explanations`, где `mode` может быть
-`explain` или `compare`.
+Фактический путь проверки доступности: `GET /api/v1/health`.
 
 ## Намеренно не реализовано
 
+- assistant sessions;
+- hotel search endpoints;
+- shortlist endpoints;
+- explanation/compare endpoints;
 - business logic поиска и ранжирования;
 - реальные hotel provider integrations;
 - provider-specific DTO/contracts;
-- DB migrations, JPA entities, repositories и storage model;
+- DB migrations, entities, repositories и storage model;
 - Redis/cache;
 - LLM integration и orchestration;
 - frontend/generated clients;
 - booking, payment, flights, combined itinerary, account flows.
-

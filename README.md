@@ -20,7 +20,7 @@ README является входной картой проекта: он пом�
 ├── .gitignore           # Правила исключения локальных и generated-файлов
 ├── .github/             # GitHub issue и pull request templates
 ├── app/                 # Будущий frontend/application слой
-├── services/            # Backend/services модули; services/backend содержит Stage 7.1 Spring Boot skeleton
+├── services/            # Backend/services модули; services/backend содержит Stage 7.0b Kotlin + Ktor skeleton
 ├── docs/                # Продуктовая, roadmap, архитектурная и development-документация
 ├── tests/               # Будущие тесты, fixtures и e2e-сценарии
 └── scripts/             # Будущие скрипты разработки и автоматизации
@@ -38,7 +38,7 @@ README является входной картой проекта: он пом�
 - `docs/product/stage-3/` — Этап 3: MVP UX / Navigation, screen map, navigation model, UX flows, required fields и acceptance criteria.
 - `docs/product/stage-4/` — Этап 4: Visual Design & UX System, visual direction, design system foundations, component inventory, screen specifications и interaction patterns.
 - `docs/PROJECT_BRIEF.md` — продуктовый контекст, пользователи, ключевые сценарии и открытые продуктовые вопросы.
-- `docs/ARCHITECTURE.md` — предварительные архитектурные ориентиры и защитные границы до Stage 5 Technical Architecture.
+- `docs/ARCHITECTURE.md` — предварительные архитектурные ориентиры; текущий backend stack подтвержден как Kotlin + Ktor в architecture baseline.
 - `docs/architecture/README.md` — индекс архитектурной документации и Stage 5 architecture baseline.
 - `docs/architecture/architecture-baseline.md` — актуальное компактное архитектурное состояние после Stage 5.
 - `docs/roadmap/roadmap.md` — primary roadmap и source of truth по статусам этапов, progression, carryover и следующему разрешенному шагу.
@@ -52,7 +52,7 @@ README является входной картой проекта: он пом�
 - `docs/development/roadmap.md` — secondary roadmap разработки; future/reference material, следует primary roadmap и не заменяет статусы этапов.
 - `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки; не источник статусов продуктовых этапов.
 - `docs/development/implementation-strategy.md` — будущая стратегия реализации и правила декомпозиции задач; не primary roadmap и не active implementation backlog.
-- `services/backend/README.md` — инструкция запуска Stage 7.1 Spring Boot backend skeleton и список skeleton endpoints.
+- `services/backend/README.md` — инструкция запуска Stage 7.0b Kotlin + Ktor backend skeleton и health endpoint.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
 - `.github/` — GitHub templates для постановки задач и описания pull requests.
 
@@ -60,7 +60,7 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 активирован только в пределах Stage 7.1 backend skeleton. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной explicit roadmap activation.
+Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 активирован только в пределах backend skeleton correction: Java/Spring Boot drift заменен на минимальный Kotlin + Ktor skeleton в Stage 7.0b. Дальнейшая Stage 7 implementation работа заблокирована до restart readiness review. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
 
 ## Рабочий процесс Codex
 

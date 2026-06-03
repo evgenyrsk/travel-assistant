@@ -2,26 +2,38 @@
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальный architecture baseline Travel Assistant после завершения Stage 5.
+Этот документ фиксирует актуальный architecture baseline Travel Assistant после завершения Stage 5, Stage 7.0a backend stack decision sync и Stage 7.0b backend skeleton correction.
 
 Он нужен как компактная точка входа в текущее архитектурное состояние: какие границы подтверждены, где находится conceptual architecture baseline и какие Stage 5 artifacts являются исходными источниками.
 
-Документ не заменяет historical Stage 5 artifacts, не переписывает architecture decisions и не добавляет новые решения. Roadmap остается source of truth по статусам этапов и progression.
+Документ не заменяет historical Stage 5 artifacts, не переписывает architecture decisions и не добавляет accepted ADR. Roadmap остается source of truth по статусам этапов и progression.
 
 Этот документ не является implementation plan, API contract, OpenAPI specification, DB schema, storage model, provider adapter design или backlog задач.
 
 ## 2. Текущий статус архитектуры
 
 - Stage 5 - Completed.
-- Stage 6 - Planned / not started.
-- Architecture baseline сформирован на conceptual level.
-- Production implementation еще не начиналась.
-- API/OpenAPI contracts, endpoint specs, DB schema, storage model и provider adapters еще не создавались.
+- Stage 6 - Completed as contract/documentation phase.
+- Stage 7 - In progress / blocked after Stage 7.0b.
+- Architecture baseline сформирован на conceptual level и дополнен backend stack decision на уровне документации/governance.
+- Minimal Kotlin + Ktor backend skeleton существует в `services/backend/`.
+- Business logic, provider integration, DB/storage, frontend, generated clients и production implementation еще не создавались.
+- API/OpenAPI contract draft создан в Stage 6 как documentation-level frontend/backend boundary; provider adapters еще не создавались.
 - Auth/security/DevOps/testing backlog еще не создавался.
 
-Следующий этап может начаться только по отдельной явной roadmap-задаче.
+Следующая implementation задача может начаться только после restart readiness review, выбранного отдельной явной задачей, согласованной с roadmap.
 
-## 3. Scope архитектуры
+## 3. Backend stack baseline
+
+Подтвержденный backend stack Travel Assistant: Kotlin + Ktor.
+
+Java/Spring Boot не является принятым backend stack для Travel Assistant. Stage 7.0b заменил Java/Spring Boot skeleton в `services/backend/` на минимальный Kotlin + Ktor skeleton. Этот документ не начинает Stage 7.2.
+
+Перед любой backend implementation задачей Codex должен сверить backend stack с этим architecture baseline. Если файлы реализации конфликтуют с подтвержденным stack, Codex должен остановиться и сообщить об архитектурном расхождении, а не продолжать реализацию поверх конфликтующего skeleton.
+
+Любое будущее изменение backend stack требует явного architecture decision / ADR и отдельной задачи, согласованной с roadmap. Historical stage artifacts, review notes или future/reference development docs не должны использоваться как текущий источник истины по stack, если существуют roadmap и architecture baseline.
+
+## 4. Scope архитектуры
 
 Актуальный architecture baseline включает результаты Stage 5:
 
@@ -38,7 +50,7 @@
 
 Эти документы описывают architecture baseline для hotel-only MVP v1 без старта production implementation.
 
-## 4. System context
+## 5. System context
 
 Пользователь взаимодействует с AI-assisted travel assistant через chat-first, not chat-only experience.
 
@@ -48,11 +60,11 @@ External provider layer отвечает за hotel facts: цены, availabilit
 
 LLM помогает интерпретировать запрос, уточнять недостающие параметры, объяснять, сравнивать, ранжировать и резюмировать. LLM не является источником provider facts.
 
-Backend/application/orchestration conceptually координирует flow между user intent, assistant/LLM layer, hotel provider abstraction и results view.
+Backend/application/orchestration conceptually координирует flow между user intent, assistant/LLM layer, hotel provider abstraction и results view. Framework layer для backend должен соответствовать Kotlin + Ktor, при этом domain/application logic остается независимой от Ktor.
 
 UI остается conceptual/product-driven: Stage 5 не создает frontend implementation, component props, API endpoints или production screens.
 
-## 5. Основные архитектурные границы
+## 6. Основные архитектурные границы
 
 Ключевые границы:
 
@@ -61,11 +73,12 @@ UI остается conceptual/product-driven: Stage 5 не создает front
 - LLM boundary: LLM не создает provider facts и не заменяет provider data.
 - Data boundary: current-session shortlist не является account history, persistent saved trips или cross-device sync.
 - Integration boundary: provider abstractions являются conceptual boundaries, а не API contracts.
-- Implementation boundary: production implementation не начата.
+- Stack boundary: backend implementation использует Kotlin + Ktor, если только будущий ADR явно не меняет это решение.
+- Implementation boundary: production implementation не начата; Stage 7.0b ограничен минимальным Kotlin + Ktor skeleton и health endpoint.
 
 Future flights, combined itinerary, booking, payment, account history и full auth остаются outside MVP v1.
 
-## 6. Baseline application orchestration
+## 7. Baseline application orchestration
 
 Application orchestration на conceptual level отвечает за управление hotel-only flow:
 
@@ -80,7 +93,7 @@ Application orchestration на conceptual level отвечает за управ
 
 Это не code design, не state machine specification, не endpoint design и не implementation plan.
 
-## 7. Domain и data baseline
+## 8. Domain и data baseline
 
 Stage 5 зафиксировал conceptual domain areas:
 
@@ -102,7 +115,7 @@ Storage boundaries остаются conceptual. Stage 5 не создает DB s
 
 Account history, persistent saved trips, full user profile, full auth, booking records, payment records, flight data и combined itinerary data не входят в MVP v1.
 
-## 8. Integration baseline
+## 9. Integration baseline
 
 Provider abstraction нужна как conceptual boundary между Travel Assistant и hotel offer sources.
 
@@ -120,7 +133,7 @@ Provider abstraction не является API/OpenAPI contract. Stage 5 не с
 
 Любые API contracts требуют отдельного explicit roadmap step и должны уважать provider-agnostic boundary.
 
-## 9. NFR / quality attributes baseline
+## 10. NFR / quality attributes baseline
 
 NFR и quality attributes Stage 5 задают architecture-level expectations:
 
@@ -139,7 +152,7 @@ NFR и quality attributes Stage 5 задают architecture-level expectations:
 
 Operational, security, observability и testing details требуют отдельной активации в roadmap.
 
-## 10. Связь с decisions и ADR
+## 11. Связь с decisions и ADR
 
 Accepted ADR должны находиться в `docs/decisions/`.
 
@@ -147,9 +160,9 @@ Accepted ADR должны находиться в `docs/decisions/`.
 
 Этот inventory содержит confirmed architecture guardrails, deferred decisions и future ADR candidates, но не создает accepted ADR и не активирует future decisions.
 
-Future ADR candidates не являются текущими задачами. Они могут стать ADR только после отдельного решения, если будущая задача меняет architecture boundaries, public contracts, provider strategy, storage, identity, security или long-term technical direction.
+Future ADR candidates не являются текущими задачами. Они могут стать ADR только после отдельного решения, если будущая задача меняет architecture boundaries, public contracts, provider strategy, storage, identity, security, backend stack или long-term technical direction.
 
-## 11. Связь со Stage 5 artifacts
+## 12. Связь со Stage 5 artifacts
 
 Stage 5 documents сохраняются как historical architecture artifacts и audit trail. Они являются подробными источниками для conceptual architecture baseline.
 
@@ -160,12 +173,12 @@ Stage 5 documents сохраняются как historical architecture artifact
 1. явный запрос текущей задачи;
 2. `docs/roadmap/roadmap.md` для stage status и progression;
 3. `docs/product/product-baseline.md` для актуального product scope;
-4. этот architecture baseline для compact architecture state;
+4. этот architecture baseline для compact architecture state и backend stack authority;
 5. Stage 5 artifacts для detailed architecture context и audit trail.
 
 Roadmap остается source of truth по статусам и progression.
 
-## 12. Architecture carryover
+## 13. Architecture carryover
 
 Актуальный carryover уже зафиксирован в `docs/architecture/stage-5/stage-5-summary-and-carryover.md` и related Stage 5 artifacts. Этот раздел не добавляет новые carryover items.
 
@@ -183,11 +196,14 @@ Roadmap остается source of truth по статусам и progression.
 
 Carryover не является active backlog, Stage 6 task list или implementation plan.
 
-## 13. Связанные документы
+## 14. Связанные документы
 
 - `docs/roadmap/roadmap.md` - primary roadmap и source of truth по статусам этапов и progression.
 - `docs/product/product-baseline.md` - актуальный compact product baseline.
 - `docs/architecture/README.md` - index архитектурной документации.
+- `docs/reviews/project-consistency-audit.md` - audit, выявивший backend stack blocker.
+- `docs/reviews/backend-stack-decision-sync.md` - Stage 7.0a backend stack decision and documentation sync handoff.
+- `docs/reviews/backend-skeleton-correction.md` - Stage 7.0b backend skeleton correction report.
 - `docs/guides/documentation-style-guide.md` - правила языка, структуры и безопасного documentation refactoring.
 - `docs/reviews/documentation-refactoring-plan.md` - план controlled documentation refactoring.
 - `docs/decisions/README.md` - ADR governance и decision index.

@@ -28,6 +28,8 @@
 - конфликт между задачей, roadmap и ADR;
 - превращение future/reference documents в active implementation backlog;
 - превращение ADR candidates или decision inventory в accepted ADR;
+- конфликт backend implementation с подтвержденным stack Kotlin + Ktor;
+- попытку продолжить Java/Spring Boot backend без явного ADR и согласованной с roadmap задачи;
 - изменения публичных контрактов без документации;
 - захардкоженные детали провайдеров, учетные данные или допущения о внешних API;
 - отсутствующие шаги проверки.
@@ -68,6 +70,9 @@
 ### Реализация будущих этапов
 
 - Добавляет ли изменение реальные интеграции с travel API слишком рано?
+- Использует ли backend implementation подтвержденный stack Kotlin + Ktor?
+- Не продолжает ли изменение Java/Spring Boot skeleton без явного ADR и согласованной с roadmap задачи?
+- Не игнорирует ли изменение архитектурное расхождение между файлами реализации и current architecture baseline?
 - Вносит ли оно поведение LLM, специфичное для провайдера, в доменную логику?
 - Добавляет ли оно infrastructure до соответствующего этапа roadmap?
 - Создает ли backend/frontend skeleton, если задача относится к продуктовой или аналитической проработке?

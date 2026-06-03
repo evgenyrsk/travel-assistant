@@ -6,10 +6,10 @@
 
 - Stage 5 — Technical Architecture / System Design: Completed.
 - Stage 6 — API Contracts / OpenAPI / Integration Boundary: Completed; Stage 6.1-6.9 completed.
-- Stage 7 — MVP Implementation: In progress; Stage 7.1 backend skeleton completed.
-- Code/API/DB/UI implementation: minimal backend skeleton started; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started.
+- Stage 7 — MVP Implementation: In progress / blocked; Stage 7.0b backend skeleton correction to Kotlin + Ktor completed.
+- Code/API/DB/UI implementation: minimal Kotlin + Ktor backend skeleton exists; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started.
 
-`architecture-baseline.md` фиксирует актуальный compact architecture baseline после Stage 5. Документы Stage 5 сохраняются как historical architecture artifacts, deliverables и audit trail: они описывают границы, ответственности и guardrails для hotel-only MVP v1, но не являются implementation backlog, API/OpenAPI contract, endpoint specification, database schema, storage model, provider adapter design, auth/security/DevOps/testing plan или production implementation plan.
+`architecture-baseline.md` фиксирует актуальный compact architecture baseline и подтверждает backend stack Kotlin + Ktor. Java/Spring Boot не является принятым Travel Assistant backend stack без явного будущего ADR и задачи, согласованной с roadmap. Документы Stage 5 сохраняются как historical architecture artifacts, deliverables и audit trail: они описывают границы, ответственности и guardrails для hotel-only MVP v1, но не являются implementation backlog, API/OpenAPI contract, endpoint specification, database schema, storage model, provider adapter design, auth/security/DevOps/testing plan или production implementation plan.
 
 Статусы этапов, progression и следующий разрешенный шаг фиксируются в primary roadmap `../roadmap/roadmap.md`.
 
@@ -18,12 +18,14 @@
 - `../roadmap/roadmap.md` — primary roadmap и источник истины для текущего статуса этапов.
 - `architecture-baseline.md` — актуальный compact architecture baseline после Stage 5.
 - `../reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
-- `../../services/backend/README.md` — Stage 7.1 Spring Boot backend skeleton run notes and endpoint list.
+- `../../services/backend/README.md` — Stage 7.0b Kotlin + Ktor backend skeleton run notes and health endpoint.
 
 ## Stage 7 artifacts
 
-- `../../services/backend/` — minimal Spring Boot backend skeleton with endpoint, DTO, error response and health smoke test coverage for Stage 7.1 only.
+- `../../services/backend/` — minimal Kotlin + Ktor backend skeleton with health endpoint and health test coverage for Stage 7.0b only.
 - `stage-7/stage-7-1-backend-skeleton-review.md` — Stage 7.1 backend skeleton scope audit; verdict: Passed with minor notes.
+- `../reviews/backend-stack-decision-sync.md` — Stage 7.0a backend stack decision and documentation sync handoff.
+- `../reviews/backend-skeleton-correction.md` — Stage 7.0b backend skeleton correction report.
 
 ## Stage 6 artifacts
 
@@ -64,4 +66,4 @@
 
 ## Граница Stage 6
 
-Stage 6 завершен как contract/documentation phase. Созданный и уточненный OpenAPI draft является documentation-level API contract draft, а не provider-specific contract, DB schema, storage model, auth/security/DevOps/testing backlog или production code. Stage 7 активирован только в пределах Stage 7.1 backend skeleton; Stage 7.2+ требуют отдельной явной задачи.
+Stage 6 завершен как contract/documentation phase. Созданный и уточненный OpenAPI draft является documentation-level API contract draft, а не provider-specific contract, DB schema, storage model, auth/security/DevOps/testing backlog или production code. Stage 7 активирован только в пределах backend skeleton correction, но дальнейшая implementation работа заблокирована до restart readiness review. Stage 7.2+ требуют отдельной явной задачи.

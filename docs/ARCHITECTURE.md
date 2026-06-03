@@ -4,6 +4,8 @@
 
 Он не является финальной архитектурой, ADR, API-контрактом, database schema, provider adapter design или разрешением начинать техническую реализацию. Практический порядок реализации описан отдельно в `docs/development/implementation-strategy.md`, а актуальный этап и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
 
+Текущий compact architecture baseline находится в `docs/architecture/architecture-baseline.md`. После Stage 7.0a подтверждено, что целевой backend stack Travel Assistant — Kotlin + Ktor. Stage 7.0b заменил Java/Spring Boot skeleton в `services/backend/` на минимальный Kotlin + Ktor skeleton. Java/Spring Boot не является принятым backend stack без будущего явного ADR.
+
 ## Рабочие гипотезы стека
 
 - Backend: Kotlin + Ktor.
@@ -40,3 +42,4 @@ tests/     Будущие shared fixtures, integration tests и end-to-end scena
 - Держать доменную логику независимой от Ktor, Next.js, PostgreSQL, Redis и конкретных LLM-провайдеров.
 - Не хранить секреты в репозитории.
 - Финальные архитектурные решения, публичные контракты, provider adapter design и выборы с долгосрочными последствиями фиксировать на соответствующем roadmap-этапе и через ADR, если решение требует ADR.
+- Любое будущее изменение backend stack требует явного architecture decision / ADR и задачи, согласованной с roadmap.

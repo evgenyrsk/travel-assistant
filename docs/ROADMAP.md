@@ -18,10 +18,10 @@ Primary roadmap и source of truth по статусам этапов, progressi
 | Stage 4.1 | Completed |
 | Stage 5 | Completed |
 | Stage 6 | Completed; Stage 6.1-6.9 completed |
-| Stage 7 | In progress; Stage 7.1 completed |
-| Code/API/DB/UI implementation | Minimal backend skeleton started; DB/UI/provider integration not started |
+| Stage 7 | In progress; Stage 7.0b backend skeleton correction completed; further implementation blocked until restart readiness review |
+| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend skeleton exists; DB/UI/provider integration not started |
 
-Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 6.1-6.9 завершены. Stage 7 активирован только в пределах Stage 7.1 backend skeleton; Stage 7.2+ требуют отдельной явной задачи. Stage 7.1 не означает автоматическое создание business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients или production implementation. Подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
+Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 6.1-6.9 завершены. Stage 7 активирован только в пределах backend skeleton correction; Stage 7.2+ не активированы и требуют отдельной явной задачи после restart readiness review. Подтвержденный backend stack — Kotlin + Ktor. Stage 7.0b заменил Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton. Stage 7.0b не означает автоматическое создание business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients или production implementation. Подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
