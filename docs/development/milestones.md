@@ -6,7 +6,7 @@
 
 ## Статус и правила активации
 
-На момент Stage 7.0b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, но дальнейшая Stage 7 implementation работа заблокирована до restart readiness review. Подтвержденный backend stack — Kotlin + Ktor.
+На момент Stage 7.0f-b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, restart readiness review прошел с minor notes, stale Stage 7 status/navigation wording синхронизирован, а `docs/reviews/README.md` классифицирует review/audit artifacts. Подтвержденный backend stack — Kotlin + Ktor.
 
 Вехи ниже являются справочными материалами для будущей реализации. Они не являются активным implementation backlog, task tracker или разрешением начинать backend/frontend implementation.
 
@@ -14,7 +14,7 @@
 
 Для backend implementation вехи должны сверяться с `docs/architecture/architecture-baseline.md`: backend stack — Kotlin + Ktor. Java/Spring Boot не является принятым stack без явного ADR и согласованной с roadmap задачи.
 
-Каждая веха становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap. Если веха звучит конкретнее, чем текущий primary roadmap, она должна читаться как будущий ориентир, а не как текущая задача.
+Каждая веха становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap. Stage 7.2+ не активированы этим документом, Stage 7.0f-a cleanup или Stage 7.0f-b reviews index cleanup. Если веха звучит конкретнее, чем текущий primary roadmap, она должна читаться как будущий ориентир, а не как текущая задача.
 
 ## Веха 0 — основа проекта
 

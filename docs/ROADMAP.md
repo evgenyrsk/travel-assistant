@@ -18,10 +18,10 @@ Primary roadmap и source of truth по статусам этапов, progressi
 | Stage 4.1 | Completed |
 | Stage 5 | Completed |
 | Stage 6 | Completed; Stage 6.1-6.9 completed |
-| Stage 7 | In progress; Stage 7.0b backend skeleton correction completed; further implementation blocked until restart readiness review |
+| Stage 7 | In progress; corrective stabilization completed through restart readiness review, Stage 7.0e audit, Stage 7.0f-a status/navigation sync cleanup and Stage 7.0f-b reviews index cleanup; Stage 7.2+ not activated |
 | Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend skeleton exists; DB/UI/provider integration not started |
 
-Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 6.1-6.9 завершены. Stage 7 активирован только в пределах backend skeleton correction; Stage 7.2+ не активированы и требуют отдельной явной задачи после restart readiness review. Подтвержденный backend stack — Kotlin + Ktor. Stage 7.0b заменил Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton. Stage 7.0b не означает автоматическое создание business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients или production implementation. Подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
+Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 6.1-6.9 завершены. Stage 7 прошел corrective stabilization: Stage 7.0b заменил Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, Stage 7 restart readiness review прошел с minor notes, Stage 7.0e выявил оставшиеся documentation redundancy / structure issues, Stage 7.0f-a синхронизировал status/navigation wording, а Stage 7.0f-b создал reviews index и role labeling для audit artifacts. Stage 7 больше не заблокирован backend stack drift или restart readiness review. Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи; broader documentation cleanup остается pending. Stage 7.0b/7.0f-a/7.0f-b не означают автоматическое создание business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients или production implementation. Подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 

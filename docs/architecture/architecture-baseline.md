@@ -2,7 +2,7 @@
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальный architecture baseline Travel Assistant после завершения Stage 5, Stage 7.0a backend stack decision sync и Stage 7.0b backend skeleton correction.
+Этот документ фиксирует актуальный architecture baseline Travel Assistant после завершения Stage 5, Stage 7.0a backend stack decision sync, Stage 7.0b backend skeleton correction, Stage 7 restart readiness review, Stage 7.0f-a status/navigation sync cleanup и Stage 7.0f-b reviews index cleanup.
 
 Он нужен как компактная точка входа в текущее архитектурное состояние: какие границы подтверждены, где находится conceptual architecture baseline и какие Stage 5 artifacts являются исходными источниками.
 
@@ -14,14 +14,16 @@
 
 - Stage 5 - Completed.
 - Stage 6 - Completed as contract/documentation phase.
-- Stage 7 - In progress / blocked after Stage 7.0b.
+- Stage 7 - In progress / awaiting explicit next task after corrective stabilization.
 - Architecture baseline сформирован на conceptual level и дополнен backend stack decision на уровне документации/governance.
 - Minimal Kotlin + Ktor backend skeleton существует в `services/backend/`.
 - Business logic, provider integration, DB/storage, frontend, generated clients и production implementation еще не создавались.
 - API/OpenAPI contract draft создан в Stage 6 как documentation-level frontend/backend boundary; provider adapters еще не создавались.
 - Auth/security/DevOps/testing backlog еще не создавался.
+- Stage 7 restart readiness review прошел с minor notes, Stage 7.0f-a синхронизировал stale status/navigation wording, а Stage 7.0f-b добавил reviews index / historical artifact labeling.
+- Broader documentation cleanup остается pending.
 
-Следующая implementation задача может начаться только после restart readiness review, выбранного отдельной явной задачей, согласованной с roadmap.
+Следующая implementation задача может начаться только через отдельную явную roadmap-aligned задачу. Stage 7.2 не активирован этим architecture baseline, Stage 7.0f-a cleanup или Stage 7.0f-b reviews index cleanup.
 
 ## 3. Backend stack baseline
 

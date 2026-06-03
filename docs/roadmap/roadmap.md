@@ -8,9 +8,9 @@ Roadmap не является task tracker, product specification, architecture 
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 7 — MVP Implementation активирован только в пределах backend skeleton correction; дальнейшая implementation работа заблокирована до restart readiness review |
-| Последний завершенный этап | Stage 7.0b — Backend Skeleton Correction to Kotlin + Ktor |
-| Следующий планируемый шаг | Restart readiness review должен быть выбран явно; Stage 7.2+ не активированы |
+| Текущий этап | Stage 7 — MVP Implementation прошел corrective stabilization через backend skeleton correction, restart readiness review, Stage 7.0e documentation audit, Stage 7.0f-a status/navigation sync cleanup и Stage 7.0f-b reviews index cleanup; Stage 7.2+ не активированы |
+| Последний завершенный этап | Stage 7.0f-b — Reviews Index & Historical Artifact Labeling |
+| Следующий планируемый шаг | Отдельная явная roadmap-aligned задача должна выбрать Stage 7.2 или оставшийся documentation cleanup; Stage 7.2+ не активированы |
 | Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend skeleton exists; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started |
 
 | Этап | Статус | Краткое описание |
@@ -23,7 +23,7 @@ Roadmap не является task tracker, product specification, architecture 
 | Stage 4.1 | Completed | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Completed | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Completed | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup and Stage 6.9 final closure / handoff completed. |
-| Stage 7 | In progress / blocked | Реализация hotel-only MVP активирована только для backend skeleton correction; дальнейшая implementation работа заблокирована до restart readiness review. Stage 7.2+ требуют отдельных явных задач. |
+| Stage 7 | In progress / awaiting explicit next task | Corrective stabilization completed through Kotlin + Ktor backend skeleton correction, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup and Stage 7.0f-b reviews index cleanup. Stage 7.2+ требуют отдельных явных задач. |
 | Stage 8 | Planned | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Planned | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Planned | Cross-platform expansion после стабилизации core product и architecture. |
@@ -79,7 +79,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 - Сроки и формат предоставления existing travel API contract.
 - Deferred technical decisions: adapter design, provider error taxonomy, reliability и production-hardening.
 - Session persistence, resume behaviour, long-term history, authorization и account-level storage.
-- Следующий этап или cleanup task должны быть выбраны отдельной явной задачей.
+- Следующий implementation step или remaining cleanup task должны быть выбраны отдельной явной задачей.
 
 ## 6. Completed Stages
 
@@ -269,9 +269,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 7 — MVP Implementation
 
-**Статус:** In progress / blocked. Stage 7.1 created initial backend skeleton, Stage 7.0a подтвердил backend stack decision на documentation/governance уровне, Stage 7.0b corrected backend skeleton to Kotlin + Ktor. Дальнейшая Stage 7 implementation работа заблокирована до restart readiness review.
+**Статус:** In progress / awaiting explicit next task. Stage 7.1 created initial backend skeleton, Stage 7.0a подтвердил backend stack decision на documentation/governance уровне, Stage 7.0b corrected backend skeleton to Kotlin + Ktor, Stage 7 restart readiness review passed with minor notes, Stage 7.0e completed documentation redundancy / structure audit, Stage 7.0f-a completed narrow status/navigation sync cleanup, and Stage 7.0f-b created reviews index / historical artifact labeling.
 
-**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельной явной активации implementation. Stage 7 активирован только в пределах backend skeleton correction, а дальнейшая implementation работа заблокирована до restart readiness review. Подтвержденный backend stack — Kotlin + Ktor. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
+**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельной явной активации implementation. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2 или любая последующая implementation task не активированы. Подтвержденный backend stack — Kotlin + Ktor. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
 
 **Completed Stage 7 skeleton artifacts:**
 
@@ -280,10 +280,16 @@ Provider/API data является source of truth для travel facts. LLM мо
 - `docs/reviews/project-consistency-audit.md` — global consistency audit that identified the backend stack blocker.
 - `docs/reviews/backend-stack-decision-sync.md` — Stage 7.0a backend stack decision and documentation sync handoff.
 - `docs/reviews/backend-skeleton-correction.md` — Stage 7.0b correction report for replacing Java/Spring Boot skeleton with Kotlin + Ktor.
+- `docs/reviews/stage-7-restart-readiness-review.md` — Stage 7 restart readiness review; verdict: passed with minor notes.
+- `docs/reviews/product-baseline-status-cleanup.md` — status cleanup after restart readiness review.
+- `docs/reviews/documentation-redundancy-structure-audit.md` — Stage 7.0e documentation redundancy and structure audit; found remaining cleanup needs.
+- `docs/reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a narrow status/navigation sync cleanup.
+- `docs/reviews/README.md` — reviews index and role labels for current, historical and superseded audit artifacts.
+- `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b cleanup report for reviews index / historical labeling.
 
 **Явные исключения Stage 7.0b:** Stage 7.0b не реализует search business logic, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary или account flows.
 
-**Следующий шаг:** restart readiness review должен быть выбран отдельной явной задачей. Stage 7.2 или любая последующая implementation task не активированы. Stage 8+ остаются Planned.
+**Следующий шаг:** отдельная явная roadmap-aligned задача должна выбрать Stage 7.2 или оставшийся documentation cleanup. Stage 7.2 или любая последующая implementation task не активированы этой cleanup-задачей. Broader documentation cleanup остается pending. Stage 8+ остаются Planned.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
@@ -317,3 +323,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 - `docs/reviews/roadmap-structure-and-process-fitness-review.md` — review структуры roadmap и process fitness.
 - `docs/reviews/global-documentation-quality-review.md` — глобальный review качества документации.
 - `docs/reviews/documentation-refactoring-plan.md` — план controlled documentation refactoring.
+- `docs/reviews/README.md` — index review/audit artifacts и правила чтения historical/current cleanup reports.
+- `docs/reviews/documentation-redundancy-structure-audit.md` — Stage 7.0e audit избыточности и структуры документации.
+- `docs/reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a cleanup устаревшего status/navigation wording.
+- `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b cleanup index/role labeling для review artifacts.

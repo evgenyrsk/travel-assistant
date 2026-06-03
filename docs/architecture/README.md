@@ -6,7 +6,7 @@
 
 - Stage 5 — Technical Architecture / System Design: Completed.
 - Stage 6 — API Contracts / OpenAPI / Integration Boundary: Completed; Stage 6.1-6.9 completed.
-- Stage 7 — MVP Implementation: In progress / blocked; Stage 7.0b backend skeleton correction to Kotlin + Ktor completed.
+- Stage 7 — MVP Implementation: In progress / awaiting explicit next task; Stage 7.0b backend skeleton correction to Kotlin + Ktor, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup and Stage 7.0f-b reviews index cleanup completed.
 - Code/API/DB/UI implementation: minimal Kotlin + Ktor backend skeleton exists; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started.
 
 `architecture-baseline.md` фиксирует актуальный compact architecture baseline и подтверждает backend stack Kotlin + Ktor. Java/Spring Boot не является принятым Travel Assistant backend stack без явного будущего ADR и задачи, согласованной с roadmap. Документы Stage 5 сохраняются как historical architecture artifacts, deliverables и audit trail: они описывают границы, ответственности и guardrails для hotel-only MVP v1, но не являются implementation backlog, API/OpenAPI contract, endpoint specification, database schema, storage model, provider adapter design, auth/security/DevOps/testing plan или production implementation plan.
@@ -19,11 +19,16 @@
 - `architecture-baseline.md` — актуальный compact architecture baseline после Stage 5.
 - `../reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
 - `../../services/backend/README.md` — Stage 7.0b Kotlin + Ktor backend skeleton run notes and health endpoint.
+- `../reviews/stage-7-restart-readiness-review.md` — Stage 7 restart readiness review; verdict: passed with minor notes.
+- `../reviews/README.md` — index review/audit artifacts и правила чтения historical/current cleanup reports.
+- `../reviews/documentation-redundancy-structure-audit.md` — Stage 7.0e documentation redundancy and structure audit.
+- `../reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a status/navigation sync cleanup.
+- `../reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b reviews index / historical labeling cleanup.
 
 ## Stage 7 artifacts
 
 - `../../services/backend/` — minimal Kotlin + Ktor backend skeleton with health endpoint and health test coverage for Stage 7.0b only.
-- `stage-7/stage-7-1-backend-skeleton-review.md` — Stage 7.1 backend skeleton scope audit; verdict: Passed with minor notes.
+- `stage-7/stage-7-1-backend-skeleton-review.md` — historical Stage 7.1 backend skeleton scope audit for the old Java/Spring Boot skeleton; superseded by Stage 7.0b Kotlin + Ktor correction.
 - `../reviews/backend-stack-decision-sync.md` — Stage 7.0a backend stack decision and documentation sync handoff.
 - `../reviews/backend-skeleton-correction.md` — Stage 7.0b backend skeleton correction report.
 
@@ -66,4 +71,4 @@
 
 ## Граница Stage 6
 
-Stage 6 завершен как contract/documentation phase. Созданный и уточненный OpenAPI draft является documentation-level API contract draft, а не provider-specific contract, DB schema, storage model, auth/security/DevOps/testing backlog или production code. Stage 7 активирован только в пределах backend skeleton correction, но дальнейшая implementation работа заблокирована до restart readiness review. Stage 7.2+ требуют отдельной явной задачи.
+Stage 6 завершен как contract/documentation phase. Созданный и уточненный OpenAPI draft является documentation-level API contract draft, а не provider-specific contract, DB schema, storage model, auth/security/DevOps/testing backlog или production code. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Broader documentation cleanup остается pending.

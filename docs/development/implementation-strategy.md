@@ -4,9 +4,9 @@
 
 Документ не является primary roadmap. Актуальный статус этапов, чеклисты артефактов, stage gates, carryover и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
 
-На момент Stage 7.0b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, но дальнейшая Stage 7 implementation работа заблокирована до restart readiness review. Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает активный implementation backlog.
+На момент Stage 7.0f-b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, restart readiness review прошел с minor notes, stale Stage 7 status/navigation wording синхронизирован, а `docs/reviews/README.md` классифицирует review/audit artifacts. Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает активный implementation backlog.
 
-Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Любой task format, milestone или implementation sequence ниже применяется только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap.
+Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Stage 7.2+ не активированы этим документом, Stage 7.0f-a cleanup или Stage 7.0f-b reviews index cleanup. Любой task format, milestone или implementation sequence ниже применяется только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap.
 
 ## Общий подход
 
