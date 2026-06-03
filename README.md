@@ -30,8 +30,8 @@ README является входной картой проекта: он пом�
 
 - `README.md` — главная входная точка проекта и краткая навигация.
 - `AGENTS.md` — обязательные правила для Codex/AI-агентов внутри этого репозитория.
-- `docs/product/README.md` — входная точка в продуктовую документацию.
-- `docs/product/product-baseline.md` — актуальное компактное продуктовое состояние после Stage 0-5.
+- `docs/product/README.md` — index product-документации и role labels; navigation only.
+- `docs/product/product-baseline.md` — product source of truth и актуальное компактное продуктовое состояние после Stage 0-5.
 - `docs/product/stage-0/` — Этап 0: продуктовая рамка, первичные сценарии, границы MVP, допущения и открытые вопросы.
 - `docs/product/stage-1/` — Этап 1: бизнес-сценарии, требования, user journeys, assumptions и consistency review.
 - `docs/product/stage-2/` — Этап 2: use cases, edge cases, assistant behaviour rules, combined search levels и data requirements.
@@ -39,8 +39,8 @@ README является входной картой проекта: он пом�
 - `docs/product/stage-4/` — Этап 4: Visual Design & UX System, visual direction, design system foundations, component inventory, screen specifications и interaction patterns.
 - `docs/PROJECT_BRIEF.md` — продуктовый контекст, пользователи, ключевые сценарии и открытые продуктовые вопросы.
 - `docs/ARCHITECTURE.md` — предварительные архитектурные ориентиры; текущий backend stack подтвержден как Kotlin + Ktor в architecture baseline.
-- `docs/architecture/README.md` — индекс архитектурной документации и Stage 5 architecture baseline.
-- `docs/architecture/architecture-baseline.md` — актуальное компактное архитектурное состояние после Stage 5.
+- `docs/architecture/README.md` — index архитектурной документации и role labels; navigation only.
+- `docs/architecture/architecture-baseline.md` — architecture source of truth, backend stack authority и актуальное компактное архитектурное состояние после Stage 5.
 - `docs/roadmap/roadmap.md` — primary roadmap и source of truth по статусам этапов, progression, carryover и следующему разрешенному шагу.
 - `docs/ROADMAP.md` — краткий navigation overview этапов, не competing roadmap и не источник текущих статусов.
 - `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, guardrails и безопасного рефакторинга документации.
@@ -54,6 +54,7 @@ README является входной картой проекта: он пом�
 - `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b cleanup index/role labeling для review artifacts.
 - `docs/reviews/stage-7-prompt-governance-deduplication-cleanup.md` — Stage 7.0f-c cleanup prompt/governance duplication.
 - `docs/reviews/stage-7-development-docs-merge-shortening-cleanup.md` — Stage 7.0f-d cleanup development docs merge/shortening.
+- `docs/reviews/stage-7-product-architecture-index-role-labels-cleanup.md` — Stage 7.0f-e cleanup product/architecture index role labels.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
 - `docs/development/roadmap.md` — compact development reference; future/reference material, не roadmap status source и не active backlog.
 - `docs/development/milestones.md` — compact milestone vocabulary; future/reference material, не источник статусов и не active backlog.
@@ -66,7 +67,7 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 corrective stabilization завершена через backend stack sync, замену Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index / historical labeling cleanup, Stage 7.0f-c prompt/governance deduplication cleanup и Stage 7.0f-d development docs shortening. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
+Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 corrective stabilization завершена через backend stack sync, замену Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index / historical labeling cleanup, Stage 7.0f-c prompt/governance deduplication cleanup, Stage 7.0f-d development docs shortening и Stage 7.0f-e product/architecture index role labels cleanup. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
 
 ## Рабочий процесс Codex
 
