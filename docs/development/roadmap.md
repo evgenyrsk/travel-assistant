@@ -6,7 +6,7 @@ Primary roadmap со статусами этапов, чеклистами ар�
 
 ## Статус и правила активации
 
-На момент Stage 7.0b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, но дальнейшая Stage 7 implementation работа заблокирована до restart readiness review. Подтвержденный backend stack — Kotlin + Ktor.
+На момент Stage 7.0f-b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, restart readiness review прошел с minor notes, stale Stage 7 status/navigation wording синхронизирован, а `docs/reviews/README.md` классифицирует review/audit artifacts. Подтвержденный backend stack — Kotlin + Ktor.
 
 Разделы ниже являются справочными материалами для будущей реализации. Они описывают возможную future development structure, но не являются активным implementation backlog, task tracker или списком задач к немедленному выполнению.
 
@@ -14,7 +14,7 @@ Primary roadmap со статусами этапов, чеклистами ар�
 
 Для backend implementation этот secondary roadmap должен читаться через `docs/architecture/architecture-baseline.md`: backend stack — Kotlin + Ktor. Java/Spring Boot не является принятым stack без явного ADR и согласованной с roadmap задачи.
 
-Любой пункт из этого secondary roadmap становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с `docs/roadmap/roadmap.md`. Если формулировка этого документа конфликтует с primary roadmap, product baseline или architecture baseline, приоритет имеют primary roadmap и baseline-документы.
+Любой пункт из этого secondary roadmap становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с `docs/roadmap/roadmap.md`. Stage 7.2+ не активированы этим документом, Stage 7.0f-a cleanup или Stage 7.0f-b reviews index cleanup. Если формулировка этого документа конфликтует с primary roadmap, product baseline или architecture baseline, приоритет имеют primary roadmap и baseline-документы.
 
 ## 0. Перезапуск проекта и продуктовая рамка
 
