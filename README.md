@@ -53,9 +53,10 @@ README является входной картой проекта: он пом�
 - `docs/reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a cleanup устаревшего status/navigation wording.
 - `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b cleanup index/role labeling для review artifacts.
 - `docs/reviews/stage-7-prompt-governance-deduplication-cleanup.md` — Stage 7.0f-c cleanup prompt/governance duplication.
+- `docs/reviews/stage-7-development-docs-merge-shortening-cleanup.md` — Stage 7.0f-d cleanup development docs merge/shortening.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
-- `docs/development/roadmap.md` — secondary roadmap разработки; future/reference material, следует primary roadmap и не заменяет статусы этапов.
-- `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки; не источник статусов продуктовых этапов.
+- `docs/development/roadmap.md` — compact development reference; future/reference material, не roadmap status source и не active backlog.
+- `docs/development/milestones.md` — compact milestone vocabulary; future/reference material, не источник статусов и не active backlog.
 - `docs/development/implementation-strategy.md` — будущая стратегия реализации и правила декомпозиции задач; не primary roadmap и не active implementation backlog.
 - `services/backend/README.md` — инструкция запуска Stage 7.0b Kotlin + Ktor backend skeleton и health endpoint.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
@@ -65,7 +66,7 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 corrective stabilization завершена через backend stack sync, замену Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index / historical labeling cleanup и Stage 7.0f-c prompt/governance deduplication cleanup. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
+Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 corrective stabilization завершена через backend stack sync, замену Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index / historical labeling cleanup, Stage 7.0f-c prompt/governance deduplication cleanup и Stage 7.0f-d development docs shortening. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
 
 ## Рабочий процесс Codex
 
@@ -76,4 +77,4 @@ README является входной картой проекта: он пом�
 - GitHub PR checklist находится в `.github/pull_request_template.md`.
 - Primary roadmap со статусами этапов находится в `docs/roadmap/roadmap.md`.
 - Верхнеуровневый список этапов находится в `docs/ROADMAP.md`.
-- Secondary roadmap разработки находится в `docs/development/roadmap.md`.
+- Secondary development reference находится в `docs/development/roadmap.md`.

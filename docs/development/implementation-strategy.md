@@ -4,9 +4,9 @@
 
 Документ не является primary roadmap. Актуальный статус этапов, чеклисты артефактов, stage gates, carryover и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
 
-На момент Stage 7.0f-b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, restart readiness review прошел с minor notes, stale Stage 7 status/navigation wording синхронизирован, а `docs/reviews/README.md` классифицирует review/audit artifacts. Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает активный implementation backlog.
+На момент Stage 7.0f-d Stage 0-6 завершены, Stage 7 прошел corrective documentation stabilization through Stage 7.0f-d, а Stage 7.2+ не активированы. Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает active implementation backlog.
 
-Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Stage 7.2+ не активированы этим документом, Stage 7.0f-a cleanup или Stage 7.0f-b reviews index cleanup. Любой task format, milestone или implementation sequence ниже применяется только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap.
+Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Любой task format, milestone или implementation sequence ниже применяется только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap.
 
 ## Общий подход
 
@@ -157,11 +157,11 @@
 - UI должен поддерживать loading, error и empty states.
 - Компоненты не должны содержать backend orchestration logic.
 
-## Порядок реализации MVP
+## Возможная последовательность реализации MVP
 
-Этот порядок является справочной последовательностью для будущей реализации, а не текущим backlog. Он показывает возможную последовательность после явной активации реализации, но не создает задачи сам по себе.
+Этот список является справочной последовательностью для будущей реализации, а не текущим backlog, roadmap status или task tracker. Он показывает возможную последовательность после явной активации реализации, но не создает задачи сам по себе.
 
-Каждый пункт требует отдельного явного roadmap step или явно поставленной задачи в соответствии с primary roadmap. Stage 6 planning не означает автоматическое создание API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или production code.
+Каждый пункт требует отдельного явного roadmap step или явно поставленной задачи в соответствии с primary roadmap. Stage 7.2+ не активированы этим документом.
 
 1. Зафиксировать требования, границы MVP и API-контракты.
 2. Создать backend skeleton и health endpoint.

@@ -1,325 +1,48 @@
-# Вехи проекта Travel Assistant
+# Development milestones reference
 
-Вехи описывают возможные будущие контрольные точки разработки. Они помогают планировать маленькие проверяемые шаги после явной активации реализации, но не являются текущим backlog и не задают текущие статусы продуктовых этапов.
+Этот документ является compact reference по возможным будущим development milestones Travel Assistant.
 
-Текущий статус, следующий шаг, stage gates и carryover фиксируются в primary roadmap `docs/roadmap/roadmap.md`.
+Он не является source of truth по roadmap status, active backlog, task tracker или разрешением начинать Stage 7.2+. Текущий статус, следующий шаг, stage gates и carryover фиксируются только в `docs/roadmap/roadmap.md`.
 
-## Статус и правила активации
+## Роль milestones
 
-На момент Stage 7.0f-b Stage 0-6 завершены, Java/Spring Boot skeleton заменен на минимальный Kotlin + Ktor backend skeleton, restart readiness review прошел с minor notes, stale Stage 7 status/navigation wording синхронизирован, а `docs/reviews/README.md` классифицирует review/audit artifacts. Подтвержденный backend stack — Kotlin + Ktor.
+Milestones помогают обсуждать размер и направленность будущих implementation задач после явной roadmap activation. Они не задают порядок выполнения и не заменяют primary roadmap.
 
-Вехи ниже являются справочными материалами для будущей реализации. Они не являются активным implementation backlog, task tracker или разрешением начинать backend/frontend implementation.
+Если milestone звучит конкретнее, чем `docs/roadmap/roadmap.md`, он должен читаться как future reference, а не как текущая задача.
 
-Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts.
+## Compact milestone map
 
-Для backend implementation вехи должны сверяться с `docs/architecture/architecture-baseline.md`: backend stack — Kotlin + Ktor. Java/Spring Boot не является принятым stack без явного ADR и согласованной с roadmap задачи.
+| Milestone area | Reference value |
+|---|---|
+| Project/process foundation | Навигация, правила задач, базовая документация и repo workflow. |
+| Product/architecture foundation | Требования, MVP boundaries, architecture boundaries и domain/API preparation на уровне документации. |
+| Backend foundation | Минимальный Kotlin + Ktor foundation после явной activation; current skeleton already exists from Stage 7.0b. |
+| AI orchestration foundation | `LlmClient`, intent/slot/clarification flow и testable orchestration после отдельной задачи. |
+| Hotel search foundation | Hotel-only provider abstraction, mock/fake providers and ranking-ready hotel data. |
+| Web MVP | Chat UI, hotel results UI и frontend/backend integration после явной activation. |
+| End-to-end MVP | Hotel-only flow from request to ranked/explained hotel offers. |
+| Quality/readiness | Testing, security, observability, local development and production readiness references. |
 
-Каждая веха становится actionable только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap. Stage 7.2+ не активированы этим документом, Stage 7.0f-a cleanup или Stage 7.0f-b reviews index cleanup. Если веха звучит конкретнее, чем текущий primary roadmap, она должна читаться как будущий ориентир, а не как текущая задача.
+## Как использовать
 
-## Веха 0 — основа проекта
+- Используй milestones как vocabulary для будущих маленьких задач.
+- Для текущего статуса всегда проверяй `docs/roadmap/roadmap.md`.
+- Для product scope проверяй `docs/product/product-baseline.md`.
+- Для architecture/backend stack проверяй `docs/architecture/architecture-baseline.md`.
+- Для agent workflow и scope control проверяй `AGENTS.md`.
 
-**Цель:** подготовить структуру проекта, документацию, правила разработки, базовые соглашения и продуктовую рамку Этапа 0.
+## Что не входит
 
-**Границы:**
-- структура репозитория;
-- базовые документы проекта;
-- правила работы с задачами;
-- соглашения по архитектурным границам;
-- исходная продуктовая постановка;
-- верхнеуровневые сценарии;
-- предварительные границы MVP;
-- открытые вопросы для будущих этапов.
+Этот документ не создает:
 
-**Не входит:**
-- код backend и frontend;
-- реальные интеграции;
-- production-инфраструктура.
+- active backend/frontend tasks;
+- API/OpenAPI contracts;
+- DB schema/storage model;
+- auth/security/DevOps/testing backlog;
+- provider-specific integration work;
+- Stage 7.2 start;
+- changes to roadmap order or MVP scope.
 
-**Артефакты:**
-- актуальный `README.md`;
-- документация в `docs/`;
-- продуктовые документы Этапа 0 в `docs/product/stage-0/`;
-- поэтапный roadmap в `docs/roadmap/roadmap.md`;
-- roadmap, вехи и стратегия реализации;
-- базовое описание процесса разработки.
+## Future merge note
 
-**Критерии приемки:**
-- новый участник или код-агент понимает, где находятся документы и как двигаться по этапам;
-- продуктовая идея, пользовательская ценность, основные сценарии и предварительные границы MVP зафиксированы;
-- определены следующие вехи;
-- нет изменений в коде приложения без необходимости.
-
-**Риски:**
-- слишком общий процесс без критериев готовности;
-- преждевременное проектирование деталей, которые еще не подтверждены продуктово.
-
-**Зависимости:** нет.
-
-## Веха 1 — продуктовая и архитектурная основа
-
-**Цель:** зафиксировать требования, границы MVP, системную архитектуру и основные сценарии пользователя.
-
-**Границы:**
-- продуктовые требования;
-- границы MVP;
-- пользовательские потоки;
-- высокоуровневая архитектура;
-- начальная доменная модель;
-- черновик API-контрактов.
-
-**Не входит:**
-- реализация API;
-- UI-компоненты;
-- фактическая реализация интеграций с LLM и travel-провайдерами.
-
-**Артефакты:**
-- документ с требованиями;
-- документ с границами MVP;
-- архитектурная схема компонентов;
-- черновик доменной модели;
-- черновик backend/frontend API-контрактов.
-
-**Критерии приемки:**
-- MVP-сценарий описан end-to-end;
-- backend, frontend, domain, AI и integrations имеют понятные границы;
-- доменная модель не зависит от Ktor, Next.js или конкретных провайдеров;
-- есть список открытых продуктовых вопросов.
-
-**Риски:**
-- недоопределенные обязательные параметры поездки;
-- смешивание API DTO с доменными моделями;
-- фиксация архитектуры вокруг mock-данных вместо реальной предметной области.
-
-**Зависимости:** Веха 0.
-
-## Веха 2 — основа backend
-
-**Цель:** создать backend skeleton на Kotlin + Ktor, базовые health endpoints, конфигурацию и слои приложения.
-
-**Границы:**
-- Gradle/project setup для backend;
-- Ktor application module;
-- health endpoint;
-- config loading;
-- слои `api`, `application`, `domain`, `infrastructure`;
-- базовые тесты запуска и health endpoint.
-
-**Не входит:**
-- LLM-оркестрация;
-- travel search;
-- PostgreSQL schema;
-- Redis cache;
-- авторизация.
-
-**Артефакты:**
-- запускаемый backend service;
-- health endpoint;
-- базовая структура пакетов;
-- минимальные тесты;
-- инструкция локального запуска.
-
-**Критерии приемки:**
-- backend собирается локально;
-- health endpoint возвращает ожидаемый статус;
-- domain layer не зависит от Ktor;
-- конфигурация не содержит секретов.
-
-**Риски:**
-- завязать бизнес-логику на Ktor routing;
-- добавить лишние зависимости до появления вариантов использования;
-- усложнить skeleton раньше времени.
-
-**Зависимости:** Веха 1.
-
-## Веха 3 — основа AI-оркестрации
-
-**Цель:** создать `LlmClient` abstraction, `TravelAssistantOrchestrator`, структуру intent extraction / slot filling / clarification flow.
-
-**Границы:**
-- `LlmClient` interface;
-- mock LLM-клиент;
-- модели intent и slots;
-- conversation state;
-- начальный `TravelAssistantOrchestrator`;
-- clarification flow для недостающих параметров.
-
-**Не входит:**
-- реальный LLM-провайдер;
-- streaming;
-- tool calling;
-- сложный graph runtime;
-- долгосрочная память.
-
-**Артефакты:**
-- AI-абстракция без привязки к провайдеру;
-- orchestration use case;
-- тесты intent/slot/clarification flow на mock-клиенте;
-- документация по расширению оркестрации.
-
-**Критерии приемки:**
-- orchestrator может принять свободный запрос и определить, хватает ли данных для поиска;
-- при нехватке данных возвращается уточняющий вопрос;
-- реализацию можно развивать в сторону state-machine / LangGraph-like подхода;
-- LLM-ошибки обрабатываются явно.
-
-**Риски:**
-- превратить orchestrator в монолитный класс;
-- захардкодить prompts и детали провайдера в доменной логике;
-- смешать conversation state с UI state.
-
-**Зависимости:** Веха 2.
-
-## Веха 4 — основа поиска travel-предложений
-
-**Цель:** создать hotel search abstraction для MVP v1, mock/fake hotel provider для ранней разработки, базовые DTO и варианты использования без преждевременного проектирования внешнего API-контракта.
-
-**Границы:**
-- hotel search port;
-- mock/fake hotel provider;
-- модели поиска и результатов;
-- варианты использования для поиска отелей по заполненному hotel request.
-
-**Не входит:**
-- flight search;
-- combined hotel+flight search;
-- финальная интеграция с существующим travel API до предоставления API-контракта;
-- live availability;
-- бронирование;
-- платежи;
-- сложное кеширование.
-
-**Артефакты:**
-- `HotelSearchClient` или аналогичный интерфейс;
-- mock/fake hotel implementation;
-- тесты поиска на стабильных данных;
-- базовые ошибки provider-слоя.
-
-**Критерии приемки:**
-- поиск работает без внешних учетных данных;
-- use cases зависят от интерфейсов, а не от mock-реализаций;
-- hotel модели можно использовать в matching/ranking;
-- ошибки провайдеров не протекают напрямую в UI/API.
-
-**Риски:**
-- слишком рано подстроиться под конкретный внешний API;
-- сделать mock/fake данные бедными и непригодными для end-to-end сценария;
-- расширить MVP v1 до flight/combined до завершения hotel flow.
-
-**Зависимости:** Веха 2, частично Веха 3.
-
-## Веха 5 — web MVP
-
-**Цель:** создать web UI с чатовым интерфейсом, выводом результатов и базовой интеграцией с backend.
-
-**Границы:**
-- Next.js + React + Tailwind + shadcn/ui skeleton;
-- chat UI;
-- search results UI;
-- frontend API client;
-- loading/error/empty states;
-- базовая responsive layout.
-
-**Не входит:**
-- mobile app;
-- desktop app;
-- сложная дизайн-система;
-- realtime streaming;
-- авторизация.
-
-**Артефакты:**
-- запускаемый web-клиент;
-- чатовый интерфейс;
-- отображение hotel offers; до подключения предоставленного API-контракта допускаются mock/fake hotel offers;
-- базовая интеграция с backend endpoint-ами;
-- документация запуска.
-
-**Критерии приемки:**
-- пользователь может отправить запрос из UI;
-- UI показывает уточняющие вопросы и результаты;
-- ошибки backend отображаются понятно;
-- компоненты не содержат backend business logic.
-
-**Риски:**
-- начать с декоративной landing page вместо рабочего продукта;
-- смешать DTO mapping и UI rendering;
-- не заложить места для mobile/desktop клиентов.
-
-**Зависимости:** Веха 2, Веха 3, Веха 4.
-
-## Веха 6 — end-to-end MVP
-
-**Цель:** собрать полный hotel-only сценарий: пользователь пишет hotel request → ассистент уточняет → ищет hotel offers → ранжирует → объясняет результат. Ранняя проверка может использовать mock/fake hotel provider, но финальный MVP v1 должен работать с предоставленным контрактом существующего travel API для hotel offers.
-
-**Границы:**
-- end-to-end conversation flow;
-- hotel search orchestration;
-- hotel offer matching and ranking;
-- explanation generation;
-- basic conversation history for session;
-- smoke tests.
-
-**Не входит:**
-- проектирование нового travel API-контракта до предоставления существующего контракта;
-- flight search и combined hotel+flight search;
-- аккаунты пользователей;
-- платежи и бронирование;
-- production deployment.
-
-**Артефакты:**
-- рабочий hotel MVP-сценарий через web UI;
-- backend orchestration для полного flow;
-- ranking service;
-- объяснения рекомендаций;
-- e2e или integration smoke tests.
-
-**Критерии приемки:**
-- пользовательский сценарий проходит от первого сообщения до списка hotel offers;
-- при нехватке параметров ассистент задает уточняющий вопрос;
-- найденные hotel offers отсортированы и объяснены; до подключения предоставленного API-контракта допускаются mock/fake hotel offers;
-- поведение воспроизводимо локально.
-
-**Риски:**
-- хрупкая связка между chat flow и search flow;
-- непрозрачное ранжирование;
-- слишком большая задача без промежуточных проверок.
-
-**Зависимости:** Веха 3, Веха 4, Веха 5.
-
-## Веха 7 — качество и production readiness
-
-**Цель:** добавить тесты, security baseline, observability, Docker, README и checklist для дальнейшей production-ready разработки.
-
-**Границы:**
-- реализация стратегии тестирования;
-- security baseline;
-- observability baseline;
-- Docker/local development;
-- production readiness checklist;
-- README updates.
-
-**Не входит:**
-- production launch;
-- Kubernetes/cloud infrastructure;
-- enterprise security compliance;
-- production-hardening реальных контрактов провайдеров.
-
-**Артефакты:**
-- unit/integration/e2e baseline tests;
-- Docker Compose для локальной инфраструктуры;
-- structured logging и request id;
-- security checklist;
-- production readiness checklist;
-- обновленная документация запуска и проверки.
-
-**Критерии приемки:**
-- локальная сборка и тесты проходят;
-- секреты не хранятся в репозитории;
-- есть понятный локальный запуск backend, frontend, PostgreSQL и Redis при необходимости;
-- readiness checklist показывает, что еще нужно до production.
-
-**Риски:**
-- оставить качество на финальный этап без покрытия критичной логики ранее;
-- перепутать MVP readiness и production readiness;
-- добавить инфраструктурную сложность без необходимости.
-
-**Зависимости:** Веха 6.
+`docs/development/milestones.md` можно будет объединить с `docs/development/roadmap.md` отдельной cleanup-задачей, если проекту больше не нужен отдельный milestone vocabulary. В рамках Stage 7.0f-d файл сохранен как короткий reference document.

@@ -4,7 +4,7 @@
 
 Primary roadmap и source of truth по статусам этапов, progression, carryover, границам этапов и следующему разрешенному шагу находится в `docs/roadmap/roadmap.md`.
 
-`docs/ROADMAP.md` не является competing roadmap, task tracker или implementation backlog. Детальный порядок будущей разработки и вехи находятся в `docs/development/roadmap.md` и `docs/development/milestones.md`; эти документы являются future/reference material и следуют primary roadmap.
+`docs/ROADMAP.md` не является competing roadmap, task tracker или implementation backlog. Справочная development guidance находится в `docs/development/roadmap.md`, `docs/development/milestones.md` и `docs/development/implementation-strategy.md`; эти документы являются future/reference material и следуют primary roadmap.
 
 ## Текущий статус
 
@@ -18,10 +18,10 @@ Primary roadmap и source of truth по статусам этапов, progressi
 | Stage 4.1 | Completed |
 | Stage 5 | Completed |
 | Stage 6 | Completed; Stage 6.1-6.9 completed |
-| Stage 7 | In progress; corrective stabilization completed through restart readiness review, Stage 7.0e audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index cleanup and Stage 7.0f-c prompt/governance deduplication cleanup; Stage 7.2+ not activated |
+| Stage 7 | In progress; corrective stabilization completed through restart readiness review, Stage 7.0e audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index cleanup, Stage 7.0f-c prompt/governance deduplication cleanup and Stage 7.0f-d development docs shortening; Stage 7.2+ not activated |
 | Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend skeleton exists; DB/UI/provider integration not started |
 
-Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 6.1-6.9 завершены. Stage 7 прошел corrective stabilization: Stage 7.0b заменил Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, Stage 7 restart readiness review прошел с minor notes, Stage 7.0e выявил оставшиеся documentation redundancy / structure issues, Stage 7.0f-a синхронизировал status/navigation wording, Stage 7.0f-b создал reviews index и role labeling для audit artifacts, а Stage 7.0f-c дедуплицировал prompt/governance guidance вокруг `AGENTS.md`. Stage 7 больше не заблокирован backend stack drift или restart readiness review. Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи; broader documentation cleanup остается pending. Stage 7.0b/7.0f-a/7.0f-b/7.0f-c не означают автоматическое создание business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients или production implementation. Подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
+Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 6.1-6.9 завершены. Stage 7 прошел corrective stabilization: Stage 7.0b заменил Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, Stage 7 restart readiness review прошел с minor notes, Stage 7.0e выявил оставшиеся documentation redundancy / structure issues, Stage 7.0f-a синхронизировал status/navigation wording, Stage 7.0f-b создал reviews index и role labeling для audit artifacts, Stage 7.0f-c дедуплицировал prompt/governance guidance вокруг `AGENTS.md`, а Stage 7.0f-d сократил `docs/development/**` до secondary reference layer. Stage 7 больше не заблокирован backend stack drift или restart readiness review. Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи; broader documentation cleanup остается pending. Stage 7.0b/7.0f-a/7.0f-b/7.0f-c/7.0f-d не означают автоматическое создание business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients или production implementation. Подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
