@@ -52,6 +52,7 @@ README является входной картой проекта: он пом�
 - `docs/reviews/documentation-redundancy-structure-audit.md` — Stage 7.0e audit избыточности и структуры документации.
 - `docs/reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a cleanup устаревшего status/navigation wording.
 - `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b cleanup index/role labeling для review artifacts.
+- `docs/reviews/stage-7-prompt-governance-deduplication-cleanup.md` — Stage 7.0f-c cleanup prompt/governance duplication.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
 - `docs/development/roadmap.md` — secondary roadmap разработки; future/reference material, следует primary roadmap и не заменяет статусы этапов.
 - `docs/development/milestones.md` — вехи, контрольные точки, границы задачи и критерии приемки; не источник статусов продуктовых этапов.
@@ -64,13 +65,13 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 corrective stabilization завершена через backend stack sync, замену Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup и Stage 7.0f-b reviews index / historical labeling cleanup. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
+Текущий baseline: Stage 0-5 завершены, Stage 6 завершен как contract/documentation phase, Stage 6.1-6.9 завершены. Stage 7 corrective stabilization завершена через backend stack sync, замену Java/Spring Boot drift на минимальный Kotlin + Ktor skeleton, restart readiness review, Stage 7.0e documentation redundancy audit, Stage 7.0f-a status/navigation sync cleanup, Stage 7.0f-b reviews index / historical labeling cleanup и Stage 7.0f-c prompt/governance deduplication cleanup. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
 
 ## Рабочий процесс Codex
 
 - Обязательные правила репозитория для Codex-агентов находятся в `AGENTS.md`.
 - Переиспользуемый шаблон постановки задач находится в `docs/prompts/task-template.md`.
-- Общие правила roadmap, границ задачи, ADR и отчетности находятся в `docs/prompts/codex-rules.md`.
+- Canonical правила roadmap, scope, ADR, validation, documentation language и отчетности находятся в `AGENTS.md`; `docs/prompts/codex-rules.md` является prompt companion, а не competing governance source.
 - Шаблон задач на ревью с проверками отклонения от roadmap, разрастания границ задачи и преждевременной реализации будущих этапов находится в `docs/prompts/review-template.md`.
 - GitHub PR checklist находится в `.github/pull_request_template.md`.
 - Primary roadmap со статусами этапов находится в `docs/roadmap/roadmap.md`.

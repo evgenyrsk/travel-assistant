@@ -2,12 +2,15 @@
 
 Используй этот шаблон, когда просишь Codex/opencode проверить изменение, PR или patch.
 
+Canonical repository governance находится в `AGENTS.md`. Этот шаблон задает review-specific focus areas и не заменяет глобальные правила `AGENTS.md`.
+
 ## Контекст
 
 - Изменение или PR для ревью:
 - Релевантный этап roadmap:
 - Релевантная веха:
 - Документы, которые нужно прочитать перед началом:
+- Canonical repository governance: `AGENTS.md`
 - Primary roadmap и source of truth по статусам: `docs/roadmap/roadmap.md`
 - Product baseline, если применимо: `docs/product/product-baseline.md`
 - Architecture baseline, если применимо: `docs/architecture/architecture-baseline.md`
@@ -37,6 +40,8 @@
 Если задача только на ревью, фиксируй findings и риски, а не выполняй исправления самостоятельно.
 
 ## Обязательные проверки
+
+Не дублируй полный global governance из `AGENTS.md`. Используй список ниже как review-specific checklist.
 
 ### Отклонение от roadmap
 
@@ -80,6 +85,8 @@
 - Создает ли изменение API/OpenAPI contracts, endpoint specs, DB schema/storage model, auth/security/DevOps/testing backlog или production code до явной roadmap activation?
 
 ## Формат финального отчета
+
+Если задача не задает другой формат, используй обязательный формат из `AGENTS.md`. Для review-only задач findings должны идти первыми, если это требуется средой выполнения Codex.
 
 1. Созданные файлы
 2. Изменённые файлы

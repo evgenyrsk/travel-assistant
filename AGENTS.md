@@ -42,6 +42,18 @@
 
 Если информация есть только в памяти или предыдущем чате, но не отражена в текущих файлах репозитория и не приложена явно пользователем, ее можно использовать только как неофициальный контекст. Она не является основанием для изменений без явного запроса пользователя.
 
+## Иерархия governance-документов
+
+`AGENTS.md` является canonical source для глобальных правил работы Codex/AI-агентов в этом репозитории: scope control, roadmap control, documentation language, validation, diff discipline, безопасный workflow и обязательный формат финального отчета.
+
+Остальные документы не должны конкурировать с `AGENTS.md`:
+
+- `docs/prompts/**` — reusable prompt templates, task/review structures и prompt-writing guidance; они должны ссылаться на `AGENTS.md` для глобальных правил.
+- `.github/**` — lightweight issue/PR templates для GitHub workflow; они не должны дублировать длинные Codex governance blocks.
+- `README.md`, `docs/ROADMAP.md` и `docs/roadmap/roadmap.md` — navigation, project status и roadmap context; они не являются источником Codex execution rules.
+- `docs/development/**` — future/reference material для будущей реализации; они не являются active backlog или agent governance source.
+- `docs/reviews/**` — audit trail и cleanup reports; они не являются active task backlog.
+
 ## Обязательное чтение перед изменениями
 
 Перед любым изменением прочитай релевантные текущие документы:

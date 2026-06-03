@@ -31,6 +31,7 @@
 | `documentation-redundancy-structure-audit.md` | Current active review context / Stage 7.0e audit | Последний deep audit структуры документации. Он подтверждает, что документация еще не clean/non-redundant, и рекомендует staged cleanup. |
 | `stage-7-status-navigation-sync-cleanup.md` | Completed cleanup report / Stage 7.0f-a | Подтверждает, что stale active wording про pending restart readiness review удален из active/navigation/source-of-truth docs. |
 | `stage-7-reviews-index-historical-labeling-cleanup.md` | Completed cleanup report / Stage 7.0f-b | Фиксирует создание этого reviews index и минимальную historical role labeling работу. |
+| `stage-7-prompt-governance-deduplication-cleanup.md` | Completed cleanup report / Stage 7.0f-c | Фиксирует deduplication prompt/governance guidance вокруг `AGENTS.md`. |
 
 ## Inventory review artifacts
 
@@ -44,6 +45,7 @@
 | `documentation-redundancy-structure-audit.md` | Current active review context | Stage 7.0e audit and current source for remaining documentation cleanup sequence. |
 | `stage-7-status-navigation-sync-cleanup.md` | Completed cleanup report | Stage 7.0f-a narrow cleanup. Confirms Stage 7 is no longer blocked by backend stack drift or restart readiness review. |
 | `stage-7-reviews-index-historical-labeling-cleanup.md` | Completed cleanup report | Stage 7.0f-b narrow cleanup. Confirms reviews index and role labeling. |
+| `stage-7-prompt-governance-deduplication-cleanup.md` | Completed cleanup report | Stage 7.0f-c narrow cleanup. Confirms `AGENTS.md` as canonical governance and `docs/prompts/**` / `.github/**` as secondary guidance. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -60,6 +62,7 @@
 5. `docs/reviews/stage-7-status-navigation-sync-cleanup.md`
 6. `docs/reviews/README.md`
 7. `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md`
+8. `docs/reviews/stage-7-prompt-governance-deduplication-cleanup.md`
 
 ## Historical / superseded документы
 
@@ -82,7 +85,6 @@
 Этот index не завершает broad documentation cleanup. Остаются отдельные future cleanup candidates:
 
 - style guide stale wording cleanup;
-- prompt/governance deduplication;
 - development docs merge/shortening;
 - product/architecture index role labels;
 - roadmap readability cleanup;

@@ -6,7 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Используй эту форму для маленьких задач с явным текущим этапом, границами задачи и запретом на случайную реализацию будущих этапов.
+        Используй эту форму для маленьких задач с явным текущим этапом и границами задачи.
+        Canonical repository governance находится в AGENTS.md; эта форма не дублирует полный набор правил Codex.
 
   - type: textarea
     id: context
@@ -52,13 +53,11 @@ body:
       label: Что прочитать перед началом
       description: Документы и файлы, которые Codex должен прочитать до изменений.
       placeholder: |
-        - README.md
         - AGENTS.md
+        - README.md
+        - docs/roadmap/roadmap.md
         - docs/ROADMAP.md
-        - docs/development/roadmap.md
-        - docs/development/milestones.md
-        - docs/development/implementation-strategy.md
-        - релевантные ADR в docs/decisions/, если есть
+        - релевантные baseline/ADR/docs для задачи
     validations:
       required: true
 
@@ -91,15 +90,11 @@ body:
       label: Что нельзя менять
       description: Явные запреты для защиты roadmap, границ задачи и unrelated files.
       value: |
-        - Не переопределять roadmap.
-        - Не менять порядок этапов roadmap.
-        - Не начинать следующий этап roadmap без явного запроса.
-        - Не расширять границы задачи, если это не требуется для выполнения задачи.
-        - Не выполнять рекомендации в этой задаче.
-        - Добавлять будущую работу только в раздел "Рекомендации, не выполнены".
+        - Соблюдать AGENTS.md как canonical repository governance.
+        - Не начинать следующий roadmap stage без явного запроса.
+        - Не расширять task scope.
         - Не трогать unrelated files.
-        - Соблюдать ADR в docs/decisions/, если они есть.
-        - Не добавлять случайную реализацию будущих этапов.
+        - Не менять architecture decisions, MVP scope или roadmap порядок без явного запроса.
     validations:
       required: true
 
@@ -120,11 +115,6 @@ body:
       label: Финальный отчёт
       description: Формат, который Codex должен использовать в отчете о завершении.
       value: |
-        1. Созданные файлы
-        2. Изменённые файлы
-        3. Краткое описание изменений
-        4. Принятые решения
-        5. Открытые вопросы
-        6. Рекомендации, не выполнены
+        Использовать обязательный формат из AGENTS.md, если задача не задает более конкретный формат.
     validations:
       required: true
