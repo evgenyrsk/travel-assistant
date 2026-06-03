@@ -1,8 +1,10 @@
 # Architecture Baseline
 
+**Роль:** current architecture source of truth и backend stack authority для Travel Assistant. Historical `docs/architecture/stage-*` artifacts и contract drafts сохраняют traceability, но не переопределяют этот baseline.
+
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальный architecture baseline Travel Assistant после завершения Stage 5, Stage 7.0a backend stack decision sync, Stage 7.0b backend skeleton correction, Stage 7 restart readiness review, Stage 7.0f-a status/navigation sync cleanup и Stage 7.0f-b reviews index cleanup.
+Этот документ фиксирует актуальный architecture baseline Travel Assistant после завершения Stage 5, Stage 7.0a backend stack decision sync, Stage 7.0b backend skeleton correction, Stage 7 restart readiness review и Stage 7.0f-a - Stage 7.0f-e documentation stabilization cleanup.
 
 Он нужен как компактная точка входа в текущее архитектурное состояние: какие границы подтверждены, где находится conceptual architecture baseline и какие Stage 5 artifacts являются исходными источниками.
 
@@ -20,10 +22,10 @@
 - Business logic, provider integration, DB/storage, frontend, generated clients и production implementation еще не создавались.
 - API/OpenAPI contract draft создан в Stage 6 как documentation-level frontend/backend boundary; provider adapters еще не создавались.
 - Auth/security/DevOps/testing backlog еще не создавался.
-- Stage 7 restart readiness review прошел с minor notes, Stage 7.0f-a синхронизировал stale status/navigation wording, а Stage 7.0f-b добавил reviews index / historical artifact labeling.
+- Stage 7 restart readiness review прошел с minor notes, а Stage 7.0f-a - Stage 7.0f-e выполнили scoped documentation stabilization.
 - Broader documentation cleanup остается pending.
 
-Следующая implementation задача может начаться только через отдельную явную roadmap-aligned задачу. Stage 7.2 не активирован этим architecture baseline, Stage 7.0f-a cleanup или Stage 7.0f-b reviews index cleanup.
+Следующая implementation задача может начаться только через отдельную явную roadmap-aligned задачу. Stage 7.2 не активирован этим architecture baseline или Stage 7.0f cleanup tasks.
 
 ## 3. Backend stack baseline
 

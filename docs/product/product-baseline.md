@@ -1,8 +1,10 @@
 # Product Baseline
 
+**Роль:** current product source of truth для MVP v1 scope, active product framing и product guardrails. Historical `docs/product/stage-*` artifacts сохраняют traceability, но не переопределяют этот baseline.
+
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальный product baseline Travel Assistant после завершения Stage 0-5 и последующей статусной синхронизации через Stage 7.0c.
+Этот документ фиксирует актуальный product baseline Travel Assistant после завершения Stage 0-5 и последующей статусной и документационной синхронизации через Stage 7.0f-e.
 
 Он нужен как компактная точка входа в текущее продуктовое состояние: что входит в MVP v1, что остается за его пределами, какие продуктовые границы уже подтверждены и где искать исходные stage artifacts.
 
@@ -18,9 +20,9 @@
 - Stage 4.1 - Completed как `docs/product/stage-4/stage-4-consistency-review.md`.
 - Stage 5 - Completed.
 - Stage 6 - Completed как contract/design phase.
-- Stage 7 - In progress; corrective stabilization completed through restart readiness review.
+- Stage 7 - In progress; corrective stabilization and documentation stabilization completed through Stage 7.0f-e.
 
-Stage 6 contract work завершен отдельными roadmap-задачами и не создавал production implementation. Stage 7 временно блокировался из-за backend stack drift, затем Java/Spring Boot skeleton drift был исправлен на минимальный Kotlin + Ktor backend skeleton. Stage 7 restart readiness review прошел с minor notes. Дальнейшая Stage 7 implementation работа, включая Stage 7.2, может продолжаться только через отдельную явную roadmap-aligned задачу.
+Stage 6 contract work завершен отдельными roadmap-задачами и не создавал production implementation. Stage 7 временно блокировался из-за backend stack drift, затем Java/Spring Boot skeleton drift был исправлен на минимальный Kotlin + Ktor backend skeleton. Stage 7 restart readiness review прошел с minor notes, а Stage 7.0e - Stage 7.0f-e выполнили scoped documentation stabilization. Дальнейшая Stage 7 implementation работа, включая Stage 7.2, может продолжаться только через отдельную явную roadmap-aligned задачу.
 
 ## 3. Scope MVP v1
 

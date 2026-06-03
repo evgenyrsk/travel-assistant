@@ -4,11 +4,63 @@
 
 Главный roadmap со статусами этапов, progression, carryover и следующим разрешенным шагом находится в `docs/roadmap/roadmap.md`. Если статус этапа или следующий шаг важен для задачи, приоритет имеет primary roadmap.
 
-`product-baseline.md` фиксирует актуальное продуктовое состояние после Stage 0-5. Документы `stage-*` сохраняются как historical stage artifacts, deliverables и audit trail: они объясняют, как формировались решения, но не должны читаться как автоматическое расширение MVP scope.
+`product-baseline.md` является текущим product source of truth: он фиксирует актуальное продуктовое состояние, MVP boundaries и active product framing. Документы `stage-*` сохраняются как historical stage artifacts, deliverables и audit trail: они объясняют, как формировались решения, но не должны читаться как автоматическое расширение MVP scope.
+
+Если historical artifact содержит более широкие или устаревшие формулировки, их нужно читать в историческом контексте. Они не переопределяют `product-baseline.md`, primary roadmap или явный scope текущей задачи. Для product scope Codex должен сначала открыть `product-baseline.md`, а этот README использовать только как навигацию.
+
+## Иерархия ролей
+
+1. `product-baseline.md` — current product source of truth для MVP scope, product guardrails и active product framing.
+2. `../roadmap/roadmap.md` — source of truth по статусам этапов, progression, carryover и следующему разрешенному шагу.
+3. `README.md` — product navigation/index only; не competing baseline.
+4. `stage-0/**` - `stage-4/**` — historical product discovery/design artifacts и review trail, если конкретный файл не помечен иначе.
+
+## Инвентаризация product docs
+
+| Документ | Классификация | Как читать |
+|---|---|---|
+| `product-baseline.md` | Current product source of truth | Начинать отсюда при проверке MVP scope, active product framing и product guardrails. |
+| `README.md` | Product navigation/index | Использовать для поиска документов и понимания ролей, не как самостоятельную product spec. |
+| `stage-0/product-framing.md` | Historical product stage artifact | Исходная рамка продукта; читать как early discovery context. |
+| `stage-0/initial-scenarios.md` | Historical product stage artifact | Ранние сценарии верхнего уровня; не расширяют текущий MVP. |
+| `stage-0/mvp-boundaries.md` | Historical product stage artifact | Ранняя MVP-рамка; текущие границы сверять с `product-baseline.md`. |
+| `stage-0/assumptions-and-open-questions.md` | Historical product stage artifact | Ранние допущения и вопросы; не active backlog. |
+| `stage-1/target-audience.md` | Historical product stage artifact | Детали аудитории Stage 1; использовать как traceability. |
+| `stage-1/business-scenarios.md` | Historical product stage artifact | Business scenarios Stage 1; MVP/post-MVP трактовать через baseline. |
+| `stage-1/user-journeys.md` | Historical product stage artifact | User journeys Stage 1; flight/combined контекст исторический для MVP v1. |
+| `stage-1/business-requirements.md` | Historical product stage artifact | Business requirements Stage 1; текущий scope сверять с baseline. |
+| `stage-1/functional-requirements.md` | Historical product stage artifact | Functional requirements Stage 1; не active implementation backlog. |
+| `stage-1/non-functional-requirements.md` | Historical product stage artifact | Product-level NFR context; не технический backlog. |
+| `stage-1/assumptions-and-open-questions.md` | Historical product stage artifact | Stage 1 assumptions/open questions; не active backlog. |
+| `stage-1/stage-1-summary.md` | Historical product stage artifact | Summary Stage 1 и traceability. |
+| `stage-1/stage-1-consistency-review.md` | Product review/audit artifact | Quality gate Stage 1; не source of truth по текущему статусу. |
+| `stage-2/use-cases.md` | Historical product stage artifact | Use cases Stage 2; читать с hotel-only MVP boundary. |
+| `stage-2/edge-cases.md` | Historical product stage artifact | Edge cases Stage 2; не implementation checklist. |
+| `stage-2/assistant-behaviour-rules.md` | Historical product stage artifact / reference-only | Product behaviour rules; полезный reference, но текущие границы задает baseline. |
+| `stage-2/combined-search-levels.md` | Historical product stage artifact | Combined search context; future expansion, не MVP v1. |
+| `stage-2/data-requirements.md` | Historical product stage artifact / reference-only | Product data needs без API/DB schema. |
+| `stage-2/stage-2-summary.md` | Historical product stage artifact | Summary Stage 2 и carryover context. |
+| `stage-2/stage-2-consistency-review.md` | Product review/audit artifact | Review Stage 2; не active backlog. |
+| `stage-3/screen-map.md` | Historical product stage artifact | Hotel-only screen map; useful UX detail under baseline. |
+| `stage-3/required-fields-and-acceptance-criteria.md` | Historical product stage artifact / reference-only | Required fields и acceptance criteria для hotel flow. |
+| `stage-3/mvp-search-flow-details.md` | Historical product stage artifact / reference-only | Detailed hotel flow; не API/implementation contract. |
+| `stage-3/combined-search-ux-decision.md` | Stale/superseded product artifact | Historical combined-search decision, superseded for MVP v1 by hotel-only scope. |
+| `stage-3/stage-3-hotel-only-consistency-review.md` | Product review/audit artifact | Review hotel-only refocus. |
+| `stage-3/stage-3-summary-and-carryover.md` | Historical product stage artifact / reference-only | UX/product detail under current baseline. |
+| `stage-3/stage-3-plan-reconciliation.md` | Product review/audit artifact | Completion audit Stage 3. |
+| `stage-4/visual-design-direction.md` | Historical product stage artifact | Visual/UX direction; не frontend implementation. |
+| `stage-4/design-system-foundations.md` | Historical product stage artifact / reference-only | Draft design foundations; не final tokens. |
+| `stage-4/component-inventory.md` | Historical product stage artifact / reference-only | Component inventory; не React/shadcn implementation backlog. |
+| `stage-4/screen-specifications.md` | Historical product stage artifact / reference-only | Screen-level specs; не production UI code. |
+| `stage-4/interaction-patterns.md` | Historical product stage artifact / reference-only | Interaction guidance for hotel flow. |
+| `stage-4/stage-4-summary-and-carryover.md` | Historical product stage artifact | Summary Stage 4 и carryover. |
+| `stage-4/stage-4-consistency-review.md` | Product review/audit artifact | Stage 4.1 quality gate. |
+
+Unclear role: нет, все текущие файлы `docs/product/**` классифицированы этим index.
 
 ## Актуальный product baseline
 
-- `product-baseline.md` — актуальный компактный product baseline после Stage 0-5: hotel-only MVP v1 scope, явные исключения из MVP, core product flow, product guardrails, связь с historical stage artifacts и актуальный carryover.
+- `product-baseline.md` — current product source of truth после Stage 0-5: hotel-only MVP v1 scope, явные исключения из MVP, core product flow, product guardrails, связь с historical stage artifacts и актуальный carryover.
 
 MVP v1 остается hotel-only. Flight search, combined itinerary, booking, payment и account history остаются вне MVP v1 до отдельного roadmap decision.
 
