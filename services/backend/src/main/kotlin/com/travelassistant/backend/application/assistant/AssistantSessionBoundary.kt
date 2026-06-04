@@ -28,6 +28,16 @@ data class AcceptedAssistantMessage(
     val sessionId: AssistantSessionId,
     val status: AssistantSessionStatus,
     val receivedAt: Instant,
+    val assistantReply: AssistantReply,
+)
+
+enum class AssistantReplyType(val apiValue: String) {
+    CLARIFICATION("clarification"),
+}
+
+data class AssistantReply(
+    val type: AssistantReplyType,
+    val message: String,
 )
 
 fun interface AssistantSessionIdGenerator {
@@ -62,5 +72,9 @@ class CreateAssistantSessionUseCase(
             sessionId = command.sessionId,
             status = AssistantSessionStatus.COLLECTING_REQUIREMENTS,
             receivedAt = clock.instant(),
+            assistantReply = AssistantReply(
+                type = AssistantReplyType.CLARIFICATION,
+                message = "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+            ),
         )
 }

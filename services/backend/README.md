@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.4.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.5.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -46,13 +46,14 @@ Stage 7.3 session creation возвращает `201 Created` со structured JS
 
 Фактический путь локального приема user message: `POST /api/v1/assistant/sessions/{sessionId}/messages`.
 
-Stage 7.4 message intake принимает JSON с `message` и возвращает `200 OK` со structured JSON:
+Stage 7.4 - Stage 7.5 message intake принимает JSON с `message` и возвращает `200 OK` со structured JSON:
 
 - `sessionId`;
 - `status`;
 - `receivedAt`.
+- `assistantReply` с `replyType` и `message`.
 
-Этот endpoint не сохраняет message history, не проверяет session через storage, не возвращает assistant answer, clarification question, extracted requirements или hotel offers.
+`assistantReply` является deterministic placeholder clarification response. Этот endpoint не сохраняет message history, не проверяет session через storage, не выполняет stateful clarification flow, не извлекает requirements и не возвращает hotel offers.
 
 Placeholder routes для будущих hotel-only MVP boundaries:
 
@@ -68,7 +69,7 @@ Placeholder routes для будущих hotel-only MVP boundaries:
 ## Намеренно не реализовано
 
 - production assistant sessions, session persistence/retrieval и message history;
-- assistant replies, clarification flow, intent classification или requirements extraction;
+- stateful clarification flow, intent classification или requirements extraction;
 - hotel search business logic;
 - shortlist behavior;
 - explanation/compare behavior;
