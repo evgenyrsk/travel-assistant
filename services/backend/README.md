@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первый bounded behavior slice Stage 7.3.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, а hotel-only assistant/search routes добавлены как явные placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -29,12 +29,22 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 Реализован:
 
 - `GET /health`
+- `POST /assistant/sessions`
 
 Фактический путь проверки доступности: `GET /api/v1/health`.
 
+Фактический путь создания локальной assistant session: `POST /api/v1/assistant/sessions`.
+
+Stage 7.3 session creation возвращает `201 Created` со structured JSON:
+
+- `sessionId`;
+- `status`;
+- `createdAt`.
+
+`sessionId` является process-local deterministic identifier и не подразумевает persistence, retrieval, account history или cross-device storage.
+
 Placeholder routes для будущих hotel-only MVP boundaries:
 
-- `POST /api/v1/assistant/sessions`
 - `POST /api/v1/assistant/sessions/{sessionId}/messages`
 - `GET /api/v1/assistant/sessions/{sessionId}/shortlist`
 - `PUT /api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}`
@@ -43,11 +53,11 @@ Placeholder routes для будущих hotel-only MVP boundaries:
 - `POST /api/v1/hotel-searches`
 - `GET /api/v1/hotel-searches/{searchId}/offers`
 
-Эти routes возвращают structured `501 Not Implemented` response и не вызывают provider, DB, LLM или mock business logic.
+Эти placeholder routes возвращают structured `501 Not Implemented` response и не вызывают provider, DB, LLM или mock business logic.
 
 ## Намеренно не реализовано
 
-- production assistant sessions;
+- production assistant sessions и session persistence/retrieval;
 - hotel search business logic;
 - shortlist behavior;
 - explanation/compare behavior;
