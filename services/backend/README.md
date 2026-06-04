@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первый bounded behavior slice Stage 7.3.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.4.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -30,6 +30,7 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 
 - `GET /health`
 - `POST /assistant/sessions`
+- `POST /assistant/sessions/{sessionId}/messages`
 
 Фактический путь проверки доступности: `GET /api/v1/health`.
 
@@ -43,9 +44,18 @@ Stage 7.3 session creation возвращает `201 Created` со structured JS
 
 `sessionId` является process-local deterministic identifier и не подразумевает persistence, retrieval, account history или cross-device storage.
 
+Фактический путь локального приема user message: `POST /api/v1/assistant/sessions/{sessionId}/messages`.
+
+Stage 7.4 message intake принимает JSON с `message` и возвращает `200 OK` со structured JSON:
+
+- `sessionId`;
+- `status`;
+- `receivedAt`.
+
+Этот endpoint не сохраняет message history, не проверяет session через storage, не возвращает assistant answer, clarification question, extracted requirements или hotel offers.
+
 Placeholder routes для будущих hotel-only MVP boundaries:
 
-- `POST /api/v1/assistant/sessions/{sessionId}/messages`
 - `GET /api/v1/assistant/sessions/{sessionId}/shortlist`
 - `PUT /api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}`
 - `DELETE /api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}`
@@ -57,7 +67,8 @@ Placeholder routes для будущих hotel-only MVP boundaries:
 
 ## Намеренно не реализовано
 
-- production assistant sessions и session persistence/retrieval;
+- production assistant sessions, session persistence/retrieval и message history;
+- assistant replies, clarification flow, intent classification или requirements extraction;
 - hotel search business logic;
 - shortlist behavior;
 - explanation/compare behavior;

@@ -1,9 +1,12 @@
 package com.travelassistant.backend.api
 
+import com.travelassistant.backend.application.assistant.AcceptAssistantMessageCommand
 import com.travelassistant.backend.application.assistant.AssistantSessionBoundary
 import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
-import io.ktor.server.application.call
+import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.request.receiveNullable
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
@@ -12,6 +15,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonPrimitive
 
 fun Route.assistantPlaceholderRoutes() {
     val createAssistantSession: AssistantSessionBoundary = CreateAssistantSessionUseCase()
@@ -31,7 +35,34 @@ fun Route.assistantPlaceholderRoutes() {
         }
 
         post("/{sessionId}/messages") {
-            call.respondNotImplementedPlaceholder("assistant.session.message")
+            val request = runCatching {
+                call.receiveNullable<AssistantMessageIntakeRequest>()
+            }.getOrNull()
+            val messageText = request?.message
+
+            if (messageText.isNullOrBlank()) {
+                call.respondValidationError(
+                    field = "message",
+                    message = "Message text must be present and not blank.",
+                )
+                return@post
+            }
+
+            val acceptedMessage = createAssistantSession.acceptUserMessage(
+                AcceptAssistantMessageCommand(
+                    sessionId = AssistantSessionId(checkNotNull(call.parameters["sessionId"])),
+                    message = messageText,
+                ),
+            )
+
+            call.respond(
+                HttpStatusCode.OK,
+                AssistantMessageIntakeResponse(
+                    sessionId = acceptedMessage.sessionId.value,
+                    status = acceptedMessage.status.apiValue,
+                    receivedAt = acceptedMessage.receivedAt.toString(),
+                ),
+            )
         }
 
         get("/{sessionId}/shortlist") {
@@ -58,3 +89,33 @@ data class AssistantSessionCreatedResponse(
     val status: String,
     val createdAt: String,
 )
+
+@Serializable
+data class AssistantMessageIntakeRequest(
+    val message: String? = null,
+)
+
+@Serializable
+data class AssistantMessageIntakeResponse(
+    val sessionId: String,
+    val status: String,
+    val receivedAt: String,
+)
+
+suspend fun io.ktor.server.application.ApplicationCall.respondValidationError(
+    field: String,
+    message: String,
+) {
+    respond(
+        HttpStatusCode.BadRequest,
+        ErrorResponse(
+            code = ErrorCode.VALIDATION_ERROR,
+            message = "Request validation failed.",
+            requestId = requestIdOrNull(),
+            details = mapOf(
+                "field" to JsonPrimitive(field),
+                "message" to JsonPrimitive(message),
+            ),
+        ),
+    )
+}
