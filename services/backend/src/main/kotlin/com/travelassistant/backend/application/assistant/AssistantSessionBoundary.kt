@@ -4,17 +4,31 @@ import com.travelassistant.backend.domain.assistant.AssistantSession
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.assistant.AssistantSessionStatus
 import java.time.Clock
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Minimal Stage 7.3 boundary for local assistant session creation.
+ * Minimal Stage 7.3/7.4 boundary for local assistant session behavior.
  *
  * This boundary intentionally does not define persistence, retrieval, LLM
  * orchestration, provider calls, or production request/response contracts.
  */
 interface AssistantSessionBoundary {
     fun createSession(): AssistantSession
+
+    fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage
 }
+
+data class AcceptAssistantMessageCommand(
+    val sessionId: AssistantSessionId,
+    val message: String,
+)
+
+data class AcceptedAssistantMessage(
+    val sessionId: AssistantSessionId,
+    val status: AssistantSessionStatus,
+    val receivedAt: Instant,
+)
 
 fun interface AssistantSessionIdGenerator {
     fun nextId(): AssistantSessionId
@@ -41,5 +55,12 @@ class CreateAssistantSessionUseCase(
             id = idGenerator.nextId(),
             status = AssistantSessionStatus.COLLECTING_REQUIREMENTS,
             createdAt = clock.instant(),
+        )
+
+    override fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage =
+        AcceptedAssistantMessage(
+            sessionId = command.sessionId,
+            status = AssistantSessionStatus.COLLECTING_REQUIREMENTS,
+            receivedAt = clock.instant(),
         )
 }

@@ -21,6 +21,9 @@ enum class ErrorCode {
     @SerialName("NOT_FOUND")
     NOT_FOUND,
 
+    @SerialName("VALIDATION_ERROR")
+    VALIDATION_ERROR,
+
     @SerialName("INTERNAL_ERROR")
     INTERNAL_ERROR,
 }
