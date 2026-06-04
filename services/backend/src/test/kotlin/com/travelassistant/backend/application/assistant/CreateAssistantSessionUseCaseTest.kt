@@ -46,5 +46,10 @@ class CreateAssistantSessionUseCaseTest {
         assertEquals("assistant-session-local-000123", acceptedMessage.sessionId.value)
         assertEquals("collecting_requirements", acceptedMessage.status.apiValue)
         assertEquals(fixedInstant, acceptedMessage.receivedAt)
+        assertEquals("clarification", acceptedMessage.assistantReply.type.apiValue)
+        assertEquals(
+            "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+            acceptedMessage.assistantReply.message,
+        )
     }
 }

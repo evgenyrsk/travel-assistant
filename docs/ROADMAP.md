@@ -18,10 +18,10 @@ Primary roadmap и source of truth по статусам этапов, progressi
 | Stage 4.1 | Completed |
 | Stage 5 | Completed |
 | Stage 6 | Completed; Stage 6.1-6.9 completed |
-| Stage 7 | In progress / awaiting explicit next task; Stage 7.0 stabilization and documentation cleanup завершены до Stage 7.0f-f включительно; Stage 7.2+ not activated |
-| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend skeleton exists; DB/UI/provider integration not started |
+| Stage 7 | In progress / awaiting explicit next task; Stage 7.0 stabilization/documentation cleanup, Stage 7.2 backend foundation, Stage 7.3 session creation, Stage 7.4 message intake and Stage 7.5 minimal clarification response boundary completed; Stage 7.6+ not activated |
+| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend foundation exists with local assistant session/message/reply boundaries; DB/UI/provider integration not started |
 
-Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 7 прошел bounded corrective stabilization и documentation cleanup through Stage 7.0f-f. Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients и production implementation не начинаются из этого overview; подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
+Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 7 прошел bounded corrective stabilization, documentation cleanup through Stage 7.0f-f и первые backend behavior slices through Stage 7.5. Stage 7.6+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients и production implementation не начинаются из этого overview; подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 

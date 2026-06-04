@@ -20,7 +20,7 @@ README является входной картой проекта: он пом�
 ├── .gitignore           # Правила исключения локальных и generated-файлов
 ├── .github/             # GitHub issue и pull request templates
 ├── app/                 # Будущий frontend/application слой
-├── services/            # Backend/services модули; services/backend содержит Stage 7.0b Kotlin + Ktor skeleton
+├── services/            # Backend/services модули; services/backend содержит Stage 7 Kotlin + Ktor backend foundation
 ├── docs/                # Продуктовая, roadmap, архитектурная и development-документация
 ├── tests/               # Будущие тесты, fixtures и e2e-сценарии
 └── scripts/             # Будущие скрипты разработки и автоматизации
@@ -50,7 +50,7 @@ README является входной картой проекта: он пом�
 - `docs/development/roadmap.md` — compact development reference; future/reference material, не roadmap status source и не active backlog.
 - `docs/development/milestones.md` — compact milestone vocabulary; future/reference material, не источник статусов и не active backlog.
 - `docs/development/implementation-strategy.md` — будущая стратегия реализации и правила декомпозиции задач; не primary roadmap и не active implementation backlog.
-- `services/backend/README.md` — инструкция запуска Stage 7.0b Kotlin + Ktor backend skeleton и health endpoint.
+- `services/backend/README.md` — инструкция запуска Stage 7 Kotlin + Ktor backend foundation и текущих локальных endpoints.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
 - `.github/` — GitHub templates для постановки задач и описания pull requests.
 
@@ -58,7 +58,7 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`, а Stage 7.0 stabilization and documentation cleanup завершены до Stage 7.0f-f включительно. Stage 7.2+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной явной roadmap activation.
+Текущий baseline: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`. Stage 7.0 stabilization/documentation cleanup, Stage 7.2 backend foundation, Stage 7.3 session creation, Stage 7.4 message intake и Stage 7.5 minimal clarification response boundary завершены. Stage 7.6+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной roadmap activation.
 
 ## Рабочий процесс Codex
 

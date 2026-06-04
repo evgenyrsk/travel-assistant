@@ -52,6 +52,12 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("assistant-session-local-000001", body["sessionId"]?.jsonPrimitive?.content)
         assertEquals("collecting_requirements", body["status"]?.jsonPrimitive?.content)
+        val assistantReply = body["assistantReply"]?.jsonObject
+        assertEquals("clarification", assistantReply?.get("replyType")?.jsonPrimitive?.content)
+        assertEquals(
+            "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+            assistantReply?.get("message")?.jsonPrimitive?.content,
+        )
         assertTrue(receivedAt.isNotBlank())
         Instant.parse(receivedAt)
     }

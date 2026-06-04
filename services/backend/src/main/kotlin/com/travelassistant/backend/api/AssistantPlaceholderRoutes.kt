@@ -61,6 +61,10 @@ fun Route.assistantPlaceholderRoutes() {
                     sessionId = acceptedMessage.sessionId.value,
                     status = acceptedMessage.status.apiValue,
                     receivedAt = acceptedMessage.receivedAt.toString(),
+                    assistantReply = AssistantReplyResponse(
+                        replyType = acceptedMessage.assistantReply.type.apiValue,
+                        message = acceptedMessage.assistantReply.message,
+                    ),
                 ),
             )
         }
@@ -100,6 +104,13 @@ data class AssistantMessageIntakeResponse(
     val sessionId: String,
     val status: String,
     val receivedAt: String,
+    val assistantReply: AssistantReplyResponse,
+)
+
+@Serializable
+data class AssistantReplyResponse(
+    val replyType: String,
+    val message: String,
 )
 
 suspend fun io.ktor.server.application.ApplicationCall.respondValidationError(

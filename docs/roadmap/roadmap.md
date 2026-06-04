@@ -8,10 +8,10 @@ Roadmap не является task tracker, product specification, architecture 
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 7 — MVP Implementation / awaiting explicit next task. Stage 7.4 assistant message intake boundary completed by explicit roadmap-aligned task |
-| Последний завершенный этап | Stage 7.4 — Assistant Message Intake Boundary |
-| Следующий планируемый шаг | Отдельная явная roadmap-aligned задача должна выбрать следующий bounded Stage 7 implementation step или cleanup item; Stage 7.5+ не активированы |
-| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend foundation exists with health endpoint, structured error handling, local assistant session creation, local assistant message intake and placeholder hotel-only routes; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started |
+| Текущий этап | Stage 7 — MVP Implementation / awaiting explicit next task. Stage 7.5 minimal clarification response boundary completed by explicit roadmap-aligned task |
+| Последний завершенный этап | Stage 7.5 — Minimal Clarification Response Boundary |
+| Следующий планируемый шаг | Отдельная явная roadmap-aligned задача должна выбрать следующий bounded Stage 7 implementation step или cleanup item; Stage 7.6+ не активированы |
+| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend foundation exists with health endpoint, structured error handling, local assistant session creation, local assistant message intake, minimal placeholder clarification reply and placeholder hotel-only routes; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started |
 
 | Этап | Статус | Краткое описание |
 |---|---|---|
@@ -23,7 +23,7 @@ Roadmap не является task tracker, product specification, architecture 
 | Stage 4.1 | Completed | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Completed | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Completed | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup and Stage 6.9 final closure / handoff completed. |
-| Stage 7 | In progress / awaiting explicit next task | Minimal Kotlin + Ktor backend foundation exists. Stage 7.0 stabilization/documentation cleanup, Stage 7.2 backend application foundation, Stage 7.3 assistant session creation boundary and Stage 7.4 assistant message intake boundary completed. Stage 7.5+ требуют отдельных явных задач. |
+| Stage 7 | In progress / awaiting explicit next task | Minimal Kotlin + Ktor backend foundation exists. Stage 7.0 stabilization/documentation cleanup, Stage 7.2 backend application foundation, Stage 7.3 assistant session creation boundary, Stage 7.4 assistant message intake boundary and Stage 7.5 minimal clarification response boundary completed. Stage 7.6+ требуют отдельных явных задач. |
 | Stage 8 | Planned | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Planned | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Planned | Cross-platform expansion после стабилизации core product и architecture. |
@@ -271,9 +271,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Статус:** In progress / awaiting explicit next task.
 
-Stage 7.0 stabilization завершена как bounded documentation/correction chain: backend stack drift исправлен, restart readiness review пройден, а Stage 7.0e - Stage 7.0f-f закрыли audit, navigation, governance, development docs, product/architecture index labels и roadmap readability cleanup. Stage 7.2 завершил минимальную Kotlin + Ktor backend application foundation. Stage 7.3 добавил первый минимальный assistant session creation use-case boundary без persistence, LLM orchestration или provider integration. Stage 7.4 добавил минимальный assistant message intake boundary без assistant replies, clarification flow, persistence, LLM orchestration или provider integration. Подробности находятся в linked cleanup reports ниже.
+Stage 7.0 stabilization завершена как bounded documentation/correction chain: backend stack drift исправлен, restart readiness review пройден, а Stage 7.0e - Stage 7.0f-f закрыли audit, navigation, governance, development docs, product/architecture index labels и roadmap readability cleanup. Stage 7.2 завершил минимальную Kotlin + Ktor backend application foundation. Stage 7.3 добавил первый минимальный assistant session creation use-case boundary без persistence, LLM orchestration или provider integration. Stage 7.4 добавил минимальный assistant message intake boundary без assistant replies, clarification flow, persistence, LLM orchestration или provider integration. Stage 7.5 добавил минимальный placeholder clarification reply на message intake response без LLM, requirements extraction, session state, persistence или provider integration. Подробности находятся в linked cleanup reports ниже.
 
-**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельных явных implementation tasks. Stage 7 больше не заблокирован backend stack drift или restart readiness review. Stage 7.2 завершен как foundation-only задача, Stage 7.3 завершен как минимальный assistant session creation boundary, Stage 7.4 завершен как минимальный assistant message intake boundary, но Stage 7.5 или любая последующая implementation task не активированы. Подтвержденный backend stack — Kotlin + Ktor. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
+**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельных явных implementation tasks. Stage 7 больше не заблокирован backend stack drift или restart readiness review. Stage 7.2 завершен как foundation-only задача, Stage 7.3 завершен как минимальный assistant session creation boundary, Stage 7.4 завершен как минимальный assistant message intake boundary, Stage 7.5 завершен как минимальный clarification response boundary, но Stage 7.6 или любая последующая implementation task не активированы. Подтвержденный backend stack — Kotlin + Ktor. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
 
 **Completed Stage 7 artifacts and cleanup reports:**
 
@@ -295,6 +295,7 @@ Stage 7.0 stabilization завершена как bounded documentation/correcti
 - `docs/reviews/stage-7-2-backend-application-foundation.md` — Stage 7.2 implementation report for minimal Kotlin + Ktor backend foundation.
 - `docs/reviews/stage-7-3-assistant-session-creation-boundary.md` — Stage 7.3 implementation report for minimal assistant session creation use-case boundary.
 - `docs/reviews/stage-7-4-assistant-message-intake-boundary.md` — Stage 7.4 implementation report for minimal assistant message intake boundary.
+- `docs/reviews/stage-7-5-minimal-clarification-response-boundary.md` — Stage 7.5 implementation report for minimal placeholder clarification reply on assistant message intake.
 
 **Явные исключения Stage 7.0b:** Stage 7.0b не реализует search business logic, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary или account flows.
 
@@ -304,7 +305,9 @@ Stage 7.0 stabilization завершена как bounded documentation/correcti
 
 **Явные исключения Stage 7.4:** Stage 7.4 не реализует session persistence/retrieval, message history, assistant replies, clarification flow, requirements extraction, intent classification, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
 
-**Следующий шаг:** отдельная явная roadmap-aligned задача должна выбрать следующий bounded Stage 7 implementation step или конкретный bounded documentation cleanup item. Stage 7.5 или любая последующая implementation task не активированы Stage 7.4. Remaining documentation cleanup не является open-ended blocker; это набор отдельных candidates, которые выполняются только через явные задачи. Stage 8+ остаются Planned.
+**Явные исключения Stage 7.5:** Stage 7.5 не реализует session persistence/retrieval, message history, stateful clarification flow, requirements extraction, intent classification, LLM orchestration, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
+
+**Следующий шаг:** отдельная явная roadmap-aligned задача должна выбрать следующий bounded Stage 7 implementation step или конкретный bounded documentation cleanup item. Stage 7.6 или любая последующая implementation task не активированы Stage 7.5. Remaining documentation cleanup не является open-ended blocker; это набор отдельных candidates, которые выполняются только через явные задачи. Stage 8+ остаются Planned.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 

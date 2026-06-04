@@ -22,7 +22,7 @@
 - Не трактуй historical findings как active backlog.
 - Не переписывай historical review reports только потому, что их status wording устарел; вместо этого обновляй index/navigation или создавай новый cleanup report.
 - Не считай old Java/Spring Boot references текущим backend stack: текущий backend stack зафиксирован как Kotlin + Ktor в `docs/architecture/architecture-baseline.md`.
-- Не начинай Stage 7.2 или broader implementation work из-за recommendations в review artifacts.
+- Не начинай broader implementation work из-за recommendations в review artifacts.
 
 ## Текущий cleanup context
 
@@ -35,6 +35,15 @@
 | `stage-7-development-docs-merge-shortening-cleanup.md` | Completed cleanup report / Stage 7.0f-d | Фиксирует сокращение `docs/development/**` до secondary reference layer. |
 | `stage-7-product-architecture-index-role-labels-cleanup.md` | Completed cleanup report / Stage 7.0f-e | Фиксирует role labels и source-of-truth hierarchy для `docs/product/**` и `docs/architecture/**`. |
 | `stage-7-roadmap-readability-cleanup.md` | Completed cleanup report / Stage 7.0f-f | Фиксирует сокращение roadmap-facing status wording и подтверждает, что roadmap remains source of truth. |
+
+## Stage 7 implementation reports
+
+| Документ | Роль | Как читать |
+|---|---|---|
+| `stage-7-2-backend-application-foundation.md` | Completed implementation report / Stage 7.2 | Минимальная Kotlin + Ktor backend application foundation без business logic, provider integration, DB/storage, frontend или generated clients. |
+| `stage-7-3-assistant-session-creation-boundary.md` | Completed implementation report / Stage 7.3 | Минимальный assistant session creation use-case boundary без persistence, LLM orchestration или provider integration. |
+| `stage-7-4-assistant-message-intake-boundary.md` | Completed implementation report / Stage 7.4 | Минимальный assistant message intake boundary без assistant replies, clarification flow, persistence, LLM orchestration или provider integration. |
+| `stage-7-5-minimal-clarification-response-boundary.md` | Completed implementation report / Stage 7.5 | Минимальный placeholder clarification reply на message intake response без stateful clarification flow, LLM, requirements extraction, storage или provider integration. |
 
 ## Inventory review artifacts
 
@@ -52,6 +61,10 @@
 | `stage-7-development-docs-merge-shortening-cleanup.md` | Completed cleanup report | Stage 7.0f-d narrow cleanup. Confirms `docs/development/**` as secondary future/reference guidance. |
 | `stage-7-product-architecture-index-role-labels-cleanup.md` | Completed cleanup report | Stage 7.0f-e narrow cleanup. Confirms product/architecture source-of-truth hierarchy and index role labels. |
 | `stage-7-roadmap-readability-cleanup.md` | Completed cleanup report | Stage 7.0f-f narrow cleanup. Confirms primary roadmap readability cleanup without Stage 7.2 activation. |
+| `stage-7-2-backend-application-foundation.md` | Completed implementation report | Stage 7.2 minimal Kotlin + Ktor backend application foundation. |
+| `stage-7-3-assistant-session-creation-boundary.md` | Completed implementation report | Stage 7.3 minimal assistant session creation use-case boundary. |
+| `stage-7-4-assistant-message-intake-boundary.md` | Completed implementation report | Stage 7.4 minimal assistant message intake boundary. |
+| `stage-7-5-minimal-clarification-response-boundary.md` | Completed implementation report | Stage 7.5 minimal placeholder clarification reply on assistant message intake. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -72,6 +85,10 @@
 9. `docs/reviews/stage-7-development-docs-merge-shortening-cleanup.md`
 10. `docs/reviews/stage-7-product-architecture-index-role-labels-cleanup.md`
 11. `docs/reviews/stage-7-roadmap-readability-cleanup.md`
+12. `docs/reviews/stage-7-2-backend-application-foundation.md`
+13. `docs/reviews/stage-7-3-assistant-session-creation-boundary.md`
+14. `docs/reviews/stage-7-4-assistant-message-intake-boundary.md`
+15. `docs/reviews/stage-7-5-minimal-clarification-response-boundary.md`
 
 ## Historical / superseded документы
 
