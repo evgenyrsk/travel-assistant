@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.6.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.7.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -44,7 +44,9 @@ Stage 7.3 session creation возвращает `201 Created` со structured JS
 
 `sessionId` является process-local deterministic identifier и не подразумевает persistence, retrieval, account history или cross-device storage.
 
-Stage 7.6 регистрирует созданную session только в process-local memory. Это не durable persistence, не DB/storage, не account state и не multi-instance coordination.
+Stage 7.6 регистрирует созданную session только в process-local memory. Stage 7.7 инициализирует для нее минимальное process-local `clarificationState` metadata: фазу `collecting_requirements`, признак ожидания пользовательского ввода, счетчик принятых user messages, timestamps создания/обновления и timestamp последнего принятого сообщения после message intake.
+
+Эти metadata не возвращаются в public response, не являются финальным API contract и не означают production state machine. Это не durable persistence, не DB/storage, не account state и не multi-instance coordination.
 
 Фактический путь локального приема user message: `POST /api/v1/assistant/sessions/{sessionId}/messages`.
 
@@ -55,7 +57,7 @@ Stage 7.4 - Stage 7.5 message intake принимает JSON с `message` и в�
 - `receivedAt`.
 - `assistantReply` с `replyType` и `message`.
 
-`assistantReply` является deterministic placeholder clarification response. Этот endpoint не сохраняет message history, не проверяет session через storage, не выполняет stateful clarification flow, не извлекает requirements и не возвращает hotel offers.
+`assistantReply` является deterministic placeholder clarification response. Этот endpoint обновляет только минимальные session-local clarification metadata. Он не сохраняет message history, не проверяет session через durable storage, не выполняет stateful clarification flow, не извлекает requirements и не возвращает hotel offers.
 
 Если `sessionId` не найден в process-local state текущего процесса, endpoint возвращает structured `404 Not Found` с `code = SESSION_NOT_FOUND`. Этот error code является foundation-level behavior, а не финальным generated-client/API contract.
 
