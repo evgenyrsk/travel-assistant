@@ -1,6 +1,8 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.domain.assistant.AssistantSession
+import com.travelassistant.backend.domain.assistant.AssistantClarificationPhase
+import com.travelassistant.backend.domain.assistant.AssistantClarificationState
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.assistant.AssistantSessionStatus
 import java.time.Clock
@@ -8,7 +10,7 @@ import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Minimal Stage 7.3-7.6 boundary for local assistant session behavior.
+ * Minimal Stage 7.3-7.7 boundary for local assistant session behavior.
  *
  * This boundary intentionally does not define durable persistence, retrieval
  * endpoints, message history, LLM orchestration, provider calls, or production
@@ -29,6 +31,7 @@ data class AcceptedAssistantMessage(
     val sessionId: AssistantSessionId,
     val status: AssistantSessionStatus,
     val receivedAt: Instant,
+    val clarificationState: AssistantClarificationState,
     val assistantReply: AssistantReply,
 )
 
@@ -66,23 +69,40 @@ class CreateAssistantSessionUseCase(
     private val sessionStateStore: AssistantSessionStateStore = InMemoryAssistantSessionStateStore(),
 ) : AssistantSessionBoundary {
 
-    override fun createSession(): AssistantSession =
-        sessionStateStore.save(
+    override fun createSession(): AssistantSession {
+        val createdAt = clock.instant()
+
+        return sessionStateStore.save(
             AssistantSession(
                 id = idGenerator.nextId(),
                 status = AssistantSessionStatus.COLLECTING_REQUIREMENTS,
-                createdAt = clock.instant(),
+                createdAt = createdAt,
+                clarificationState = AssistantClarificationState(
+                    phase = AssistantClarificationPhase.COLLECTING_REQUIREMENTS,
+                    awaitingUserInput = true,
+                    acceptedUserMessageCount = 0,
+                    createdAt = createdAt,
+                    updatedAt = createdAt,
+                ),
             ),
         )
+    }
 
     override fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
         val session = sessionStateStore.findById(command.sessionId)
             ?: throw AssistantSessionNotFoundException(command.sessionId)
+        val receivedAt = clock.instant()
+        val updatedSession = session.recordAcceptedUserMessage(receivedAt)
+
+        sessionStateStore.save(
+            updatedSession,
+        )
 
         return AcceptedAssistantMessage(
-            sessionId = session.id,
-            status = session.status,
-            receivedAt = clock.instant(),
+            sessionId = updatedSession.id,
+            status = updatedSession.status,
+            receivedAt = receivedAt,
+            clarificationState = updatedSession.clarificationState,
             assistantReply = AssistantReply(
                 type = AssistantReplyType.CLARIFICATION,
                 message = "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",

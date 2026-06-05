@@ -45,6 +45,7 @@
 | `stage-7-4-assistant-message-intake-boundary.md` | Completed implementation report / Stage 7.4 | Минимальный assistant message intake boundary без assistant replies, clarification flow, persistence, LLM orchestration или provider integration. |
 | `stage-7-5-minimal-clarification-response-boundary.md` | Completed implementation report / Stage 7.5 | Минимальный placeholder clarification reply на message intake response без stateful clarification flow, LLM, requirements extraction, storage или provider integration. |
 | `stage-7-6-local-assistant-session-state-boundary.md` | Completed implementation report / Stage 7.6 | Process-local assistant session state boundary без durable persistence, retrieval endpoint, message history, LLM, provider integration или frontend/generated clients. |
+| `stage-7-7-session-local-clarification-state-boundary.md` | Completed implementation report / Stage 7.7 | Session-local clarification state metadata boundary без real clarification logic, requirements extraction, dynamic questions, durable persistence, LLM или provider integration. |
 
 ## Inventory review artifacts
 
@@ -67,6 +68,7 @@
 | `stage-7-4-assistant-message-intake-boundary.md` | Completed implementation report | Stage 7.4 minimal assistant message intake boundary. |
 | `stage-7-5-minimal-clarification-response-boundary.md` | Completed implementation report | Stage 7.5 minimal placeholder clarification reply on assistant message intake. |
 | `stage-7-6-local-assistant-session-state-boundary.md` | Completed implementation report | Stage 7.6 process-local assistant session state boundary. |
+| `stage-7-7-session-local-clarification-state-boundary.md` | Completed implementation report | Stage 7.7 session-local clarification state metadata boundary. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -92,6 +94,7 @@
 14. `docs/reviews/stage-7-4-assistant-message-intake-boundary.md`
 15. `docs/reviews/stage-7-5-minimal-clarification-response-boundary.md`
 16. `docs/reviews/stage-7-6-local-assistant-session-state-boundary.md`
+17. `docs/reviews/stage-7-7-session-local-clarification-state-boundary.md`
 
 ## Historical / superseded документы
 

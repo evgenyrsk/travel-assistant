@@ -5,7 +5,8 @@ import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Process-local Stage 7.6 state boundary for local assistant sessions.
+ * Process-local Stage 7.6-7.7 state boundary for local assistant sessions
+ * and minimal clarification metadata.
  *
  * This is not durable persistence, account storage, session history,
  * multi-instance coordination, or a production repository contract.
