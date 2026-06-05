@@ -42,7 +42,13 @@ class AssistantSessionRoutesTest {
             module()
         }
 
-        val response = client.post("/api/v1/assistant/sessions/assistant-session-local-000001/messages") {
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["sessionId"]?.jsonPrimitive?.content.orEmpty()
+
+        assertEquals(HttpStatusCode.Created, createdSession.status)
+
+        val response = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             setBody("""{"message":"I want a hotel in Rome for two adults next weekend"}""")
         }
@@ -50,7 +56,7 @@ class AssistantSessionRoutesTest {
         val receivedAt = body["receivedAt"]?.jsonPrimitive?.content.orEmpty()
 
         assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("assistant-session-local-000001", body["sessionId"]?.jsonPrimitive?.content)
+        assertEquals(sessionId, body["sessionId"]?.jsonPrimitive?.content)
         assertEquals("collecting_requirements", body["status"]?.jsonPrimitive?.content)
         val assistantReply = body["assistantReply"]?.jsonObject
         assertEquals("clarification", assistantReply?.get("replyType")?.jsonPrimitive?.content)
@@ -60,6 +66,27 @@ class AssistantSessionRoutesTest {
         )
         assertTrue(receivedAt.isNotBlank())
         Instant.parse(receivedAt)
+    }
+
+    @Test
+    fun unknownAssistantSessionReturnsStructuredNotFoundError() = testApplication {
+        application {
+            module()
+        }
+
+        val response = client.post("/api/v1/assistant/sessions/assistant-session-local-unknown/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"I want a hotel in Rome"}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+        assertEquals("SESSION_NOT_FOUND", body["code"]?.jsonPrimitive?.content)
+        assertEquals("Assistant session was not found.", body["message"]?.jsonPrimitive?.content)
+        assertEquals(
+            "assistant-session-local-unknown",
+            body["details"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content,
+        )
     }
 
     @Test

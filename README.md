@@ -58,7 +58,7 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`. Stage 7.0 stabilization/documentation cleanup, Stage 7.2 backend foundation, Stage 7.3 session creation, Stage 7.4 message intake и Stage 7.5 minimal clarification response boundary завершены. Stage 7.6+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной roadmap activation.
+Текущий baseline: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`. Stage 7.0 stabilization/documentation cleanup и backend behavior slices through Stage 7.6 local assistant session state boundary завершены. Stage 7.7+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной roadmap activation.
 
 ## Рабочий процесс Codex
 
