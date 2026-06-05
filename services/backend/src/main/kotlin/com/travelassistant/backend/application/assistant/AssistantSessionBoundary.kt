@@ -5,12 +5,13 @@ import com.travelassistant.backend.domain.assistant.AssistantClarificationPhase
 import com.travelassistant.backend.domain.assistant.AssistantClarificationState
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.assistant.AssistantSessionStatus
+import com.travelassistant.backend.domain.assistant.HotelRequirementsState
 import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Minimal Stage 7.3-7.7 boundary for local assistant session behavior.
+ * Minimal Stage 7.3-7.8 boundary for local assistant session behavior.
  *
  * This boundary intentionally does not define durable persistence, retrieval
  * endpoints, message history, LLM orchestration, provider calls, or production
@@ -32,6 +33,7 @@ data class AcceptedAssistantMessage(
     val status: AssistantSessionStatus,
     val receivedAt: Instant,
     val clarificationState: AssistantClarificationState,
+    val hotelRequirementsState: HotelRequirementsState,
     val assistantReply: AssistantReply,
 )
 
@@ -84,6 +86,7 @@ class CreateAssistantSessionUseCase(
                     createdAt = createdAt,
                     updatedAt = createdAt,
                 ),
+                hotelRequirementsState = HotelRequirementsState.foundation(createdAt),
             ),
         )
     }
@@ -103,6 +106,7 @@ class CreateAssistantSessionUseCase(
             status = updatedSession.status,
             receivedAt = receivedAt,
             clarificationState = updatedSession.clarificationState,
+            hotelRequirementsState = updatedSession.hotelRequirementsState,
             assistantReply = AssistantReply(
                 type = AssistantReplyType.CLARIFICATION,
                 message = "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
