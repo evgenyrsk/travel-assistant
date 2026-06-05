@@ -6,6 +6,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class CreateAssistantSessionUseCaseTest {
 
@@ -17,6 +18,7 @@ class CreateAssistantSessionUseCaseTest {
             idGenerator = AssistantSessionIdGenerator {
                 AssistantSessionId("assistant-session-local-000001")
             },
+            sessionStateStore = InMemoryAssistantSessionStateStore(),
         )
 
         val session = useCase.createSession()
@@ -34,16 +36,19 @@ class CreateAssistantSessionUseCaseTest {
             idGenerator = AssistantSessionIdGenerator {
                 AssistantSessionId("assistant-session-local-000001")
             },
+            sessionStateStore = InMemoryAssistantSessionStateStore(),
         )
+
+        val session = useCase.createSession()
 
         val acceptedMessage = useCase.acceptUserMessage(
             AcceptAssistantMessageCommand(
-                sessionId = AssistantSessionId("assistant-session-local-000123"),
+                sessionId = session.id,
                 message = "I want a hotel in Rome",
             ),
         )
 
-        assertEquals("assistant-session-local-000123", acceptedMessage.sessionId.value)
+        assertEquals("assistant-session-local-000001", acceptedMessage.sessionId.value)
         assertEquals("collecting_requirements", acceptedMessage.status.apiValue)
         assertEquals(fixedInstant, acceptedMessage.receivedAt)
         assertEquals("clarification", acceptedMessage.assistantReply.type.apiValue)
@@ -51,5 +56,28 @@ class CreateAssistantSessionUseCaseTest {
             "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
             acceptedMessage.assistantReply.message,
         )
+    }
+
+    @Test
+    fun rejectsUserMessageForUnknownLocalSession() {
+        val fixedInstant = Instant.parse("2026-06-04T00:00:00Z")
+        val useCase = CreateAssistantSessionUseCase(
+            clock = Clock.fixed(fixedInstant, ZoneOffset.UTC),
+            idGenerator = AssistantSessionIdGenerator {
+                AssistantSessionId("assistant-session-local-000001")
+            },
+            sessionStateStore = InMemoryAssistantSessionStateStore(),
+        )
+
+        val error = assertFailsWith<AssistantSessionNotFoundException> {
+            useCase.acceptUserMessage(
+                AcceptAssistantMessageCommand(
+                    sessionId = AssistantSessionId("assistant-session-local-unknown"),
+                    message = "I want a hotel in Rome",
+                ),
+            )
+        }
+
+        assertEquals("assistant-session-local-unknown", error.sessionId.value)
     }
 }

@@ -8,10 +8,11 @@ import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Minimal Stage 7.3/7.4 boundary for local assistant session behavior.
+ * Minimal Stage 7.3-7.6 boundary for local assistant session behavior.
  *
- * This boundary intentionally does not define persistence, retrieval, LLM
- * orchestration, provider calls, or production request/response contracts.
+ * This boundary intentionally does not define durable persistence, retrieval
+ * endpoints, message history, LLM orchestration, provider calls, or production
+ * request/response contracts.
  */
 interface AssistantSessionBoundary {
     fun createSession(): AssistantSession
@@ -40,6 +41,10 @@ data class AssistantReply(
     val message: String,
 )
 
+class AssistantSessionNotFoundException(
+    val sessionId: AssistantSessionId,
+) : RuntimeException("Assistant session was not found: ${sessionId.value}")
+
 fun interface AssistantSessionIdGenerator {
     fun nextId(): AssistantSessionId
 }
@@ -58,23 +63,30 @@ class LocalAssistantSessionIdGenerator(
 class CreateAssistantSessionUseCase(
     private val clock: Clock = Clock.systemUTC(),
     private val idGenerator: AssistantSessionIdGenerator = LocalAssistantSessionIdGenerator(),
+    private val sessionStateStore: AssistantSessionStateStore = InMemoryAssistantSessionStateStore(),
 ) : AssistantSessionBoundary {
 
     override fun createSession(): AssistantSession =
-        AssistantSession(
-            id = idGenerator.nextId(),
-            status = AssistantSessionStatus.COLLECTING_REQUIREMENTS,
-            createdAt = clock.instant(),
+        sessionStateStore.save(
+            AssistantSession(
+                id = idGenerator.nextId(),
+                status = AssistantSessionStatus.COLLECTING_REQUIREMENTS,
+                createdAt = clock.instant(),
+            ),
         )
 
-    override fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage =
-        AcceptedAssistantMessage(
-            sessionId = command.sessionId,
-            status = AssistantSessionStatus.COLLECTING_REQUIREMENTS,
+    override fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
+        val session = sessionStateStore.findById(command.sessionId)
+            ?: throw AssistantSessionNotFoundException(command.sessionId)
+
+        return AcceptedAssistantMessage(
+            sessionId = session.id,
+            status = session.status,
             receivedAt = clock.instant(),
             assistantReply = AssistantReply(
                 type = AssistantReplyType.CLARIFICATION,
                 message = "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
             ),
         )
+    }
 }
