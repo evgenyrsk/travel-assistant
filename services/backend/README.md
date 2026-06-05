@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.7.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.8.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -46,18 +46,25 @@ Stage 7.3 session creation возвращает `201 Created` со structured JS
 
 Stage 7.6 регистрирует созданную session только в process-local memory. Stage 7.7 инициализирует для нее минимальное process-local `clarificationState` metadata: фазу `collecting_requirements`, признак ожидания пользовательского ввода, счетчик принятых user messages, timestamps создания/обновления и timestamp последнего принятого сообщения после message intake.
 
+Stage 7.8 инициализирует для local session internal `hotelRequirementsState` metadata с foundation-only slots:
+
+- `destination` — required, `missing`;
+- `stay_dates` — required, `missing`;
+- `guests` — required, `missing`;
+- `preferences` — optional, `unknown`.
+
 Эти metadata не возвращаются в public response, не являются финальным API contract и не означают production state machine. Это не durable persistence, не DB/storage, не account state и не multi-instance coordination.
 
 Фактический путь локального приема user message: `POST /api/v1/assistant/sessions/{sessionId}/messages`.
 
-Stage 7.4 - Stage 7.5 message intake принимает JSON с `message` и возвращает `200 OK` со structured JSON:
+Stage 7.4 - Stage 7.8 message intake принимает JSON с `message` и возвращает `200 OK` со structured JSON:
 
 - `sessionId`;
 - `status`;
 - `receivedAt`.
 - `assistantReply` с `replyType` и `message`.
 
-`assistantReply` является deterministic placeholder clarification response. Этот endpoint обновляет только минимальные session-local clarification metadata. Он не сохраняет message history, не проверяет session через durable storage, не выполняет stateful clarification flow, не извлекает requirements и не возвращает hotel offers.
+`assistantReply` является deterministic placeholder clarification response. Этот endpoint обновляет только минимальные session-local clarification metadata и сохраняет internal hotel slot metadata без заполнения значений. Он не сохраняет message history, не проверяет session через durable storage, не выполняет stateful clarification flow, не извлекает requirements и не возвращает hotel offers.
 
 Если `sessionId` не найден в process-local state текущего процесса, endpoint возвращает structured `404 Not Found` с `code = SESSION_NOT_FOUND`. Этот error code является foundation-level behavior, а не финальным generated-client/API contract.
 
@@ -77,6 +84,7 @@ Placeholder routes для будущих hotel-only MVP boundaries:
 - production assistant sessions, session persistence/retrieval и message history;
 - durable persistence, DB/storage и multi-instance session state;
 - stateful clarification flow, intent classification или requirements extraction;
+- slot filling или сохранение extracted hotel requirement values;
 - hotel search business logic;
 - shortlist behavior;
 - explanation/compare behavior;

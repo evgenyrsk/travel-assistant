@@ -18,10 +18,10 @@ Primary roadmap и source of truth по статусам этапов, progressi
 | Stage 4.1 | Completed |
 | Stage 5 | Completed |
 | Stage 6 | Completed; Stage 6.1-6.9 completed |
-| Stage 7 | In progress / awaiting explicit next task; Stage 7.0 stabilization/documentation cleanup and backend behavior slices through Stage 7.7 session-local clarification state boundary completed; Stage 7.8+ not activated |
-| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend foundation exists with process-local assistant session state, session-local clarification metadata and local assistant message/reply boundaries; DB/UI/provider integration not started |
+| Stage 7 | In progress / awaiting explicit next task; Stage 7.0 stabilization/documentation cleanup and backend behavior slices through Stage 7.8 internal hotel requirements slot metadata boundary completed; Stage 7.9+ not activated |
+| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend foundation exists with process-local assistant session state, session-local clarification metadata, internal hotel requirements slot metadata and local assistant message/reply boundaries; DB/UI/provider integration not started |
 
-Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 7 прошел bounded corrective stabilization, documentation cleanup through Stage 7.0f-f и первые backend behavior slices through Stage 7.7. Stage 7.8+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients и production implementation не начинаются из этого overview; подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
+Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 7 прошел bounded corrective stabilization, documentation cleanup through Stage 7.0f-f и первые backend behavior slices through Stage 7.8. Stage 7.9+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients и production implementation не начинаются из этого overview; подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 

@@ -1,6 +1,8 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.assistant.HotelRequirementSlotKey
+import com.travelassistant.backend.domain.assistant.RequirementSlotStatus
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -33,10 +35,34 @@ class CreateAssistantSessionUseCaseTest {
         assertEquals(fixedInstant, session.clarificationState.createdAt)
         assertEquals(fixedInstant, session.clarificationState.updatedAt)
         assertNull(session.clarificationState.lastMessageReceivedAt)
+        assertEquals(fixedInstant, session.hotelRequirementsState.createdAt)
+        assertEquals(fixedInstant, session.hotelRequirementsState.updatedAt)
+        assertEquals(
+            listOf(
+                HotelRequirementSlotKey.DESTINATION,
+                HotelRequirementSlotKey.STAY_DATES,
+                HotelRequirementSlotKey.GUESTS,
+                HotelRequirementSlotKey.PREFERENCES,
+            ),
+            session.hotelRequirementsState.slots.map { it.key },
+        )
+        assertEquals(
+            listOf(
+                RequirementSlotStatus.MISSING,
+                RequirementSlotStatus.MISSING,
+                RequirementSlotStatus.MISSING,
+                RequirementSlotStatus.UNKNOWN,
+            ),
+            session.hotelRequirementsState.slots.map { it.status },
+        )
+        assertEquals(
+            listOf(true, true, true, false),
+            session.hotelRequirementsState.slots.map { it.requiredForHotelSearch },
+        )
     }
 
     @Test
-    fun acceptsUserMessageAsLocalIntakeOnlyAndUpdatesClarificationState() {
+    fun acceptsUserMessageAsLocalIntakeOnlyAndUpdatesClarificationStateWithoutFillingSlots() {
         val fixedInstant = Instant.parse("2026-06-04T00:00:00Z")
         val sessionStateStore = InMemoryAssistantSessionStateStore()
         val useCase = CreateAssistantSessionUseCase(
@@ -48,6 +74,7 @@ class CreateAssistantSessionUseCaseTest {
         )
 
         val session = useCase.createSession()
+        val initialHotelRequirementsState = session.hotelRequirementsState
 
         val acceptedMessage = useCase.acceptUserMessage(
             AcceptAssistantMessageCommand(
@@ -65,6 +92,7 @@ class CreateAssistantSessionUseCaseTest {
         assertEquals(fixedInstant, acceptedMessage.clarificationState.createdAt)
         assertEquals(fixedInstant, acceptedMessage.clarificationState.updatedAt)
         assertEquals(fixedInstant, acceptedMessage.clarificationState.lastMessageReceivedAt)
+        assertEquals(initialHotelRequirementsState, acceptedMessage.hotelRequirementsState)
         assertEquals("clarification", acceptedMessage.assistantReply.type.apiValue)
         assertEquals(
             "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
@@ -74,6 +102,7 @@ class CreateAssistantSessionUseCaseTest {
         val storedSession = sessionStateStore.findById(session.id)
         assertEquals(1, storedSession?.clarificationState?.acceptedUserMessageCount)
         assertEquals(fixedInstant, storedSession?.clarificationState?.lastMessageReceivedAt)
+        assertEquals(initialHotelRequirementsState, storedSession?.hotelRequirementsState)
     }
 
     @Test
