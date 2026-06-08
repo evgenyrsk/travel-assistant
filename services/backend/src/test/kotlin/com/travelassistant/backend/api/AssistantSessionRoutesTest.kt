@@ -33,6 +33,8 @@ class AssistantSessionRoutesTest {
         assertEquals("assistant-session-local-000001", body["sessionId"]?.jsonPrimitive?.content)
         assertEquals("collecting_requirements", body["status"]?.jsonPrimitive?.content)
         assertEquals(false, body.containsKey("hotelRequirementsState"))
+        assertEquals(false, body.containsKey("hotelRequirementsCoveragePlan"))
+        assertEquals(false, body.containsKey("slotCoveragePlan"))
         assertEquals(false, body.containsKey("requirementsState"))
         assertEquals(false, body.containsKey("slots"))
         assertTrue(createdAt.isNotBlank())
@@ -62,6 +64,8 @@ class AssistantSessionRoutesTest {
         assertEquals(sessionId, body["sessionId"]?.jsonPrimitive?.content)
         assertEquals("collecting_requirements", body["status"]?.jsonPrimitive?.content)
         assertEquals(false, body.containsKey("hotelRequirementsState"))
+        assertEquals(false, body.containsKey("hotelRequirementsCoveragePlan"))
+        assertEquals(false, body.containsKey("slotCoveragePlan"))
         assertEquals(false, body.containsKey("requirementsState"))
         assertEquals(false, body.containsKey("slots"))
         val assistantReply = body["assistantReply"]?.jsonObject
