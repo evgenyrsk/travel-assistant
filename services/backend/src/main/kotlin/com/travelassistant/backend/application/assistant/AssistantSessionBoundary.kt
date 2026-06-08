@@ -5,13 +5,15 @@ import com.travelassistant.backend.domain.assistant.AssistantClarificationPhase
 import com.travelassistant.backend.domain.assistant.AssistantClarificationState
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.assistant.AssistantSessionStatus
+import com.travelassistant.backend.domain.assistant.HotelRequirementsCoveragePlan
+import com.travelassistant.backend.domain.assistant.HotelRequirementsCoveragePlanner
 import com.travelassistant.backend.domain.assistant.HotelRequirementsState
 import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Minimal Stage 7.3-7.8 boundary for local assistant session behavior.
+ * Minimal Stage 7.3-7.9 boundary for local assistant session behavior.
  *
  * This boundary intentionally does not define durable persistence, retrieval
  * endpoints, message history, LLM orchestration, provider calls, or production
@@ -34,6 +36,7 @@ data class AcceptedAssistantMessage(
     val receivedAt: Instant,
     val clarificationState: AssistantClarificationState,
     val hotelRequirementsState: HotelRequirementsState,
+    val hotelRequirementsCoveragePlan: HotelRequirementsCoveragePlan,
     val assistantReply: AssistantReply,
 )
 
@@ -73,6 +76,7 @@ class CreateAssistantSessionUseCase(
 
     override fun createSession(): AssistantSession {
         val createdAt = clock.instant()
+        val hotelRequirementsState = HotelRequirementsState.foundation(createdAt)
 
         return sessionStateStore.save(
             AssistantSession(
@@ -86,7 +90,8 @@ class CreateAssistantSessionUseCase(
                     createdAt = createdAt,
                     updatedAt = createdAt,
                 ),
-                hotelRequirementsState = HotelRequirementsState.foundation(createdAt),
+                hotelRequirementsState = hotelRequirementsState,
+                hotelRequirementsCoveragePlan = HotelRequirementsCoveragePlanner.plan(hotelRequirementsState),
             ),
         )
     }
@@ -107,6 +112,7 @@ class CreateAssistantSessionUseCase(
             receivedAt = receivedAt,
             clarificationState = updatedSession.clarificationState,
             hotelRequirementsState = updatedSession.hotelRequirementsState,
+            hotelRequirementsCoveragePlan = updatedSession.hotelRequirementsCoveragePlan,
             assistantReply = AssistantReply(
                 type = AssistantReplyType.CLARIFICATION,
                 message = "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",

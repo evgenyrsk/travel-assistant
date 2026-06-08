@@ -42,9 +42,11 @@ data class AssistantSession(
     val createdAt: Instant,
     val clarificationState: AssistantClarificationState,
     val hotelRequirementsState: HotelRequirementsState,
+    val hotelRequirementsCoveragePlan: HotelRequirementsCoveragePlan,
 ) {
     fun recordAcceptedUserMessage(receivedAt: Instant): AssistantSession =
         copy(
             clarificationState = clarificationState.recordAcceptedUserMessage(receivedAt),
+            hotelRequirementsCoveragePlan = HotelRequirementsCoveragePlanner.plan(hotelRequirementsState),
         )
 }

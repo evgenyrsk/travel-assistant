@@ -59,6 +59,25 @@ class CreateAssistantSessionUseCaseTest {
             listOf(true, true, true, false),
             session.hotelRequirementsState.slots.map { it.requiredForHotelSearch },
         )
+        assertEquals(3, session.hotelRequirementsCoveragePlan.requiredSlotCount)
+        assertEquals(3, session.hotelRequirementsCoveragePlan.missingRequiredSlotCount)
+        assertEquals(
+            listOf(
+                HotelRequirementSlotKey.DESTINATION,
+                HotelRequirementSlotKey.STAY_DATES,
+                HotelRequirementSlotKey.GUESTS,
+            ),
+            session.hotelRequirementsCoveragePlan.missingRequiredSlotKeys,
+        )
+        assertEquals(
+            listOf(HotelRequirementSlotKey.PREFERENCES),
+            session.hotelRequirementsCoveragePlan.optionalSlotKeys,
+        )
+        assertEquals(
+            HotelRequirementSlotKey.DESTINATION,
+            session.hotelRequirementsCoveragePlan.nextMissingRequiredSlotKey,
+        )
+        assertEquals(false, session.hotelRequirementsCoveragePlan.requiredHotelSearchInputsComplete)
     }
 
     @Test
@@ -75,6 +94,7 @@ class CreateAssistantSessionUseCaseTest {
 
         val session = useCase.createSession()
         val initialHotelRequirementsState = session.hotelRequirementsState
+        val initialHotelRequirementsCoveragePlan = session.hotelRequirementsCoveragePlan
 
         val acceptedMessage = useCase.acceptUserMessage(
             AcceptAssistantMessageCommand(
@@ -93,6 +113,7 @@ class CreateAssistantSessionUseCaseTest {
         assertEquals(fixedInstant, acceptedMessage.clarificationState.updatedAt)
         assertEquals(fixedInstant, acceptedMessage.clarificationState.lastMessageReceivedAt)
         assertEquals(initialHotelRequirementsState, acceptedMessage.hotelRequirementsState)
+        assertEquals(initialHotelRequirementsCoveragePlan, acceptedMessage.hotelRequirementsCoveragePlan)
         assertEquals("clarification", acceptedMessage.assistantReply.type.apiValue)
         assertEquals(
             "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
@@ -103,6 +124,7 @@ class CreateAssistantSessionUseCaseTest {
         assertEquals(1, storedSession?.clarificationState?.acceptedUserMessageCount)
         assertEquals(fixedInstant, storedSession?.clarificationState?.lastMessageReceivedAt)
         assertEquals(initialHotelRequirementsState, storedSession?.hotelRequirementsState)
+        assertEquals(initialHotelRequirementsCoveragePlan, storedSession?.hotelRequirementsCoveragePlan)
     }
 
     @Test
