@@ -14,6 +14,20 @@ data class ErrorResponse(
 )
 
 @Serializable
+data class ValidationErrorResponse(
+    val code: ErrorCode,
+    val message: String,
+    val requestId: String? = null,
+    val fields: List<ValidationErrorField>,
+)
+
+@Serializable
+data class ValidationErrorField(
+    val field: String,
+    val message: String,
+)
+
+@Serializable
 enum class ErrorCode {
     @SerialName("NOT_IMPLEMENTED")
     NOT_IMPLEMENTED,
