@@ -4,9 +4,11 @@
 
 Документ не является primary roadmap. Актуальный статус этапов, чеклисты артефактов, stage gates, carryover и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
 
-На момент Stage 7.0f-f Stage 0-6 завершены, Stage 7 прошел corrective stabilization and documentation cleanup до Stage 7.0f-f включительно, а Stage 7.2+ не активированы. Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает active implementation backlog.
+На момент Stage 7.0f-f Stage 0-6 завершены, Stage 7 прошел corrective stabilization and documentation cleanup до Stage 7.0f-f включительно. Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает active implementation backlog.
 
 Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Любой task format, milestone или implementation sequence ниже применяется только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap.
+
+Active engineering rules for current implementation, testing, documentation and quality work live in `docs/development/README.md` and linked rule files.
 
 ## Общий подход
 
@@ -161,7 +163,7 @@
 
 Этот список является справочной последовательностью для будущей реализации, а не текущим backlog, roadmap status или task tracker. Он показывает возможную последовательность после явной активации реализации, но не создает задачи сам по себе.
 
-Каждый пункт требует отдельного явного roadmap step или явно поставленной задачи в соответствии с primary roadmap. Stage 7.2+ не активированы этим документом.
+Каждый пункт требует отдельного явного roadmap step или явно поставленной задачи в соответствии с primary roadmap. Следующий Stage 7 implementation step не активирован этим документом.
 
 1. Зафиксировать требования, границы MVP и API-контракты.
 2. Создать backend skeleton и health endpoint.

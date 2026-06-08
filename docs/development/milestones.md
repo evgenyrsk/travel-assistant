@@ -2,7 +2,7 @@
 
 Этот документ является compact reference по возможным будущим development milestones Travel Assistant.
 
-Он не является source of truth по roadmap status, active backlog, task tracker или разрешением начинать Stage 7.2+. Текущий статус, следующий шаг, stage gates и carryover фиксируются только в `docs/roadmap/roadmap.md`.
+Он не является source of truth по roadmap status, active backlog, task tracker или разрешением начинать следующий Stage 7 шаг. Текущий статус, следующий шаг, stage gates и carryover фиксируются только в `docs/roadmap/roadmap.md`.
 
 ## Роль milestones
 
@@ -30,6 +30,7 @@ Milestones помогают обсуждать размер и направле�
 - Для product scope проверяй `docs/product/product-baseline.md`.
 - Для architecture/backend stack проверяй `docs/architecture/architecture-baseline.md`.
 - Для agent workflow и scope control проверяй `AGENTS.md`.
+- Для active engineering rules проверяй `docs/development/README.md`.
 
 ## Что не входит
 
@@ -40,7 +41,7 @@ Milestones помогают обсуждать размер и направле�
 - DB schema/storage model;
 - auth/security/DevOps/testing backlog;
 - provider-specific integration work;
-- Stage 7.2 start;
+- next Stage 7 step activation;
 - changes to roadmap order or MVP scope.
 
 ## Future merge note

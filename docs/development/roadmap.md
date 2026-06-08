@@ -2,7 +2,7 @@
 
 Этот документ является compact development reference для будущих implementation-oriented задач Travel Assistant.
 
-Он не является primary roadmap, task tracker, active backlog, source of truth по статусам этапов или разрешением начинать Stage 7.2+. Актуальный roadmap status, stage gates, carryover и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Он не является primary roadmap, task tracker, active backlog, source of truth по статусам этапов или разрешением начинать следующий Stage 7 шаг. Актуальный roadmap status, stage gates, carryover и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
 
 ## Роль документа
 
@@ -14,7 +14,8 @@
 2. `AGENTS.md` — repository/agent governance.
 3. `docs/product/product-baseline.md` — product/MVP scope.
 4. `docs/architecture/architecture-baseline.md` — architecture baseline и backend stack.
-5. `docs/development/**` — справочная будущая development guidance.
+5. Active engineering rules in `docs/development/` — implementation, testing, documentation and quality rules for explicit tasks.
+6. `docs/development/roadmap.md`, `docs/development/milestones.md` and `docs/development/implementation-strategy.md` — future/reference material, not active backlog.
 
 Если этот документ конфликтует с primary roadmap или baseline-документами, приоритет имеют primary roadmap и baseline-документы.
 
@@ -23,7 +24,7 @@
 На момент Stage 7.0f-f:
 
 - Stage 7 corrective stabilization and documentation cleanup завершены до Stage 7.0f-f включительно.
-- Stage 7.2+ не активированы этим документом.
+- Следующий Stage 7 implementation step не активирован этим документом.
 - Business logic, provider integration, DB/storage, frontend, generated clients и production implementation не начинаются без отдельной явной roadmap-aligned задачи.
 
 ## Development areas, reference only

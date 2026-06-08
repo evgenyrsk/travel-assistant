@@ -32,7 +32,7 @@ Roadmap не является task tracker, product specification, architecture 
 
 - `docs/roadmap/roadmap.md` является source of truth по статусам этапов, progression, границам этапов, carryover и следующему разрешенному шагу.
 - `docs/ROADMAP.md` является верхнеуровневым navigation overview, а не конкурирующим источником текущего статуса.
-- Документы `docs/development/*` являются future/reference material. Они не являются active implementation backlog и должны следовать этому roadmap.
+- Development rule documents under `docs/development/` are active engineering rules for explicitly scoped work. `docs/development/roadmap.md`, `docs/development/milestones.md` and `docs/development/implementation-strategy.md` remain future/reference material, not active implementation backlog. All development docs must follow this roadmap.
 - Planned и future stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи.
 - Recommendations, carryover и future candidates не должны автоматически выполняться во время review или cleanup задач.
 - Implementation, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog и production code требуют отдельного явного roadmap step.
