@@ -48,6 +48,8 @@
 | `stage-7-7-session-local-clarification-state-boundary.md` | Completed implementation report / Stage 7.7 | Session-local clarification state metadata boundary без real clarification logic, requirements extraction, dynamic questions, durable persistence, LLM или provider integration. |
 | `stage-7-8-internal-hotel-requirements-slot-metadata-boundary.md` | Completed implementation report / Stage 7.8 | Internal hotel requirements slot metadata boundary без requirements extraction, slot filling, dynamic clarification, durable persistence, LLM или provider integration. |
 | `stage-7-9-internal-slot-coverage-clarification-planning-boundary.md` | Completed implementation report / Stage 7.9 | Internal slot coverage / clarification planning boundary без requirements extraction, slot filling, dynamic clarification, durable persistence, LLM или provider integration. |
+| `stage-7-10-backend-api-contract-alignment-checkpoint.md` | Completed review report / Stage 7.10 | Backend API / contract alignment checkpoint без runtime changes, OpenAPI rewrite, generated clients или future behavior activation. |
+| `stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md` | Completed implementation report / Stage 7.11 | Assistant API runtime contract alignment cleanup без requirements extraction, slot filling, generated clients, LLM, provider integration, DB/storage или frontend. |
 
 ## Inventory review artifacts
 
@@ -73,6 +75,8 @@
 | `stage-7-7-session-local-clarification-state-boundary.md` | Completed implementation report | Stage 7.7 session-local clarification state metadata boundary. |
 | `stage-7-8-internal-hotel-requirements-slot-metadata-boundary.md` | Completed implementation report | Stage 7.8 internal hotel requirements slot metadata boundary. |
 | `stage-7-9-internal-slot-coverage-clarification-planning-boundary.md` | Completed implementation report | Stage 7.9 internal slot coverage / clarification planning boundary. |
+| `stage-7-10-backend-api-contract-alignment-checkpoint.md` | Completed review report | Stage 7.10 backend API / contract alignment checkpoint. |
+| `stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md` | Completed implementation report | Stage 7.11 assistant API runtime contract alignment cleanup. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -101,6 +105,8 @@
 17. `docs/reviews/stage-7-7-session-local-clarification-state-boundary.md`
 18. `docs/reviews/stage-7-8-internal-hotel-requirements-slot-metadata-boundary.md`
 19. `docs/reviews/stage-7-9-internal-slot-coverage-clarification-planning-boundary.md`
+20. `docs/reviews/stage-7-10-backend-api-contract-alignment-checkpoint.md`
+21. `docs/reviews/stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md`
 
 ## Historical / superseded документы
 

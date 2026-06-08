@@ -1,8 +1,10 @@
 package com.travelassistant.backend.api
 
 import com.travelassistant.backend.application.assistant.AcceptAssistantMessageCommand
+import com.travelassistant.backend.application.assistant.AcceptedAssistantMessage
 import com.travelassistant.backend.application.assistant.AssistantSessionBoundary
 import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
+import com.travelassistant.backend.domain.assistant.AssistantSession
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -15,28 +17,47 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonPrimitive
 
 fun Route.assistantPlaceholderRoutes() {
     val createAssistantSession: AssistantSessionBoundary = CreateAssistantSessionUseCase()
 
     route("/assistant/sessions") {
         post {
+            val request = runCatching {
+                call.receiveNullable<AssistantMessageRequest>()
+            }.getOrNull()
+            val initialMessageText = request?.message
+
+            if (request != null && initialMessageText.isNullOrBlank()) {
+                call.respondValidationError(
+                    field = "message",
+                    message = "Message text must be present and not blank.",
+                )
+                return@post
+            }
+
             val session = createAssistantSession.createSession()
+            val response = if (initialMessageText != null) {
+                val acceptedMessage = createAssistantSession.acceptUserMessage(
+                    AcceptAssistantMessageCommand(
+                        sessionId = session.id,
+                        message = initialMessageText,
+                    ),
+                )
+                AssistantMessageResponse.fromAcceptedMessage(acceptedMessage)
+            } else {
+                AssistantMessageResponse.fromSession(session)
+            }
 
             call.respond(
                 HttpStatusCode.Created,
-                AssistantSessionCreatedResponse(
-                    sessionId = session.id.value,
-                    status = session.status.apiValue,
-                    createdAt = session.createdAt.toString(),
-                ),
+                response,
             )
         }
 
         post("/{sessionId}/messages") {
             val request = runCatching {
-                call.receiveNullable<AssistantMessageIntakeRequest>()
+                call.receiveNullable<AssistantMessageRequest>()
             }.getOrNull()
             val messageText = request?.message
 
@@ -57,15 +78,7 @@ fun Route.assistantPlaceholderRoutes() {
 
             call.respond(
                 HttpStatusCode.OK,
-                AssistantMessageIntakeResponse(
-                    sessionId = acceptedMessage.sessionId.value,
-                    status = acceptedMessage.status.apiValue,
-                    receivedAt = acceptedMessage.receivedAt.toString(),
-                    assistantReply = AssistantReplyResponse(
-                        replyType = acceptedMessage.assistantReply.type.apiValue,
-                        message = acceptedMessage.assistantReply.message,
-                    ),
-                ),
+                AssistantMessageResponse.fromAcceptedMessage(acceptedMessage),
             )
         }
 
@@ -88,29 +101,71 @@ fun Route.assistantPlaceholderRoutes() {
 }
 
 @Serializable
-data class AssistantSessionCreatedResponse(
+data class AssistantMessageRequest(
+    val message: String? = null,
+    val clientContext: AssistantClientContext? = null,
+)
+
+@Serializable
+data class AssistantClientContext(
+    val locale: String? = null,
+    val timezone: String? = null,
+)
+
+@Serializable
+data class AssistantMessageResponse(
+    val session: AssistantSessionResponse,
+    val assistantMessage: AssistantMessageBodyResponse,
+    val nextAction: String = "ask_clarification",
+) {
+    companion object {
+        private const val PLACEHOLDER_ASSISTANT_MESSAGE =
+            "I received your hotel request. Please share destination, dates, guests, and budget so I can continue."
+
+        fun fromSession(session: AssistantSession): AssistantMessageResponse =
+            AssistantMessageResponse(
+                session = AssistantSessionResponse(
+                    sessionId = session.id.value,
+                    status = session.status.apiValue,
+                    createdAt = session.createdAt.toString(),
+                    updatedAt = session.createdAt.toString(),
+                ),
+                assistantMessage = AssistantMessageBodyResponse(
+                    role = "assistant",
+                    content = PLACEHOLDER_ASSISTANT_MESSAGE,
+                ),
+            )
+
+        fun fromAcceptedMessage(
+            acceptedMessage: AcceptedAssistantMessage,
+        ): AssistantMessageResponse =
+            AssistantMessageResponse(
+                session = AssistantSessionResponse(
+                    sessionId = acceptedMessage.sessionId.value,
+                    status = acceptedMessage.status.apiValue,
+                    createdAt = acceptedMessage.clarificationState.createdAt.toString(),
+                    updatedAt = acceptedMessage.receivedAt.toString(),
+                ),
+                assistantMessage = AssistantMessageBodyResponse(
+                    role = "assistant",
+                    content = acceptedMessage.assistantReply.message,
+                ),
+            )
+    }
+}
+
+@Serializable
+data class AssistantSessionResponse(
     val sessionId: String,
     val status: String,
     val createdAt: String,
+    val updatedAt: String,
 )
 
 @Serializable
-data class AssistantMessageIntakeRequest(
-    val message: String? = null,
-)
-
-@Serializable
-data class AssistantMessageIntakeResponse(
-    val sessionId: String,
-    val status: String,
-    val receivedAt: String,
-    val assistantReply: AssistantReplyResponse,
-)
-
-@Serializable
-data class AssistantReplyResponse(
-    val replyType: String,
-    val message: String,
+data class AssistantMessageBodyResponse(
+    val role: String,
+    val content: String,
 )
 
 suspend fun io.ktor.server.application.ApplicationCall.respondValidationError(
@@ -119,13 +174,15 @@ suspend fun io.ktor.server.application.ApplicationCall.respondValidationError(
 ) {
     respond(
         HttpStatusCode.BadRequest,
-        ErrorResponse(
+        ValidationErrorResponse(
             code = ErrorCode.VALIDATION_ERROR,
             message = "Request validation failed.",
             requestId = requestIdOrNull(),
-            details = mapOf(
-                "field" to JsonPrimitive(field),
-                "message" to JsonPrimitive(message),
+            fields = listOf(
+                ValidationErrorField(
+                    field = field,
+                    message = message,
+                ),
             ),
         ),
     )

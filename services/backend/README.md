@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.9.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.11.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, Stage 7.9 добавляет internal slot coverage / clarification planning metadata, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, Stage 7.9 добавляет internal slot coverage / clarification planning metadata, Stage 7.11 выравнивает assistant runtime response shape и validation error shape ближе к Stage 6 contract direction без включения real assistant behavior, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -36,13 +36,15 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 
 Фактический путь создания локальной assistant session: `POST /api/v1/assistant/sessions`.
 
-Stage 7.3 session creation возвращает `201 Created` со structured JSON:
+Stage 7.3 - Stage 7.11 session creation возвращает `201 Created` со structured JSON в foundation version of Stage 6-like assistant response shape:
 
-- `sessionId`;
-- `status`;
-- `createdAt`.
+- `session` с `sessionId`, `status`, `createdAt`, `updatedAt`;
+- `assistantMessage` с deterministic placeholder `role` и `content`;
+- `nextAction`.
 
 `sessionId` является process-local deterministic identifier и не подразумевает persistence, retrieval, account history или cross-device storage.
+
+Stage 7.11 также принимает optional initial `message` body на `POST /api/v1/assistant/sessions`. Если initial `message` передан и не blank, он обрабатывается как bounded foundation intake: session создается, минимальные clarification metadata обновляются, internal coverage plan пересчитывается, но message text не сохраняется как history, не анализируется, не извлекает requirements, не заполняет slots и не вызывает LLM/provider.
 
 Stage 7.6 регистрирует созданную session только в process-local memory. Stage 7.7 инициализирует для нее минимальное process-local `clarificationState` metadata: фазу `collecting_requirements`, признак ожидания пользовательского ввода, счетчик принятых user messages, timestamps создания/обновления и timestamp последнего принятого сообщения после message intake.
 
@@ -59,16 +61,17 @@ Stage 7.9 вычисляет internal `hotelRequirementsCoveragePlan` metadata �
 
 Фактический путь локального приема user message: `POST /api/v1/assistant/sessions/{sessionId}/messages`.
 
-Stage 7.4 - Stage 7.9 message intake принимает JSON с `message` и возвращает `200 OK` со structured JSON:
+Stage 7.4 - Stage 7.11 message intake принимает JSON с `message` и возвращает `200 OK` со structured JSON:
 
-- `sessionId`;
-- `status`;
-- `receivedAt`.
-- `assistantReply` с `replyType` и `message`.
+- `session` с `sessionId`, `status`, `createdAt`, `updatedAt`;
+- `assistantMessage` с deterministic placeholder `role` и `content`;
+- `nextAction`.
 
-`assistantReply` является deterministic placeholder clarification response. Этот endpoint обновляет только минимальные session-local clarification metadata, сохраняет internal hotel slot metadata без заполнения значений и пересчитывает internal coverage plan без анализа текста. Он не сохраняет message history, не проверяет session через durable storage, не выполняет stateful clarification flow, не извлекает requirements и не возвращает hotel offers.
+`assistantMessage` является deterministic placeholder clarification response. Этот endpoint обновляет только минимальные session-local clarification metadata, сохраняет internal hotel slot metadata без заполнения значений и пересчитывает internal coverage plan без анализа текста. Он не сохраняет message history, не проверяет session через durable storage, не выполняет stateful clarification flow, не извлекает requirements и не возвращает hotel offers.
 
 Если `sessionId` не найден в process-local state текущего процесса, endpoint возвращает structured `404 Not Found` с `code = SESSION_NOT_FOUND`. Этот error code является foundation-level behavior, а не финальным generated-client/API contract.
+
+Invalid или blank `message` возвращает structured `400 Bad Request` с `code = VALIDATION_ERROR` и `fields`. Foundation-only `NOT_IMPLEMENTED` и generic `NOT_FOUND` остаются runtime placeholder codes и не считаются финальной generated-client taxonomy.
 
 Placeholder routes для будущих hotel-only MVP boundaries:
 
@@ -88,6 +91,7 @@ Placeholder routes для будущих hotel-only MVP boundaries:
 - stateful clarification flow, intent classification или requirements extraction;
 - slot filling или сохранение extracted hotel requirement values;
 - dynamic clarification planning или user-facing clarification question generation;
+- final generated-client-ready API contract semantics;
 - hotel search business logic;
 - shortlist behavior;
 - explanation/compare behavior;
