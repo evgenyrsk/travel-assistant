@@ -47,10 +47,20 @@ README является входной картой проекта: он пом�
 - `docs/reviews/README.md` — индекс review/audit artifacts и правила чтения historical/current cleanup reports.
 - `docs/reviews/*.md` — audit trail, cleanup reports и historical reviews; читать через `docs/reviews/README.md`.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
+- `docs/development/README.md` — index active engineering rules для implementation, testing, documentation и quality work.
+- `docs/development/coding-standards.md` — общие code writing rules.
+- `docs/development/kotlin-backend-style-guide.md` — Kotlin + Ktor backend style rules.
+- `docs/development/testing-strategy.md` — testing strategy и coverage expectations.
+- `docs/development/documentation-guidelines.md` — documentation source-of-truth, navigation и language policy rules.
+- `docs/development/definition-of-done.md` — task completion criteria.
+- `docs/development/quality-gates.md` — supported validation gates и reporting expectations.
 - `docs/development/roadmap.md` — compact development reference; future/reference material, не roadmap status source и не active backlog.
 - `docs/development/milestones.md` — compact milestone vocabulary; future/reference material, не источник статусов и не active backlog.
 - `docs/development/implementation-strategy.md` — будущая стратегия реализации и правила декомпозиции задач; не primary roadmap и не active implementation backlog.
 - `services/backend/README.md` — инструкция запуска Stage 7 Kotlin + Ktor backend foundation и текущих локальных endpoints.
+- `docs/prompts/README.md` — index Codex prompt templates.
+- `docs/prompts/codex-task-template.md` — practical Codex implementation/maintenance task template.
+- `docs/prompts/codex-review-template.md` — practical Codex review-only template.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
 - `.github/` — GitHub templates для постановки задач и описания pull requests.
 
@@ -58,14 +68,16 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`. Stage 7.0 stabilization/documentation cleanup и backend behavior slices through Stage 7.9 internal slot coverage / clarification planning boundary завершены. Stage 7.10+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной roadmap activation.
+Текущий baseline: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`. Bounded backend implementation slices завершены through Stage 7.12 internal requirements slot update boundary. Stage 7.13+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной roadmap activation.
 
 ## Рабочий процесс Codex
 
 - Обязательные правила репозитория для Codex-агентов находятся в `AGENTS.md`.
-- Переиспользуемый шаблон постановки задач находится в `docs/prompts/task-template.md`.
-- Canonical правила roadmap, scope, ADR, validation, documentation language и отчетности находятся в `AGENTS.md`; `docs/prompts/codex-rules.md` является prompt companion, а не competing governance source.
-- Шаблон задач на ревью с проверками отклонения от roadmap, разрастания границ задачи и преждевременной реализации будущих этапов находится в `docs/prompts/review-template.md`.
+- Active engineering rules находятся в `docs/development/README.md`.
+- Backend layering rules находятся в `docs/architecture/backend-layering-rules.md`.
+- Переиспользуемый шаблон постановки задач находится в `docs/prompts/codex-task-template.md`; legacy compact template сохранен в `docs/prompts/task-template.md`.
+- Шаблон read-only review находится в `docs/prompts/codex-review-template.md`; legacy review template сохранен в `docs/prompts/review-template.md`.
+- Canonical entry-point правила roadmap, scope, ADR, validation, language policy и отчетности находятся в `AGENTS.md`; detailed implementation rules живут в `docs/development/**`.
 - GitHub PR checklist находится в `.github/pull_request_template.md`.
 - Primary roadmap со статусами этапов находится в `docs/roadmap/roadmap.md`.
 - Верхнеуровневый список этапов находится в `docs/ROADMAP.md`.
