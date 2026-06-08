@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.11.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.12.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, Stage 7.9 добавляет internal slot coverage / clarification planning metadata, Stage 7.11 выравнивает assistant runtime response shape и validation error shape ближе к Stage 6 contract direction без включения real assistant behavior, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, Stage 7.9 добавляет internal slot coverage / clarification planning metadata, Stage 7.11 выравнивает assistant runtime response shape и validation error shape ближе к Stage 6 contract direction без включения real assistant behavior, Stage 7.12 добавляет internal requirements slot update boundary для explicit structured internal input, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -57,6 +57,14 @@ Stage 7.8 инициализирует для local session internal `hotelRequi
 
 Stage 7.9 вычисляет internal `hotelRequirementsCoveragePlan` metadata на основе `hotelRequirementsState`: количество required slots, missing required slots, ordered missing slot keys, optional slot keys, следующий missing required slot и признак полноты required hotel search inputs. Это deterministic planning metadata только для будущего clarification flow.
 
+Stage 7.12 добавляет внутренний `UpdateHotelRequirementSlotUseCase`, который может обновить status существующего hotel requirements slot только по explicit structured internal input:
+
+- process-local `sessionId`;
+- known internal `slotKey`;
+- explicit `RequirementSlotStatus`.
+
+Use case проверяет, что session существует в process-local store, проверяет наличие slot key в текущем `hotelRequirementsState`, обновляет только slot status и пересчитывает `hotelRequirementsCoveragePlan`. Unknown session и unknown slot key возвращаются как explicit internal result types. Boundary не доступен через public API, не хранит slot values, не анализирует пользовательский текст, не извлекает requirements и не делает dynamic clarification.
+
 Эти metadata не возвращаются в public response, не являются финальным API contract и не означают production state machine. Это не durable persistence, не DB/storage, не account state и не multi-instance coordination.
 
 Фактический путь локального приема user message: `POST /api/v1/assistant/sessions/{sessionId}/messages`.
@@ -89,7 +97,7 @@ Placeholder routes для будущих hotel-only MVP boundaries:
 - production assistant sessions, session persistence/retrieval и message history;
 - durable persistence, DB/storage и multi-instance session state;
 - stateful clarification flow, intent classification или requirements extraction;
-- slot filling или сохранение extracted hotel requirement values;
+- public slot update endpoints, natural-language slot filling или сохранение extracted hotel requirement values;
 - dynamic clarification planning или user-facing clarification question generation;
 - final generated-client-ready API contract semantics;
 - hotel search business logic;

@@ -49,4 +49,21 @@ data class AssistantSession(
             clarificationState = clarificationState.recordAcceptedUserMessage(receivedAt),
             hotelRequirementsCoveragePlan = HotelRequirementsCoveragePlanner.plan(hotelRequirementsState),
         )
+
+    fun updateHotelRequirementSlot(
+        slotKey: HotelRequirementSlotKey,
+        slotStatus: RequirementSlotStatus,
+        updatedAt: Instant,
+    ): AssistantSession? {
+        val updatedRequirementsState = hotelRequirementsState.withSlotStatus(
+            slotKey = slotKey,
+            slotStatus = slotStatus,
+            updatedAt = updatedAt,
+        ) ?: return null
+
+        return copy(
+            hotelRequirementsState = updatedRequirementsState,
+            hotelRequirementsCoveragePlan = HotelRequirementsCoveragePlanner.plan(updatedRequirementsState),
+        )
+    }
 }

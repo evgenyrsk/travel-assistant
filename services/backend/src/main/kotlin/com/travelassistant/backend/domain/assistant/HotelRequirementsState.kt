@@ -27,6 +27,27 @@ data class HotelRequirementsState(
     val createdAt: Instant,
     val updatedAt: Instant,
 ) {
+    fun withSlotStatus(
+        slotKey: HotelRequirementSlotKey,
+        slotStatus: RequirementSlotStatus,
+        updatedAt: Instant,
+    ): HotelRequirementsState? {
+        if (slots.none { it.key == slotKey }) {
+            return null
+        }
+
+        return copy(
+            slots = slots.map { slot ->
+                if (slot.key == slotKey) {
+                    slot.copy(status = slotStatus)
+                } else {
+                    slot
+                }
+            },
+            updatedAt = updatedAt,
+        )
+    }
+
     companion object {
         fun foundation(createdAt: Instant): HotelRequirementsState =
             HotelRequirementsState(

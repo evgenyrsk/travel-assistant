@@ -50,6 +50,7 @@
 | `stage-7-9-internal-slot-coverage-clarification-planning-boundary.md` | Completed implementation report / Stage 7.9 | Internal slot coverage / clarification planning boundary без requirements extraction, slot filling, dynamic clarification, durable persistence, LLM или provider integration. |
 | `stage-7-10-backend-api-contract-alignment-checkpoint.md` | Completed review report / Stage 7.10 | Backend API / contract alignment checkpoint без runtime changes, OpenAPI rewrite, generated clients или future behavior activation. |
 | `stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md` | Completed implementation report / Stage 7.11 | Assistant API runtime contract alignment cleanup без requirements extraction, slot filling, generated clients, LLM, provider integration, DB/storage или frontend. |
+| `stage-7-12-internal-requirements-slot-update-boundary.md` | Completed implementation report / Stage 7.12 | Internal requirements slot update boundary для explicit structured internal input без public API changes, message parsing, requirements extraction, LLM/provider integration или storage. |
 
 ## Inventory review artifacts
 
@@ -77,6 +78,7 @@
 | `stage-7-9-internal-slot-coverage-clarification-planning-boundary.md` | Completed implementation report | Stage 7.9 internal slot coverage / clarification planning boundary. |
 | `stage-7-10-backend-api-contract-alignment-checkpoint.md` | Completed review report | Stage 7.10 backend API / contract alignment checkpoint. |
 | `stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md` | Completed implementation report | Stage 7.11 assistant API runtime contract alignment cleanup. |
+| `stage-7-12-internal-requirements-slot-update-boundary.md` | Completed implementation report | Stage 7.12 internal requirements slot update boundary. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -107,6 +109,7 @@
 19. `docs/reviews/stage-7-9-internal-slot-coverage-clarification-planning-boundary.md`
 20. `docs/reviews/stage-7-10-backend-api-contract-alignment-checkpoint.md`
 21. `docs/reviews/stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md`
+22. `docs/reviews/stage-7-12-internal-requirements-slot-update-boundary.md`
 
 ## Historical / superseded документы
 
