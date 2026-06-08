@@ -13,7 +13,7 @@ import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Minimal Stage 7.3-7.9 boundary for local assistant session behavior.
+ * Minimal Stage 7.3-7.12 boundary for local assistant session behavior.
  *
  * This boundary intentionally does not define durable persistence, retrieval
  * endpoints, message history, LLM orchestration, provider calls, or production
