@@ -42,6 +42,7 @@ class AssistantSessionRoutesTest {
             assistantMessage?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("hotelSearchRequest"))
         assertEquals(false, body.containsKey("assistantReply"))
         assertEquals(false, body.containsKey("hotelRequirementsState"))
         assertEquals(false, body.containsKey("hotelRequirementsCoveragePlan"))
@@ -87,6 +88,7 @@ class AssistantSessionRoutesTest {
             assistantMessage?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("hotelSearchRequest"))
         assertEquals(false, body.containsKey("assistantReply"))
         assertEquals(false, body.containsKey("hotelRequirementsState"))
         assertEquals(false, body.containsKey("hotelRequirementsCoveragePlan"))
@@ -118,6 +120,7 @@ class AssistantSessionRoutesTest {
         assertEquals("assistant-session-local-000001", sessionId)
         assertEquals("collecting_requirements", session?.get("status")?.jsonPrimitive?.content)
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("hotelSearchRequest"))
         assertEquals(false, body.containsKey("hotelRequirementsState"))
         assertEquals(false, body.containsKey("hotelRequirementsCoveragePlan"))
         assertEquals(false, body.containsKey("slotCoveragePlan"))

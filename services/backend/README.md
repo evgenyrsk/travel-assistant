@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior / cleanup slices Stage 7.3 - Stage 7.14.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior / cleanup slices Stage 7.3 - Stage 7.15.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, Stage 7.9 добавляет internal slot coverage / clarification planning metadata, Stage 7.11 выравнивает assistant runtime response shape и validation error shape ближе к Stage 6 contract direction без включения real assistant behavior, Stage 7.12 добавляет internal requirements slot update boundary для explicit structured internal input, Stage 7.13 фиксирует generated-client/OpenAPI readiness checkpoint, Stage 7.14 уточняет placeholder/error readiness strategy, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, Stage 7.9 добавляет internal slot coverage / clarification planning metadata, Stage 7.11 выравнивает assistant runtime response shape и validation error shape ближе к Stage 6 contract direction без включения real assistant behavior, Stage 7.12 добавляет internal requirements slot update boundary для explicit structured internal input, Stage 7.13 фиксирует generated-client/OpenAPI readiness checkpoint, Stage 7.14 уточняет placeholder/error readiness strategy, Stage 7.15 уточняет assistant response semantics / search readiness boundary, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -65,6 +65,13 @@ Stage 7.12 добавляет внутренний `UpdateHotelRequirementSlotUs
 
 Use case проверяет, что session существует в process-local store, проверяет наличие slot key в текущем `hotelRequirementsState`, обновляет только slot status и пересчитывает `hotelRequirementsCoveragePlan`. Unknown session и unknown slot key возвращаются как explicit internal result types. Boundary не доступен через public API, не хранит slot values, не анализирует пользовательский текст, не извлекает requirements и не делает dynamic clarification.
 
+Stage 7.15 добавляет minimal application-level `AssistantResponseSemantics` boundary. Public `nextAction` теперь вычисляется детерминированно из internal `hotelRequirementsCoveragePlan`:
+
+- если required hotel slots incomplete, `nextAction = ask_clarification`;
+- если required hotel slots internally collected через explicit structured internal input, `nextAction = show_boundary_message`.
+
+`show_boundary_message` является foundation-only safe boundary signal. Он не означает, что real hotel search можно выполнить, не создает `hotelSearchRequest`, не вызывает provider/search route и не добавляет fake search values.
+
 Эти metadata не возвращаются в public response, не являются финальным API contract и не означают production state machine. Это не durable persistence, не DB/storage, не account state и не multi-instance coordination.
 
 Фактический путь локального приема user message: `POST /api/v1/assistant/sessions/{sessionId}/messages`.
@@ -76,6 +83,8 @@ Stage 7.4 - Stage 7.11 message intake принимает JSON с `message` и в
 - `nextAction`.
 
 `assistantMessage` является deterministic placeholder clarification response. Этот endpoint обновляет только минимальные session-local clarification metadata, сохраняет internal hotel slot metadata без заполнения значений и пересчитывает internal coverage plan без анализа текста. Он не сохраняет message history, не проверяет session через durable storage, не выполняет stateful clarification flow, не извлекает requirements и не возвращает hotel offers.
+
+Поскольку public message intake не парсит текст и не заполняет slots, обычные user messages не делают session search-ready. Optional initial `message` также остается foundation intake only и не создает `hotelSearchRequest`.
 
 Если `sessionId` не найден в process-local state текущего процесса, endpoint возвращает structured `404 Not Found` с `code = SESSION_NOT_FOUND`. Этот error code является foundation-level behavior, а не финальным generated-client/API contract.
 
@@ -109,6 +118,7 @@ Stage 7.14 strategy для generated-client readiness:
 - public slot update endpoints, natural-language slot filling или сохранение extracted hotel requirement values;
 - dynamic clarification planning или user-facing clarification question generation;
 - final generated-client-ready API contract semantics;
+- real public search readiness semantics и `hotelSearchRequest` construction;
 - hotel search business logic;
 - shortlist behavior;
 - explanation/compare behavior;
