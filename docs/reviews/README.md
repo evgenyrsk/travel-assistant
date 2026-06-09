@@ -63,6 +63,7 @@
 | `stage-7-16-generated-client-openapi-conformance-gate-planning.md` | Completed planning report / Stage 7.16 | План будущего generated-client/OpenAPI conformance gate без реализации gate, OpenAPI changes, generated clients или backend behavior changes. |
 | `stage-7-17-generated-client-ready-subset-placeholder-exclusion-policy.md` | Completed policy report / Stage 7.17 | Generated-client-ready subset policy и placeholder exclusion policy без subset config, conformance gate, OpenAPI changes, generated clients или backend behavior changes. |
 | `stage-7-18-conformance-gate-skeleton-planning-to-tooling.md` | Completed planning report / Stage 7.18 | Planning-to-tooling форма будущего conformance gate skeleton без реализации gate, subset config, scripts, tests, build tasks, OpenAPI changes, generated clients или backend behavior changes. |
+| `stage-7-19-conformance-gate-skeleton-implementation-planning.md` | Completed planning/decision report / Stage 7.19 | Conformance gate skeleton implementation planning / tooling decision без реализации gate, skeleton, subset config, scripts, tests, build tasks, OpenAPI changes, generated clients или backend behavior changes. |
 
 ## Inventory review artifacts
 
@@ -103,6 +104,7 @@
 | `stage-7-16-generated-client-openapi-conformance-gate-planning.md` | Completed planning report | Stage 7.16 generated-client / OpenAPI conformance gate planning. |
 | `stage-7-17-generated-client-ready-subset-placeholder-exclusion-policy.md` | Completed policy report | Stage 7.17 generated-client-ready subset / placeholder exclusion policy. |
 | `stage-7-18-conformance-gate-skeleton-planning-to-tooling.md` | Completed planning report | Stage 7.18 conformance gate skeleton planning-to-tooling. |
+| `stage-7-19-conformance-gate-skeleton-implementation-planning.md` | Completed planning/decision report | Stage 7.19 conformance gate skeleton implementation planning / tooling decision. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -146,6 +148,7 @@
 32. `docs/reviews/stage-7-16-generated-client-openapi-conformance-gate-planning.md`
 33. `docs/reviews/stage-7-17-generated-client-ready-subset-placeholder-exclusion-policy.md`
 34. `docs/reviews/stage-7-18-conformance-gate-skeleton-planning-to-tooling.md`
+35. `docs/reviews/stage-7-19-conformance-gate-skeleton-implementation-planning.md`
 
 ## Historical / superseded документы
 
