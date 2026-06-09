@@ -51,6 +51,11 @@
 | `stage-7-10-backend-api-contract-alignment-checkpoint.md` | Completed review report / Stage 7.10 | Backend API / contract alignment checkpoint без runtime changes, OpenAPI rewrite, generated clients или future behavior activation. |
 | `stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md` | Completed implementation report / Stage 7.11 | Assistant API runtime contract alignment cleanup без requirements extraction, slot filling, generated clients, LLM, provider integration, DB/storage или frontend. |
 | `stage-7-12-internal-requirements-slot-update-boundary.md` | Completed implementation report / Stage 7.12 | Internal requirements slot update boundary для explicit structured internal input без public API changes, message parsing, requirements extraction, LLM/provider integration или storage. |
+| `stage-7-12b-kotlin-style-alignment-cleanup.md` | Completed cleanup report / Stage 7.12b | Kotlin style file split для internal slot update boundary без behavior или public API changes. |
+| `stage-7-12c-kotlin-style-alignment-cleanup-review.md` | Completed review report / Stage 7.12c | Review / quality gate для Stage 7.12b cleanup без behavior, OpenAPI или generated-client changes. |
+| `stage-7-12d-backend-foundation-consolidation-checkpoint.md` | Completed review report / Stage 7.12d | Backend foundation consolidation checkpoint; recommended generated-client/OpenAPI readiness checkpoint before client generation. |
+| `stage-7-13-generated-client-openapi-readiness-checkpoint.md` | Completed review report / Stage 7.13 | Generated-client/OpenAPI readiness checkpoint; verdict not ready for generated clients or OpenAPI finalization. |
+| `stage-7-14-generated-client-openapi-readiness-cleanup.md` | Completed cleanup report / Stage 7.14 | Placeholder strategy and error taxonomy readiness cleanup без generated clients, OpenAPI finalization или real hotel search. |
 
 ## Inventory review artifacts
 
@@ -79,6 +84,11 @@
 | `stage-7-10-backend-api-contract-alignment-checkpoint.md` | Completed review report | Stage 7.10 backend API / contract alignment checkpoint. |
 | `stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md` | Completed implementation report | Stage 7.11 assistant API runtime contract alignment cleanup. |
 | `stage-7-12-internal-requirements-slot-update-boundary.md` | Completed implementation report | Stage 7.12 internal requirements slot update boundary. |
+| `stage-7-12b-kotlin-style-alignment-cleanup.md` | Completed cleanup report | Stage 7.12b Kotlin style alignment cleanup for internal slot update boundary. |
+| `stage-7-12c-kotlin-style-alignment-cleanup-review.md` | Completed review report | Stage 7.12c review / quality gate for Stage 7.12b cleanup. |
+| `stage-7-12d-backend-foundation-consolidation-checkpoint.md` | Completed review report | Stage 7.12d backend foundation consolidation checkpoint. |
+| `stage-7-13-generated-client-openapi-readiness-checkpoint.md` | Completed review report | Stage 7.13 generated-client / OpenAPI readiness checkpoint. |
+| `stage-7-14-generated-client-openapi-readiness-cleanup.md` | Completed cleanup report | Stage 7.14 placeholder strategy and error taxonomy readiness cleanup. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -110,6 +120,11 @@
 20. `docs/reviews/stage-7-10-backend-api-contract-alignment-checkpoint.md`
 21. `docs/reviews/stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md`
 22. `docs/reviews/stage-7-12-internal-requirements-slot-update-boundary.md`
+23. `docs/reviews/stage-7-12b-kotlin-style-alignment-cleanup.md`
+24. `docs/reviews/stage-7-12c-kotlin-style-alignment-cleanup-review.md`
+25. `docs/reviews/stage-7-12d-backend-foundation-consolidation-checkpoint.md`
+26. `docs/reviews/stage-7-13-generated-client-openapi-readiness-checkpoint.md`
+27. `docs/reviews/stage-7-14-generated-client-openapi-readiness-cleanup.md`
 
 ## Historical / superseded документы
 

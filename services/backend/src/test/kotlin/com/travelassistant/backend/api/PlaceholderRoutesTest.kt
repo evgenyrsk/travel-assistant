@@ -26,7 +26,7 @@ class PlaceholderRoutesTest {
         assertEquals(HttpStatusCode.NotImplemented, response.status)
         assertEquals("NOT_IMPLEMENTED", body["code"]?.jsonPrimitive?.content)
         assertEquals(
-            "This hotel-only MVP backend boundary is a Stage 7.2 placeholder.",
+            "This hotel-only MVP backend boundary is a Stage 7 foundation placeholder and is not generated-client-ready.",
             body["message"]?.jsonPrimitive?.content,
         )
         assertEquals(

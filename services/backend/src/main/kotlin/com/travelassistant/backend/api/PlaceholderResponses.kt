@@ -10,7 +10,7 @@ suspend fun ApplicationCall.respondNotImplementedPlaceholder(boundary: String) {
         HttpStatusCode.NotImplemented,
         ErrorResponse(
             code = ErrorCode.NOT_IMPLEMENTED,
-            message = "This hotel-only MVP backend boundary is a Stage 7.2 placeholder.",
+            message = "This hotel-only MVP backend boundary is a Stage 7 foundation placeholder and is not generated-client-ready.",
             requestId = requestIdOrNull(),
             details = mapOf("boundary" to JsonPrimitive(boundary)),
         ),

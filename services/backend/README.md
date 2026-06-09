@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior slices Stage 7.3 - Stage 7.12.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior / cleanup slices Stage 7.3 - Stage 7.14.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, Stage 7.9 добавляет internal slot coverage / clarification planning metadata, Stage 7.11 выравнивает assistant runtime response shape и validation error shape ближе к Stage 6 contract direction без включения real assistant behavior, Stage 7.12 добавляет internal requirements slot update boundary для explicit structured internal input, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, Stage 7.9 добавляет internal slot coverage / clarification planning metadata, Stage 7.11 выравнивает assistant runtime response shape и validation error shape ближе к Stage 6 contract direction без включения real assistant behavior, Stage 7.12 добавляет internal requirements slot update boundary для explicit structured internal input, Stage 7.13 фиксирует generated-client/OpenAPI readiness checkpoint, Stage 7.14 уточняет placeholder/error readiness strategy, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -92,6 +92,15 @@ Placeholder routes для будущих hotel-only MVP boundaries:
 
 Эти placeholder routes возвращают structured `501 Not Implemented` response и не вызывают provider, DB, LLM или mock business logic.
 
+Stage 7.14 strategy для generated-client readiness:
+
+- placeholder hotel search, offers, shortlist и explanation endpoints остаются runtime-only foundation placeholders;
+- они не входят в будущий generated-client-ready subset, пока отдельная roadmap-aligned задача не заменит `501 NOT_IMPLEMENTED` на contract-aligned success/error behavior;
+- placeholder responses не должны имитировать реальные `HotelSearchResponse`, `HotelOffersResponse`, `ShortlistResponse`, `ShortlistItem` или `AssistantExplanationResponse`;
+- `NOT_IMPLEMENTED` и generic `NOT_FOUND` являются foundation-only runtime codes, а не финальной generated-client taxonomy;
+- resource-specific `HOTEL_SEARCH_NOT_FOUND`, `HOTEL_OFFER_NOT_FOUND` и `SHORTLIST_ITEM_NOT_FOUND` должны появляться только вместе с реальными resource semantics соответствующих endpoints;
+- generated clients, OpenAPI finalization и runtime/OpenAPI conformance gate остаются будущей отдельной задачей.
+
 ## Намеренно не реализовано
 
 - production assistant sessions, session persistence/retrieval и message history;
@@ -110,4 +119,6 @@ Placeholder routes для будущих hotel-only MVP boundaries:
 - Redis/cache;
 - LLM integration и orchestration;
 - frontend/generated clients;
+- generated-client-ready subset для placeholder endpoints;
+- OpenAPI/runtime conformance gate;
 - booking, payment, flights, combined itinerary, account flows.
