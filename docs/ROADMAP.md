@@ -18,10 +18,10 @@ Primary roadmap и source of truth по статусам этапов, progressi
 | Stage 4.1 | Completed |
 | Stage 5 | Completed |
 | Stage 6 | Completed; Stage 6.1-6.9 completed |
-| Stage 7 | In progress / awaiting explicit next task; bounded backend implementation, readiness, review and documentation/status slices completed through Stage 7.15b documentation/status sync; Stage 7.16+ not started |
+| Stage 7 | In progress / awaiting explicit next task; bounded backend implementation, readiness, review, documentation/status and generated-client/OpenAPI conformance gate planning slices completed through Stage 7.16; Stage 7.17+ not started; generated-client/OpenAPI readiness not claimed |
 | Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend foundation exists with process-local assistant session state, session-local clarification metadata, internal hotel requirements slot metadata, internal slot coverage planning metadata, local assistant message/reply boundaries, generated-client/OpenAPI readiness findings, placeholder strategy and assistant response semantics boundary; DB/UI/provider integration not started |
 
-Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 7 прошел bounded corrective stabilization, documentation cleanup through Stage 7.0f-f и bounded backend implementation/readiness/review/status slices through Stage 7.15b. Stage 7.16+ не начаты и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients и production implementation не начинаются из этого overview; подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
+Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 7 прошел bounded corrective stabilization, documentation cleanup through Stage 7.0f-f и bounded backend implementation/readiness/review/status/planning slices through Stage 7.16. Stage 7.17+ не начаты и требуют отдельной явной roadmap-aligned задачи. Generated-client/OpenAPI readiness не заявлена. Business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients и production implementation не начинаются из этого overview; подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
