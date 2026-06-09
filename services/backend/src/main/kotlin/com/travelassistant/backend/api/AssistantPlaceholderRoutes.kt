@@ -2,6 +2,7 @@ package com.travelassistant.backend.api
 
 import com.travelassistant.backend.application.assistant.AcceptAssistantMessageCommand
 import com.travelassistant.backend.application.assistant.AcceptedAssistantMessage
+import com.travelassistant.backend.application.assistant.AssistantResponseSemantics
 import com.travelassistant.backend.application.assistant.AssistantSessionBoundary
 import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
 import com.travelassistant.backend.domain.assistant.AssistantSession
@@ -116,7 +117,7 @@ data class AssistantClientContext(
 data class AssistantMessageResponse(
     val session: AssistantSessionResponse,
     val assistantMessage: AssistantMessageBodyResponse,
-    val nextAction: String = "ask_clarification",
+    val nextAction: String,
 ) {
     companion object {
         private const val PLACEHOLDER_ASSISTANT_MESSAGE =
@@ -134,6 +135,9 @@ data class AssistantMessageResponse(
                     role = "assistant",
                     content = PLACEHOLDER_ASSISTANT_MESSAGE,
                 ),
+                nextAction = AssistantResponseSemantics.nextActionFor(
+                    session.hotelRequirementsCoveragePlan,
+                ).apiValue,
             )
 
         fun fromAcceptedMessage(
@@ -150,6 +154,9 @@ data class AssistantMessageResponse(
                     role = "assistant",
                     content = acceptedMessage.assistantReply.message,
                 ),
+                nextAction = AssistantResponseSemantics.nextActionFor(
+                    acceptedMessage.hotelRequirementsCoveragePlan,
+                ).apiValue,
             )
     }
 }
