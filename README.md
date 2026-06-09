@@ -68,7 +68,7 @@ README является входной картой проекта: он пом�
 
 Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
-Текущий baseline: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`. Bounded backend implementation slices завершены through Stage 7.12 internal requirements slot update boundary. Stage 7.13+ не активированы и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной roadmap activation.
+Текущий baseline: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`. Bounded backend implementation, readiness, review и documentation/status slices завершены through Stage 7.15b documentation/status sync. Stage 7.16+ не начаты и требуют отдельной явной roadmap-aligned задачи. Business logic, provider integration, frontend implementation, DB schema/storage model, auth/security/DevOps/testing backlog, generated clients и production code не создаются без отдельной roadmap activation.
 
 ## Рабочий процесс Codex
 

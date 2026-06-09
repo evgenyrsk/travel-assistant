@@ -56,6 +56,10 @@
 | `stage-7-12d-backend-foundation-consolidation-checkpoint.md` | Completed review report / Stage 7.12d | Backend foundation consolidation checkpoint; recommended generated-client/OpenAPI readiness checkpoint before client generation. |
 | `stage-7-13-generated-client-openapi-readiness-checkpoint.md` | Completed review report / Stage 7.13 | Generated-client/OpenAPI readiness checkpoint; verdict not ready for generated clients or OpenAPI finalization. |
 | `stage-7-14-generated-client-openapi-readiness-cleanup.md` | Completed cleanup report / Stage 7.14 | Placeholder strategy and error taxonomy readiness cleanup без generated clients, OpenAPI finalization или real hotel search. |
+| `stage-7-14-generated-client-openapi-readiness-cleanup-review.md` | Completed review report / Stage 7.14a | Review / quality gate для Stage 7.14 cleanup без behavior, OpenAPI или generated-client changes. |
+| `stage-7-15-assistant-response-semantics-search-readiness-boundary-cleanup.md` | Completed cleanup report / Stage 7.15 | Assistant response semantics / search readiness boundary cleanup без generated clients, OpenAPI finalization, real hotel search, requirements extraction, LLM/provider integration или storage. |
+| `stage-7-15-assistant-response-semantics-search-readiness-boundary-cleanup-review.md` | Completed review report / Stage 7.15a | Review / quality gate для Stage 7.15 cleanup; verdict passed with minor documentation/status findings. |
+| `stage-7-15b-stage-7-13-7-15-documentation-status-sync.md` | Completed documentation/status sync report / Stage 7.15b | Узкая синхронизация active status wording и reviews index для Stage 7.13-7.15 audit trail без backend behavior или OpenAPI/generated-client work. |
 
 ## Inventory review artifacts
 
@@ -89,6 +93,10 @@
 | `stage-7-12d-backend-foundation-consolidation-checkpoint.md` | Completed review report | Stage 7.12d backend foundation consolidation checkpoint. |
 | `stage-7-13-generated-client-openapi-readiness-checkpoint.md` | Completed review report | Stage 7.13 generated-client / OpenAPI readiness checkpoint. |
 | `stage-7-14-generated-client-openapi-readiness-cleanup.md` | Completed cleanup report | Stage 7.14 placeholder strategy and error taxonomy readiness cleanup. |
+| `stage-7-14-generated-client-openapi-readiness-cleanup-review.md` | Completed review report | Stage 7.14a generated-client / OpenAPI readiness cleanup review. |
+| `stage-7-15-assistant-response-semantics-search-readiness-boundary-cleanup.md` | Completed cleanup report | Stage 7.15 assistant response semantics / search readiness boundary cleanup. |
+| `stage-7-15-assistant-response-semantics-search-readiness-boundary-cleanup-review.md` | Completed review report | Stage 7.15a assistant response semantics / search readiness boundary review. |
+| `stage-7-15b-stage-7-13-7-15-documentation-status-sync.md` | Completed documentation/status sync report | Stage 7.15b documentation/status sync for Stage 7.13-7.15 audit trail. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -125,6 +133,10 @@
 25. `docs/reviews/stage-7-12d-backend-foundation-consolidation-checkpoint.md`
 26. `docs/reviews/stage-7-13-generated-client-openapi-readiness-checkpoint.md`
 27. `docs/reviews/stage-7-14-generated-client-openapi-readiness-cleanup.md`
+28. `docs/reviews/stage-7-14-generated-client-openapi-readiness-cleanup-review.md`
+29. `docs/reviews/stage-7-15-assistant-response-semantics-search-readiness-boundary-cleanup.md`
+30. `docs/reviews/stage-7-15-assistant-response-semantics-search-readiness-boundary-cleanup-review.md`
+31. `docs/reviews/stage-7-15b-stage-7-13-7-15-documentation-status-sync.md`
 
 ## Historical / superseded документы
 
