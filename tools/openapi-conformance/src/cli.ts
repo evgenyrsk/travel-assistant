@@ -116,6 +116,18 @@ function buildExecutionErrorReport(error: unknown): ConformanceReport {
       openApi: [],
       runtimeRoutes: [],
     },
+    endpointClassificationSummary: {
+      total: 0,
+      byClassification: {
+        foundation_candidate: 0,
+        placeholder_excluded: 0,
+        runtime_only: 0,
+        unclassified: 0,
+      },
+      openApiOnly: 0,
+      runtimeOnly: 0,
+      inBothInventories: 0,
+    },
     endpoints: [],
     checks: [
       {

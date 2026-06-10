@@ -3,6 +3,9 @@ import { buildEndpointReports } from "./placeholder-policy.js";
 import type {
   CheckReport,
   ConformanceReport,
+  EndpointClassification,
+  EndpointClassificationSummary,
+  EndpointReport,
   Finding,
   OpenApiInventory,
   RuntimeRoute,
@@ -15,6 +18,8 @@ export function buildReport(
   subsetManifest: SubsetManifestState,
 ): ConformanceReport {
   const endpoints = buildEndpointReports(openApiInventory.operations, runtimeRoutes);
+  const endpointClassificationSummary =
+    buildEndpointClassificationSummary(endpoints);
   const advisoryFindings: Finding[] = [
     {
       code: "GENERATED_CLIENT_READY_SUBSET_MISSING",
@@ -34,6 +39,7 @@ export function buildReport(
       message:
         "Hotel search, offers, shortlist, and explanation placeholder endpoints remain excluded and are not generated-client-ready.",
     },
+    ...buildEndpointClassificationFindings(endpointClassificationSummary),
   ];
 
   const futureOnlyChecks = buildFutureOnlyChecks();
@@ -61,8 +67,14 @@ export function buildReport(
       openApi: openApiInventory.operations,
       runtimeRoutes,
     },
+    endpointClassificationSummary,
     endpoints,
-    checks: buildChecks(openApiInventory, runtimeRoutes, subsetManifest),
+    checks: buildChecks(
+      openApiInventory,
+      runtimeRoutes,
+      subsetManifest,
+      endpointClassificationSummary,
+    ),
     blockingFindings: [],
     advisoryFindings,
     futureOnlyChecks,
@@ -73,6 +85,7 @@ function buildChecks(
   openApiInventory: OpenApiInventory,
   runtimeRoutes: RuntimeRoute[],
   subsetManifest: SubsetManifestState,
+  endpointClassificationSummary: EndpointClassificationSummary,
 ): CheckReport[] {
   return [
     {
@@ -101,12 +114,90 @@ function buildChecks(
         : "Subset manifest is missing/not_created and is optional for this skeleton.",
     },
     {
+      name: "endpoint_classification_summary",
+      status: "advisory",
+      summary:
+        `${endpointClassificationSummary.total} endpoints classified: ` +
+        `${endpointClassificationSummary.byClassification.foundation_candidate} foundation_candidate, ` +
+        `${endpointClassificationSummary.byClassification.placeholder_excluded} placeholder_excluded, ` +
+        `${endpointClassificationSummary.byClassification.runtime_only} runtime_only, ` +
+        `${endpointClassificationSummary.byClassification.unclassified} unclassified.`,
+    },
+    {
       name: "readiness_status",
       status: "not_ready",
       summary:
         "Report status is intentionally not_ready; generated-client/OpenAPI readiness is not claimed.",
     },
   ];
+}
+
+function buildEndpointClassificationSummary(
+  endpoints: EndpointReport[],
+): EndpointClassificationSummary {
+  const byClassification: Record<EndpointClassification, number> = {
+    foundation_candidate: 0,
+    placeholder_excluded: 0,
+    runtime_only: 0,
+    unclassified: 0,
+  };
+
+  let openApiOnly = 0;
+  let runtimeOnly = 0;
+  let inBothInventories = 0;
+
+  for (const endpoint of endpoints) {
+    byClassification[endpoint.classification] += 1;
+
+    if (endpoint.inOpenApi && endpoint.inRuntime) {
+      inBothInventories += 1;
+      continue;
+    }
+
+    if (endpoint.inOpenApi) {
+      openApiOnly += 1;
+    }
+
+    if (endpoint.inRuntime) {
+      runtimeOnly += 1;
+    }
+  }
+
+  return {
+    total: endpoints.length,
+    byClassification,
+    openApiOnly,
+    runtimeOnly,
+    inBothInventories,
+  };
+}
+
+function buildEndpointClassificationFindings(
+  summary: EndpointClassificationSummary,
+): Finding[] {
+  const findings: Finding[] = [];
+
+  if (summary.byClassification.unclassified > 0) {
+    findings.push({
+      code: "UNCLASSIFIED_ENDPOINTS_VISIBLE",
+      severity: "advisory",
+      message:
+        `${summary.byClassification.unclassified} endpoints are unclassified in the skeleton report; ` +
+        "they remain not_ready and require a future explicit subset/classification decision.",
+    });
+  }
+
+  if (summary.byClassification.runtime_only > 0) {
+    findings.push({
+      code: "RUNTIME_ONLY_ENDPOINTS_VISIBLE",
+      severity: "advisory",
+      message:
+        `${summary.byClassification.runtime_only} runtime-only endpoints are visible in the skeleton report; ` +
+        "static inventory drift is advisory until a future conformance mode is activated.",
+    });
+  }
+
+  return findings;
 }
 
 function buildFutureOnlyChecks(): CheckReport[] {

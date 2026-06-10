@@ -48,13 +48,23 @@ export interface EndpointReport {
   inOpenApi: boolean;
   inRuntime: boolean;
   runtimeSourceFiles: string[];
-  classification:
-    | "foundation_candidate"
-    | "placeholder_excluded"
-    | "runtime_only"
-    | "unclassified";
+  classification: EndpointClassification;
   placeholderReason?: string;
   readiness: "not_ready";
+}
+
+export type EndpointClassification =
+  | "foundation_candidate"
+  | "placeholder_excluded"
+  | "runtime_only"
+  | "unclassified";
+
+export interface EndpointClassificationSummary {
+  total: number;
+  byClassification: Record<EndpointClassification, number>;
+  openApiOnly: number;
+  runtimeOnly: number;
+  inBothInventories: number;
 }
 
 export interface CheckReport {
@@ -97,6 +107,7 @@ export interface ConformanceReport {
     openApi: OpenApiOperation[];
     runtimeRoutes: RuntimeRoute[];
   };
+  endpointClassificationSummary: EndpointClassificationSummary;
   endpoints: EndpointReport[];
   checks: CheckReport[];
   blockingFindings: Finding[];

@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "check": "npm run -s build && node dist/cli.js"
+    "check": "npm run -s build && node dist/cli.js",
+    "test": "npm run -s build && node --test dist/report.test.js"
   },
   "dependencies": {
     "yaml": "^2.6.1"

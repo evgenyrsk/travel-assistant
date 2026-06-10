@@ -66,6 +66,7 @@
 | `stage-7-19-conformance-gate-skeleton-implementation-planning.md` | Completed planning/decision report / Stage 7.19 | Conformance gate skeleton implementation planning / tooling decision без реализации gate, skeleton, subset config, scripts, tests, build tasks, OpenAPI changes, generated clients или backend behavior changes. |
 | `stage-7-20-standalone-read-only-conformance-gate-skeleton-implementation.md` | Completed implementation report / Stage 7.20 | Standalone read-only conformance gate skeleton under `tools/openapi-conformance/` с JSON `not_ready` report без generated clients, subset manifest, OpenAPI finalization, backend behavior changes или CI/Gradle integration. |
 | `stage-7-20a-standalone-read-only-conformance-gate-skeleton-implementation-review.md` | Completed review report / Stage 7.20a | Review / quality gate для Stage 7.20 standalone read-only conformance gate skeleton; verdict: passed без generated clients, subset manifest, OpenAPI finalization, backend behavior changes или CI/Gradle integration. |
+| `stage-7-21-openapi-conformance-report-depth-tests.md` | Completed implementation report / Stage 7.21 | Tool-local read-only conformance report depth and tests без generated-client readiness, subset manifest, OpenAPI finalization, backend behavior changes или CI/Gradle integration. |
 
 ## Inventory review artifacts
 
@@ -109,6 +110,7 @@
 | `stage-7-19-conformance-gate-skeleton-implementation-planning.md` | Completed planning/decision report | Stage 7.19 conformance gate skeleton implementation planning / tooling decision. |
 | `stage-7-20-standalone-read-only-conformance-gate-skeleton-implementation.md` | Completed implementation report | Stage 7.20 standalone read-only conformance gate skeleton implementation. |
 | `stage-7-20a-standalone-read-only-conformance-gate-skeleton-implementation-review.md` | Completed review report | Stage 7.20a standalone read-only conformance gate skeleton implementation review. |
+| `stage-7-21-openapi-conformance-report-depth-tests.md` | Completed implementation report | Stage 7.21 tool-local read-only OpenAPI conformance report depth and tests. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -155,6 +157,7 @@
 35. `docs/reviews/stage-7-19-conformance-gate-skeleton-implementation-planning.md`
 36. `docs/reviews/stage-7-20-standalone-read-only-conformance-gate-skeleton-implementation.md`
 37. `docs/reviews/stage-7-20a-standalone-read-only-conformance-gate-skeleton-implementation-review.md`
+38. `docs/reviews/stage-7-21-openapi-conformance-report-depth-tests.md`
 
 ## Historical / superseded документы
 

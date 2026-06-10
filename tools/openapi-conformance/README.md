@@ -26,7 +26,17 @@ npm install
 - статически сканируются Ktor route files в `services/backend/src/main/kotlin/com/travelassistant/backend/api`;
 - проверяется наличие будущего subset manifest path `docs/architecture/stage-7/generated-client-ready-subset.yaml`;
 - placeholder endpoints остаются видимыми как excluded/foundation-only;
+- выводится `endpointClassificationSummary` с количеством `foundation_candidate`, `placeholder_excluded`, `runtime_only` и `unclassified` endpoints;
 - generated-client compile checks и runtime HTTP contract tests выводятся как `future_only` / `not_run`.
+
+## Local tests
+
+```bash
+cd tools/openapi-conformance
+npm test
+```
+
+Тесты проверяют tool-local report semantics и не запускают backend server, HTTP requests, generated-client generation или OpenAPI finalization.
 
 ## Exit codes
 
