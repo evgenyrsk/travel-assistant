@@ -68,6 +68,7 @@
 | `stage-7-20a-standalone-read-only-conformance-gate-skeleton-implementation-review.md` | Completed review report / Stage 7.20a | Review / quality gate для Stage 7.20 standalone read-only conformance gate skeleton; verdict: passed без generated clients, subset manifest, OpenAPI finalization, backend behavior changes или CI/Gradle integration. |
 | `stage-7-21-openapi-conformance-report-depth-tests.md` | Completed implementation report / Stage 7.21 | Tool-local read-only conformance report depth and tests без generated-client readiness, subset manifest, OpenAPI finalization, backend behavior changes или CI/Gradle integration. |
 | `stage-7-22-generated-client-ready-subset-manifest-planning.md` | Завершенный planning report / Stage 7.22 | Planning по generated-client-ready subset manifest без создания manifest, generated-client readiness, OpenAPI finalization, generated clients, tool changes, backend behavior changes или CI/Gradle integration. |
+| `stage-7-23-generated-client-subset-manifest-schema-review.md` | Завершенный planning/review report / Stage 7.23 | Schema contract и future validation behavior для будущего `generated-client-ready-subset.yaml` без создания manifest, generated-client readiness, OpenAPI finalization, generated clients, tool changes, backend behavior changes или CI/Gradle integration. |
 
 ## Inventory review artifacts
 
@@ -113,6 +114,7 @@
 | `stage-7-20a-standalone-read-only-conformance-gate-skeleton-implementation-review.md` | Completed review report | Stage 7.20a standalone read-only conformance gate skeleton implementation review. |
 | `stage-7-21-openapi-conformance-report-depth-tests.md` | Completed implementation report | Stage 7.21 tool-local read-only OpenAPI conformance report depth and tests. |
 | `stage-7-22-generated-client-ready-subset-manifest-planning.md` | Завершенный planning report | Stage 7.22 planning по generated-client-ready subset manifest. |
+| `stage-7-23-generated-client-subset-manifest-schema-review.md` | Завершенный planning/review report | Stage 7.23 schema review для будущего generated-client-ready subset manifest. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -161,6 +163,7 @@
 37. `docs/reviews/stage-7-20a-standalone-read-only-conformance-gate-skeleton-implementation-review.md`
 38. `docs/reviews/stage-7-21-openapi-conformance-report-depth-tests.md`
 39. `docs/reviews/stage-7-22-generated-client-ready-subset-manifest-planning.md`
+40. `docs/reviews/stage-7-23-generated-client-subset-manifest-schema-review.md`
 
 ## Historical / superseded документы
 
