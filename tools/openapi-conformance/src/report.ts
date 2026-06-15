@@ -20,13 +20,14 @@ export function buildReport(
   const endpoints = buildEndpointReports(openApiInventory.operations, runtimeRoutes);
   const endpointClassificationSummary =
     buildEndpointClassificationSummary(endpoints);
+  const manifestBlockingFindings = subsetManifest.manifestValidation.findings.filter(
+    (finding) => finding.severity === "blocking",
+  );
+  const manifestAdvisoryFindings = subsetManifest.manifestValidation.findings.filter(
+    (finding) => finding.severity === "advisory",
+  );
   const advisoryFindings: Finding[] = [
-    {
-      code: "GENERATED_CLIENT_READY_SUBSET_MISSING",
-      severity: "advisory",
-      message:
-        "Generated-client-ready subset manifest is not created; this is expected for the skeleton and keeps readiness not_ready.",
-    },
+    ...buildSubsetManifestFindings(subsetManifest),
     {
       code: "STATIC_RUNTIME_ROUTE_SCAN",
       severity: "advisory",
@@ -40,6 +41,7 @@ export function buildReport(
         "Hotel search, offers, shortlist, and explanation placeholder endpoints remain excluded and are not generated-client-ready.",
     },
     ...buildEndpointClassificationFindings(endpointClassificationSummary),
+    ...manifestAdvisoryFindings,
   ];
 
   const futureOnlyChecks = buildFutureOnlyChecks();
@@ -62,7 +64,14 @@ export function buildReport(
       operationCount: openApiInventory.operations.length,
       candidates: openApiInventory.detectedFromCandidates,
     },
-    subsetManifest,
+    subsetManifest: {
+      path: subsetManifest.path,
+      exists: subsetManifest.exists,
+      status: subsetManifest.status,
+      requiredForSkeleton: subsetManifest.requiredForSkeleton,
+    },
+    manifestDetection: subsetManifest.manifestDetection,
+    manifestValidation: subsetManifest.manifestValidation,
     inventories: {
       openApi: openApiInventory.operations,
       runtimeRoutes,
@@ -75,7 +84,7 @@ export function buildReport(
       subsetManifest,
       endpointClassificationSummary,
     ),
-    blockingFindings: [],
+    blockingFindings: manifestBlockingFindings,
     advisoryFindings,
     futureOnlyChecks,
   };
@@ -112,6 +121,23 @@ function buildChecks(
       summary: subsetManifest.exists
         ? "Subset manifest exists but is not enforced by the skeleton."
         : "Subset manifest is missing/not_created and is optional for this skeleton.",
+    },
+    {
+      name: "manifest_detection",
+      status: subsetManifest.manifestDetection.exists ? "advisory" : "not_created",
+      summary: subsetManifest.manifestDetection.note,
+    },
+    {
+      name: "manifest_validation",
+      status:
+        subsetManifest.manifestValidation.status === "failed"
+          ? "failed"
+          : subsetManifest.manifestValidation.status === "advisory_passed"
+            ? "advisory"
+            : "not_run",
+      summary:
+        subsetManifest.manifestValidation.reason ??
+        subsetManifest.manifestValidation.schemaValidation.summary,
     },
     {
       name: "endpoint_classification_summary",
@@ -198,6 +224,23 @@ function buildEndpointClassificationFindings(
   }
 
   return findings;
+}
+
+function buildSubsetManifestFindings(
+  subsetManifest: SubsetManifestState,
+): Finding[] {
+  if (subsetManifest.exists) {
+    return [];
+  }
+
+  return [
+    {
+      code: "GENERATED_CLIENT_READY_SUBSET_MISSING",
+      severity: "advisory",
+      message:
+        "Generated-client-ready subset manifest is not created; this is expected for the skeleton and keeps readiness not_ready.",
+    },
+  ];
 }
 
 function buildFutureOnlyChecks(): CheckReport[] {

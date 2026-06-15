@@ -2,6 +2,7 @@ export type HttpMethod = "delete" | "get" | "patch" | "post" | "put";
 
 export type CheckStatus =
   | "advisory"
+  | "failed"
   | "future_only"
   | "missing"
   | "not_created"
@@ -79,6 +80,28 @@ export interface Finding {
   message: string;
 }
 
+export interface ManifestDetectionReport {
+  manifestPath: string;
+  exists: boolean;
+  explicitPathProvided: boolean;
+  status: "missing" | "present";
+  note: string;
+}
+
+export interface ManifestValidationCheck {
+  name: string;
+  status: "not_run" | "passed" | "failed" | "future_only";
+  summary: string;
+}
+
+export interface ManifestValidationReport {
+  status: "not_run" | "advisory_passed" | "failed";
+  reason?: string;
+  schemaValidation: ManifestValidationCheck;
+  endpointReferenceValidation: ManifestValidationCheck;
+  findings: Finding[];
+}
+
 export interface ConformanceReport {
   tool: {
     name: string;
@@ -103,6 +126,8 @@ export interface ConformanceReport {
     status: "missing_not_created" | "present_not_evaluated";
     requiredForSkeleton: false;
   };
+  manifestDetection: ManifestDetectionReport;
+  manifestValidation: ManifestValidationReport;
   inventories: {
     openApi: OpenApiOperation[];
     runtimeRoutes: RuntimeRoute[];

@@ -25,9 +25,47 @@ npm install
 - извлекается OpenAPI path/method inventory;
 - статически сканируются Ktor route files в `services/backend/src/main/kotlin/com/travelassistant/backend/api`;
 - проверяется наличие будущего subset manifest path `docs/architecture/stage-7/generated-client-ready-subset.yaml`;
+- выводится read-only `manifestDetection` section с ожидаемым `manifestPath`, признаком наличия manifest и detection status;
+- если manifest существует, выполняется skeleton-level `manifestValidation`: YAML parse и минимальная проверка Stage 7.23 schema contract;
+- если manifest отсутствует, `manifestValidation` остается `not_run`, а report сохраняет `status: "not_ready"` и `readinessClaim: false`;
 - placeholder endpoints остаются видимыми как excluded/foundation-only;
 - выводится `endpointClassificationSummary` с количеством `foundation_candidate`, `placeholder_excluded`, `runtime_only` и `unclassified` endpoints;
 - generated-client compile checks и runtime HTTP contract tests выводятся как `future_only` / `not_run`.
+
+## Поведение manifest
+
+Путь manifest:
+
+```text
+docs/architecture/stage-7/generated-client-ready-subset.yaml
+```
+
+Инструмент не создает этот файл и не требует его наличия в текущем skeleton mode.
+
+Если manifest отсутствует:
+
+- command завершается с exit code `0`;
+- `manifestDetection.status` равен `missing`;
+- `manifestValidation.status` равен `not_run`;
+- report содержит advisory finding `manifest_missing`;
+- `status` остается `"not_ready"`;
+- `readinessClaim` остается `false`.
+
+Если manifest существует:
+
+- файл читается read-only;
+- YAML парсится без перезаписи или форматирования;
+- проверяются обязательные top-level fields Stage 7.23 на skeleton depth;
+- invalid YAML или schema issues попадают в structured findings;
+- endpoint reference validation остается `future_only`;
+- passing validation не является generated-client readiness.
+
+Ограничители readiness:
+
+- tool не может вывести `readinessClaim: true`;
+- tool не может вывести `status: "ready"`;
+- endpoint-level readiness остается `"not_ready"`;
+- generated-client generation/compile и runtime HTTP contract tests не запускаются.
 
 ## Local tests
 

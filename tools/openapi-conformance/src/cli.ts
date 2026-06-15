@@ -112,6 +112,28 @@ function buildExecutionErrorReport(error: unknown): ConformanceReport {
       status: "missing_not_created",
       requiredForSkeleton: false,
     },
+    manifestDetection: {
+      manifestPath: "",
+      exists: false,
+      explicitPathProvided: false,
+      status: "missing",
+      note: "Manifest detection was not run because the tool did not complete input inspection.",
+    },
+    manifestValidation: {
+      status: "not_run",
+      reason: "tool_execution_error",
+      schemaValidation: {
+        name: "manifest_schema_validation",
+        status: "not_run",
+        summary: "Not run because the tool did not complete input inspection.",
+      },
+      endpointReferenceValidation: {
+        name: "endpoint_reference_validation",
+        status: "future_only",
+        summary: "Not run because the tool did not complete input inspection.",
+      },
+      findings: [],
+    },
     inventories: {
       openApi: [],
       runtimeRoutes: [],
