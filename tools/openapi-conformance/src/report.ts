@@ -1,0 +1,272 @@
+import { TOOL_VERSION } from "./paths.js";
+import { buildEndpointReports } from "./placeholder-policy.js";
+import type {
+  CheckReport,
+  ConformanceReport,
+  EndpointClassification,
+  EndpointClassificationSummary,
+  EndpointReport,
+  Finding,
+  OpenApiInventory,
+  RuntimeRoute,
+} from "./types.js";
+import type { SubsetManifestState } from "./subset-manifest.js";
+
+export function buildReport(
+  openApiInventory: OpenApiInventory,
+  runtimeRoutes: RuntimeRoute[],
+  subsetManifest: SubsetManifestState,
+): ConformanceReport {
+  const endpoints = buildEndpointReports(openApiInventory.operations, runtimeRoutes);
+  const endpointClassificationSummary =
+    buildEndpointClassificationSummary(endpoints);
+  const manifestBlockingFindings = subsetManifest.manifestValidation.findings.filter(
+    (finding) => finding.severity === "blocking",
+  );
+  const manifestAdvisoryFindings = subsetManifest.manifestValidation.findings.filter(
+    (finding) => finding.severity === "advisory",
+  );
+  const advisoryFindings: Finding[] = [
+    ...buildSubsetManifestFindings(subsetManifest),
+    {
+      code: "STATIC_RUNTIME_ROUTE_SCAN",
+      severity: "advisory",
+      message:
+        "Runtime route inventory is collected by conservative static Ktor source scanning; no backend server was started.",
+    },
+    {
+      code: "PLACEHOLDER_ENDPOINTS_EXCLUDED",
+      severity: "advisory",
+      message:
+        "Hotel search, offers, shortlist, and explanation placeholder endpoints remain excluded and are not generated-client-ready.",
+    },
+    ...buildEndpointClassificationFindings(endpointClassificationSummary),
+    ...manifestAdvisoryFindings,
+  ];
+
+  const futureOnlyChecks = buildFutureOnlyChecks();
+
+  return {
+    tool: {
+      name: "travel-assistant-openapi-conformance",
+      version: TOOL_VERSION,
+      mode: "classification",
+      readOnly: true,
+    },
+    generatedAt: new Date().toISOString(),
+    status: "not_ready",
+    readinessClaim: false,
+    openApiSource: {
+      path: openApiInventory.sourcePath,
+      detected: true,
+      openApiVersion: openApiInventory.openApiVersion,
+      serverBasePath: openApiInventory.serverBasePath,
+      operationCount: openApiInventory.operations.length,
+      candidates: openApiInventory.detectedFromCandidates,
+    },
+    subsetManifest: {
+      path: subsetManifest.path,
+      exists: subsetManifest.exists,
+      status: subsetManifest.status,
+      requiredForSkeleton: subsetManifest.requiredForSkeleton,
+    },
+    manifestDetection: subsetManifest.manifestDetection,
+    manifestValidation: subsetManifest.manifestValidation,
+    inventories: {
+      openApi: openApiInventory.operations,
+      runtimeRoutes,
+    },
+    endpointClassificationSummary,
+    endpoints,
+    checks: buildChecks(
+      openApiInventory,
+      runtimeRoutes,
+      subsetManifest,
+      endpointClassificationSummary,
+    ),
+    blockingFindings: manifestBlockingFindings,
+    advisoryFindings,
+    futureOnlyChecks,
+  };
+}
+
+function buildChecks(
+  openApiInventory: OpenApiInventory,
+  runtimeRoutes: RuntimeRoute[],
+  subsetManifest: SubsetManifestState,
+  endpointClassificationSummary: EndpointClassificationSummary,
+): CheckReport[] {
+  return [
+    {
+      name: "openapi_source_detection",
+      status: "passed",
+      summary: `Detected OpenAPI source at ${openApiInventory.sourcePath}.`,
+    },
+    {
+      name: "openapi_minimal_structure",
+      status: "passed",
+      summary: `Parsed OpenAPI ${openApiInventory.openApiVersion} with ${openApiInventory.operations.length} operations.`,
+    },
+    {
+      name: "runtime_route_inventory",
+      status: runtimeRoutes.length > 0 ? "advisory" : "missing",
+      summary:
+        runtimeRoutes.length > 0
+          ? `Collected ${runtimeRoutes.length} runtime routes by static source scan.`
+          : "No runtime routes were detected by static source scan.",
+    },
+    {
+      name: "subset_manifest",
+      status: subsetManifest.exists ? "advisory" : "not_created",
+      summary: subsetManifest.exists
+        ? "Subset manifest exists but is not enforced by the skeleton."
+        : "Subset manifest is missing/not_created and is optional for this skeleton.",
+    },
+    {
+      name: "manifest_detection",
+      status: subsetManifest.manifestDetection.exists ? "advisory" : "not_created",
+      summary: subsetManifest.manifestDetection.note,
+    },
+    {
+      name: "manifest_validation",
+      status:
+        subsetManifest.manifestValidation.status === "failed"
+          ? "failed"
+          : subsetManifest.manifestValidation.status === "advisory_passed"
+            ? "advisory"
+            : "not_run",
+      summary:
+        subsetManifest.manifestValidation.reason ??
+        subsetManifest.manifestValidation.schemaValidation.summary,
+    },
+    {
+      name: "endpoint_classification_summary",
+      status: "advisory",
+      summary:
+        `${endpointClassificationSummary.total} endpoints classified: ` +
+        `${endpointClassificationSummary.byClassification.foundation_candidate} foundation_candidate, ` +
+        `${endpointClassificationSummary.byClassification.placeholder_excluded} placeholder_excluded, ` +
+        `${endpointClassificationSummary.byClassification.runtime_only} runtime_only, ` +
+        `${endpointClassificationSummary.byClassification.unclassified} unclassified.`,
+    },
+    {
+      name: "readiness_status",
+      status: "not_ready",
+      summary:
+        "Report status is intentionally not_ready; generated-client/OpenAPI readiness is not claimed.",
+    },
+  ];
+}
+
+function buildEndpointClassificationSummary(
+  endpoints: EndpointReport[],
+): EndpointClassificationSummary {
+  const byClassification: Record<EndpointClassification, number> = {
+    foundation_candidate: 0,
+    placeholder_excluded: 0,
+    runtime_only: 0,
+    unclassified: 0,
+  };
+
+  let openApiOnly = 0;
+  let runtimeOnly = 0;
+  let inBothInventories = 0;
+
+  for (const endpoint of endpoints) {
+    byClassification[endpoint.classification] += 1;
+
+    if (endpoint.inOpenApi && endpoint.inRuntime) {
+      inBothInventories += 1;
+      continue;
+    }
+
+    if (endpoint.inOpenApi) {
+      openApiOnly += 1;
+    }
+
+    if (endpoint.inRuntime) {
+      runtimeOnly += 1;
+    }
+  }
+
+  return {
+    total: endpoints.length,
+    byClassification,
+    openApiOnly,
+    runtimeOnly,
+    inBothInventories,
+  };
+}
+
+function buildEndpointClassificationFindings(
+  summary: EndpointClassificationSummary,
+): Finding[] {
+  const findings: Finding[] = [];
+
+  if (summary.byClassification.unclassified > 0) {
+    findings.push({
+      code: "UNCLASSIFIED_ENDPOINTS_VISIBLE",
+      severity: "advisory",
+      message:
+        `${summary.byClassification.unclassified} endpoints are unclassified in the skeleton report; ` +
+        "they remain not_ready and require a future explicit subset/classification decision.",
+    });
+  }
+
+  if (summary.byClassification.runtime_only > 0) {
+    findings.push({
+      code: "RUNTIME_ONLY_ENDPOINTS_VISIBLE",
+      severity: "advisory",
+      message:
+        `${summary.byClassification.runtime_only} runtime-only endpoints are visible in the skeleton report; ` +
+        "static inventory drift is advisory until a future conformance mode is activated.",
+    });
+  }
+
+  return findings;
+}
+
+function buildSubsetManifestFindings(
+  subsetManifest: SubsetManifestState,
+): Finding[] {
+  if (subsetManifest.exists) {
+    return [];
+  }
+
+  return [
+    {
+      code: "GENERATED_CLIENT_READY_SUBSET_MISSING",
+      severity: "advisory",
+      message:
+        "Generated-client-ready subset manifest is not created; this is expected for the skeleton and keeps readiness not_ready.",
+    },
+  ];
+}
+
+function buildFutureOnlyChecks(): CheckReport[] {
+  return [
+    {
+      name: "generated_client_generation",
+      status: "future_only",
+      summary: "Generated clients are not generated by this skeleton.",
+    },
+    {
+      name: "generated_client_compile",
+      status: "not_run",
+      summary:
+        "Generated-client compile check is future-only and was not run.",
+    },
+    {
+      name: "runtime_http_contract_tests",
+      status: "not_run",
+      summary:
+        "Runtime HTTP contract tests are future-only and were not run.",
+    },
+    {
+      name: "full_openapi_finalization_gate",
+      status: "future_only",
+      summary:
+        "Full OpenAPI finalization remains blocked by missing real hotel search/resource behavior.",
+    },
+  ];
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+cd "$SCRIPT_DIR"
+
+if [ ! -d node_modules ]; then
+  echo "openapi-conformance dependencies are missing. Run 'npm install' in tools/openapi-conformance first." >&2
+  exit 2
+fi
+
+npm run -s build
+node dist/cli.js "$@"
