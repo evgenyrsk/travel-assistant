@@ -9,8 +9,8 @@ Roadmap не является task tracker, продуктовой специф�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 7 — реализация MVP / ожидает отдельную явную задачу |
-| Последний завершенный этап | Stage 7.36 — Assistant Endpoint Candidate Clarification |
-| Следующий планируемый шаг | Stage 7.37 — Assistant Endpoint Contract/Runtime Alignment Notes, только через отдельную явную roadmap-aligned задачу |
+| Последний завершенный этап | Stage 7.37 — Assistant Endpoint Contract/Runtime Alignment Notes |
+| Следующий планируемый шаг | Stage 7.38 — Assistant Endpoint Contract/Runtime Alignment Cleanup Decision, только через отдельную явную roadmap-aligned задачу |
 | Подробный roadmap/status source of truth | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -24,6 +24,7 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 7 manifest validation hardening | Stage 7.34 завершен; conformance tool блокирует преждевременные readiness promotion signals в manifest candidate |
 | Stage 7 endpoint candidate review | Stage 7.35 завершен; endpoint candidates проанализированы без изменения manifest и без readiness claim |
 | Stage 7 assistant endpoint candidate clarification | Stage 7.36 завершен; два assistant endpoint candidates уточнены без изменения manifest, OpenAPI/API contracts, runtime или readiness claim |
+| Stage 7 assistant endpoint contract/runtime alignment notes | Stage 7.37 завершен; alignment, gaps, unknowns и carryover для двух assistant endpoint candidates зафиксированы без изменения manifest, OpenAPI/API contracts, runtime, conformance tool или readiness claim |
 | Generated-client/OpenAPI readiness | Не заявлена |
 | Generated-client-ready subset / generated clients | Non-readiness manifest candidate создан; generated-client-ready subset/readiness и generated clients не созданы |
 | Full conformance gate | Не реализован |
@@ -39,7 +40,7 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
-| Stage 7 | В работе / ожидает отдельную явную задачу | Bounded Kotlin + Ktor backend foundation, assistant boundaries, conformance-tool work, documentation stabilization, resume-development handoff, technical context review, manifest candidate definition, manifest validation hardening, endpoint candidate review и assistant endpoint candidate clarification завершены до Stage 7.36 включительно. Подробности см. в Stage 7 checklist ниже. |
+| Stage 7 | В работе / ожидает отдельную явную задачу | Bounded Kotlin + Ktor backend foundation, assistant boundaries, conformance-tool work, documentation stabilization, resume-development handoff, technical context review, manifest candidate definition, manifest validation hardening, endpoint candidate review, assistant endpoint candidate clarification и contract/runtime alignment notes завершены до Stage 7.37 включительно. Подробности см. в Stage 7 checklist ниже. |
 | Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
@@ -304,6 +305,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Manifest candidate validation hardening | Stage 7.34 | Tool-local validation now blocks premature readiness promotion signals in the manifest candidate while keeping the report advisory/not_ready. |
 | Endpoint candidate review | Stage 7.35 | Current OpenAPI/backend endpoint candidates reviewed for future manifest expansion; manifest and readiness state unchanged. |
 | Assistant endpoint candidate clarification | Stage 7.36 | Two assistant endpoint candidates clarified for contract/runtime/security/product conditions; manifest and readiness state unchanged. |
+| Assistant endpoint contract/runtime alignment notes | Stage 7.37 | Alignment, gaps, unknowns и carryover для двух assistant endpoint candidates зафиксированы; manifest, OpenAPI/API contracts, runtime, conformance tool и readiness state не изменены. |
 
 **Documentation stabilization track:**
 
@@ -337,6 +339,10 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 - [x] Stage 7.36 — Assistant Endpoint Candidate Clarification
 
+**Assistant endpoint contract/runtime alignment notes:**
+
+- [x] Stage 7.37 — Assistant Endpoint Contract/Runtime Alignment Notes
+
 **Текущие исключения Stage 7 и неначатые работы:**
 
 | Category | Status |
@@ -368,8 +374,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 7.34 manifest candidate validation hardening | `stage-7-34-manifest-candidate-validation-hardening.md` |
 | Stage 7.35 endpoint candidate review | `stage-7-35-endpoint-candidate-review.md` |
 | Stage 7.36 assistant endpoint candidate clarification | `stage-7-36-assistant-endpoint-candidate-clarification.md` |
+| Stage 7.37 assistant endpoint contract/runtime alignment notes | `stage-7-37-assistant-endpoint-contract-runtime-alignment-notes.md` |
 
-**Следующий шаг:** Stage 7.37 — Assistant Endpoint Contract/Runtime Alignment Notes, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status, `docs/reviews/stage-7-25-openapi-conformance-manifest-detection-validation.md`, `docs/reviews/stage-7-32-resume-stage-7-technical-context-review.md`, `docs/reviews/stage-7-33-ready-subset-manifest-candidate-definition.md`, `docs/reviews/stage-7-34-manifest-candidate-validation-hardening.md`, `docs/reviews/stage-7-35-endpoint-candidate-review.md`, `docs/reviews/stage-7-36-assistant-endpoint-candidate-clarification.md` и `docs/architecture/stage-7/generated-client-ready-subset.yaml`. Stage 8+ остаются Planned и не активированы. Generated-client/OpenAPI readiness не заявлена.
+**Следующий шаг:** Stage 7.38 — Assistant Endpoint Contract/Runtime Alignment Cleanup Decision, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status, `docs/reviews/stage-7-25-openapi-conformance-manifest-detection-validation.md`, `docs/reviews/stage-7-32-resume-stage-7-technical-context-review.md`, `docs/reviews/stage-7-33-ready-subset-manifest-candidate-definition.md`, `docs/reviews/stage-7-34-manifest-candidate-validation-hardening.md`, `docs/reviews/stage-7-35-endpoint-candidate-review.md`, `docs/reviews/stage-7-36-assistant-endpoint-candidate-clarification.md`, `docs/reviews/stage-7-37-assistant-endpoint-contract-runtime-alignment-notes.md` и `docs/architecture/stage-7/generated-client-ready-subset.yaml`. Stage 8+ остаются Planned и не активированы. Generated-client/OpenAPI readiness не заявлена.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
