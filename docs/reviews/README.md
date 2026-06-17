@@ -14,11 +14,11 @@
 - `AGENTS.md` — обязательные правила работы Codex/AI-агентов в этом репозитории.
 - `docs/decisions/README.md` — ADR/decision taxonomy; accepted ADR files отсутствуют, пока отдельная задача их не создаст.
 
-Если review artifact конфликтует с current roadmap или baseline, приоритет имеют current source-of-truth документы. Review artifact следует читать как исторический контекст, если он явно не является последним cleanup/readiness gate для текущей задачи.
+Если review artifact конфликтует с текущим roadmap или baseline, приоритет имеют текущие source-of-truth документы. Review artifact следует читать как исторический контекст, если он явно не является последним cleanup/readiness gate для текущей задачи.
 
 ## Как Codex должен использовать этот раздел
 
-- Перед documentation cleanup задачами используй последние relevant reviews как context, но не выполняй их recommendations без отдельной явной задачи.
+- Перед documentation cleanup задачами используй последние релевантные reviews как context, но не выполняй их recommendations без отдельной явной задачи.
 - Не трактуй historical findings как active backlog.
 - Не переписывай historical review reports только потому, что их status wording устарел; вместо этого обновляй index/navigation или создавай новый cleanup report.
 - Не считай old Java/Spring Boot references текущим backend stack: текущий backend stack зафиксирован как Kotlin + Ktor в `docs/architecture/architecture-baseline.md`.
@@ -35,6 +35,12 @@
 | `stage-7-development-docs-merge-shortening-cleanup.md` | Completed cleanup report / Stage 7.0f-d | Фиксирует сокращение `docs/development/**` до secondary reference layer. |
 | `stage-7-product-architecture-index-role-labels-cleanup.md` | Completed cleanup report / Stage 7.0f-e | Фиксирует role labels и source-of-truth hierarchy для `docs/product/**` и `docs/architecture/**`. |
 | `stage-7-roadmap-readability-cleanup.md` | Completed cleanup report / Stage 7.0f-f | Фиксирует сокращение roadmap-facing status wording и подтверждает, что roadmap remains source of truth. |
+| `stage-7-26-documentation-quality-calibration-audit.md` | Review context / Stage 7.26 audit | Калибрует качество active documentation перед Stage 7.27; findings читать как recommendations для отдельных bounded cleanup tasks, а не как active backlog. |
+| `stage-7-27-documentation-governance-rules-cleanup.md` | Completed governance cleanup / Stage 7.27 | Усиливает documentation governance rules для Russian-first prose, roadmap/status readability, checklist/table formatting, document roles и source-of-truth protection. |
+| `stage-7-28-roadmap-structure-refactor.md` | Completed roadmap structure cleanup / Stage 7.28 | Сокращает detailed roadmap/status duplication в navigation docs и переводит Stage 7 status в таблицы/checklist без изменения sequencing. |
+| `stage-7-29-active-documentation-language-normalization.md` | Completed language normalization cleanup / Stage 7.29 | Нормализует ordinary English prose в active/navigation docs по Russian-first policy без изменения sequencing, product scope, architecture decisions или historical artifacts. |
+| `stage-7-30-documentation-final-quality-gate.md` | Completed final quality gate / Stage 7.30 | Финально проверяет documentation stabilization track после Stage 7.26-7.29; verdict: pass with minor notes, next recommended step: Stage 7.31 handoff. |
+| `stage-7-31-resume-development-handoff.md` | Completed documentation handoff / Stage 7.31 | Закрывает documentation stabilization handoff и фиксирует guardrails для возвращения к bounded Stage 7 technical work без generated-client readiness claim. |
 
 ## Stage 7 implementation reports
 
@@ -119,6 +125,12 @@
 | `stage-7-23-generated-client-subset-manifest-schema-review.md` | Завершенный planning/review report | Stage 7.23 schema review для будущего generated-client-ready subset manifest. |
 | `stage-7-24-openapi-conformance-manifest-validation-design.md` | Завершенный planning/design report | Stage 7.24 design будущего manifest detection/schema validation для standalone OpenAPI conformance tool. |
 | `stage-7-25-openapi-conformance-manifest-detection-validation.md` | Завершенный implementation report | Stage 7.25 tool-local read-only manifest detection/validation для standalone OpenAPI conformance tool. |
+| `stage-7-26-documentation-quality-calibration-audit.md` | Review context / documentation quality audit | Stage 7.26 review-only audit; verdict: needs targeted cleanup before Stage 7.27 governance cleanup. |
+| `stage-7-27-documentation-governance-rules-cleanup.md` | Completed governance cleanup | Stage 7.27 documentation-governance cleanup; strengthens rules without roadmap refactor, product/architecture changes, code changes or historical artifact rewrite. |
+| `stage-7-28-roadmap-structure-refactor.md` | Completed roadmap structure cleanup | Stage 7.28 roadmap/status structure cleanup; keeps `docs/roadmap/roadmap.md` as detailed source of truth and leaves README / `docs/ROADMAP.md` as navigation docs. |
+| `stage-7-29-active-documentation-language-normalization.md` | Completed language normalization cleanup | Stage 7.29 Russian-first cleanup for active/navigation docs без roadmap refactor, product/architecture/code changes or historical artifact rewrite. |
+| `stage-7-30-documentation-final-quality-gate.md` | Completed final quality gate | Stage 7.30 review-only final gate; confirms documentation stabilization is ready for Stage 7.31 handoff without code/product/architecture/generated-client changes. |
+| `stage-7-31-resume-development-handoff.md` | Completed documentation handoff | Stage 7.31 handoff report; confirms documentation stabilization closure and records guardrails for resumed Stage 7 technical work. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -170,6 +182,12 @@
 40. `docs/reviews/stage-7-23-generated-client-subset-manifest-schema-review.md`
 41. `docs/reviews/stage-7-24-openapi-conformance-manifest-validation-design.md`
 42. `docs/reviews/stage-7-25-openapi-conformance-manifest-detection-validation.md`
+43. `docs/reviews/stage-7-26-documentation-quality-calibration-audit.md`
+44. `docs/reviews/stage-7-27-documentation-governance-rules-cleanup.md`
+45. `docs/reviews/stage-7-28-roadmap-structure-refactor.md`
+46. `docs/reviews/stage-7-29-active-documentation-language-normalization.md`
+47. `docs/reviews/stage-7-30-documentation-final-quality-gate.md`
+48. `docs/reviews/stage-7-31-resume-development-handoff.md`
 
 ## Historical / superseded документы
 
@@ -185,7 +203,7 @@
 - `stage-7-restart-readiness-review.md`
 - `product-baseline-status-cleanup.md`
 
-Некоторые из них содержат stale status wording, old Stage 6 status или old Java/Spring Boot context. Это не ошибка само по себе: они были correct as-of review time. Их текущая роль задается этим index-документом и current source-of-truth documents.
+Некоторые из них содержат stale status wording, old Stage 6 status или old Java/Spring Boot context. Это не ошибка само по себе: они были корректны на момент соответствующего review. Их текущая роль задается этим index-документом и current source-of-truth documents.
 
 ## Remaining cleanup items
 

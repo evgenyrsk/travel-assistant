@@ -1,25 +1,25 @@
 # Development Governance
 
-This directory contains active engineering rules for implementation, review, testing, documentation, and repository maintenance work.
+Эта директория содержит активные engineering rules для implementation, review, testing, documentation и maintenance задач в репозитории.
 
-These documents do not define roadmap status or product scope. Use `../roadmap/roadmap.md` for roadmap status, `../product/product-baseline.md` for MVP scope, and `../architecture/architecture-baseline.md` for architecture baseline and backend stack authority.
+Эти документы не задают roadmap status или product scope. Для roadmap status используй `../roadmap/roadmap.md`, для MVP scope — `../product/product-baseline.md`, для architecture baseline и backend stack authority — `../architecture/architecture-baseline.md`.
 
 ## Active Rules
 
-- [Coding standards](coding-standards.md) - general code writing rules independent of a specific technology.
-- [Kotlin backend style guide](kotlin-backend-style-guide.md) - Kotlin + Ktor backend implementation style.
-- [Testing strategy](testing-strategy.md) - test expectations and coverage rules.
-- [Documentation guidelines](documentation-guidelines.md) - documentation source-of-truth, navigation, and language rules.
-- [Definition of Done](definition-of-done.md) - completion criteria for repository tasks.
-- [Quality gates](quality-gates.md) - validation commands, diff checks, and risk reporting.
-- [Backend layering rules](../architecture/backend-layering-rules.md) - allowed dependencies and layer boundaries.
-- [Codex task template](../prompts/codex-task-template.md) - implementation-task prompt template.
-- [Codex review template](../prompts/codex-review-template.md) - review-only prompt template.
+- [Coding standards](coding-standards.md) - общие правила написания кода, независимые от конкретной технологии.
+- [Kotlin backend style guide](kotlin-backend-style-guide.md) - стиль Kotlin + Ktor backend implementation.
+- [Testing strategy](testing-strategy.md) - ожидания по тестам и правила coverage.
+- [Documentation guidelines](documentation-guidelines.md) - правила source-of-truth, navigation и language policy для документации.
+- [Definition of Done](definition-of-done.md) - критерии завершения задач в репозитории.
+- [Quality gates](quality-gates.md) - validation commands, diff checks и risk reporting.
+- [Backend layering rules](../architecture/backend-layering-rules.md) - допустимые зависимости и границы слоев.
+- [Codex task template](../prompts/codex-task-template.md) - prompt template для implementation-задач.
+- [Codex review template](../prompts/codex-review-template.md) - prompt template для review-only задач.
 
 ## Reference-Only Development Context
 
-- [Development roadmap reference](roadmap.md) - future/reference vocabulary, not active backlog.
-- [Development milestones reference](milestones.md) - future milestone vocabulary, not active backlog.
-- [Implementation strategy reference](implementation-strategy.md) - future implementation approach, not task activation.
+- [Development roadmap reference](roadmap.md) - future/reference vocabulary, не active backlog.
+- [Development milestones reference](milestones.md) - future milestone vocabulary, не active backlog.
+- [Implementation strategy reference](implementation-strategy.md) - future implementation approach, не активация задачи.
 
-If an active engineering rule conflicts with `AGENTS.md`, the primary roadmap, an accepted ADR, or the architecture/product baselines, follow the higher-priority source and report the conflict.
+Если active engineering rule конфликтует с `AGENTS.md`, primary roadmap, accepted ADR или architecture/product baselines, следуй источнику с более высоким приоритетом и сообщи о конфликте.

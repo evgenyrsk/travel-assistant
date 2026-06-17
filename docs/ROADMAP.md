@@ -1,27 +1,28 @@
 # Roadmap
 
-Этот документ является кратким navigation overview по этапам Travel Assistant. Он помогает быстро увидеть порядок этапов и перейти к нужным roadmap-документам.
+Этот документ является кратким навигационным обзором этапов Travel Assistant. Он помогает быстро увидеть порядок этапов и перейти к нужным roadmap-документам.
 
 Primary roadmap и source of truth по статусам этапов, progression, carryover, границам этапов и следующему разрешенному шагу находится в `docs/roadmap/roadmap.md`.
 
-`docs/ROADMAP.md` не является competing roadmap, task tracker или implementation backlog. Справочная development guidance находится в `docs/development/roadmap.md`, `docs/development/milestones.md` и `docs/development/implementation-strategy.md`; эти документы являются future/reference material и следуют primary roadmap.
+`docs/ROADMAP.md` не конкурирует с primary roadmap, не является task tracker или implementation backlog. Справочные development guidance находятся в `docs/development/roadmap.md`, `docs/development/milestones.md` и `docs/development/implementation-strategy.md`; эти документы являются future/reference material и следуют primary roadmap.
 
 ## Текущий статус
 
 | Этап | Статус |
 |---|---|
-| Stage 0 | Completed |
-| Stage 1 | Completed |
-| Stage 2 | Completed |
-| Stage 3 | Completed |
-| Stage 4 | Completed |
-| Stage 4.1 | Completed |
-| Stage 5 | Completed |
-| Stage 6 | Completed; Stage 6.1-6.9 completed |
-| Stage 7 | In progress / awaiting explicit next task; bounded backend implementation, readiness, review, documentation/status, generated-client/OpenAPI conformance gate planning, generated-client-ready subset policy, conformance gate skeleton planning-to-tooling, conformance gate skeleton implementation planning/tooling decision, standalone read-only conformance gate skeleton implementation, tool-local read-only reporting depth/test coverage, planning по generated-client-ready subset manifest, schema review для будущего manifest, design будущего manifest detection/schema validation и tool-local manifest detection/validation implementation завершены до Stage 7.25 включительно; Stage 7.26+ не начаты; generated-client/OpenAPI readiness не заявлена; generated-client-ready subset не создан; full conformance gate не реализован |
-| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend foundation exists with process-local assistant session state, session-local clarification metadata, internal hotel requirements slot metadata, internal slot coverage planning metadata, local assistant message/reply boundaries, generated-client/OpenAPI readiness findings, placeholder strategy and assistant response semantics boundary; DB/UI/provider integration not started |
+| Stage 0 | Завершен |
+| Stage 1 | Завершен |
+| Stage 2 | Завершен |
+| Stage 3 | Завершен |
+| Stage 4 | Завершен |
+| Stage 4.1 | Завершен |
+| Stage 5 | Завершен |
+| Stage 6 | Завершен; Stage 6.1-6.9 завершены |
+| Stage 7 | В работе / ожидает отдельную явную задачу. Подробный checklist и текущий next step находятся в `docs/roadmap/roadmap.md`. |
+| Stage 8-10 | Запланированы |
+| Code/API/DB/UI implementation | Минимальная Kotlin + Ktor backend-основа существует; DB/UI/provider integration не начаты. Подробности и ограничения находятся в primary roadmap. |
 
-Stage 6 завершен отдельными явными roadmap-задачами как contract/documentation phase. Stage 7 прошел bounded corrective stabilization, documentation cleanup through Stage 7.0f-f и bounded backend implementation/readiness/review/status/planning/policy/decision/tooling slices до Stage 7.25 включительно. Stage 7.26+ не начаты и требуют отдельной явной roadmap-aligned задачи. Generated-client/OpenAPI readiness не заявлена; generated-client-ready subset не создан; full conformance gate не реализован; generated clients не созданы. Business logic, provider integration, DB schema, storage model, auth/security/DevOps/testing backlog, frontend, generated clients и production implementation не начинаются из этого overview; подробные условия активации и исключения зафиксированы в `docs/roadmap/roadmap.md`.
+Этот обзор не является подробным журналом статусов. Подробные статусы Stage 7, documentation stabilization checklist, ограничения generated-client/OpenAPI readiness, generated clients, full conformance gate и следующий разрешенный шаг зафиксированы только в `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 

@@ -74,16 +74,31 @@ Before implementation work, read the relevant files under `docs/development/` an
 
 ## Language Policy
 
-- Use English for source code, package names, class names, method names, API contracts, database identifiers, logs, errors, technical comments, ADRs, development standards, engineering governance docs, and Codex prompt templates.
+- Use English for source code, package names, class names, method names, API contracts, database identifiers, logs, errors, technical comments, ADR names/labels, and other technical identifiers.
+- Active/source-of-truth project documentation should use Russian prose by default.
+- English is allowed for technical terms, file paths, commands, API names, libraries, class names, package names, database identifiers, logs, errors, status labels, commit/review labels, ADR terminology, and established project terms where translation would reduce precision.
+- Ordinary English prose inside Russian active documentation is a readability issue unless it is technically necessary.
+- Mixed Russian/English prose is acceptable only when it improves technical clarity.
 - Product documentation, roadmap, stage reports, review reports, and business-facing documentation may remain in Russian.
 - Do not rewrite existing Russian product, roadmap, stage, or historical documents only to normalize language.
-- Prefer English for documents that directly constrain implementation.
+- Do not mass-normalize historical artifacts only to satisfy current language policy.
 - Avoid mixing Russian and English inside one technical artifact unless English technical terms improve precision.
 
 ## Documentation Rules
 
 - README and index files should stay navigational.
 - Do not duplicate long rules across documents; link to the active source instead.
+- Check the document role before changing it: source-of-truth document, navigation/index document, guide/rules document, review/audit artifact, or historical artifact.
+- Create a new source-of-truth document only when an explicit task requires it; if an existing source-of-truth can be updated, update it instead.
+- `docs/roadmap/roadmap.md` is the primary source of truth for detailed roadmap/status. `docs/ROADMAP.md` is a navigation summary and must not duplicate long stage status strings. `README.md` is an entry point and must not become an alternative roadmap.
+- Detailed stage status should be updated in one source-of-truth location. Roadmap sequencing changes require explicit scope.
+- Status-heavy documentation should prefer compact tables and checklist structures over long prose paragraphs.
+- Review/audit reports should state scope and out-of-scope explicitly, and should use checklists for gate criteria when applicable.
+- Each checklist item should be verifiable.
+- Tables should be compact and should not duplicate source-of-truth content unnecessarily.
+- Do not mix cleanup types in one task unless the user explicitly asks for that combined scope.
+- Do not perform documentation beautification without a verifiable goal tied to the task.
+- If a documentation task risks a source-of-truth conflict, stop and report the conflict before editing.
 - Do not add links to missing files unless the same task creates those files.
 - Do not rewrite historical stage or review artifacts unless the task explicitly asks for that.
 - Update roadmap/status files only when project status actually changes.
