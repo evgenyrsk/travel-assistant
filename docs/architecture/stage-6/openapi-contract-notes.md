@@ -48,6 +48,41 @@ Stage 6.8 принимает MVP contract decisions по carryover из Stage 6.
 
 Эти решения не добавляют новые resource flows, booking/payment/account flows, provider-specific DTOs, backend/frontend implementation или DB/storage design.
 
+## Stage 7.39 — Assistant endpoint contract shape cleanup
+
+Stage 7.39 уточняет форму двух Assistant endpoints после Stage 7.37 alignment notes и Stage 7.38 cleanup decision:
+
+- `POST /api/v1/assistant/sessions`;
+- `POST /api/v1/assistant/sessions/{sessionId}/messages`.
+
+Изменения Stage 7.39 являются contract/documentation cleanup. Они не меняют backend runtime behavior, не добавляют backend runtime tests, не меняют `tools/openapi-conformance/**`, не расширяют `generated-client-ready-subset.yaml`, не создают generated clients и не заявляют generated-client/OpenAPI readiness.
+
+### Решения по request/response shape
+
+| Область | Решение Stage 7.39 |
+|---|---|
+| `POST /api/v1/assistant/sessions` request body | `requestBody` остается `required: false`. Если body отсутствует, contract допускает создание session без initial message. Если `application/json` body передан, он следует `AssistantMessageRequest`, где `message` является required field на уровне schema. |
+| `POST /api/v1/assistant/sessions/{sessionId}/messages` request body | `requestBody` остается `required: true` и использует `AssistantMessageRequest`; `message` является required string. |
+| `message.maxLength` | `maxLength: 4000` остается contract-level limit, но Stage 7.39 не заявляет runtime enforcement. Runtime coverage должен быть отдельным future cleanup/test шагом. |
+| `clientContext` | `clientContext` остается optional behavior-neutral container для client hints (`locale`, `timezone`). Текущий contract не обещает, что backend использует эти hints, валидирует их значения или меняет response behavior. |
+| `nextAction` | `nextAction` становится required response field в `AssistantMessageResponse`, потому что текущий Assistant foundation всегда возвращает action hint. Это не является search readiness или generated-client readiness evidence. |
+| `hotelSearchRequest` | Поле остается optional и future-only для будущего hotel search flow. Текущий Assistant foundation не обязан его возвращать и не использует его как readiness evidence. |
+| `searchIntentSummary` | Поле остается optional/future-facing в `AssistantSession`; отсутствие поля допустимо для текущей foundation response shape. |
+
+### Error и validation boundaries
+
+- `400` остается validation error shape для invalid request или missing/blank `message`.
+- `404` для `POST /api/v1/assistant/sessions/{sessionId}/messages` остается `SESSION_NOT_FOUND`.
+- Поведение malformed JSON и unknown JSON fields не считается runtime-validated на Stage 7.39. OpenAPI schema может выражать contract intent, но этот cleanup не подтверждает фактическое Ktor decoding behavior.
+- `additionalProperties: false` в `AssistantMessageRequest` остается contract-level schema shape, но не является доказательством runtime rejection unknown fields.
+- Error taxonomy для foundation-only runtime codes (`NOT_IMPLEMENTED`, generic `NOT_FOUND`) не считается финальной generated-client taxonomy.
+
+### Session lifecycle и readiness boundaries
+
+Assistant session contract остается current-session/process-local boundary. Он не обещает durable persistence, account history, cross-device sync, auth/session ownership, page-refresh guarantee, LLM orchestration, provider-backed hotel search, frontend integration или production security readiness.
+
+Stage 7.39 не финализирует OpenAPI и не делает Assistant endpoints generated-client-ready. Следующие возможные шаги должны идти отдельными roadmap-aligned задачами: сначала runtime tests для уже выбранной contract shape, затем conformance/tooling follow-up, затем только последующее manifest candidate update без readiness claim.
+
 ## Search state pattern
 
 Search lifecycle использует единый enum:

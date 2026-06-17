@@ -44,6 +44,10 @@ paths:
         Starts a hotel-only assistant session. The optional initial message can
         begin intent capture and clarification. The session is current-session
         state only and does not imply account history or cross-device storage.
+        If the request body is omitted, the backend creates a session without an
+        initial user message. If an application/json body is provided, it follows
+        AssistantMessageRequest; malformed JSON and unknown-field runtime
+        behavior are not finalized by this contract cleanup.
       operationId: createAssistantSession
       requestBody:
         required: false
@@ -71,7 +75,10 @@ paths:
       description: >
         Adds a user message to an existing hotel-only assistant session and
         returns the assistant response, updated session state, and any visible
-        search intent summary information.
+        search intent summary information. The request body is required and
+        follows AssistantMessageRequest. Runtime behavior for malformed JSON,
+        unknown JSON fields, and hard maxLength enforcement is not finalized by
+        this contract cleanup.
       operationId: continueAssistantSession
       parameters:
         - $ref: "#/components/parameters/SessionId"
@@ -446,9 +453,19 @@ components:
           format: date-time
         searchIntentSummary:
           $ref: "#/components/schemas/SearchIntentSummary"
+          description: >
+            Optional future-facing summary of captured hotel search intent. The
+            current Stage 7 assistant foundation does not use this field as
+            generated-client readiness evidence.
 
     AssistantMessageRequest:
       type: object
+      description: >
+        Contract shape for assistant user text. message is required when a JSON
+        body is provided. clientContext is optional behavior-neutral client hint
+        data in the current Stage 7 foundation. Runtime handling of malformed
+        JSON, unknown JSON fields, and maxLength enforcement remains a later
+        validation/test concern.
       required:
         - message
       properties:
@@ -456,9 +473,15 @@ components:
           type: string
           minLength: 1
           maxLength: 4000
-          description: User message for the assistant.
+          description: >
+            User message for the assistant. maxLength is a contract-level limit;
+            Stage 7.39 does not claim runtime enforcement.
         clientContext:
           type: object
+          description: >
+            Optional client hint container. The current Assistant foundation can
+            accept this shape but does not promise behavior changes, locale/time
+            validation, or generated-client readiness from these fields.
           additionalProperties: false
           properties:
             locale:
@@ -474,6 +497,7 @@ components:
       required:
         - session
         - assistantMessage
+        - nextAction
       properties:
         session:
           $ref: "#/components/schemas/AssistantSession"
@@ -481,6 +505,10 @@ components:
           $ref: "#/components/schemas/AssistantMessage"
         nextAction:
           type: string
+          description: >
+            Required assistant UI action hint for the response. It is not a
+            generated-client readiness signal and does not by itself prove real
+            hotel search readiness.
           enum:
             - ask_clarification
             - ready_for_hotel_search
@@ -489,6 +517,10 @@ components:
             - none
         hotelSearchRequest:
           $ref: "#/components/schemas/HotelSearchRequest"
+          description: >
+            Optional future-only request shape for a later hotel search flow.
+            The current Stage 7 assistant foundation does not emit or validate
+            this field as readiness evidence.
 
     AssistantMessage:
       type: object
