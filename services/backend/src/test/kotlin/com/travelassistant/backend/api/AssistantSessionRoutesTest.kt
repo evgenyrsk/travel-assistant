@@ -136,6 +136,78 @@ class AssistantSessionRoutesTest {
     }
 
     @Test
+    fun createAssistantSessionAcceptsOptionalClientContextAsBehaviorNeutralInput() = testApplication {
+        application {
+            module()
+        }
+
+        val response = client.post("/api/v1/assistant/sessions") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """
+                {
+                  "message": "I want a hotel in Rome",
+                  "clientContext": {
+                    "locale": "en-US",
+                    "timezone": "Europe/Rome"
+                  }
+                }
+                """.trimIndent(),
+            )
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+        val session = body["session"]?.jsonObject
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals("assistant-session-local-000001", session?.get("sessionId")?.jsonPrimitive?.content)
+        assertEquals("collecting_requirements", session?.get("status")?.jsonPrimitive?.content)
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("clientContext"))
+        assertEquals(false, body.containsKey("hotelSearchRequest"))
+        assertEquals(false, body.containsKey("searchIntentSummary"))
+    }
+
+    @Test
+    fun acceptAssistantMessageAcceptsOptionalClientContextAndKeepsNextActionRequired() = testApplication {
+        application {
+            module()
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["session"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content.orEmpty()
+
+        assertEquals(HttpStatusCode.Created, createdSession.status)
+
+        val response = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """
+                {
+                  "message": "For two adults",
+                  "clientContext": {
+                    "locale": "en-US",
+                    "timezone": "Europe/Rome"
+                  }
+                }
+                """.trimIndent(),
+            )
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+        val session = body["session"]?.jsonObject
+        val assistantMessage = body["assistantMessage"]?.jsonObject
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(sessionId, session?.get("sessionId")?.jsonPrimitive?.content)
+        assertEquals("collecting_requirements", session?.get("status")?.jsonPrimitive?.content)
+        assertEquals("assistant", assistantMessage?.get("role")?.jsonPrimitive?.content)
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("clientContext"))
+        assertEquals(false, body.containsKey("hotelSearchRequest"))
+        assertEquals(false, body.containsKey("searchIntentSummary"))
+    }
+
+    @Test
     fun unknownAssistantSessionReturnsStructuredNotFoundError() = testApplication {
         application {
             module()
@@ -216,6 +288,24 @@ class AssistantSessionRoutesTest {
         val response = client.post("/api/v1/assistant/sessions") {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             setBody("""{"message":"   "}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals("VALIDATION_ERROR", body["code"]?.jsonPrimitive?.content)
+        assertEquals("Request validation failed.", body["message"]?.jsonPrimitive?.content)
+        assertEquals("message", body["fields"]?.jsonArray?.get(0)?.jsonObject?.get("field")?.jsonPrimitive?.content)
+    }
+
+    @Test
+    fun missingInitialAssistantMessageReturnsValidationErrorWhenRequestBodyIsPresent() = testApplication {
+        application {
+            module()
+        }
+
+        val response = client.post("/api/v1/assistant/sessions") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{}""")
         }
         val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
 
