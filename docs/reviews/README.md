@@ -84,6 +84,7 @@
 | `stage-7-35-endpoint-candidate-review.md` | Завершенный review report / Stage 7.35 | Анализирует endpoint candidates для возможного будущего manifest expansion без изменения manifest, generated-client readiness, OpenAPI/API contracts, backend/frontend runtime, generated clients, CI gate или Stage 8 activation. |
 | `stage-7-36-assistant-endpoint-candidate-clarification.md` | Завершенный review report / Stage 7.36 | Уточняет contract/runtime/security/product условия для двух assistant endpoint candidates без изменения manifest, OpenAPI/API contracts, backend/frontend runtime, generated clients, CI gate или Stage 8 activation. |
 | `stage-7-37-assistant-endpoint-contract-runtime-alignment-notes.md` | Завершенный review/notes report / Stage 7.37 | Фиксирует alignment, gaps, unknowns и carryover для двух assistant endpoint candidates без изменения manifest, OpenAPI/API contracts, backend/frontend runtime, conformance tool, generated clients, CI gate или Stage 8 activation. |
+| `stage-7-38-assistant-endpoint-alignment-cleanup-decision.md` | Завершенный decision/review report / Stage 7.38 | Классифицирует Assistant endpoint gaps по documentation, OpenAPI/contract, backend/runtime tests, conformance/tooling и future-only buckets без implementation, contract, runtime, manifest, generated-client readiness или Stage 8 activation. |
 
 ## Inventory review artifacts
 
@@ -144,6 +145,7 @@
 | `stage-7-35-endpoint-candidate-review.md` | Завершенный review report | Stage 7.35 reviews endpoint candidates for future manifest expansion and keeps the manifest/readiness state unchanged. |
 | `stage-7-36-assistant-endpoint-candidate-clarification.md` | Завершенный review report | Stage 7.36 clarifies assistant endpoint candidate conditions and recommends contract/runtime alignment before any manifest update. |
 | `stage-7-37-assistant-endpoint-contract-runtime-alignment-notes.md` | Завершенный review/notes report | Stage 7.37 фиксирует contract/runtime alignment notes для двух assistant endpoint candidates и рекомендует отдельный cleanup decision перед любым manifest update. |
+| `stage-7-38-assistant-endpoint-alignment-cleanup-decision.md` | Завершенный decision/review report | Stage 7.38 классифицирует Assistant endpoint alignment gaps и рекомендует Stage 7.39 contract shape cleanup как отдельную задачу. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -209,8 +211,9 @@
 52. `docs/reviews/stage-7-35-endpoint-candidate-review.md`
 53. `docs/reviews/stage-7-36-assistant-endpoint-candidate-clarification.md`
 54. `docs/reviews/stage-7-37-assistant-endpoint-contract-runtime-alignment-notes.md`
-55. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
-56. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
+55. `docs/reviews/stage-7-38-assistant-endpoint-alignment-cleanup-decision.md`
+56. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
+57. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
 
 ## Historical / superseded документы
 
