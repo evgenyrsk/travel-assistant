@@ -77,6 +77,11 @@
 | `stage-7-23-generated-client-subset-manifest-schema-review.md` | Завершенный planning/review report / Stage 7.23 | Schema contract и future validation behavior для будущего `generated-client-ready-subset.yaml` без создания manifest, generated-client readiness, OpenAPI finalization, generated clients, tool changes, backend behavior changes или CI/Gradle integration. |
 | `stage-7-24-openapi-conformance-manifest-validation-design.md` | Завершенный planning/design report / Stage 7.24 | Design будущего manifest detection/schema validation для standalone OpenAPI conformance tool без создания manifest, generated-client readiness, OpenAPI finalization, generated clients, tool changes, backend behavior changes или CI/Gradle integration. |
 | `stage-7-25-openapi-conformance-manifest-detection-validation.md` | Завершенный implementation report / Stage 7.25 | Tool-local read-only manifest detection/validation для standalone OpenAPI conformance tool без создания manifest, generated-client readiness, OpenAPI finalization, generated clients, backend behavior changes или CI/Gradle integration. |
+| `stage-7-32-resume-stage-7-technical-context-review.md` | Завершенный review/planning report / Stage 7.32 | Восстанавливает technical context после documentation stabilization и рекомендует Stage 7.33 manifest candidate definition без generated-client readiness, generated clients, OpenAPI/API contract changes, CI gate или Stage 8 activation. |
+| `stage-7-33-ready-subset-manifest-candidate-definition.md` | Завершенный technical/documentation report / Stage 7.33 | Создает non-readiness `generated-client-ready-subset.yaml` candidate для skeleton validation без generated-client readiness, generated clients, OpenAPI/API contract changes, backend/frontend runtime changes, CI gate или Stage 8 activation. |
+| `stage-7-34-manifest-candidate-validation-hardening.md` | Завершенный technical report / Stage 7.34 | Усиливает tool-local manifest validation guardrails против premature readiness promotion signals без generated-client readiness, generated clients, OpenAPI/API contract changes, backend/frontend runtime changes, CI gate или Stage 8 activation. |
+| `stage-7-35-endpoint-candidate-review.md` | Завершенный review report / Stage 7.35 | Анализирует endpoint candidates для возможного будущего manifest expansion без изменения manifest, generated-client readiness, OpenAPI/API contracts, backend/frontend runtime, generated clients, CI gate или Stage 8 activation. |
+| `stage-7-36-assistant-endpoint-candidate-clarification.md` | Завершенный review report / Stage 7.36 | Уточняет contract/runtime/security/product условия для двух assistant endpoint candidates без изменения manifest, OpenAPI/API contracts, backend/frontend runtime, generated clients, CI gate или Stage 8 activation. |
 
 ## Inventory review artifacts
 
@@ -131,6 +136,11 @@
 | `stage-7-29-active-documentation-language-normalization.md` | Completed language normalization cleanup | Stage 7.29 Russian-first cleanup for active/navigation docs без roadmap refactor, product/architecture/code changes or historical artifact rewrite. |
 | `stage-7-30-documentation-final-quality-gate.md` | Completed final quality gate | Stage 7.30 review-only final gate; confirms documentation stabilization is ready for Stage 7.31 handoff without code/product/architecture/generated-client changes. |
 | `stage-7-31-resume-development-handoff.md` | Completed documentation handoff | Stage 7.31 handoff report; confirms documentation stabilization closure and records guardrails for resumed Stage 7 technical work. |
+| `stage-7-32-resume-stage-7-technical-context-review.md` | Завершенный review/planning report | Stage 7.32 restores Stage 7 technical context after documentation stabilization and recommends a bounded Stage 7.33 manifest candidate definition task. |
+| `stage-7-33-ready-subset-manifest-candidate-definition.md` | Завершенный technical/documentation report | Stage 7.33 creates the first non-readiness ready-subset manifest candidate and keeps readiness/generation/CI/runtime work out of scope. |
+| `stage-7-34-manifest-candidate-validation-hardening.md` | Завершенный technical report | Stage 7.34 hardens manifest candidate validation against premature readiness promotion signals while preserving not_ready/advisory semantics. |
+| `stage-7-35-endpoint-candidate-review.md` | Завершенный review report | Stage 7.35 reviews endpoint candidates for future manifest expansion and keeps the manifest/readiness state unchanged. |
+| `stage-7-36-assistant-endpoint-candidate-clarification.md` | Завершенный review report | Stage 7.36 clarifies assistant endpoint candidate conditions and recommends contract/runtime alignment before any manifest update. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -188,6 +198,11 @@
 46. `docs/reviews/stage-7-29-active-documentation-language-normalization.md`
 47. `docs/reviews/stage-7-30-documentation-final-quality-gate.md`
 48. `docs/reviews/stage-7-31-resume-development-handoff.md`
+49. `docs/reviews/stage-7-32-resume-stage-7-technical-context-review.md`
+50. `docs/reviews/stage-7-33-ready-subset-manifest-candidate-definition.md`
+51. `docs/reviews/stage-7-34-manifest-candidate-validation-hardening.md`
+52. `docs/reviews/stage-7-35-endpoint-candidate-review.md`
+53. `docs/reviews/stage-7-36-assistant-endpoint-candidate-clarification.md`
 
 ## Historical / superseded документы
 

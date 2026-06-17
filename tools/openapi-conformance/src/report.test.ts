@@ -5,7 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
 import { buildReport } from "./report.js";
-import type { OpenApiInventory, RuntimeRoute } from "./types.js";
+import type { ConformanceReport, OpenApiInventory, RuntimeRoute } from "./types.js";
 import { inspectSubsetManifest } from "./subset-manifest.js";
 import type { SubsetManifestState } from "./subset-manifest.js";
 
@@ -65,6 +65,7 @@ describe("buildReport", () => {
     assert.equal(report.manifestValidation.reason, "manifest_missing");
     assert.equal(report.status, "not_ready");
     assert.equal(report.readinessClaim, false);
+    assert.deepEqual(report.blockingFindings, []);
     assert.ok(
       report.advisoryFindings.some(
         (finding) => finding.code === "manifest_missing",
@@ -88,6 +89,8 @@ describe("buildReport", () => {
     assert.equal(report.manifestDetection.status, "present");
     assert.equal(report.manifestValidation.status, "advisory_passed");
     assert.equal(report.manifestValidation.schemaValidation.status, "passed");
+    assert.equal(report.manifestValidation.endpointReferenceValidation.status, "future_only");
+    assert.equal(report.subsetManifest.status, "present_not_evaluated");
     assert.equal(report.status, "not_ready");
     assert.equal(report.readinessClaim, false);
     assert.deepEqual(report.blockingFindings, []);
@@ -96,6 +99,61 @@ describe("buildReport", () => {
         (finding) => finding.code === "readiness_promotion_blocked",
       ),
     );
+  });
+
+  it("blocks top-level readiness promotion fields in manifest candidates", () => {
+    const report = reportForManifest(
+      validSkeletonManifest()
+        .replace('status: "not_ready"', 'status: "ready"')
+        .replace("readinessClaim: false", "readinessClaim: true"),
+    );
+
+    assertReadinessPromotionBlocked(report);
+  });
+
+  it("blocks validationStatus readiness promotion fields in manifest candidates", () => {
+    const report = reportForManifest(
+      validSkeletonManifest()
+        .replace("  readinessClaim: false", "  readinessClaim: true")
+        .replace('  status: "not_ready"', '  status: "ready"'),
+    );
+
+    assertReadinessPromotionBlocked(report);
+  });
+
+  it("blocks endpoint readiness promotion in manifest candidates", () => {
+    const report = reportForManifest(
+      validSkeletonManifest().replace(
+        '    readiness: "not_ready"',
+        '    readiness: "ready"',
+      ),
+    );
+
+    assertReadinessPromotionBlocked(report);
+  });
+
+  it("blocks readiness criteria promotion in manifest candidates", () => {
+    const report = reportForManifest(
+      validSkeletonManifest().replace(
+        "  generatedClientCompilePassed: false",
+        "  generatedClientCompilePassed: true",
+      ),
+    );
+
+    assertReadinessPromotionBlocked(report);
+  });
+
+  it("validates the repository manifest candidate without readiness promotion", () => {
+    const repositoryRoot = path.resolve(process.cwd(), "../..");
+    const subsetManifest = inspectSubsetManifest(repositoryRoot);
+    const report = buildReport(openApiInventory(), runtimeRoutes(), subsetManifest);
+
+    assert.equal(report.manifestDetection.exists, true);
+    assert.equal(report.manifestDetection.status, "present");
+    assert.equal(report.manifestValidation.status, "advisory_passed");
+    assert.equal(report.status, "not_ready");
+    assert.equal(report.readinessClaim, false);
+    assert.deepEqual(report.blockingFindings, []);
   });
 
   it("reports structured schema errors for an invalid skeleton manifest", () => {
@@ -262,10 +320,31 @@ function makeTempRepositoryRoot(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "openapi-conformance-manifest-"));
 }
 
+function reportForManifest(manifestText: string): ConformanceReport {
+  const repositoryRoot = makeTempRepositoryRoot();
+  const manifestPath = "tmp-generated-client-ready-subset.yaml";
+  fs.writeFileSync(path.join(repositoryRoot, manifestPath), manifestText, "utf8");
+  const subsetManifest = inspectSubsetManifest(repositoryRoot, manifestPath);
+  return buildReport(openApiInventory(), runtimeRoutes(), subsetManifest);
+}
+
+function assertReadinessPromotionBlocked(report: ConformanceReport): void {
+  assert.equal(report.manifestValidation.status, "failed");
+  assert.equal(report.status, "not_ready");
+  assert.equal(report.readinessClaim, false);
+  assert.ok(
+    report.blockingFindings.some(
+      (finding) => finding.code === "readiness_promotion_blocked",
+    ),
+  );
+}
+
 function validSkeletonManifest(): string {
   return [
     'manifestVersion: "stage-7-generated-client-ready-subset-v1"',
     'scopeName: "travel-assistant-stage-7-foundation-subset"',
+    'status: "not_ready"',
+    "readinessClaim: false",
     'openApiSource: "docs/architecture/stage-6/openapi-draft.yaml"',
     "validationStatus:",
     "  readinessClaim: false",
@@ -276,15 +355,60 @@ function validSkeletonManifest(): string {
     '  runtimeContractValidation: "not_run"',
     "  lastValidatedBy: null",
     "  lastValidatedAt: null",
-    "includedEndpoints: []",
-    "excludedEndpoints: []",
+    "includedEndpoints:",
+    '  - method: "GET"',
+    '    path: "/api/v1/health"',
+    '    operationId: "getHealth"',
+    '    classification: "foundation_candidate"',
+    '    readiness: "not_ready"',
+    '    inclusionReason: "candidate_for_future_low_risk_foundation_subset_validation"',
+    "    requiredChecks:",
+    '      - "openapi_source_identified"',
+    '      - "runtime_route_present"',
+    '      - "response_schema_validated"',
+    '      - "generated_client_compile_passed"',
+    '      - "runtime_contract_checks_passed"',
+    "    unresolvedBlockers:",
+    '      - "response_schema_not_validated_by_runtime_contract_check"',
+    '      - "generated_client_compile_not_run"',
+    '      - "runtime_contract_checks_not_run"',
+    "excludedEndpoints:",
+    '  - method: "POST"',
+    '    path: "/api/v1/hotel-searches"',
+    '    operationId: "createHotelSearch"',
+    '    classification: "placeholder_excluded"',
+    '    readiness: "not_ready"',
+    '    exclusionReason: "placeholder_501_not_implemented_hotel_search"',
+    "    requiredBeforeInclusion:",
+    '      - "real_hotel_search_behavior"',
+    '      - "runtime_contract_checks"',
+    '      - "generated_client_compile_check"',
     "classificationPolicy:",
     '  placeholderEndpoints: "exclude_until_contract_aligned"',
     '  foundationCandidates: "candidate_only_not_ready"',
     '  runtimeOnlyRoutes: "must_be_classified_before_readiness"',
     '  unclassifiedEndpoints: "block_readiness"',
-    "readinessCriteria: {}",
-    "knownLimitations: []",
+    "readinessCriteria:",
+    "  openApiSourceValidated: false",
+    "  manifestSchemaValidated: false",
+    "  allIncludedEndpointsInOpenApi: false",
+    "  allIncludedEndpointsInRuntimeInventory: false",
+    "  noPlaceholderEndpointsIncluded: false",
+    "  allRuntimeOnlyRoutesClassified: false",
+    "  allUnclassifiedEndpointsResolved: false",
+    "  includedEndpointSuccessSchemasValidated: false",
+    "  includedEndpointErrorTaxonomyValidated: false",
+    "  generatedClientTargetDeclared: false",
+    "  generatedClientGenerationConfigured: false",
+    "  generatedClientCompilePassed: false",
+    "  runtimeContractChecksPassed: false",
+    "knownLimitations:",
+    '  - code: "runtime_contract_checks_not_run"',
+    '    severity: "blocking_before_readiness"',
+    '    description: "Runtime HTTP contract checks are future-only and have not run."',
+    "    blocksReadiness: true",
     "generatedClientTargets: []",
+    "notes:",
+    '  - "This manifest is a non-readiness candidate baseline, not a readiness certificate."',
   ].join("\n");
 }

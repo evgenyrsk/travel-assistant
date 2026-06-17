@@ -26,7 +26,7 @@ npm install
 - статически сканируются Ktor route files в `services/backend/src/main/kotlin/com/travelassistant/backend/api`;
 - проверяется наличие будущего subset manifest path `docs/architecture/stage-7/generated-client-ready-subset.yaml`;
 - выводится read-only `manifestDetection` section с ожидаемым `manifestPath`, признаком наличия manifest и detection status;
-- если manifest существует, выполняется skeleton-level `manifestValidation`: YAML parse и минимальная проверка Stage 7.23 schema contract;
+- если manifest существует, выполняется skeleton-level `manifestValidation`: YAML parse, минимальная проверка Stage 7 schema contract и guardrails против преждевременного readiness promotion;
 - если manifest отсутствует, `manifestValidation` остается `not_run`, а report сохраняет `status: "not_ready"` и `readinessClaim: false`;
 - placeholder endpoints остаются видимыми как excluded/foundation-only;
 - выводится `endpointClassificationSummary` с количеством `foundation_candidate`, `placeholder_excluded`, `runtime_only` и `unclassified` endpoints;
@@ -41,6 +41,7 @@ docs/architecture/stage-7/generated-client-ready-subset.yaml
 ```
 
 Инструмент не создает этот файл и не требует его наличия в текущем skeleton mode.
+Если файл существует, он читается как non-readiness manifest candidate, а не как readiness certificate.
 
 Если manifest отсутствует:
 
@@ -55,15 +56,27 @@ docs/architecture/stage-7/generated-client-ready-subset.yaml
 
 - файл читается read-only;
 - YAML парсится без перезаписи или форматирования;
-- проверяются обязательные top-level fields Stage 7.23 на skeleton depth;
+- проверяются обязательные top-level fields Stage 7 на skeleton depth;
+- `readinessClaim: true`, `status: "ready"`, endpoint-level `readiness: "ready"` и readiness-like true gates в `readinessCriteria` считаются blocking findings в текущем scope;
 - invalid YAML или schema issues попадают в structured findings;
 - endpoint reference validation остается `future_only`;
 - passing validation не является generated-client readiness.
+
+Текущий candidate manifest:
+
+- должен сохранять `status: "not_ready"` и `readinessClaim: false`;
+- может перечислять endpoints только как `readiness: "not_ready"` candidates;
+- candidate endpoint не считается ready endpoint и не является частью approval list;
+- не является approval list для generated clients;
+- не включает generated-client target;
+- не запускает generated-client generation, compile checks или runtime HTTP contract tests.
 
 Ограничители readiness:
 
 - tool не может вывести `readinessClaim: true`;
 - tool не может вывести `status: "ready"`;
+- manifest с `readinessClaim: true` или `status: "ready"` получает blocking validation finding;
+- manifest endpoint с `readiness: "ready"` получает blocking validation finding;
 - endpoint-level readiness остается `"not_ready"`;
 - generated-client generation/compile и runtime HTTP contract tests не запускаются.
 
