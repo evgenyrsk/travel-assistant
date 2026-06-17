@@ -18,6 +18,10 @@ export function buildReport(
   subsetManifest: SubsetManifestState,
 ): ConformanceReport {
   const endpoints = buildEndpointReports(openApiInventory.operations, runtimeRoutes);
+  const assistantCandidateChecks = buildAssistantCandidateChecks(
+    openApiInventory,
+    endpoints,
+  );
   const endpointClassificationSummary =
     buildEndpointClassificationSummary(endpoints);
   const manifestBlockingFindings = subsetManifest.manifestValidation.findings.filter(
@@ -41,6 +45,7 @@ export function buildReport(
         "Hotel search, offers, shortlist, and explanation placeholder endpoints remain excluded and are not generated-client-ready.",
     },
     ...buildEndpointClassificationFindings(endpointClassificationSummary),
+    ...assistantCandidateChecks.advisoryFindings,
     ...manifestAdvisoryFindings,
   ];
 
@@ -83,8 +88,12 @@ export function buildReport(
       runtimeRoutes,
       subsetManifest,
       endpointClassificationSummary,
+      assistantCandidateChecks.checks,
     ),
-    blockingFindings: manifestBlockingFindings,
+    blockingFindings: [
+      ...manifestBlockingFindings,
+      ...assistantCandidateChecks.blockingFindings,
+    ],
     advisoryFindings,
     futureOnlyChecks,
   };
@@ -95,6 +104,7 @@ function buildChecks(
   runtimeRoutes: RuntimeRoute[],
   subsetManifest: SubsetManifestState,
   endpointClassificationSummary: EndpointClassificationSummary,
+  assistantChecks: CheckReport[],
 ): CheckReport[] {
   return [
     {
@@ -149,6 +159,7 @@ function buildChecks(
         `${endpointClassificationSummary.byClassification.runtime_only} runtime_only, ` +
         `${endpointClassificationSummary.byClassification.unclassified} unclassified.`,
     },
+    ...assistantChecks,
     {
       name: "readiness_status",
       status: "not_ready",
@@ -156,6 +167,124 @@ function buildChecks(
         "Report status is intentionally not_ready; generated-client/OpenAPI readiness is not claimed.",
     },
   ];
+}
+
+interface AssistantCandidateChecks {
+  checks: CheckReport[];
+  blockingFindings: Finding[];
+  advisoryFindings: Finding[];
+}
+
+function buildAssistantCandidateChecks(
+  openApiInventory: OpenApiInventory,
+  endpoints: EndpointReport[],
+): AssistantCandidateChecks {
+  const shape = openApiInventory.assistantContractShape;
+  if (!shape) {
+    return {
+      checks: [],
+      blockingFindings: [],
+      advisoryFindings: [],
+    };
+  }
+
+  const expectedEndpoints = [
+    "POST /api/v1/assistant/sessions",
+    "POST /api/v1/assistant/sessions/{sessionId}/messages",
+  ];
+  const endpointIssues = expectedEndpoints.filter((expected) => {
+    const [method, path] = expected.split(" ", 2);
+    const endpoint = endpoints.find(
+      (candidate) =>
+        candidate.method === method.toLowerCase() &&
+        candidate.path === path,
+    );
+
+    return (
+      endpoint === undefined ||
+      !endpoint.inOpenApi ||
+      !endpoint.inRuntime ||
+      endpoint.classification !== "foundation_candidate" ||
+      endpoint.readiness !== "not_ready"
+    );
+  });
+
+  const shapeExpectations: Array<[string, boolean]> = [
+    ["create-session requestBody optional", shape.createSessionRequestBodyOptional],
+    ["message requestBody required", shape.continueSessionRequestBodyRequired],
+    ["AssistantMessageRequest.message required", shape.messageRequired],
+    ["AssistantMessageRequest.clientContext optional", shape.clientContextOptional],
+    ["AssistantMessageResponse.nextAction required", shape.nextActionRequired],
+    ["message endpoint 404 response present", shape.sessionNotFoundResponsePresent],
+  ];
+  const shapeIssues = shapeExpectations
+    .filter(([, satisfied]) => !satisfied)
+    .map(([expectation]) => expectation);
+
+  const blockingFindings: Finding[] = [];
+  if (endpointIssues.length > 0) {
+    blockingFindings.push({
+      code: "ASSISTANT_ENDPOINT_CANDIDATE_INVENTORY_MISMATCH",
+      severity: "blocking",
+      message:
+        `Assistant endpoint candidate inventory mismatch: ${endpointIssues.join(", ")}. ` +
+        "Generated-client readiness remains not_ready.",
+    });
+  }
+  if (shapeIssues.length > 0) {
+    blockingFindings.push({
+      code: "ASSISTANT_ENDPOINT_CONTRACT_SHAPE_MISMATCH",
+      severity: "blocking",
+      message:
+        `Assistant endpoint contract shape mismatch: ${shapeIssues.join(", ")}. ` +
+        "This static check does not validate runtime behavior.",
+    });
+  }
+
+  const validationSummary = shape.validationErrorResponsesPresent
+    ? "Both Assistant operations expose a 400 validation-error response."
+    : "One or more Assistant operations do not expose a 400 validation-error response.";
+  const maxLengthSummary =
+    shape.messageMaxLength === undefined
+      ? "message.maxLength is not declared."
+      : `message.maxLength is declared as ${shape.messageMaxLength}.`;
+
+  return {
+    checks: [
+      {
+        name: "assistant_endpoint_candidate_inventory",
+        status: endpointIssues.length === 0 ? "passed" : "failed",
+        summary:
+          endpointIssues.length === 0
+            ? "Assistant foundation candidates are present in OpenAPI and static runtime inventories with not_ready readiness."
+            : `Assistant endpoint candidate inventory issues: ${endpointIssues.join(", ")}.`,
+      },
+      {
+        name: "assistant_endpoint_contract_shape",
+        status: shapeIssues.length === 0 ? "passed" : "failed",
+        summary:
+          shapeIssues.length === 0
+            ? "Assistant request/response contract shape matches the bounded Stage 7.39 candidate expectations."
+            : `Assistant contract shape issues: ${shapeIssues.join(", ")}.`,
+      },
+      {
+        name: "assistant_endpoint_runtime_semantics",
+        status: "advisory",
+        summary:
+          `${validationSummary} ${maxLengthSummary} ` +
+          "clientContext behavior, empty-object validation, malformed/unknown JSON, and maxLength enforcement are not checked by this static tool.",
+      },
+    ],
+    blockingFindings,
+    advisoryFindings: [
+      {
+        code: "ASSISTANT_RUNTIME_SEMANTICS_NOT_CHECKED",
+        severity: "advisory",
+        message:
+          "Assistant runtime semantics remain covered by backend tests or future-only decisions; this tool performs no HTTP calls and makes no runtime or readiness claim.",
+      },
+    ],
+  };
 }
 
 function buildEndpointClassificationSummary(

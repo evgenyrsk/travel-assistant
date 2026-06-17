@@ -28,6 +28,18 @@ export interface OpenApiInventory {
   openApiVersion?: string;
   serverBasePath: string;
   operations: OpenApiOperation[];
+  assistantContractShape?: AssistantContractShape;
+}
+
+export interface AssistantContractShape {
+  createSessionRequestBodyOptional: boolean;
+  continueSessionRequestBodyRequired: boolean;
+  messageRequired: boolean;
+  clientContextOptional: boolean;
+  nextActionRequired: boolean;
+  sessionNotFoundResponsePresent: boolean;
+  validationErrorResponsesPresent: boolean;
+  messageMaxLength?: number;
 }
 
 export interface RuntimeRoute {
