@@ -68,13 +68,7 @@ Stage 5/6/7 documents сохраняются как architecture audit trail, co
 - `../../services/backend/README.md` — Stage 7.0b Kotlin + Ktor backend skeleton run notes and health endpoint.
 - `../reviews/stage-7-restart-readiness-review.md` — Stage 7 restart readiness review; verdict: passed with minor notes.
 - `../reviews/README.md` — индекс review/audit artifacts и правила чтения historical/current cleanup reports.
-- `../reviews/documentation-redundancy-structure-audit.md` — Stage 7.0e documentation redundancy and structure audit.
-- `../reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a status/navigation sync cleanup.
-- `../reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b reviews index / historical labeling cleanup.
-- `../reviews/stage-7-prompt-governance-deduplication-cleanup.md` — Stage 7.0f-c prompt/governance deduplication cleanup.
-- `../reviews/stage-7-development-docs-merge-shortening-cleanup.md` — Stage 7.0f-d development docs merge/shortening cleanup.
-- `../reviews/stage-7-product-architecture-index-role-labels-cleanup.md` — Stage 7.0f-e product/architecture index role labels cleanup.
-- `../reviews/stage-7-roadmap-readability-cleanup.md` — Stage 7.0f-f roadmap readability cleanup.
+- `../reviews/documentation-redundancy-structure-audit.md` и `../reviews/README.md` — входы в documentation cleanup context без дублирования cleanup-chain статусов в этом index.
 
 ## Stage 7 artifacts
 

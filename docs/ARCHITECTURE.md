@@ -1,5 +1,7 @@
 # Предварительные архитектурные ориентиры
 
+**Роль:** preliminary/root architecture note. Текущий architecture baseline и backend stack authority находятся в `docs/architecture/architecture-baseline.md`; этот документ остается вторичным контекстом и не является current architecture source of truth.
+
 Этот документ фиксирует рабочие архитектурные гипотезы и защитные границы до отдельного Stage 5 Technical Architecture.
 
 Он не является финальной архитектурой, ADR, API-контрактом, database schema, provider adapter design или разрешением начинать техническую реализацию. Практический порядок реализации описан отдельно в `docs/development/implementation-strategy.md`, а актуальный этап и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.

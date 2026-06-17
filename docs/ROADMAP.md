@@ -4,25 +4,13 @@
 
 Primary roadmap и source of truth по статусам этапов, progression, carryover, границам этапов и следующему разрешенному шагу находится в `docs/roadmap/roadmap.md`.
 
-`docs/ROADMAP.md` не конкурирует с primary roadmap, не является task tracker или implementation backlog. Справочные development guidance находятся в `docs/development/roadmap.md`, `docs/development/milestones.md` и `docs/development/implementation-strategy.md`; эти документы являются future/reference material и следуют primary roadmap.
+`docs/ROADMAP.md` не конкурирует с primary roadmap, не является task tracker или implementation backlog. Справочные development guidance находятся в `docs/development/roadmap.md` и `docs/development/implementation-strategy.md`; эти документы являются future/reference material и следуют primary roadmap.
 
-## Текущий статус
+## Как читать roadmap
 
-| Этап | Статус |
-|---|---|
-| Stage 0 | Завершен |
-| Stage 1 | Завершен |
-| Stage 2 | Завершен |
-| Stage 3 | Завершен |
-| Stage 4 | Завершен |
-| Stage 4.1 | Завершен |
-| Stage 5 | Завершен |
-| Stage 6 | Завершен; Stage 6.1-6.9 завершены |
-| Stage 7 | В работе / ожидает отдельную явную задачу. Подробный checklist и текущий next step находятся в `docs/roadmap/roadmap.md`. |
-| Stage 8-10 | Запланированы |
-| Code/API/DB/UI implementation | Минимальная Kotlin + Ktor backend-основа существует; DB/UI/provider integration не начаты. Подробности и ограничения находятся в primary roadmap. |
+Этот файл отвечает только за порядок и назначение этапов. Он не ведет матрицу состояния проекта, не фиксирует последний выполненный шаг и не определяет разрешенный следующий шаг.
 
-Этот обзор не является подробным журналом статусов. Подробные статусы Stage 7, documentation stabilization checklist, ограничения generated-client/OpenAPI readiness, generated clients, full conformance gate и следующий разрешенный шаг зафиксированы только в `docs/roadmap/roadmap.md`.
+За актуальным состоянием проекта, подробными checklist, carryover, ограничениями и разрешенным следующим шагом обращайся только к `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 

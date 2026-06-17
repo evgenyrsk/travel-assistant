@@ -28,6 +28,13 @@ Expected scope:
 Out of scope:
 ```
 
+## Document Context
+
+- Current roadmap stage:
+- Documents whose roles must be checked:
+- Source-of-truth documents affected, if any:
+- Historical or review artifacts that must not be rewritten:
+
 ## Checks
 
 Review for:
@@ -42,6 +49,9 @@ Review for:
 - missing or weak test coverage;
 - API/contract inconsistency;
 - documentation inconsistency;
+- ordinary English prose in Russian active documentation without technical need;
+- unclear document role or source-of-truth hierarchy;
+- checklist/table formatting issues in status-heavy docs;
 - source-of-truth duplication;
 - stale status wording in active docs;
 - broken links or navigation;

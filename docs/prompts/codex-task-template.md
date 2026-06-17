@@ -30,6 +30,13 @@ Why this is in scope:
 Expected outcome:
 ```
 
+## Roadmap Context
+
+- Current roadmap stage:
+- Why the task belongs to this stage:
+- Next/future stage that must not be started:
+- Future/reference documents that must not be treated as active backlog:
+
 ## Allowed Scope
 
 - Files or directories expected to change:
@@ -78,10 +85,9 @@ Return a concise report with:
 
 1. Created files
 2. Changed files
-3. Summary
-4. Tests/checks run
-5. Tests/checks not run and why
-6. Decisions made
-7. Open questions
-8. Scope control
-9. Recommendations not implemented
+3. Brief summary
+4. Checks
+5. Decisions made
+6. Open questions
+7. Scope control
+8. Recommendations not implemented

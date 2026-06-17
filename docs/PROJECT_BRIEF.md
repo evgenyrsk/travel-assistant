@@ -1,5 +1,7 @@
 # Краткое описание проекта
 
+**Роль:** краткий product context / brief. Актуальный MVP scope, product guardrails и текущие границы продукта фиксируются в `docs/product/product-baseline.md`, а статусы этапов — в `docs/roadmap/roadmap.md`.
+
 Подробная продуктовая рамка Этапа 0 находится в `docs/product/stage-0/`.
 
 ## Проблема

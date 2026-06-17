@@ -1,5 +1,7 @@
 # Development milestones reference
 
+**Роль:** deprecated compatibility reference. Уникальное milestone vocabulary перенесено в `roadmap.md`; этот файл сохранен только из-за ссылок в historical review artifacts и не должен использоваться для новых задач.
+
 Этот документ является compact reference по возможным будущим development milestones Travel Assistant.
 
 Он не является source of truth по roadmap status, active backlog, task tracker или разрешением начинать следующий Stage 7 шаг. Текущий статус, следующий шаг, stage gates и carryover фиксируются только в `docs/roadmap/roadmap.md`.
@@ -46,4 +48,4 @@ Milestones помогают обсуждать размер и направле�
 
 ## Future merge note
 
-`docs/development/milestones.md` можно будет объединить с `docs/development/roadmap.md` отдельной cleanup-задачей, если проекту больше не нужен отдельный milestone vocabulary. Файл сохранен как короткий reference document и не является active backlog.
+Milestone vocabulary объединен с `docs/development/roadmap.md` в рамках conservative documentation dedup cleanup. Для новых задач используй `docs/development/roadmap.md` и `docs/development/implementation-strategy.md`; этот файл остается compatibility artifact, а не active backlog.

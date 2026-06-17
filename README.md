@@ -42,7 +42,7 @@ README является входной картой проекта: он пом�
 - `docs/architecture/README.md` — индекс архитектурной документации и метки ролей; только навигация.
 - `docs/architecture/architecture-baseline.md` — источник истины по архитектуре, authority по backend stack и актуальное компактное архитектурное состояние после Stage 5.
 - `docs/roadmap/roadmap.md` — primary roadmap и source of truth по статусам этапов, progression, carryover и следующему разрешенному шагу.
-- `docs/ROADMAP.md` — краткий навигационный обзор этапов, не конкурирующий roadmap и не источник текущих статусов.
+- `docs/ROADMAP.md` — краткая карта этапов без текущих статусов, не конкурирующий roadmap и не source of truth.
 - `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, guardrails и безопасного рефакторинга документации.
 - `docs/reviews/README.md` — индекс review/audit artifacts и правила чтения исторических и текущих cleanup reports.
 - `docs/reviews/*.md` — audit trail, cleanup reports и historical reviews; читать через `docs/reviews/README.md`.
@@ -54,8 +54,7 @@ README является входной картой проекта: он пом�
 - `docs/development/documentation-guidelines.md` — documentation source-of-truth, navigation и language policy rules.
 - `docs/development/definition-of-done.md` — task completion criteria.
 - `docs/development/quality-gates.md` — supported validation gates и reporting expectations.
-- `docs/development/roadmap.md` — компактный development reference; future/reference material, не источник roadmap-статусов и не active backlog.
-- `docs/development/milestones.md` — компактный словарь milestones; future/reference material, не источник статусов и не active backlog.
+- `docs/development/roadmap.md` — компактный development reference и milestone vocabulary; future/reference material, не источник roadmap-статусов и не active backlog.
 - `docs/development/implementation-strategy.md` — будущая стратегия реализации и правила декомпозиции задач; не primary roadmap и не active implementation backlog.
 - `services/backend/README.md` — инструкция запуска Stage 7 Kotlin + Ktor backend foundation и текущих локальных endpoints.
 - `docs/prompts/README.md` — индекс Codex prompt templates.
@@ -66,17 +65,15 @@ README является входной картой проекта: он пом�
 
 ## Начало работы
 
-Актуальный статус, завершенные артефакты, открытые решения и следующий шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
-
-Текущий верхнеуровневый статус: Stage 0-6 завершены, Stage 7 находится в статусе `In progress / awaiting explicit next task`, Stage 8-10 остаются `Planned`. Подробный Stage 7 checklist, статус generated-client/OpenAPI readiness, ограничения и следующий разрешенный шаг находятся в `docs/roadmap/roadmap.md`.
+Актуальный статус, завершенные артефакты, открытые решения, generated-client/OpenAPI readiness и следующий разрешенный шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
 
 ## Рабочий процесс Codex
 
 - Обязательные правила репозитория для Codex-агентов находятся в `AGENTS.md`.
 - Active engineering rules находятся в `docs/development/README.md`.
 - Backend layering rules находятся в `docs/architecture/backend-layering-rules.md`.
-- Переиспользуемый шаблон постановки задач находится в `docs/prompts/codex-task-template.md`; legacy compact template сохранен в `docs/prompts/task-template.md`.
-- Шаблон read-only review находится в `docs/prompts/codex-review-template.md`; legacy review template сохранен в `docs/prompts/review-template.md`.
+- Переиспользуемый шаблон постановки задач находится в `docs/prompts/codex-task-template.md`; legacy compact template сохранен только как compatibility redirect.
+- Шаблон read-only review находится в `docs/prompts/codex-review-template.md`; legacy review template сохранен только как compatibility redirect.
 - Canonical entry-point правила roadmap, scope, ADR, validation, language policy и отчетности находятся в `AGENTS.md`; подробные implementation rules живут в `docs/development/**`.
 - GitHub PR checklist находится в `.github/pull_request_template.md`.
 - Primary roadmap со статусами этапов находится в `docs/roadmap/roadmap.md`.
