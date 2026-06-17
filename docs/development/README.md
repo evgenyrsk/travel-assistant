@@ -18,8 +18,7 @@
 
 ## Reference-Only Development Context
 
-- [Development roadmap reference](roadmap.md) - future/reference vocabulary, не active backlog.
-- [Development milestones reference](milestones.md) - future milestone vocabulary, не active backlog.
+- [Development roadmap reference](roadmap.md) - future/reference vocabulary and milestone vocabulary, не active backlog.
 - [Implementation strategy reference](implementation-strategy.md) - future implementation approach, не активация задачи.
 
 Если active engineering rule конфликтует с `AGENTS.md`, primary roadmap, accepted ADR или architecture/product baselines, следуй источнику с более высоким приоритетом и сообщи о конфликте.

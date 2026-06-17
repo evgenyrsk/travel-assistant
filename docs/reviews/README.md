@@ -41,6 +41,7 @@
 | `stage-7-29-active-documentation-language-normalization.md` | Completed language normalization cleanup / Stage 7.29 | Нормализует ordinary English prose в active/navigation docs по Russian-first policy без изменения sequencing, product scope, architecture decisions или historical artifacts. |
 | `stage-7-30-documentation-final-quality-gate.md` | Completed final quality gate / Stage 7.30 | Финально проверяет documentation stabilization track после Stage 7.26-7.29; verdict: pass with minor notes, next recommended step: Stage 7.31 handoff. |
 | `stage-7-31-resume-development-handoff.md` | Completed documentation handoff / Stage 7.31 | Закрывает documentation stabilization handoff и фиксирует guardrails для возвращения к bounded Stage 7 technical work без generated-client readiness claim. |
+| `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Убирает mutable status matrix из `docs/ROADMAP.md` и закрепляет `docs/roadmap/roadmap.md` как единственный roadmap/status source of truth. |
 
 ## Stage 7 implementation reports
 
@@ -141,6 +142,8 @@
 | `stage-7-34-manifest-candidate-validation-hardening.md` | Завершенный technical report | Stage 7.34 hardens manifest candidate validation against premature readiness promotion signals while preserving not_ready/advisory semantics. |
 | `stage-7-35-endpoint-candidate-review.md` | Завершенный review report | Stage 7.35 reviews endpoint candidates for future manifest expansion and keeps the manifest/readiness state unchanged. |
 | `stage-7-36-assistant-endpoint-candidate-clarification.md` | Завершенный review report | Stage 7.36 clarifies assistant endpoint candidate conditions and recommends contract/runtime alignment before any manifest update. |
+| `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
+| `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
 | `roadmap-structure-and-process-fitness-review.md` | Historical audit trail | Pre-Stage 6 roadmap/process review. Some recommendations were later addressed or superseded. |
 | `global-documentation-quality-review.md` | Historical audit trail / partly superseded | Broad pre-Stage 6 quality review. Findings remain useful context, but status and baseline layer are partly superseded by later work. |
@@ -203,6 +206,8 @@
 51. `docs/reviews/stage-7-34-manifest-candidate-validation-hardening.md`
 52. `docs/reviews/stage-7-35-endpoint-candidate-review.md`
 53. `docs/reviews/stage-7-36-assistant-endpoint-candidate-clarification.md`
+54. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
+55. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
 
 ## Historical / superseded документы
 

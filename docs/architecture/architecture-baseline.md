@@ -4,7 +4,7 @@
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальный architecture baseline Travel Assistant после завершения Stage 5, Stage 7.0a backend stack decision sync, Stage 7.0b backend skeleton correction, Stage 7 restart readiness review и Stage 7.0f-a - Stage 7.0f-e documentation stabilization cleanup.
+Этот документ фиксирует актуальный architecture baseline Travel Assistant после завершения Stage 5 и последующей backend stack correction / documentation synchronization. Текущий статус этапов, последний завершенный Stage 7 шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
 
 Он нужен как компактная точка входа в текущее архитектурное состояние: какие границы подтверждены, где находится conceptual architecture baseline и какие Stage 5 artifacts являются исходными источниками.
 
@@ -16,22 +16,21 @@
 
 - Stage 5 - Completed.
 - Stage 6 - Completed as contract/documentation phase.
-- Stage 7 - In progress / awaiting explicit next task after corrective stabilization.
+- Stage 7 - In progress / awaiting explicit next task; detailed status находится в `docs/roadmap/roadmap.md`.
 - Architecture baseline сформирован на conceptual level и дополнен backend stack decision на уровне документации/governance.
 - Minimal Kotlin + Ktor backend skeleton существует в `services/backend/`.
 - Business logic, provider integration, DB/storage, frontend, generated clients и production implementation еще не создавались.
 - API/OpenAPI contract draft создан в Stage 6 как documentation-level frontend/backend boundary; provider adapters еще не создавались.
 - Auth/security/DevOps/testing backlog еще не создавался.
-- Stage 7 restart readiness review прошел с minor notes, а Stage 7.0f-a - Stage 7.0f-e выполнили scoped documentation stabilization.
-- Broader documentation cleanup остается pending.
+- Documentation cleanup и technical Stage 7 work продолжаются только через отдельные roadmap-aligned задачи.
 
-Следующая implementation задача может начаться только через отдельную явную roadmap-aligned задачу. Stage 7.2 не активирован этим architecture baseline или Stage 7.0f cleanup tasks.
+Следующая implementation задача может начаться только через отдельную явную roadmap-aligned задачу. Этот architecture baseline не активирует future implementation work.
 
 ## 3. Backend stack baseline
 
 Подтвержденный backend stack Travel Assistant: Kotlin + Ktor.
 
-Java/Spring Boot не является принятым backend stack для Travel Assistant. Stage 7.0b заменил Java/Spring Boot skeleton в `services/backend/` на минимальный Kotlin + Ktor skeleton. Этот документ не начинает Stage 7.2.
+Java/Spring Boot не является принятым backend stack для Travel Assistant. Stage 7.0b заменил Java/Spring Boot skeleton в `services/backend/` на минимальный Kotlin + Ktor skeleton. Этот документ не начинает future implementation work.
 
 Перед любой backend implementation задачей Codex должен сверить backend stack с этим architecture baseline. Если файлы реализации конфликтуют с подтвержденным stack, Codex должен остановиться и сообщить об архитектурном расхождении, а не продолжать реализацию поверх конфликтующего skeleton.
 

@@ -15,17 +15,15 @@
 3. `docs/product/product-baseline.md` — product/MVP scope.
 4. `docs/architecture/architecture-baseline.md` — architecture baseline и backend stack.
 5. Active engineering rules in `docs/development/` — implementation, testing, documentation and quality rules for explicit tasks.
-6. `docs/development/roadmap.md`, `docs/development/milestones.md` and `docs/development/implementation-strategy.md` — future/reference material, not active backlog.
+6. `docs/development/roadmap.md` and `docs/development/implementation-strategy.md` — future/reference material, not active backlog.
 
 Если этот документ конфликтует с primary roadmap или baseline-документами, приоритет имеют primary roadmap и baseline-документы.
 
-## Текущий статус
+## Статус и активация
 
-На момент Stage 7.0f-f:
+Этот reference не фиксирует текущий статус проекта. Для текущего Stage 7 состояния, последнего завершенного шага и следующего разрешенного шага всегда используй `docs/roadmap/roadmap.md`.
 
-- Stage 7 corrective stabilization and documentation cleanup завершены до Stage 7.0f-f включительно.
-- Следующий Stage 7 implementation step не активирован этим документом.
-- Business logic, provider integration, DB/storage, frontend, generated clients и production implementation не начинаются без отдельной явной roadmap-aligned задачи.
+Business logic, provider integration, DB/storage, frontend, generated clients и production implementation не начинаются без отдельной явной roadmap-aligned задачи.
 
 ## Development areas, reference only
 
@@ -40,6 +38,21 @@
 | Web frontend | Next.js + React + Tailwind + shadcn/ui остаются рабочей гипотезой, но frontend work не активирован этим документом. |
 | Testing / quality | Тесты добавляются вместе с явно активированными behavior/code changes. |
 | Security / observability / local development | Использовать как future readiness areas, не как текущий backlog. |
+
+## Milestone vocabulary, reference only
+
+Эти milestone areas помогают обсуждать размер и направленность будущих implementation tasks после явной roadmap activation. Они не задают порядок выполнения и не являются active backlog.
+
+| Milestone area | Reference value |
+|---|---|
+| Project/process foundation | Навигация, правила задач, базовая документация и repo workflow. |
+| Product/architecture foundation | Требования, MVP boundaries, architecture boundaries и domain/API preparation на уровне документации. |
+| Backend foundation | Минимальный Kotlin + Ktor foundation после явной activation; текущий backend state сверять с primary roadmap. |
+| AI orchestration foundation | `LlmClient`, intent/slot/clarification flow и testable orchestration после отдельной задачи. |
+| Hotel search foundation | Hotel-only provider abstraction, mock/fake providers and ranking-ready hotel data. |
+| Web MVP | Chat UI, hotel results UI и frontend/backend integration после явной activation. |
+| End-to-end MVP | Hotel-only flow from request to ranked/explained hotel offers. |
+| Quality/readiness | Testing, security, observability, local development and production readiness references. |
 
 ## Как формулировать будущие development tasks
 
@@ -57,7 +70,7 @@
 
 - текущий roadmap status;
 - порядок этапов;
-- Stage 7.2 start;
+- next Stage 7 step activation;
 - active implementation backlog;
 - API/OpenAPI contracts;
 - DB schema/storage model;

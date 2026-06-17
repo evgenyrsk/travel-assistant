@@ -47,8 +47,8 @@ Roadmap не является task tracker, продуктовой специф�
 ## 2. Правила управления roadmap
 
 - `docs/roadmap/roadmap.md` является source of truth по статусам этапов, progression, границам этапов, carryover и следующему разрешенному шагу.
-- `docs/ROADMAP.md` является верхнеуровневым navigation overview, а не конкурирующим источником текущего статуса.
-- Документы правил в `docs/development/` являются активными engineering rules для явно ограниченных задач. `docs/development/roadmap.md`, `docs/development/milestones.md` и `docs/development/implementation-strategy.md` остаются future/reference material, а не active implementation backlog. Все development docs должны следовать этому roadmap.
+- `docs/ROADMAP.md` является верхнеуровневым navigation overview, а не конкурирующим источником текущего статуса. Он должен содержать только stage-purpose map и не должен включать матрицу текущего состояния, last completed step, next planned step или implementation readiness.
+- Документы правил в `docs/development/` являются активными engineering rules для явно ограниченных задач. `docs/development/roadmap.md` и `docs/development/implementation-strategy.md` остаются future/reference material, а не active implementation backlog. Все development docs должны следовать этому roadmap.
 - Planned и future stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи.
 - Recommendations, carryover и future candidates не должны автоматически выполняться во время review или cleanup задач.
 - Implementation, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog и production code требуют отдельного явного roadmap step.
@@ -396,8 +396,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 - `docs/ROADMAP.md` — верхнеуровневый обзор roadmap.
 - `docs/product/README.md` — индекс продуктовой документации.
 - `docs/architecture/README.md` — индекс архитектурной документации.
-- `docs/development/roadmap.md` — компактный development reference; только future/reference material.
-- `docs/development/milestones.md` — компактный словарь milestones; только future/reference material.
+- `docs/development/roadmap.md` — компактный development reference и milestone vocabulary; только future/reference material.
 - `docs/development/implementation-strategy.md` — implementation strategy; future/reference material до активации.
 - `docs/reviews/README.md` — индекс review/audit artifacts и правила чтения historical/current cleanup reports.
 - `docs/reviews/stage-7-33-ready-subset-manifest-candidate-definition.md` — latest ready subset manifest candidate definition report.
