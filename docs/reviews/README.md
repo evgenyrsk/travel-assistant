@@ -87,6 +87,7 @@
 | `stage-7-38-assistant-endpoint-alignment-cleanup-decision.md` | Завершенный decision/review report / Stage 7.38 | Классифицирует Assistant endpoint gaps по documentation, OpenAPI/contract, backend/runtime tests, conformance/tooling и future-only buckets без implementation, contract, runtime, manifest, generated-client readiness или Stage 8 activation. |
 | `stage-7-39-assistant-endpoint-contract-shape-cleanup.md` | Завершенный contract/documentation cleanup report / Stage 7.39 | Уточняет Assistant endpoint contract shape в OpenAPI/contract notes без backend runtime behavior changes, backend tests, conformance tool changes, manifest expansion, generated clients, readiness claim или Stage 8 activation. |
 | `stage-7-40-assistant-endpoint-runtime-contract-test-cleanup.md` | Завершенный backend test cleanup report / Stage 7.40 | Уточняет runtime contract tests для Assistant endpoints без production backend behavior changes, OpenAPI contract changes, conformance tool changes, manifest expansion, generated clients, readiness claim или Stage 8 activation. |
+| `stage-7-41-assistant-endpoint-conformance-tooling-follow-up-decision.md` | Завершенный decision/review report / Stage 7.41 | Классифицирует будущие Assistant endpoint conformance/tooling checks после Stage 7.39-7.40 без conformance tool implementation, production backend changes, OpenAPI changes, manifest expansion, generated clients, readiness claim или Stage 8 activation. |
 
 ## Inventory review artifacts
 
@@ -150,6 +151,7 @@
 | `stage-7-38-assistant-endpoint-alignment-cleanup-decision.md` | Завершенный decision/review report | Stage 7.38 классифицирует Assistant endpoint alignment gaps и рекомендует Stage 7.39 contract shape cleanup как отдельную задачу. |
 | `stage-7-39-assistant-endpoint-contract-shape-cleanup.md` | Завершенный contract/documentation cleanup report | Stage 7.39 уточняет Assistant endpoint contract shape и оставляет runtime tests, conformance/tooling, manifest expansion и readiness claim для отдельных future stages. |
 | `stage-7-40-assistant-endpoint-runtime-contract-test-cleanup.md` | Завершенный backend test cleanup report | Stage 7.40 уточняет Assistant endpoint runtime contract tests и оставляет conformance/tooling, manifest expansion и readiness claim для отдельных future stages. |
+| `stage-7-41-assistant-endpoint-conformance-tooling-follow-up-decision.md` | Завершенный decision/review report | Stage 7.41 классифицирует будущие Assistant endpoint conformance/tooling checks и рекомендует Stage 7.42 candidate implementation без readiness claim. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -218,8 +220,9 @@
 55. `docs/reviews/stage-7-38-assistant-endpoint-alignment-cleanup-decision.md`
 56. `docs/reviews/stage-7-39-assistant-endpoint-contract-shape-cleanup.md`
 57. `docs/reviews/stage-7-40-assistant-endpoint-runtime-contract-test-cleanup.md`
-58. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
-59. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
+58. `docs/reviews/stage-7-41-assistant-endpoint-conformance-tooling-follow-up-decision.md`
+59. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
+60. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
 
 ## Historical / superseded документы
 
