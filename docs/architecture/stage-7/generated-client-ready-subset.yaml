@@ -1,0 +1,137 @@
+manifestVersion: "stage-7-generated-client-ready-subset-v1"
+scopeName: "travel-assistant-stage-7-foundation-subset"
+status: "not_ready"
+readinessClaim: false
+openApiSource: "docs/architecture/stage-6/openapi-draft.yaml"
+validationStatus:
+  readinessClaim: false
+  status: "not_ready"
+  schemaValidation: "not_run"
+  endpointReferenceValidation: "not_run"
+  generatedClientCompile: "not_run"
+  runtimeContractValidation: "not_run"
+  lastValidatedBy: null
+  lastValidatedAt: null
+includedEndpoints:
+  - method: "GET"
+    path: "/api/v1/health"
+    operationId: "getHealth"
+    classification: "foundation_candidate"
+    readiness: "not_ready"
+    inclusionReason: "candidate_for_future_low_risk_foundation_subset_validation"
+    requiredChecks:
+      - "openapi_source_identified"
+      - "runtime_route_present"
+      - "response_schema_validated"
+      - "generated_client_target_declared"
+      - "generated_client_compile_passed"
+      - "runtime_contract_checks_passed"
+    unresolvedBlockers:
+      - "response_schema_not_validated_by_runtime_contract_check"
+      - "generated_client_target_not_declared"
+      - "generated_client_generation_not_configured"
+      - "generated_client_compile_not_run"
+      - "runtime_contract_checks_not_run"
+excludedEndpoints:
+  - method: "POST"
+    path: "/api/v1/hotel-searches"
+    operationId: "createHotelSearch"
+    classification: "placeholder_excluded"
+    readiness: "not_ready"
+    exclusionReason: "placeholder_501_not_implemented_hotel_search"
+    requiredBeforeInclusion:
+      - "real_hotel_search_behavior"
+      - "runtime_contract_checks"
+      - "generated_client_compile_check"
+  - method: "GET"
+    path: "/api/v1/hotel-searches/{searchId}/offers"
+    operationId: "getHotelOffers"
+    classification: "placeholder_excluded"
+    readiness: "not_ready"
+    exclusionReason: "placeholder_501_not_implemented_hotel_offers"
+    requiredBeforeInclusion:
+      - "real_hotel_offers_behavior"
+      - "runtime_contract_checks"
+      - "generated_client_compile_check"
+  - method: "GET"
+    path: "/api/v1/assistant/sessions/{sessionId}/shortlist"
+    operationId: "getSessionShortlist"
+    classification: "placeholder_excluded"
+    readiness: "not_ready"
+    exclusionReason: "placeholder_501_not_implemented_shortlist_read"
+    requiredBeforeInclusion:
+      - "real_shortlist_behavior"
+      - "runtime_contract_checks"
+      - "generated_client_compile_check"
+  - method: "PUT"
+    path: "/api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}"
+    operationId: "upsertShortlistItem"
+    classification: "placeholder_excluded"
+    readiness: "not_ready"
+    exclusionReason: "placeholder_501_not_implemented_shortlist_upsert"
+    requiredBeforeInclusion:
+      - "real_shortlist_behavior"
+      - "runtime_contract_checks"
+      - "generated_client_compile_check"
+  - method: "DELETE"
+    path: "/api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}"
+    operationId: "removeShortlistItem"
+    classification: "placeholder_excluded"
+    readiness: "not_ready"
+    exclusionReason: "placeholder_501_not_implemented_shortlist_delete"
+    requiredBeforeInclusion:
+      - "real_shortlist_behavior"
+      - "runtime_contract_checks"
+      - "generated_client_compile_check"
+  - method: "POST"
+    path: "/api/v1/assistant/sessions/{sessionId}/explanations"
+    operationId: "createAssistantExplanation"
+    classification: "placeholder_excluded"
+    readiness: "not_ready"
+    exclusionReason: "placeholder_501_not_implemented_explanation"
+    requiredBeforeInclusion:
+      - "real_explanation_behavior"
+      - "runtime_contract_checks"
+      - "generated_client_compile_check"
+classificationPolicy:
+  placeholderEndpoints: "exclude_until_contract_aligned"
+  foundationCandidates: "candidate_only_not_ready"
+  runtimeOnlyRoutes: "must_be_classified_before_readiness"
+  unclassifiedEndpoints: "block_readiness"
+readinessCriteria:
+  openApiSourceValidated: false
+  manifestSchemaValidated: false
+  allIncludedEndpointsInOpenApi: false
+  allIncludedEndpointsInRuntimeInventory: false
+  noPlaceholderEndpointsIncluded: false
+  allRuntimeOnlyRoutesClassified: false
+  allUnclassifiedEndpointsResolved: false
+  includedEndpointSuccessSchemasValidated: false
+  includedEndpointErrorTaxonomyValidated: false
+  generatedClientTargetDeclared: false
+  generatedClientGenerationConfigured: false
+  generatedClientCompilePassed: false
+  runtimeContractChecksPassed: false
+knownLimitations:
+  - code: "static_runtime_route_inventory"
+    severity: "blocking_before_readiness"
+    description: "Static route inventory is advisory and does not prove runtime contract conformance."
+    blocksReadiness: true
+  - code: "endpoint_reference_validation_future_only"
+    severity: "blocking_before_readiness"
+    description: "Endpoint reference validation is not enforced by the Stage 7.25 skeleton validation."
+    blocksReadiness: true
+  - code: "generated_client_target_not_declared"
+    severity: "blocking_before_readiness"
+    description: "No generated-client target has been selected or configured."
+    blocksReadiness: true
+  - code: "runtime_contract_checks_not_run"
+    severity: "blocking_before_readiness"
+    description: "Runtime HTTP contract checks are future-only and have not run."
+    blocksReadiness: true
+generatedClientTargets: []
+notes:
+  - "This manifest is a non-readiness candidate baseline, not a readiness certificate."
+  - "Included endpoints are candidate-only and remain not_ready until separate validation stages complete."
+  - "Assistant foundation candidates beyond health remain outside this first manifest candidate until an explicit endpoint review."
+  - "Placeholder endpoints are excluded and must not be generated-client-ready from this manifest."

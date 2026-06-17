@@ -9,8 +9,8 @@ Roadmap не является task tracker, продуктовой специф�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 7 — реализация MVP / ожидает отдельную явную задачу |
-| Последний завершенный этап | Stage 7.31 — Resume Development Handoff |
-| Следующий планируемый шаг | Следующая bounded Stage 7 technical task, только через отдельную явную roadmap-aligned задачу после чтения current roadmap/status и Stage 7.25 report |
+| Последний завершенный этап | Stage 7.36 — Assistant Endpoint Candidate Clarification |
+| Следующий планируемый шаг | Stage 7.37 — Assistant Endpoint Contract/Runtime Alignment Notes, только через отдельную явную roadmap-aligned задачу |
 | Подробный roadmap/status source of truth | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -19,8 +19,13 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 7 implementation foundation | Минимальная Kotlin + Ktor backend-основа и ограниченные assistant/conformance-tool slices завершены до Stage 7.25 включительно |
 | Stage 7 documentation stabilization | Stage 7.26-7.30 завершены |
 | Stage 7 resume development handoff | Stage 7.31 завершен; следующий technical task должен быть выбран отдельной явной roadmap-aligned задачей |
+| Stage 7 technical context review | Stage 7.32 завершен; рекомендован Stage 7.33 manifest candidate definition без readiness claim |
+| Stage 7 manifest candidate definition | Stage 7.33 завершен; non-readiness manifest candidate создан |
+| Stage 7 manifest validation hardening | Stage 7.34 завершен; conformance tool блокирует преждевременные readiness promotion signals в manifest candidate |
+| Stage 7 endpoint candidate review | Stage 7.35 завершен; endpoint candidates проанализированы без изменения manifest и без readiness claim |
+| Stage 7 assistant endpoint candidate clarification | Stage 7.36 завершен; два assistant endpoint candidates уточнены без изменения manifest, OpenAPI/API contracts, runtime или readiness claim |
 | Generated-client/OpenAPI readiness | Не заявлена |
-| Generated-client-ready subset / generated clients | Не созданы |
+| Generated-client-ready subset / generated clients | Non-readiness manifest candidate создан; generated-client-ready subset/readiness и generated clients не созданы |
 | Full conformance gate | Не реализован |
 | Business logic / provider integration / DB-storage / frontend / production implementation | Не начаты |
 
@@ -34,7 +39,7 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
-| Stage 7 | В работе / ожидает отдельную явную задачу | Bounded Kotlin + Ktor backend foundation, assistant boundaries, conformance-tool work, documentation stabilization и resume-development handoff завершены до Stage 7.31 включительно. Подробности см. в Stage 7 checklist ниже. |
+| Stage 7 | В работе / ожидает отдельную явную задачу | Bounded Kotlin + Ktor backend foundation, assistant boundaries, conformance-tool work, documentation stabilization, resume-development handoff, technical context review, manifest candidate definition, manifest validation hardening, endpoint candidate review и assistant endpoint candidate clarification завершены до Stage 7.36 включительно. Подробности см. в Stage 7 checklist ниже. |
 | Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
@@ -294,6 +299,11 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Generated-client/OpenAPI conformance planning and tooling | Stage 7.25 | Conformance planning, subset policy, skeleton planning/tooling decision, standalone read-only conformance tool, reporting tests и manifest detection/validation завершены. |
 | Documentation stabilization track | Stage 7.30 | Documentation quality audit, governance rules cleanup, roadmap structure refactor, active documentation language normalization и final quality gate завершены. |
 | Resume development handoff | Stage 7.31 | Documentation stabilization closure and guardrails for resumed bounded Stage 7 technical work completed; no technical implementation started. |
+| Resume technical context review | Stage 7.32 | Technical context restored after documentation stabilization; next recommended bounded task is Stage 7.33 manifest candidate definition without readiness claim. |
+| Ready subset manifest candidate definition | Stage 7.33 | Non-readiness `generated-client-ready-subset.yaml` candidate created for skeleton validation; no generated-client readiness claim. |
+| Manifest candidate validation hardening | Stage 7.34 | Tool-local validation now blocks premature readiness promotion signals in the manifest candidate while keeping the report advisory/not_ready. |
+| Endpoint candidate review | Stage 7.35 | Current OpenAPI/backend endpoint candidates reviewed for future manifest expansion; manifest and readiness state unchanged. |
+| Assistant endpoint candidate clarification | Stage 7.36 | Two assistant endpoint candidates clarified for contract/runtime/security/product conditions; manifest and readiness state unchanged. |
 
 **Documentation stabilization track:**
 
@@ -307,12 +317,32 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 - [x] Stage 7.31 — Resume Development Handoff
 
+**Resume technical context review:**
+
+- [x] Stage 7.32 — Resume Stage 7 Technical Context Review
+
+**Manifest candidate definition:**
+
+- [x] Stage 7.33 — Ready Subset Manifest Candidate Definition
+
+**Manifest candidate validation hardening:**
+
+- [x] Stage 7.34 — Manifest Candidate Validation Hardening
+
+**Endpoint candidate review:**
+
+- [x] Stage 7.35 — Endpoint Candidate Review
+
+**Assistant endpoint candidate clarification:**
+
+- [x] Stage 7.36 — Assistant Endpoint Candidate Clarification
+
 **Текущие исключения Stage 7 и неначатые работы:**
 
 | Category | Status |
 |---|---|
 | Generated-client/OpenAPI readiness | Не заявлена |
-| Generated-client-ready subset | Не создан |
+| Generated-client-ready subset | Non-readiness candidate manifest создан; ready subset не заявлен |
 | Generated clients | Не созданы |
 | Full conformance gate | Не реализован |
 | Real hotel search business logic, ranking and recommendation behavior | Не начаты |
@@ -333,8 +363,13 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 7.16-7.25 generated-client/OpenAPI conformance reports | См. `docs/reviews/README.md` |
 | Stage 7.26-7.30 documentation stabilization reports | `stage-7-26-documentation-quality-calibration-audit.md`, `stage-7-27-documentation-governance-rules-cleanup.md`, `stage-7-28-roadmap-structure-refactor.md`, `stage-7-29-active-documentation-language-normalization.md`, `stage-7-30-documentation-final-quality-gate.md` |
 | Stage 7.31 resume development handoff | `stage-7-31-resume-development-handoff.md` |
+| Stage 7.32 resume technical context review | `stage-7-32-resume-stage-7-technical-context-review.md` |
+| Stage 7.33 ready subset manifest candidate | `docs/architecture/stage-7/generated-client-ready-subset.yaml`, `stage-7-33-ready-subset-manifest-candidate-definition.md` |
+| Stage 7.34 manifest candidate validation hardening | `stage-7-34-manifest-candidate-validation-hardening.md` |
+| Stage 7.35 endpoint candidate review | `stage-7-35-endpoint-candidate-review.md` |
+| Stage 7.36 assistant endpoint candidate clarification | `stage-7-36-assistant-endpoint-candidate-clarification.md` |
 
-**Следующий шаг:** следующая bounded Stage 7 technical task, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status и `docs/reviews/stage-7-25-openapi-conformance-manifest-detection-validation.md`. Stage 8+ остаются Planned и не активированы. Generated-client/OpenAPI readiness не заявлена.
+**Следующий шаг:** Stage 7.37 — Assistant Endpoint Contract/Runtime Alignment Notes, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status, `docs/reviews/stage-7-25-openapi-conformance-manifest-detection-validation.md`, `docs/reviews/stage-7-32-resume-stage-7-technical-context-review.md`, `docs/reviews/stage-7-33-ready-subset-manifest-candidate-definition.md`, `docs/reviews/stage-7-34-manifest-candidate-validation-hardening.md`, `docs/reviews/stage-7-35-endpoint-candidate-review.md`, `docs/reviews/stage-7-36-assistant-endpoint-candidate-clarification.md` и `docs/architecture/stage-7/generated-client-ready-subset.yaml`. Stage 8+ остаются Planned и не активированы. Generated-client/OpenAPI readiness не заявлена.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
@@ -365,4 +400,4 @@ Provider/API data является source of truth для travel facts. LLM мо
 - `docs/development/milestones.md` — компактный словарь milestones; только future/reference material.
 - `docs/development/implementation-strategy.md` — implementation strategy; future/reference material до активации.
 - `docs/reviews/README.md` — индекс review/audit artifacts и правила чтения historical/current cleanup reports.
-- `docs/reviews/stage-7-31-resume-development-handoff.md` — latest resume development handoff report.
+- `docs/reviews/stage-7-33-ready-subset-manifest-candidate-definition.md` — latest ready subset manifest candidate definition report.

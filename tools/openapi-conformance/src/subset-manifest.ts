@@ -111,7 +111,7 @@ function validateExistingManifest(absolutePath: string): ManifestValidationRepor
       name: "endpoint_reference_validation",
       status: "future_only",
       summary:
-        "Endpoint reference validation is future-only in Stage 7.25 skeleton validation.",
+        "Endpoint reference validation is future-only in current Stage 7 skeleton validation.",
     },
     findings: [
       ...findings,
@@ -119,7 +119,7 @@ function validateExistingManifest(absolutePath: string): ManifestValidationRepor
         code: "endpoint_reference_validation_future_only",
         severity: "advisory",
         message:
-          "Endpoint reference validation is not enforced by Stage 7.25 skeleton validation.",
+          "Endpoint reference validation is not enforced by current Stage 7 skeleton validation.",
       },
       {
         code: "readiness_promotion_blocked",
@@ -189,39 +189,171 @@ function validateManifestSchema(manifest: unknown): Finding[] {
   requireArrayField(manifest, "knownLimitations", findings);
   requireArrayField(manifest, "generatedClientTargets", findings);
 
+  validateTopLevelReadinessState(manifest, findings);
+
   const validationStatus = manifest.validationStatus;
   if (isRecord(validationStatus)) {
-    const readinessClaim = validationStatus.readinessClaim;
-    const status = validationStatus.status;
+    validateValidationStatus(validationStatus, findings);
+  }
 
-    if (readinessClaim === true) {
-      findings.push({
-        code: "readiness_promotion_blocked",
-        severity: "blocking",
-        message:
-          "Manifest validationStatus.readinessClaim must remain false for Stage 7.25.",
-      });
-    }
+  validateEndpointEntries(manifest.includedEndpoints, "includedEndpoints", findings);
+  validateEndpointEntries(manifest.excludedEndpoints, "excludedEndpoints", findings);
+  validateReadinessCriteria(manifest.readinessCriteria, findings);
 
-    if (status === "ready") {
-      findings.push({
-        code: "readiness_promotion_blocked",
-        severity: "blocking",
-        message:
-          "Manifest validationStatus.status must not be ready for Stage 7.25.",
-      });
-    }
+  return findings;
+}
 
-    if (typeof status !== "string") {
+function validateTopLevelReadinessState(
+  manifest: Record<string, unknown>,
+  findings: Finding[],
+): void {
+  const readinessClaim = manifest.readinessClaim;
+  const status = manifest.status;
+
+  if (readinessClaim === true) {
+    findings.push(
+      readinessPromotionBlocked(
+        "Manifest readinessClaim must remain false for the current Stage 7 candidate.",
+      ),
+    );
+  }
+
+  if (readinessClaim !== undefined && typeof readinessClaim !== "boolean") {
+    findings.push({
+      code: "schema_violation",
+      severity: "blocking",
+      message: "Manifest readinessClaim must be a boolean when present.",
+    });
+  }
+
+  if (status === "ready") {
+    findings.push(
+      readinessPromotionBlocked(
+        "Manifest status must not be ready for the current Stage 7 candidate.",
+      ),
+    );
+  }
+
+  if (status !== undefined && typeof status !== "string") {
+    findings.push({
+      code: "schema_violation",
+      severity: "blocking",
+      message: "Manifest status must be a string when present.",
+    });
+  }
+}
+
+function validateValidationStatus(
+  validationStatus: Record<string, unknown>,
+  findings: Finding[],
+): void {
+  const readinessClaim = validationStatus.readinessClaim;
+  const status = validationStatus.status;
+
+  if (readinessClaim === true) {
+    findings.push(
+      readinessPromotionBlocked(
+        "Manifest validationStatus.readinessClaim must remain false for the current Stage 7 candidate.",
+      ),
+    );
+  }
+
+  if (readinessClaim !== undefined && typeof readinessClaim !== "boolean") {
+    findings.push({
+      code: "schema_violation",
+      severity: "blocking",
+      message: "Manifest validationStatus.readinessClaim must be a boolean when present.",
+    });
+  }
+
+  if (status === "ready") {
+    findings.push(
+      readinessPromotionBlocked(
+        "Manifest validationStatus.status must not be ready for the current Stage 7 candidate.",
+      ),
+    );
+  }
+
+  if (typeof status !== "string") {
+    findings.push({
+      code: "schema_violation",
+      severity: "blocking",
+      message: "Manifest validationStatus.status must be a string.",
+    });
+  }
+}
+
+function validateEndpointEntries(
+  value: unknown,
+  fieldName: "includedEndpoints" | "excludedEndpoints",
+  findings: Finding[],
+): void {
+  if (!Array.isArray(value)) {
+    return;
+  }
+
+  value.forEach((entry, index) => {
+    if (!isRecord(entry)) {
       findings.push({
         code: "schema_violation",
         severity: "blocking",
-        message: "Manifest validationStatus.status must be a string.",
+        message: `Manifest ${fieldName}[${index}] must be an object.`,
+      });
+      return;
+    }
+
+    const readiness = entry.readiness;
+    if (readiness === "ready") {
+      findings.push(
+        readinessPromotionBlocked(
+          `Manifest ${fieldName}[${index}].readiness must not be ready for the current Stage 7 candidate.`,
+        ),
+      );
+    } else if (readiness !== undefined && readiness !== "not_ready") {
+      findings.push({
+        code: "schema_violation",
+        severity: "blocking",
+        message:
+          `Manifest ${fieldName}[${index}].readiness must be not_ready when present.`,
       });
     }
+
+    const classification = entry.classification;
+    if (classification === "generated_client_ready" || classification === "ready") {
+      findings.push(
+        readinessPromotionBlocked(
+          `Manifest ${fieldName}[${index}].classification must not imply generated-client readiness.`,
+        ),
+      );
+    }
+  });
+}
+
+function validateReadinessCriteria(
+  value: unknown,
+  findings: Finding[],
+): void {
+  if (!isRecord(value)) {
+    return;
   }
 
-  return findings;
+  for (const [fieldName, fieldValue] of Object.entries(value)) {
+    if (fieldValue === true) {
+      findings.push(
+        readinessPromotionBlocked(
+          `Manifest readinessCriteria.${fieldName} must remain false until a separate readiness stage runs actual checks.`,
+        ),
+      );
+    }
+  }
+}
+
+function readinessPromotionBlocked(message: string): Finding {
+  return {
+    code: "readiness_promotion_blocked",
+    severity: "blocking",
+    message,
+  };
 }
 
 function requireStringField(
