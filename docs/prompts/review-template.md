@@ -15,6 +15,7 @@ Canonical repository governance находится в `AGENTS.md`. Этот ша
 - Product baseline, если применимо: `docs/product/product-baseline.md`
 - Architecture baseline, если применимо: `docs/architecture/architecture-baseline.md`
 - Documentation style guide, если review касается документации: `docs/guides/documentation-style-guide.md`
+- Document role для каждого затронутого документа: source-of-truth, navigation/index, guide/rules, review/audit artifact или historical artifact.
 - ADR, которые нужно проверить, если есть:
 
 ## Фокус ревью
@@ -28,9 +29,15 @@ Canonical repository governance находится в `AGENTS.md`. Этот ша
 - изменения unrelated files;
 - сломанные или устаревшие ссылки в документации;
 - несоответствие README/index-документов;
+- неясную роль документа или смешение source-of-truth, navigation, guide/rules и audit trail;
+- обычную английскую prose в Russian-first active documentation без технической необходимости;
+- длинные status paragraphs там, где нужна таблица, status matrix или checklist;
+- checklist items, которые нельзя проверить;
 - конфликт между задачей, roadmap и ADR;
 - превращение future/reference documents в active implementation backlog;
 - превращение ADR candidates или decision inventory в accepted ADR;
+- создание нового source-of-truth документа, когда можно обновить существующий source-of-truth;
+- beautification без проверяемой цели;
 - конфликт backend implementation с подтвержденным stack Kotlin + Ktor;
 - попытку продолжить Java/Spring Boot backend без явного ADR и согласованной с roadmap задачи;
 - изменения публичных контрактов без документации;
@@ -58,6 +65,7 @@ Canonical repository governance находится в `AGENTS.md`. Этот ша
 - Были ли рекомендации выполнены вместо того, чтобы быть только задокументированными?
 - Были ли изменены unrelated files?
 - Добавлены ли новые файлы, директории, зависимости или tooling без явного запроса?
+- Смешаны ли governance cleanup, roadmap refactor, language normalization и historical labeling без явного combined scope?
 
 ### Согласованность с ADR
 
@@ -71,6 +79,9 @@ Canonical repository governance находится в `AGENTS.md`. Этот ша
 - Корректны ли ссылки на README, roadmap, prompt и релевантные документы?
 - Явно ли отмечены отсутствующие referenced docs?
 - Соответствуют ли README и индексные документы фактической структуре и рабочему процессу?
+- Не дублируют ли README или `docs/ROADMAP.md` подробный roadmap/status вместо ссылки на `docs/roadmap/roadmap.md`?
+- Использованы ли checklist/table formats для scope/gate/status-heavy sections там, где это повышает читаемость?
+- Сохранены ли historical artifacts как audit trail без ретроспективной language/style normalization?
 
 ### Реализация будущих этапов
 
@@ -94,3 +105,10 @@ Canonical repository governance находится в `AGENTS.md`. Этот ша
 4. Принятые решения
 5. Открытые вопросы
 6. Рекомендации, не выполнены
+
+Для documentation tasks также укажи:
+
+- роль каждого измененного документа;
+- причину изменения каждого файла;
+- что явно осталось out of scope;
+- были ли затронуты source-of-truth documents и почему это допустимо.

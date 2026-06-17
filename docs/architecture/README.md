@@ -1,19 +1,19 @@
 # Архитектурная документация
 
-Эта директория содержит архитектурную документацию Travel Assistant. Этот README является index-документом: он помогает найти актуальный architecture baseline, Stage 5 artifacts и Stage 6 contract artifacts, но не является implementation plan, architecture spec, API contract или backlog задач.
+Эта директория содержит архитектурную документацию Travel Assistant. Этот README является index-документом: он помогает найти актуальный architecture baseline, Stage 5 artifacts и Stage 6 contract artifacts, но не является implementation plan, архитектурной спецификацией, API contract или backlog задач.
 
-`architecture-baseline.md` является текущим architecture source of truth: он фиксирует актуальный compact architecture baseline, backend stack direction, system boundaries и границы production implementation. `backend-layering-rules.md` фиксирует active backend layering rules для implementation work и следует этому baseline. Этот README является navigation/index only и не должен конкурировать с `architecture-baseline.md`.
+`architecture-baseline.md` является текущим источником истины по архитектуре: он фиксирует актуальный compact architecture baseline, backend stack direction, system boundaries и границы production implementation. `backend-layering-rules.md` фиксирует active backend layering rules для implementation work и следует этому baseline. Этот README является только navigation/index и не должен конкурировать с `architecture-baseline.md`.
 
-Stage 5/6/7 documents сохраняются как architecture audit trail, contract artifacts или historical/superseded artifacts в зависимости от статуса конкретного файла. OpenAPI drafts и contract reviews являются contract artifacts, а не general roadmap, active implementation backlog или provider-specific integration plan. Historical stack mentions, включая old Java/Spring Boot context, не переопределяют текущую Kotlin + Ktor direction из `architecture-baseline.md`.
+Stage 5/6/7 documents сохраняются как architecture audit trail, contract artifacts или historical/superseded artifacts в зависимости от статуса конкретного файла. OpenAPI drafts и contract reviews являются contract artifacts, а не общим roadmap, active implementation backlog или provider-specific integration plan. Historical stack mentions, включая old Java/Spring Boot context, не переопределяют текущую Kotlin + Ktor direction из `architecture-baseline.md`.
 
 Для architecture scope Codex должен сначала открыть `architecture-baseline.md`, затем primary roadmap `../roadmap/roadmap.md`, а этот README использовать только как навигацию.
 
 ## Текущий статус
 
-- Stage 5 — Technical Architecture / System Design: Completed.
-- Stage 6 — API Contracts / OpenAPI / Integration Boundary: Completed; Stage 6.1-6.9 completed.
-- Stage 7 — MVP Implementation: In progress / awaiting explicit next task; bounded implementation slices completed through Stage 7.12; Stage 7.13+ not activated.
-- Code/API/DB/UI implementation: minimal Kotlin + Ktor backend skeleton exists; business logic, provider integration, DB/storage, frontend, generated clients and production implementation not started.
+- Stage 5 — Technical Architecture / System Design: завершен.
+- Stage 6 — API Contracts / OpenAPI / Integration Boundary: завершен; Stage 6.1-6.9 завершены.
+- Stage 7 — MVP Implementation: в работе / ожидает отдельную явную задачу; актуальные sub-stage статусы находятся в primary roadmap `../roadmap/roadmap.md`.
+- Code/API/DB/UI implementation: минимальный Kotlin + Ktor backend skeleton существует; business logic, provider integration, DB/storage, frontend, generated clients и production implementation не начаты.
 
 `architecture-baseline.md` фиксирует актуальный compact architecture baseline и подтверждает backend stack Kotlin + Ktor. Java/Spring Boot не является принятым Travel Assistant backend stack без явного будущего ADR и задачи, согласованной с roadmap. Документы Stage 5 сохраняются как historical architecture artifacts, deliverables и audit trail: они описывают границы, ответственности и guardrails для hotel-only MVP v1, но не являются implementation backlog, API/OpenAPI contract, endpoint specification, database schema, storage model, provider adapter design, auth/security/DevOps/testing plan или production implementation plan.
 
@@ -21,10 +21,10 @@ Stage 5/6/7 documents сохраняются как architecture audit trail, co
 
 ## Иерархия ролей
 
-1. `architecture-baseline.md` — current architecture source of truth и backend stack authority.
+1. `architecture-baseline.md` — текущий источник истины по архитектуре и backend stack authority.
 2. `../roadmap/roadmap.md` — source of truth по статусам этапов, progression, carryover и следующему разрешенному шагу.
 3. `backend-layering-rules.md` — active backend dependency and layer-boundary rules for implementation work.
-4. `README.md` — architecture navigation/index only; не competing architecture spec.
+4. `README.md` — только architecture navigation/index; не конкурирующая architecture spec.
 5. `stage-5/**` — historical architecture stage artifacts и detailed conceptual baseline context.
 6. `stage-6/**` — API/contract drafts, contract reviews и completion/handoff artifacts; не general roadmap.
 7. `stage-7/**` — Stage 7 review artifacts; old skeleton context может быть superseded текущей Kotlin + Ktor correction.
@@ -57,7 +57,7 @@ Stage 5/6/7 documents сохраняются как architecture audit trail, co
 | `stage-6/stage-6-final-closure-and-handoff.md` | Review/audit artifact / reference-only | Stage 6 closure/handoff; не automatic implementation start. |
 | `stage-7/stage-7-1-backend-skeleton-review.md` | Stale/superseded architecture artifact / review artifact | Old Java/Spring Boot skeleton review, superseded by Stage 7.0b Kotlin + Ktor correction. |
 
-Unclear role: нет, все текущие файлы `docs/architecture/**` классифицированы этим index.
+Неясных ролей нет: все текущие файлы `docs/architecture/**` классифицированы этим index.
 
 ## Основные ссылки
 
@@ -67,7 +67,7 @@ Unclear role: нет, все текущие файлы `docs/architecture/**` к
 - `../reviews/pre-stage-6-documentation-consistency-review.md` — review согласованности документации перед Stage 6.
 - `../../services/backend/README.md` — Stage 7.0b Kotlin + Ktor backend skeleton run notes and health endpoint.
 - `../reviews/stage-7-restart-readiness-review.md` — Stage 7 restart readiness review; verdict: passed with minor notes.
-- `../reviews/README.md` — index review/audit artifacts и правила чтения historical/current cleanup reports.
+- `../reviews/README.md` — индекс review/audit artifacts и правила чтения historical/current cleanup reports.
 - `../reviews/documentation-redundancy-structure-audit.md` — Stage 7.0e documentation redundancy and structure audit.
 - `../reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a status/navigation sync cleanup.
 - `../reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b reviews index / historical labeling cleanup.
@@ -122,4 +122,4 @@ Unclear role: нет, все текущие файлы `docs/architecture/**` к
 
 ## Граница Stage 6
 
-Stage 6 завершен как contract/documentation phase. Созданный и уточненный OpenAPI draft является documentation-level API contract draft, а не provider-specific contract, DB schema, storage model, auth/security/DevOps/testing backlog или production code. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.13+ не активированы и требуют отдельной явной roadmap-aligned задачи. Remaining documentation cleanup является bounded future cleanup candidate, а не open-ended blocker.
+Stage 6 завершен как contract/documentation phase. Созданный и уточненный OpenAPI draft является documentation-level API contract draft, а не provider-specific contract, DB schema, storage model, auth/security/DevOps/testing backlog или production code. Stage 7 больше не заблокирован backend stack drift или restart readiness review, но Stage 7.13+ не активированы и требуют отдельной явной roadmap-aligned задачи. Оставшийся documentation cleanup является bounded future cleanup candidate, а не open-ended blocker.

@@ -19,15 +19,23 @@ Style guide не меняет product requirements, architecture decisions, по
 
 Основной язык документации - русский.
 
+Active/source-of-truth документация должна использовать русский язык для обычной prose. Это относится к roadmap/status documents, baselines, guide/rules documents, README/index documents, review reports и Codex-facing governance, если отдельная задача не задает другой язык.
+
 Английские термины допустимы, если они являются:
 
 - названием файла, директории, технологии или инструмента;
+- командой, API, библиотекой, package/class name или database identifier;
 - устоявшимся техническим термином;
 - roadmap/status термином, который осознанно используется в проекте;
+- commit/review label или status label;
 - названием архитектурного паттерна или артефакта;
 - термином, перевод которого ухудшает точность.
 
 Связующий текст должен быть написан нормальным русским языком. Не нужно механически переводить `MVP`, `ADR`, `OpenAPI`, `provider`, `frontend`, `backend` или названия файлов, но фразы вокруг них должны быть естественными.
+
+Обычная английская prose внутри русскоязычного active document является readability issue. Mixed Russian/English prose допустима только при технической необходимости: например, когда русская формулировка скрывает точное название статуса, команды, API concept или established project term.
+
+Historical artifacts не нужно массово нормализовать ради языка. Старые review reports и stage artifacts могут сохранять исторический стиль, если их текущая роль понятна через index или source-of-truth document.
 
 Избегай гибридных формулировок вида:
 
@@ -67,6 +75,11 @@ Good:
 
 ## 4. Document Roles
 
+- Source-of-truth document фиксирует текущее состояние, правила, baseline, roadmap/status или accepted decision. Новый source-of-truth document создается только при явной необходимости; если можно обновить существующий source of truth, новый документ не создается.
+- Navigation/index document помогает найти документы и понять их роли. Он не должен становиться competing roadmap, product spec, architecture spec или implementation backlog.
+- Guide/rules document задает правила письма, разработки, проверки или работы Codex. Он должен ссылаться на source of truth вместо дублирования длинных блоков.
+- Review/audit artifact фиксирует findings, verdict, risk и audit trail на момент проверки. Он не является roadmap и не должен становиться backlog.
+- Historical artifact сохраняет traceability того, что было верно на момент stage/review/cleanup. Его не переписывают без отдельного решения.
 - `README.md` - entry point и карта проекта. Он должен помогать понять, что читать первым, а не дублировать весь roadmap.
 - `docs/roadmap/roadmap.md` - primary roadmap и source of truth по stage status, progression, boundaries, carryover и следующему разрешенному шагу.
 - `docs/ROADMAP.md` - краткий навигационный overview этапов. Он не является конкурирующим source of truth по текущим статусам.
@@ -102,6 +115,8 @@ Future candidates - идеи, decisions или ADR candidates, которые м
 
 ## 6. Roadmap Style Rules
 
+`docs/roadmap/roadmap.md` является primary source of truth для detailed roadmap/status. `docs/ROADMAP.md` является navigation summary и не должен дублировать длинные stage status strings. `README.md` является entry point и не должен становиться альтернативным roadmap.
+
 Roadmap показывает:
 
 - этапы и статусы;
@@ -122,6 +137,12 @@ Roadmap не является:
 - archive всех деталей этапов.
 
 Roadmap должен оставаться читаемым. Он не должен дублировать полные product/architecture docs. Детали требований, UX и архитектуры должны жить в соответствующих baseline или stage artifact documents.
+
+Подробные статусы этапов должны обновляться в одном source-of-truth месте. Navigation documents могут содержать короткий summary и ссылку на primary roadmap.
+
+Status-heavy roadmap cleanup должен предпочитать таблицы, status matrix и checkbox-структуру вместо длинных status paragraphs. Длинные перечисления sub-stages лучше группировать по смысловым блокам и ссылаться на review/audit artifacts для деталей.
+
+Изменение roadmap sequencing, статуса этапа или следующего разрешенного шага требует отдельного explicit scope. Documentation readability cleanup не должен менять sequence или запускать будущий stage.
 
 Future stages не являются активным backlog. Planned items нельзя выполнять без явной активации. Stage 7.2+ и будущие roadmap steps должны оставаться неактивными до отдельной явной задачи.
 
@@ -201,7 +222,11 @@ Guardrails должны защищать scope, но не делать доку�
 
 - Пиши короткими абзацами.
 - Используй понятные заголовки.
-- Не злоупотребляй таблицами: таблица нужна для сравнения, статусов или traceability, а не для каждого списка.
+- Review/audit documents должны использовать checklist там, где нужно подтвердить scope, gate criteria или explicit exclusions.
+- Каждый checklist item должен быть проверяемым: читатель должен понимать, что именно подтверждено.
+- Status-heavy documents должны использовать таблицы, status matrix или checklist вместо длинной prose.
+- Таблица нужна для сравнения, статусов, traceability или safe-to-change матриц; таблица должна быть компактной и не дублировать source-of-truth без необходимости.
+- Длинные status paragraphs нужно избегать. Если статус длинный, сгруппируй его в таблицу или перенеси детали в linked artifact.
 - Не используй канцелярит.
 - Не пиши в стиле "AI generated": меньше механических повторов, больше ясных человеческих формулировок.
 - Избегай повторов между README, roadmap, indexes, reviews и stage docs.
@@ -229,5 +254,29 @@ Documentation refactoring не должен менять смысл.
 - создавать implementation backlog;
 - превращать future ADR candidates в accepted ADR;
 - удалять historical audit trail.
+- создавать новый source-of-truth document, если можно обновить существующий source of truth;
+- выполнять "beautification" без проверяемой цели;
+- смешивать cleanup нескольких типов в одной задаче без явного scope.
 
 Refactoring должен сохранять ссылки, traceability и audit trail. Если ссылка меняется или документ получает новую роль, это должно быть явно отражено в navigation/index docs.
+
+Review artifacts и historical artifacts могут содержать исторический стиль, старые формулировки и mixed language. Их не нужно ретроспективно нормализовать без отдельного explicit scope.
+
+## 13. Codex Documentation Workflow
+
+Перед изменением документации Codex должен определить роль каждого затронутого документа:
+
+- source-of-truth document;
+- navigation/index document;
+- guide/rules document;
+- review/audit artifact;
+- historical artifact.
+
+В documentation tasks Codex должен:
+
+- явно удерживать task scope и out-of-scope;
+- не смешивать governance cleanup, roadmap refactor, language normalization и historical labeling в одной задаче без явного запроса;
+- перечислять измененные файлы и причину изменения в отчете;
+- не делать stylistic beautification без проверяемой цели;
+- остановиться и описать конфликт, если изменение может создать competing source of truth;
+- не выполнять recommendations из review artifacts, если они не входят в explicit scope текущей задачи.

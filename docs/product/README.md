@@ -1,18 +1,18 @@
 # Продуктовая документация
 
-Этот раздел содержит продуктовую документацию Travel Assistant. Этот README является index-документом: он помогает найти актуальный product baseline и historical stage artifacts, но не является самостоятельной product spec, roadmap или implementation backlog.
+Этот раздел содержит продуктовую документацию Travel Assistant. Этот README является index-документом: он помогает найти актуальный product baseline и historical stage artifacts, но не является самостоятельной продуктовой спецификацией, roadmap или implementation backlog.
 
 Главный roadmap со статусами этапов, progression, carryover и следующим разрешенным шагом находится в `docs/roadmap/roadmap.md`. Если статус этапа или следующий шаг важен для задачи, приоритет имеет primary roadmap.
 
-`product-baseline.md` является текущим product source of truth: он фиксирует актуальное продуктовое состояние, MVP boundaries и active product framing. Документы `stage-*` сохраняются как historical stage artifacts, deliverables и audit trail: они объясняют, как формировались решения, но не должны читаться как автоматическое расширение MVP scope.
+`product-baseline.md` является текущим источником истины по продукту: он фиксирует актуальное продуктовое состояние, MVP boundaries и active product framing. Документы `stage-*` сохраняются как historical stage artifacts, deliverables и audit trail: они объясняют, как формировались решения, но не должны читаться как автоматическое расширение MVP scope.
 
-Если historical artifact содержит более широкие или устаревшие формулировки, их нужно читать в историческом контексте. Они не переопределяют `product-baseline.md`, primary roadmap или явный scope текущей задачи. Для product scope Codex должен сначала открыть `product-baseline.md`, а этот README использовать только как навигацию.
+Если historical artifact содержит более широкие или устаревшие формулировки, их нужно читать в историческом контексте. Они не переопределяют `product-baseline.md`, primary roadmap или явные границы текущей задачи. Для product scope Codex должен сначала открыть `product-baseline.md`, а этот README использовать только как навигацию.
 
 ## Иерархия ролей
 
-1. `product-baseline.md` — current product source of truth для MVP scope, product guardrails и active product framing.
+1. `product-baseline.md` — текущий источник истины по продукту для MVP scope, product guardrails и active product framing.
 2. `../roadmap/roadmap.md` — source of truth по статусам этапов, progression, carryover и следующему разрешенному шагу.
-3. `README.md` — product navigation/index only; не competing baseline.
+3. `README.md` — только product navigation/index; не конкурирующий baseline.
 4. `stage-0/**` - `stage-4/**` — historical product discovery/design artifacts и review trail, если конкретный файл не помечен иначе.
 
 ## Инвентаризация product docs
@@ -20,7 +20,7 @@
 | Документ | Классификация | Как читать |
 |---|---|---|
 | `product-baseline.md` | Current product source of truth | Начинать отсюда при проверке MVP scope, active product framing и product guardrails. |
-| `README.md` | Product navigation/index | Использовать для поиска документов и понимания ролей, не как самостоятельную product spec. |
+| `README.md` | Product navigation/index | Использовать для поиска документов и понимания ролей, не как самостоятельную продуктовую спецификацию. |
 | `stage-0/product-framing.md` | Historical product stage artifact | Исходная рамка продукта; читать как early discovery context. |
 | `stage-0/initial-scenarios.md` | Historical product stage artifact | Ранние сценарии верхнего уровня; не расширяют текущий MVP. |
 | `stage-0/mvp-boundaries.md` | Historical product stage artifact | Ранняя MVP-рамка; текущие границы сверять с `product-baseline.md`. |
@@ -56,11 +56,11 @@
 | `stage-4/stage-4-summary-and-carryover.md` | Historical product stage artifact | Summary Stage 4 и carryover. |
 | `stage-4/stage-4-consistency-review.md` | Product review/audit artifact | Stage 4.1 quality gate. |
 
-Unclear role: нет, все текущие файлы `docs/product/**` классифицированы этим index.
+Неясных ролей нет: все текущие файлы `docs/product/**` классифицированы этим index.
 
 ## Актуальный product baseline
 
-- `product-baseline.md` — current product source of truth после Stage 0-5: hotel-only MVP v1 scope, явные исключения из MVP, core product flow, product guardrails, связь с historical stage artifacts и актуальный carryover.
+- `product-baseline.md` — текущий источник истины по продукту после Stage 0-5: hotel-only MVP v1 scope, явные исключения из MVP, core product flow, product guardrails, связь с historical stage artifacts и актуальный carryover.
 
 MVP v1 остается hotel-only. Flight search, combined itinerary, booking, payment и account history остаются вне MVP v1 до отдельного roadmap decision.
 
@@ -113,7 +113,7 @@ Stage 3 отвечает за UX-структуру, навигацию, hotel s
 - `stage-4/component-inventory.md` — MVP UI component inventory с назначением, использованием, состояниями, UX-правилами и MVP/future статусом.
 - `stage-4/screen-specifications.md` — screen-level specs для Entry, chat, clarification, hotel results, offer details, saved results, error/no results и future flight/combined screens.
 - `stage-4/interaction-patterns.md` — UX interaction patterns для clarification, understood request, parameter changes, comparison, saving, loading, partial/no results, confidence/rationale и facts/assumptions separation.
-- `stage-4/stage-4-summary-and-carryover.md` — итог Stage 4, созданные документы, ключевые design decisions, carryover на следующие этапы и consciously not done items.
+- `stage-4/stage-4-summary-and-carryover.md` — итог Stage 4, созданные документы, ключевые design decisions, carryover на следующие этапы и явно не выполненные items.
 - `stage-4/stage-4-consistency-review.md` — Stage 4.1: consistency review Stage 4 относительно Stage 0-3 и roadmap; проверяет MVP scope, UX alignment, data clarity, hidden implementation commitments, accessibility/responsive readiness и carryover quality.
 
 Stage 4 отвечает за visual/UX direction поверх Stage 3 Hotel-Only MVP v1 baseline. Он не создает production UI, React/Next.js components, design-token implementation, API contracts или architecture decisions. Flight search и combined hotel+flight остаются future expansion и не становятся active MVP v1 UI.

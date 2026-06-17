@@ -2,37 +2,48 @@
 
 Этот документ является **primary roadmap** проекта Travel Assistant. Он фиксирует статусы этапов, progression, границы этапов, quality gates, carryover и следующий разрешенный шаг.
 
-Roadmap не является task tracker, product specification, architecture specification, ADR registry или implementation backlog. Детальные product baseline и architecture baseline вынесены в отдельные документы и указаны ниже.
+Roadmap не является task tracker, продуктовой спецификацией, архитектурной спецификацией, ADR registry или implementation backlog. Детальные product baseline и architecture baseline вынесены в отдельные документы и указаны ниже.
 
 ## 1. Текущий статус проекта
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 7 — MVP Implementation / awaiting explicit next task. Stage 7.25 завершен как inferred narrow tool-local implementation task по read-only manifest detection/validation для standalone OpenAPI conformance tool |
-| Последний завершенный этап | Stage 7.25 — Tool-local manifest detection/validation для OpenAPI conformance tool |
-| Следующий планируемый шаг | Отдельная явная roadmap-aligned задача должна выбрать следующий bounded Stage 7 implementation step или cleanup item; Stage 7.26+ не начаты |
-| Code/API/DB/UI implementation | Minimal Kotlin + Ktor backend foundation exists with health endpoint, structured error handling, process-local assistant session state, session-local clarification metadata, internal hotel requirements slot metadata, internal slot coverage planning metadata, internal structured slot update boundary, local assistant message intake, Stage 6-like assistant response shape alignment, minimal placeholder clarification reply, placeholder hotel-only routes, generated-client/OpenAPI readiness findings, placeholder strategy, assistant response semantics boundary, conformance gate planning, generated-client-ready subset policy, conformance gate skeleton planning-to-tooling, conformance gate skeleton implementation planning/tooling decision, standalone read-only conformance gate skeleton, tool-local reporting-depth/test coverage, planning по generated-client-ready subset manifest, schema review для будущего manifest, design будущего manifest detection/schema validation и tool-local manifest detection/validation implementation; generated-client/OpenAPI readiness не заявлена; generated-client-ready subset, full conformance gate и generated clients не реализованы; business logic, provider integration, DB/storage, frontend and production implementation не начаты |
+| Текущий этап | Stage 7 — реализация MVP / ожидает отдельную явную задачу |
+| Последний завершенный этап | Stage 7.31 — Resume Development Handoff |
+| Следующий планируемый шаг | Следующая bounded Stage 7 technical task, только через отдельную явную roadmap-aligned задачу после чтения current roadmap/status и Stage 7.25 report |
+| Подробный roadmap/status source of truth | Только этот документ: `docs/roadmap/roadmap.md` |
+
+| Область | Текущее состояние |
+|---|---|
+| Stage 0-6 | Завершены |
+| Stage 7 implementation foundation | Минимальная Kotlin + Ktor backend-основа и ограниченные assistant/conformance-tool slices завершены до Stage 7.25 включительно |
+| Stage 7 documentation stabilization | Stage 7.26-7.30 завершены |
+| Stage 7 resume development handoff | Stage 7.31 завершен; следующий technical task должен быть выбран отдельной явной roadmap-aligned задачей |
+| Generated-client/OpenAPI readiness | Не заявлена |
+| Generated-client-ready subset / generated clients | Не созданы |
+| Full conformance gate | Не реализован |
+| Business logic / provider integration / DB-storage / frontend / production implementation | Не начаты |
 
 | Этап | Статус | Краткое описание |
 |---|---|---|
-| Stage 0 | Completed | Product framing, первичные сценарии, предварительные MVP boundaries и открытые вопросы. |
-| Stage 1 | Completed | Business requirements, user journeys, BR/FR/NFR, assumptions, риски и consistency review. |
-| Stage 2 | Completed | Use cases, edge cases, правила поведения ассистента, data requirements и combined search levels. |
-| Stage 3 | Completed | Hotel-only MVP UX, navigation, required fields, acceptance criteria и carryover. |
-| Stage 4 | Completed | Visual direction, основы design system, component inventory, screen specs и interaction patterns. |
-| Stage 4.1 | Completed | Visual design consistency review и небольшая правка формулировок. |
-| Stage 5 | Completed | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
-| Stage 6 | Completed | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup and Stage 6.9 final closure / handoff completed. |
-| Stage 7 | In progress / awaiting explicit next task | Minimal Kotlin + Ktor backend foundation exists. Stage 7.0 stabilization/documentation cleanup, Stage 7.2 backend application foundation, Stage 7.3 assistant session creation boundary, Stage 7.4 assistant message intake boundary, Stage 7.5 minimal clarification response boundary, Stage 7.6 local assistant session state boundary, Stage 7.7 session-local clarification state boundary, Stage 7.8 internal hotel requirements slot metadata boundary, Stage 7.9 internal slot coverage / clarification planning boundary, Stage 7.10 API/contract alignment checkpoint, Stage 7.11 assistant API runtime contract alignment cleanup, Stage 7.12 internal requirements slot update boundary, Stage 7.13 generated-client/OpenAPI readiness checkpoint, Stage 7.14 readiness cleanup, Stage 7.14a review, Stage 7.15 assistant response semantics cleanup, Stage 7.15a review, Stage 7.15b documentation/status sync, Stage 7.16 generated-client/OpenAPI conformance gate planning, Stage 7.17 generated-client-ready subset policy, Stage 7.18 conformance gate skeleton planning-to-tooling, Stage 7.19 conformance gate skeleton implementation planning/tooling decision, Stage 7.20 standalone read-only conformance gate skeleton implementation, Stage 7.21 tool-local read-only reporting depth/test coverage, Stage 7.22 planning по generated-client-ready subset manifest, Stage 7.23 schema review для будущего manifest, Stage 7.24 design будущего manifest detection/schema validation и Stage 7.25 tool-local manifest detection/validation implementation завершены. Stage 7.26+ требуют отдельных явных задач. Generated-client/OpenAPI readiness не заявлена. |
-| Stage 8 | Planned | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
-| Stage 9 | Planned | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
-| Stage 10 | Planned | Cross-platform expansion после стабилизации core product и architecture. |
+| Stage 0 | Завершен | Product framing, первичные сценарии, предварительные MVP boundaries и открытые вопросы. |
+| Stage 1 | Завершен | Business requirements, user journeys, BR/FR/NFR, assumptions, риски и consistency review. |
+| Stage 2 | Завершен | Use cases, edge cases, правила поведения ассистента, data requirements и combined search levels. |
+| Stage 3 | Завершен | Hotel-only MVP UX, navigation, required fields, acceptance criteria и carryover. |
+| Stage 4 | Завершен | Visual direction, основы design system, component inventory, screen specs и interaction patterns. |
+| Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
+| Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
+| Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
+| Stage 7 | В работе / ожидает отдельную явную задачу | Bounded Kotlin + Ktor backend foundation, assistant boundaries, conformance-tool work, documentation stabilization и resume-development handoff завершены до Stage 7.31 включительно. Подробности см. в Stage 7 checklist ниже. |
+| Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
+| Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
+| Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
 
 ## 2. Правила управления roadmap
 
 - `docs/roadmap/roadmap.md` является source of truth по статусам этапов, progression, границам этапов, carryover и следующему разрешенному шагу.
 - `docs/ROADMAP.md` является верхнеуровневым navigation overview, а не конкурирующим источником текущего статуса.
-- Development rule documents under `docs/development/` are active engineering rules for explicitly scoped work. `docs/development/roadmap.md`, `docs/development/milestones.md` and `docs/development/implementation-strategy.md` remain future/reference material, not active implementation backlog. All development docs must follow this roadmap.
+- Документы правил в `docs/development/` являются активными engineering rules для явно ограниченных задач. `docs/development/roadmap.md`, `docs/development/milestones.md` и `docs/development/implementation-strategy.md` остаются future/reference material, а не active implementation backlog. Все development docs должны следовать этому roadmap.
 - Planned и future stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи.
 - Recommendations, carryover и future candidates не должны автоматически выполняться во время review или cleanup задач.
 - Implementation, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog и production code требуют отдельного явного roadmap step.
@@ -56,7 +67,7 @@ MVP v1 остается hotel-only:
 - AI-assisted hotel search and selection;
 - hotel request на естественном языке и уточнение запроса;
 - hotel results, ranking, comparison и explanation;
-- current-session shortlist only;
+- только current-session shortlist;
 - явное разделение provider facts, assistant assumptions и unknowns.
 
 Явно вне MVP v1:
@@ -65,7 +76,7 @@ MVP v1 остается hotel-only:
 - combined itinerary / combined hotel + flight package;
 - booking;
 - payment;
-- account history and account-level storage;
+- account history и account-level storage;
 - loyalty/profile system;
 - production integrations за пределами явно активированной provider work.
 
@@ -81,11 +92,11 @@ Provider/API data является source of truth для travel facts. LLM мо
 - Session persistence, resume behaviour, long-term history, authorization и account-level storage.
 - Следующий implementation step или remaining cleanup task должны быть выбраны отдельной явной задачей.
 
-## 6. Completed Stages
+## 6. Завершенные этапы
 
 ### Stage 0 — Product Framing
 
-**Статус:** Completed.
+**Статус:** завершен.
 
 **Назначение:** зафиксировать исходную продуктовую рамку, первичные сценарии, предварительные MVP boundaries и правила дальнейшей работы.
 
@@ -101,7 +112,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 1 — Business Requirements
 
-**Статус:** Completed.
+**Статус:** завершен.
 
 **Назначение:** зафиксировать аудиторию, business scenarios, user journeys, BR/FR/NFR, assumptions, open questions и risks.
 
@@ -123,7 +134,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 2 — Use Cases & Edge Cases
 
-**Статус:** Completed.
+**Статус:** завершен.
 
 **Назначение:** развернуть Stage 1 scenarios в use cases, edge cases, assistant behaviour rules, combined search levels и product data requirements.
 
@@ -143,7 +154,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 3 — MVP UX / Navigation
 
-**Статус:** Completed.
+**Статус:** завершен.
 
 **Назначение:** определить UX-структуру hotel-only MVP, navigation model, search flow boundaries, required fields и acceptance criteria без API, архитектуры или implementation work.
 
@@ -161,7 +172,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 4 — Visual Design & UX System
 
-**Статус:** Completed.
+**Статус:** завершен.
 
 **Назначение:** зафиксировать visual style direction, design system foundations, component inventory, screen-level specifications и interaction patterns для hotel-only MVP.
 
@@ -180,7 +191,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 4.1 — Visual Design Consistency Review
 
-**Статус:** Completed.
+**Статус:** завершен.
 
 **Назначение:** проверить Stage 4 documentation на согласованность со Stage 0-3, MVP scope и roadmap boundaries.
 
@@ -192,7 +203,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 5 — Technical Architecture
 
-**Статус:** Completed.
+**Статус:** завершен.
 
 **Назначение:** зафиксировать conceptual architecture baseline, system boundaries, domain/data boundaries, orchestration, integration architecture, NFR guidance и decision inventory.
 
@@ -218,7 +229,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 6 — API Contracts / OpenAPI / Integration Boundary
 
-**Статус:** Completed. Stage 6.1, Stage 6.2, Stage 6.3, Stage 6.4, Stage 6.5, Stage 6.6, Stage 6.7, Stage 6.8 and Stage 6.9 completed by explicit roadmap tasks.
+**Статус:** завершен. Stage 6.1, Stage 6.2, Stage 6.3, Stage 6.4, Stage 6.5, Stage 6.6, Stage 6.7, Stage 6.8 и Stage 6.9 завершены через отдельные явные roadmap-задачи.
 
 **Назначение:** API Contracts / OpenAPI / Integration Boundary и scoped implementation-preparation planning. Stage 6 должен сохранять hotel-only MVP v1, Stage 5 architecture baseline, provider-agnostic hotel boundary и отсутствие production implementation.
 
@@ -226,40 +237,40 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Границы scope:** Stage 6 может определять API/OpenAPI contract drafts, implementation-preparation scope, sequencing, validation approach, local workflow boundaries и conceptual boundaries для mock/fake providers и contract placeholders. Он должен сохранить hotel-only scope MVP v1 и Stage 5 architecture baseline.
 
-**Completed Stage 6.1 artifacts:**
+**Завершенные артефакты Stage 6.1:**
 
 - `docs/architecture/stage-6/openapi-draft.yaml` — primary OpenAPI 3.1 draft для MVP hotel-only frontend/backend API.
 - `docs/architecture/stage-6/openapi-contract-notes.md` — notes по MVP endpoints, exclusions, assumptions, open questions и связи со Stage 5 baseline.
 
-**Completed Stage 6.2 artifact:**
+**Завершенный артефакт Stage 6.2:**
 
 - `docs/architecture/stage-6/openapi-contract-review.md` — review OpenAPI draft относительно Stage 2-5 product, UX и architecture baselines; verdict: passed for continued Stage 6 contract work with follow-up findings before client generation or implementation.
 
-**Completed Stage 6.3 artifact:**
+**Завершенный артефакт Stage 6.3:**
 
 - `docs/architecture/stage-6/openapi-fixes-summary.md` — summary of OpenAPI fixes closing Stage 6.2 Major findings and addressing allowed Minor fixes without provider-specific DTOs, implementation code or Stage 7 activation.
 
-**Completed Stage 6.4 artifact:**
+**Завершенный артефакт Stage 6.4:**
 
 - `docs/architecture/stage-6/post-fix-contract-review.md` — post-fix review of Stage 6.3 contract fixes; verdict: passed for continued Stage 6 contract work with one Minor follow-up and no Critical/Major blockers.
 
-**Completed Stage 6.5 artifact:**
+**Завершенный артефакт Stage 6.5:**
 
 - `docs/architecture/stage-6/provider-boundary-mapping-notes.md` — conceptual provider boundary / mapping notes for future hotel provider/source data into existing client-facing OpenAPI concepts without provider-specific DTOs, provider contracts, backend/frontend implementation or Stage 7 activation.
 
-**Completed Stage 6.6 cleanup:**
+**Завершенный cleanup Stage 6.6:**
 
 - Documentation navigation / status sync cleanup updated root/navigation status wording in `README.md`, `docs/ROADMAP.md`, `docs/architecture/README.md` and this roadmap without changing OpenAPI, Stage 6 contract artifacts, provider boundary notes, backend/frontend implementation, DB/storage, ADR or Stage 7 activation.
 
-**Completed Stage 6.7 artifact:**
+**Завершенный артефакт Stage 6.7:**
 
-- `docs/architecture/stage-6/stage-6-completion-review.md` — Stage 6 completion review / contract package summary; verdict: Completed with carryover; recommends explicit Stage 6.8 pre-implementation decisions cleanup before generated clients or richer implementation work.
+- `docs/architecture/stage-6/stage-6-completion-review.md` — Stage 6 completion review / contract package summary; verdict: завершен с carryover; рекомендует отдельный явный Stage 6.8 pre-implementation decisions cleanup до generated clients или более широкой implementation work.
 
-**Completed Stage 6.8 artifact:**
+**Завершенный артефакт Stage 6.8:**
 
 - `docs/architecture/stage-6/pre-implementation-decisions-cleanup.md` — pre-implementation decisions cleanup for nested 404 modeling, inline offer details, result-envelope search status and current-session page-refresh/persistence behavior; no new resource flows, provider DTOs, DB/storage or Stage 7 activation.
 
-**Completed Stage 6.9 artifact:**
+**Завершенный артефакт Stage 6.9:**
 
 - `docs/architecture/stage-6/stage-6-final-closure-and-handoff.md` — final closure / handoff to implementation; verdict: Stage 6 completed with non-blocking carryover and recorded that Stage 7 had to start only through a separate explicit task.
 
@@ -269,96 +280,77 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 7 — MVP Implementation
 
-**Статус:** In progress / awaiting explicit next task.
+**Статус:** В работе / ожидает отдельную явную задачу.
 
-Stage 7.0 stabilization завершена как bounded documentation/correction chain: backend stack drift исправлен, restart readiness review пройден, а Stage 7.0e - Stage 7.0f-f закрыли audit, navigation, governance, development docs, product/architecture index labels и roadmap readability cleanup. Stage 7.2 завершил минимальную Kotlin + Ktor backend application foundation. Stage 7.3 добавил первый минимальный assistant session creation use-case boundary без persistence, LLM orchestration или provider integration. Stage 7.4 добавил минимальный assistant message intake boundary без assistant replies, clarification flow, persistence, LLM orchestration или provider integration. Stage 7.5 добавил минимальный placeholder clarification reply на message intake response без LLM, requirements extraction, session state, persistence или provider integration. Stage 7.6 добавил process-local assistant session state boundary без durable persistence, retrieval endpoint, message history, dynamic clarification, LLM orchestration или provider integration. Stage 7.7 добавил session-local clarification state metadata без real clarification logic, requirements extraction, dynamic questions, message history, durable persistence, LLM orchestration или provider integration. Stage 7.8 добавил internal hotel requirements slot metadata boundary без slot filling, requirements extraction, dynamic clarification, message history, durable persistence, LLM orchestration или provider integration. Stage 7.9 добавил internal slot coverage / clarification planning boundary без extraction, slot filling, dynamic clarification, public API changes, durable persistence, LLM orchestration или provider integration. Stage 7.10 зафиксировал API/contract alignment checkpoint без runtime changes. Stage 7.11 выполнил bounded assistant API runtime contract alignment cleanup без generated clients, real assistant behavior, requirements extraction, slot filling, LLM/provider integration или storage. Stage 7.12 добавил internal requirements slot update boundary для explicit structured internal input без public API changes, message parsing, extraction, dynamic clarification, LLM/provider integration или storage. Stage 7.13 зафиксировал generated-client/OpenAPI readiness checkpoint. Stage 7.14 уточнил placeholder/error readiness strategy. Stage 7.14a проверил Stage 7.14 cleanup как quality gate. Stage 7.15 уточнил assistant response semantics / search readiness boundary. Stage 7.15a проверил Stage 7.15 cleanup как quality gate. Stage 7.15b синхронизировал active status wording и reviews index. Stage 7.16 зафиксировал план будущего generated-client/OpenAPI conformance gate без реализации gate, OpenAPI changes или generated clients. Stage 7.17 зафиксировал generated-client-ready subset policy и placeholder exclusion policy без config, tooling, OpenAPI changes или generated clients. Stage 7.18 зафиксировал planning-to-tooling shape для будущего conformance gate skeleton без реализации gate, scripts, tests, build tasks, subset config или generated clients. Stage 7.19 выбрал future implementation approach, runtime/language, command, layout, manifest path, report format и validation/inventory boundaries для будущего skeleton без реализации gate, scripts, tests, build tasks, subset config или generated clients. Stage 7.20 реализовал standalone read-only conformance gate skeleton under `tools/openapi-conformance/` с JSON `not_ready` report без generated clients, subset manifest, OpenAPI finalization, backend behavior changes или CI/Gradle integration. Stage 7.21 расширил tool-local read-only reporting depth и добавил test coverage для report semantics без изменения readiness semantics, backend behavior, OpenAPI draft, subset manifest, generated clients или CI/Gradle integration. Stage 7.22 зафиксировал planning/review для будущего generated-client-ready subset manifest без создания manifest, изменений tool, OpenAPI finalization, generated clients, backend behavior changes или CI/Gradle integration. Stage 7.23 зафиксировал точный schema contract и future validation behavior для будущего `generated-client-ready-subset.yaml` без создания manifest, изменений tool, OpenAPI finalization, generated clients, backend behavior changes или CI/Gradle integration. Stage 7.24 зафиксировал documentation-only design будущего manifest detection/schema validation для standalone conformance tool без создания manifest, изменений tool, OpenAPI finalization, generated clients, backend behavior changes или CI/Gradle integration. Stage 7.25 добавил read-only `manifestDetection` / `manifestValidation` в standalone conformance tool без создания manifest, OpenAPI finalization, generated clients, backend behavior changes или CI/Gradle integration. Подробности находятся в linked cleanup reports ниже.
+**Назначение:** реализация согласованного hotel-only MVP v1 после Stage 6 через отдельные bounded tasks. Stage 7 больше не заблокирован backend stack drift или restart readiness review.
 
-**Границы:** реализация согласованного hotel-only MVP v1 после завершения Stage 6 и отдельных явных implementation tasks. Stage 7 больше не заблокирован backend stack drift или restart readiness review. Stage 7.2 завершен как foundation-only задача, Stage 7.3 завершен как минимальный assistant session creation boundary, Stage 7.4 завершен как минимальный assistant message intake boundary, Stage 7.5 завершен как минимальный clarification response boundary, Stage 7.6 завершен как process-local session state boundary, Stage 7.7 завершен как session-local clarification state boundary, Stage 7.8 завершен как internal hotel requirements slot metadata boundary, Stage 7.9 завершен как internal slot coverage / clarification planning boundary, Stage 7.10 завершен как API/contract alignment checkpoint, Stage 7.11 завершен как bounded assistant API runtime contract alignment cleanup, Stage 7.12 завершен как internal requirements slot update boundary, Stage 7.13 завершен как generated-client/OpenAPI readiness checkpoint, Stage 7.14 завершен как generated-client/OpenAPI readiness cleanup, Stage 7.14a завершен как review / quality gate, Stage 7.15 завершен как assistant response semantics / search readiness boundary cleanup, Stage 7.15a завершен как review / quality gate, Stage 7.15b завершен как documentation/status sync, Stage 7.16 завершен как generated-client/OpenAPI conformance gate planning, Stage 7.17 завершен как generated-client-ready subset / placeholder exclusion policy, Stage 7.18 завершен как conformance gate skeleton planning-to-tooling, Stage 7.19 завершен как conformance gate skeleton implementation planning / tooling decision, Stage 7.20 завершен как standalone read-only conformance gate skeleton implementation, Stage 7.21 завершен как tool-local read-only conformance report depth and tests, Stage 7.22 завершен как planning по generated-client-ready subset manifest, Stage 7.23 завершен как schema review для будущего generated-client-ready subset manifest, Stage 7.24 завершен как design будущего manifest detection/schema validation для standalone conformance tool, Stage 7.25 завершен как tool-local read-only manifest detection/validation implementation. Stage 7.26+ не начаты. Generated-client/OpenAPI readiness не заявлена. Generated-client-ready subset, full conformance gate и generated clients не реализованы. Подтвержденный backend stack — Kotlin + Ktor. Flight search остается более поздним расширением после hotel flow; combined hotel+flight остается более поздним расширением после flight flow.
+**Прогресс Stage 7 по областям:**
 
-**Completed Stage 7 artifacts and cleanup reports:**
+| Область | Завершено до | Статус |
+|---|---|---|
+| Stabilization and restart readiness | Stage 7.0f-f | Backend stack drift исправлен; restart readiness пройден; cleanup читаемости navigation/governance/development/product/architecture/roadmap завершен. |
+| Backend foundation and assistant boundaries | Stage 7.12 | Минимальная Kotlin + Ktor backend-основа, assistant session/message boundaries, local session/clarification/slot metadata и internal slot update boundary завершены. |
+| API/runtime alignment and readiness reviews | Stage 7.15b | API/contract alignment checkpoint, assistant runtime contract alignment cleanup, generated-client/OpenAPI readiness checkpoint и response semantics/status sync завершены. |
+| Generated-client/OpenAPI conformance planning and tooling | Stage 7.25 | Conformance planning, subset policy, skeleton planning/tooling decision, standalone read-only conformance tool, reporting tests и manifest detection/validation завершены. |
+| Documentation stabilization track | Stage 7.30 | Documentation quality audit, governance rules cleanup, roadmap structure refactor, active documentation language normalization и final quality gate завершены. |
+| Resume development handoff | Stage 7.31 | Documentation stabilization closure and guardrails for resumed bounded Stage 7 technical work completed; no technical implementation started. |
 
-- `services/backend/` — minimal Kotlin + Ktor backend skeleton with application entrypoint, health route and health endpoint test.
-- `services/backend/README.md` — local backend run notes, health endpoint list and explicit non-implemented scope.
-- `docs/reviews/project-consistency-audit.md` — global consistency audit that identified the backend stack blocker.
-- `docs/reviews/backend-stack-decision-sync.md` — Stage 7.0a backend stack decision and documentation sync handoff.
-- `docs/reviews/backend-skeleton-correction.md` — Stage 7.0b correction report for replacing Java/Spring Boot skeleton with Kotlin + Ktor.
-- `docs/reviews/stage-7-restart-readiness-review.md` — Stage 7 restart readiness review; verdict: passed with minor notes.
-- `docs/reviews/product-baseline-status-cleanup.md` — status cleanup after restart readiness review.
-- `docs/reviews/documentation-redundancy-structure-audit.md` — Stage 7.0e documentation redundancy and structure audit; found remaining cleanup needs.
-- `docs/reviews/stage-7-status-navigation-sync-cleanup.md` — Stage 7.0f-a narrow status/navigation sync cleanup.
-- `docs/reviews/README.md` — reviews index and role labels for current, historical and superseded audit artifacts.
-- `docs/reviews/stage-7-reviews-index-historical-labeling-cleanup.md` — Stage 7.0f-b cleanup report for reviews index / historical labeling.
-- `docs/reviews/stage-7-prompt-governance-deduplication-cleanup.md` — Stage 7.0f-c cleanup report for prompt/governance deduplication.
-- `docs/reviews/stage-7-development-docs-merge-shortening-cleanup.md` — Stage 7.0f-d cleanup report for development docs merge/shortening.
-- `docs/reviews/stage-7-product-architecture-index-role-labels-cleanup.md` — Stage 7.0f-e cleanup report for product/architecture index role labels.
-- `docs/reviews/stage-7-roadmap-readability-cleanup.md` — Stage 7.0f-f cleanup report for roadmap readability.
-- `docs/reviews/stage-7-2-backend-application-foundation.md` — Stage 7.2 implementation report for minimal Kotlin + Ktor backend foundation.
-- `docs/reviews/stage-7-3-assistant-session-creation-boundary.md` — Stage 7.3 implementation report for minimal assistant session creation use-case boundary.
-- `docs/reviews/stage-7-4-assistant-message-intake-boundary.md` — Stage 7.4 implementation report for minimal assistant message intake boundary.
-- `docs/reviews/stage-7-5-minimal-clarification-response-boundary.md` — Stage 7.5 implementation report for minimal placeholder clarification reply on assistant message intake.
-- `docs/reviews/stage-7-6-local-assistant-session-state-boundary.md` — Stage 7.6 implementation report for process-local assistant session state boundary.
-- `docs/reviews/stage-7-7-session-local-clarification-state-boundary.md` — Stage 7.7 implementation report for session-local clarification state metadata boundary.
-- `docs/reviews/stage-7-8-internal-hotel-requirements-slot-metadata-boundary.md` — Stage 7.8 implementation report for internal hotel requirements slot metadata boundary.
-- `docs/reviews/stage-7-9-internal-slot-coverage-clarification-planning-boundary.md` — Stage 7.9 implementation report for internal slot coverage / clarification planning boundary.
-- `docs/reviews/stage-7-10-backend-api-contract-alignment-checkpoint.md` — Stage 7.10 API / contract alignment checkpoint.
-- `docs/reviews/stage-7-11-assistant-api-runtime-contract-alignment-cleanup.md` — Stage 7.11 implementation report for bounded assistant API runtime contract alignment cleanup.
-- `docs/reviews/stage-7-12-internal-requirements-slot-update-boundary.md` — Stage 7.12 implementation report for internal requirements slot update boundary.
-- `docs/reviews/stage-7-13-generated-client-openapi-readiness-checkpoint.md` — Stage 7.13 generated-client / OpenAPI readiness checkpoint.
-- `docs/reviews/stage-7-14-generated-client-openapi-readiness-cleanup.md` — Stage 7.14 placeholder strategy and error taxonomy readiness cleanup.
-- `docs/reviews/stage-7-14-generated-client-openapi-readiness-cleanup-review.md` — Stage 7.14a review / quality gate for Stage 7.14 cleanup.
-- `docs/reviews/stage-7-15-assistant-response-semantics-search-readiness-boundary-cleanup.md` — Stage 7.15 assistant response semantics / search readiness boundary cleanup.
-- `docs/reviews/stage-7-15-assistant-response-semantics-search-readiness-boundary-cleanup-review.md` — Stage 7.15a review / quality gate for Stage 7.15 cleanup.
-- `docs/reviews/stage-7-15b-stage-7-13-7-15-documentation-status-sync.md` — Stage 7.15b documentation/status sync for Stage 7.13-7.15 audit trail.
-- `docs/reviews/stage-7-16-generated-client-openapi-conformance-gate-planning.md` — Stage 7.16 generated-client / OpenAPI conformance gate planning.
-- `docs/reviews/stage-7-17-generated-client-ready-subset-placeholder-exclusion-policy.md` — Stage 7.17 generated-client-ready subset / placeholder exclusion policy.
-- `docs/reviews/stage-7-18-conformance-gate-skeleton-planning-to-tooling.md` — Stage 7.18 conformance gate skeleton planning-to-tooling.
-- `docs/reviews/stage-7-19-conformance-gate-skeleton-implementation-planning.md` — Stage 7.19 conformance gate skeleton implementation planning / tooling decision.
-- `docs/reviews/stage-7-20-standalone-read-only-conformance-gate-skeleton-implementation.md` — Stage 7.20 standalone read-only conformance gate skeleton implementation.
-- `docs/reviews/stage-7-21-openapi-conformance-report-depth-tests.md` — Stage 7.21 tool-local read-only OpenAPI conformance report depth and tests.
-- `docs/reviews/stage-7-22-generated-client-ready-subset-manifest-planning.md` — Stage 7.22 planning по generated-client-ready subset manifest.
-- `docs/reviews/stage-7-23-generated-client-subset-manifest-schema-review.md` — Stage 7.23 schema review для будущего generated-client-ready subset manifest.
-- `docs/reviews/stage-7-24-openapi-conformance-manifest-validation-design.md` — Stage 7.24 design будущего manifest detection/schema validation для standalone OpenAPI conformance tool.
-- `docs/reviews/stage-7-25-openapi-conformance-manifest-detection-validation.md` — Stage 7.25 tool-local manifest detection/validation implementation для standalone OpenAPI conformance tool.
+**Documentation stabilization track:**
 
-**Явные исключения Stage 7.0b:** Stage 7.0b не реализует search business logic, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary или account flows.
+- [x] Stage 7.26 — Documentation Quality Calibration Audit
+- [x] Stage 7.27 — Documentation Governance Rules Cleanup
+- [x] Stage 7.28 — Roadmap Structure Refactor
+- [x] Stage 7.29 — Active Documentation Language Normalization
+- [x] Stage 7.30 — Documentation Final Quality Gate
 
-**Явные исключения Stage 7.2:** Stage 7.2 не реализует production assistant sessions, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
+**Resume development handoff:**
 
-**Явные исключения Stage 7.3:** Stage 7.3 не реализует session persistence/retrieval, production assistant sessions, message handling, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
+- [x] Stage 7.31 — Resume Development Handoff
 
-**Явные исключения Stage 7.4:** Stage 7.4 не реализует session persistence/retrieval, message history, assistant replies, clarification flow, requirements extraction, intent classification, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, LLM integration, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
+**Текущие исключения Stage 7 и неначатые работы:**
 
-**Явные исключения Stage 7.5:** Stage 7.5 не реализует session persistence/retrieval, message history, stateful clarification flow, requirements extraction, intent classification, LLM orchestration, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, DB migrations/entities/repositories, Redis/cache, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
+| Category | Status |
+|---|---|
+| Generated-client/OpenAPI readiness | Не заявлена |
+| Generated-client-ready subset | Не создан |
+| Generated clients | Не созданы |
+| Full conformance gate | Не реализован |
+| Real hotel search business logic, ranking and recommendation behavior | Не начаты |
+| Provider integration, provider-specific DTO/contracts and production integrations | Не начаты |
+| DB/storage, Redis/cache, auth/account flows and persistent account history | Не начаты |
+| Frontend, booking, payment, flights and combined itinerary | Не начаты / вне текущего MVP v1 scope, пока не активированы отдельно |
 
-**Явные исключения Stage 7.6:** Stage 7.6 не реализует durable persistence, DB/storage, Redis/cache, session retrieval/listing endpoints, message history, dynamic assistant replies, stateful clarification flow, requirements extraction, intent classification, LLM orchestration, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
+**Ключевой guardrail Stage 7:** завершенные Stage 7 slices не означают generated-client readiness, OpenAPI finalization, DB/storage activation, real provider integration, frontend implementation или Stage 8 activation. Любая следующая implementation, cleanup или expansion work требует отдельной явной roadmap-aligned задачи.
 
-**Явные исключения Stage 7.7:** Stage 7.7 не реализует durable persistence, DB/storage, Redis/cache, session retrieval/listing endpoints, message history, dynamic assistant replies, real stateful clarification flow, requirements extraction, intent classification, LLM orchestration, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
+**Stage 7 linked artifacts by group:**
 
-**Явные исключения Stage 7.8:** Stage 7.8 не реализует durable persistence, DB/storage, Redis/cache, session retrieval/listing endpoints, message history, dynamic assistant replies, real stateful clarification flow, requirements extraction, slot filling, intent classification, LLM orchestration, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
+| Group | Key artifacts |
+|---|---|
+| Backend foundation | `services/backend/`, `services/backend/README.md` |
+| Full review/audit trail | `docs/reviews/README.md` |
+| Stack correction and restart readiness | `project-consistency-audit.md`, `backend-stack-decision-sync.md`, `backend-skeleton-correction.md`, `stage-7-restart-readiness-review.md` |
+| Stage 7.2-7.15b implementation/readiness/status reports | См. `docs/reviews/README.md` |
+| Stage 7.16-7.25 generated-client/OpenAPI conformance reports | См. `docs/reviews/README.md` |
+| Stage 7.26-7.30 documentation stabilization reports | `stage-7-26-documentation-quality-calibration-audit.md`, `stage-7-27-documentation-governance-rules-cleanup.md`, `stage-7-28-roadmap-structure-refactor.md`, `stage-7-29-active-documentation-language-normalization.md`, `stage-7-30-documentation-final-quality-gate.md` |
+| Stage 7.31 resume development handoff | `stage-7-31-resume-development-handoff.md` |
 
-**Явные исключения Stage 7.9:** Stage 7.9 не реализует durable persistence, DB/storage, Redis/cache, session retrieval/listing endpoints, message history, dynamic assistant replies, real stateful clarification flow, requirements extraction, slot filling, intent classification, LLM orchestration, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, frontend code, generated clients, booking, payment, flights, combined itinerary, auth или account flows.
-
-**Явные исключения Stage 7.11:** Stage 7.11 не реализует generated clients, OpenAPI generation/finalization, durable persistence, DB/storage, Redis/cache, session retrieval/listing endpoints, message history, dynamic assistant replies, real stateful clarification flow, requirements extraction, slot filling, intent classification, LLM orchestration, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, frontend code, booking, payment, flights, combined itinerary, auth или account flows.
-
-**Явные исключения Stage 7.12:** Stage 7.12 не реализует public slot update endpoints, natural-language slot filling, requirements extraction, message parsing, message history, dynamic assistant replies, real stateful clarification flow, generated clients, OpenAPI generation/finalization, durable persistence, DB/storage, Redis/cache, session retrieval/listing endpoints, intent classification, LLM orchestration, production assistant sessions, shortlist behavior, hotel search business logic, ranking, provider integrations, provider-specific DTO/contracts, frontend code, booking, payment, flights, combined itinerary, auth или account flows.
-
-**Следующий шаг:** отдельная явная roadmap-aligned задача должна выбрать следующий bounded Stage 7 implementation step или конкретный bounded cleanup item. Stage 7.26+ не начаты после Stage 7.25. Remaining documentation cleanup не является open-ended blocker; это набор отдельных candidates, которые выполняются только через явные задачи. Stage 8+ остаются Planned.
+**Следующий шаг:** следующая bounded Stage 7 technical task, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status и `docs/reviews/stage-7-25-openapi-conformance-manifest-detection-validation.md`. Stage 8+ остаются Planned и не активированы. Generated-client/OpenAPI readiness не заявлена.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
-**Статус:** Planned.
+**Статус:** Запланирован.
 
 **Границы:** улучшение уточнений, объяснений, сравнения и устойчивости AI behaviour без привязки продукта к одному LLM provider.
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Planned.
+**Статус:** Запланирован.
 
 **Границы:** adapter design, provider-specific error handling, reliability и production-hardening вокруг реального provider/API после предоставления и активации нужных контрактов.
 
 ### Stage 10 — Cross-platform Expansion
 
-**Статус:** Planned.
+**Статус:** Запланирован.
 
 **Границы:** расширение за пределы первой платформы без переписывания product и domain logic.
 
@@ -366,11 +358,11 @@ Stage 7.0 stabilization завершена как bounded documentation/correcti
 
 ## 8. Связанные документы и audit trail
 
-- `docs/ROADMAP.md` — верхнеуровневый overview roadmap.
+- `docs/ROADMAP.md` — верхнеуровневый обзор roadmap.
 - `docs/product/README.md` — индекс продуктовой документации.
 - `docs/architecture/README.md` — индекс архитектурной документации.
-- `docs/development/roadmap.md` — compact development reference; только future/reference material.
-- `docs/development/milestones.md` — compact milestone vocabulary; только future/reference material.
+- `docs/development/roadmap.md` — компактный development reference; только future/reference material.
+- `docs/development/milestones.md` — компактный словарь milestones; только future/reference material.
 - `docs/development/implementation-strategy.md` — implementation strategy; future/reference material до активации.
-- `docs/reviews/README.md` — index review/audit artifacts и правила чтения historical/current cleanup reports.
-- `docs/reviews/stage-7-roadmap-readability-cleanup.md` — latest roadmap readability cleanup report.
+- `docs/reviews/README.md` — индекс review/audit artifacts и правила чтения historical/current cleanup reports.
+- `docs/reviews/stage-7-31-resume-development-handoff.md` — latest resume development handoff report.
