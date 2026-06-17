@@ -4,8 +4,15 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
+import { loadOpenApiInventory } from "./openapi.js";
 import { buildReport } from "./report.js";
-import type { ConformanceReport, OpenApiInventory, RuntimeRoute } from "./types.js";
+import { collectRuntimeRouteInventory } from "./route-inventory.js";
+import type {
+  AssistantContractShape,
+  ConformanceReport,
+  OpenApiInventory,
+  RuntimeRoute,
+} from "./types.js";
 import { inspectSubsetManifest } from "./subset-manifest.js";
 import type { SubsetManifestState } from "./subset-manifest.js";
 
@@ -156,6 +163,94 @@ describe("buildReport", () => {
     assert.deepEqual(report.blockingFindings, []);
   });
 
+  it("checks repository Assistant candidates and contract shape without readiness promotion", () => {
+    const repositoryRoot = path.resolve(process.cwd(), "../..");
+    const openApi = loadOpenApiInventory(repositoryRoot);
+    const routes = collectRuntimeRouteInventory(repositoryRoot);
+    const subsetManifest = inspectSubsetManifest(repositoryRoot);
+    const report = buildReport(openApi, routes, subsetManifest);
+
+    assert.ok(
+      report.checks.some(
+        (check) =>
+          check.name === "assistant_endpoint_candidate_inventory" &&
+          check.status === "passed",
+      ),
+    );
+    assert.ok(
+      report.checks.some(
+        (check) =>
+          check.name === "assistant_endpoint_contract_shape" &&
+          check.status === "passed",
+      ),
+    );
+    assert.ok(
+      report.checks.some(
+        (check) =>
+          check.name === "assistant_endpoint_runtime_semantics" &&
+          check.status === "advisory",
+      ),
+    );
+    assert.ok(
+      report.advisoryFindings.some(
+        (finding) =>
+          finding.code === "ASSISTANT_RUNTIME_SEMANTICS_NOT_CHECKED",
+      ),
+    );
+    assert.equal(report.status, "not_ready");
+    assert.equal(report.readinessClaim, false);
+    assert.deepEqual(report.blockingFindings, []);
+  });
+
+  it("reports Assistant contract shape drift as blocking without readiness promotion", () => {
+    const report = buildReport(
+      assistantOpenApiInventory({
+        nextActionRequired: false,
+      }),
+      assistantRuntimeRoutes(),
+      missingSubsetManifest(),
+    );
+
+    assert.ok(
+      report.checks.some(
+        (check) =>
+          check.name === "assistant_endpoint_contract_shape" &&
+          check.status === "failed",
+      ),
+    );
+    assert.ok(
+      report.blockingFindings.some(
+        (finding) =>
+          finding.code === "ASSISTANT_ENDPOINT_CONTRACT_SHAPE_MISMATCH",
+      ),
+    );
+    assert.equal(report.status, "not_ready");
+    assert.equal(report.readinessClaim, false);
+  });
+
+  it("keeps Assistant validation and maxLength runtime semantics advisory-only", () => {
+    const report = buildReport(
+      assistantOpenApiInventory({
+        validationErrorResponsesPresent: false,
+        messageMaxLength: undefined,
+      }),
+      assistantRuntimeRoutes(),
+      missingSubsetManifest(),
+    );
+
+    assert.deepEqual(report.blockingFindings, []);
+    assert.ok(
+      report.checks.some(
+        (check) =>
+          check.name === "assistant_endpoint_runtime_semantics" &&
+          check.status === "advisory" &&
+          check.summary.includes("message.maxLength is not declared"),
+      ),
+    );
+    assert.equal(report.status, "not_ready");
+    assert.equal(report.readinessClaim, false);
+  });
+
   it("reports structured schema errors for an invalid skeleton manifest", () => {
     const repositoryRoot = makeTempRepositoryRoot();
     const manifestPath = "invalid-generated-client-ready-subset.yaml";
@@ -274,6 +369,64 @@ function runtimeRoutes(): RuntimeRoute[] {
       path: "/api/v1/runtime-only",
       sourceFile: "services/backend/src/main/kotlin/com/travelassistant/backend/api/RuntimeOnlyRoutes.kt",
       line: 12,
+    },
+  ];
+}
+
+function assistantOpenApiInventory(
+  overrides: Partial<AssistantContractShape> = {},
+): OpenApiInventory {
+  return {
+    sourcePath: "docs/architecture/stage-6/openapi-draft.yaml",
+    detectedFromCandidates: [
+      {
+        path: "docs/architecture/stage-6/openapi-draft.yaml",
+        exists: true,
+      },
+    ],
+    openApiVersion: "3.1.0",
+    serverBasePath: "/api/v1",
+    operations: [
+      {
+        method: "post",
+        path: "/assistant/sessions",
+        fullPath: "/api/v1/assistant/sessions",
+        operationId: "createAssistantSession",
+      },
+      {
+        method: "post",
+        path: "/assistant/sessions/{sessionId}/messages",
+        fullPath: "/api/v1/assistant/sessions/{sessionId}/messages",
+        operationId: "continueAssistantSession",
+      },
+    ],
+    assistantContractShape: {
+      createSessionRequestBodyOptional: true,
+      continueSessionRequestBodyRequired: true,
+      messageRequired: true,
+      clientContextOptional: true,
+      nextActionRequired: true,
+      sessionNotFoundResponsePresent: true,
+      validationErrorResponsesPresent: true,
+      messageMaxLength: 4000,
+      ...overrides,
+    },
+  };
+}
+
+function assistantRuntimeRoutes(): RuntimeRoute[] {
+  return [
+    {
+      method: "post",
+      path: "/api/v1/assistant/sessions",
+      sourceFile: "services/backend/src/main/kotlin/com/travelassistant/backend/api/AssistantPlaceholderRoutes.kt",
+      line: 26,
+    },
+    {
+      method: "post",
+      path: "/api/v1/assistant/sessions/{sessionId}/messages",
+      sourceFile: "services/backend/src/main/kotlin/com/travelassistant/backend/api/AssistantPlaceholderRoutes.kt",
+      line: 59,
     },
   ];
 }

@@ -3,6 +3,7 @@ import path from "node:path";
 import { parse } from "yaml";
 import { DEFAULT_OPENAPI_CANDIDATES, joinRoutePath } from "./paths.js";
 import type {
+  AssistantContractShape,
   HttpMethod,
   OpenApiInventory,
   OpenApiOperation,
@@ -76,6 +77,7 @@ export function loadOpenApiInventory(
     openApiVersion,
     serverBasePath,
     operations,
+    assistantContractShape: inspectAssistantContractShape(document),
   };
 }
 
@@ -135,8 +137,79 @@ function extractOperations(
   );
 }
 
+function inspectAssistantContractShape(
+  document: Record<string, unknown>,
+): AssistantContractShape {
+  const paths = recordValue(document.paths);
+  const components = recordValue(document.components);
+  const schemas = recordValue(components?.schemas);
+  const createSession = operationValue(paths, "/assistant/sessions", "post");
+  const continueSession = operationValue(
+    paths,
+    "/assistant/sessions/{sessionId}/messages",
+    "post",
+  );
+  const requestSchema = recordValue(schemas?.AssistantMessageRequest);
+  const responseSchema = recordValue(schemas?.AssistantMessageResponse);
+  const requestProperties = recordValue(requestSchema?.properties);
+  const messageProperty = recordValue(requestProperties?.message);
+
+  return {
+    createSessionRequestBodyOptional:
+      recordValue(createSession?.requestBody)?.required === false,
+    continueSessionRequestBodyRequired:
+      recordValue(continueSession?.requestBody)?.required === true,
+    messageRequired: stringArray(requestSchema?.required).includes("message"),
+    clientContextOptional:
+      recordValue(requestProperties?.clientContext) !== undefined &&
+      !stringArray(requestSchema?.required).includes("clientContext"),
+    nextActionRequired: stringArray(responseSchema?.required).includes("nextAction"),
+    sessionNotFoundResponsePresent:
+      responseRef(continueSession, "404") ===
+      "#/components/responses/SessionNotFound",
+    validationErrorResponsesPresent:
+      responseRef(createSession, "400") ===
+        "#/components/responses/ValidationError" &&
+      responseRef(continueSession, "400") ===
+        "#/components/responses/ValidationError",
+    messageMaxLength: numberValue(messageProperty?.maxLength),
+  };
+}
+
+function operationValue(
+  paths: Record<string, unknown> | undefined,
+  apiPath: string,
+  method: HttpMethod,
+): Record<string, unknown> | undefined {
+  return recordValue(recordValue(paths?.[apiPath])?.[method]);
+}
+
+function responseRef(
+  operation: Record<string, unknown> | undefined,
+  statusCode: string,
+): string | undefined {
+  const responses = recordValue(operation?.responses);
+  return stringValue(recordValue(responses?.[statusCode])?.$ref);
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function recordValue(
+  value: unknown,
+): Record<string, unknown> | undefined {
+  return isRecord(value) ? value : undefined;
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function numberValue(value: unknown): number | undefined {
+  return typeof value === "number" ? value : undefined;
 }
 
 function stringValue(value: unknown): string | undefined {
