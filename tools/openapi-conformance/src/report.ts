@@ -212,8 +212,13 @@ function buildAssistantCandidateChecks(
   const shapeExpectations: Array<[string, boolean]> = [
     ["create-session requestBody optional", shape.createSessionRequestBodyOptional],
     ["message requestBody required", shape.continueSessionRequestBodyRequired],
+    ["AssistantMessageRequest.message property present", shape.messagePropertyPresent],
     ["AssistantMessageRequest.message required", shape.messageRequired],
     ["AssistantMessageRequest.clientContext optional", shape.clientContextOptional],
+    [
+      "AssistantMessageResponse.nextAction property present",
+      shape.nextActionPropertyPresent,
+    ],
     ["AssistantMessageResponse.nextAction required", shape.nextActionRequired],
     ["message endpoint 404 response present", shape.sessionNotFoundResponsePresent],
   ];

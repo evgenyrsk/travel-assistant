@@ -9,8 +9,8 @@ Roadmap не является task tracker, продуктовой специф�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 7 — реализация MVP / ожидает отдельную явную задачу |
-| Последний завершенный этап | Stage 7.43 — Assistant Endpoint Conformance Candidate Verification |
-| Следующий планируемый шаг | Stage 7.44 — Assistant Conformance Shape Guard Hardening, только через отдельную явную roadmap-aligned задачу |
+| Последний завершенный этап | Stage 7.44 — Assistant Conformance Shape Guard Hardening |
+| Следующий планируемый шаг | Stage 7.45 — Assistant Conformance Output Documentation / Operator Guidance, только через отдельную явную roadmap-aligned задачу |
 | Подробный roadmap/status source of truth | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -31,6 +31,7 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 7 assistant endpoint conformance/tooling follow-up decision | Stage 7.41 завершен; будущие Assistant endpoint conformance/tooling checks классифицированы без conformance tool implementation, production backend changes, OpenAPI changes, manifest expansion, generated clients или readiness claim |
 | Stage 7 assistant endpoint conformance candidate implementation | Stage 7.42 завершен; static/advisory Assistant endpoint candidate checks добавлены без backend runtime HTTP checks, OpenAPI changes, manifest expansion, generated clients, CI/Gradle gate или readiness claim |
 | Stage 7 assistant endpoint conformance candidate verification | Stage 7.43 завершен; Stage 7.42 подтвержден как bounded/readiness-safe implementation, один Minor shape-guard hardening candidate перенесен в отдельный future stage без tool/backend/OpenAPI/manifest/generated-client/CI changes |
+| Stage 7 assistant conformance shape guard hardening | Stage 7.44 завершен; property presence и required membership для `message`/`nextAction` проверяются отдельно, candidate inventory mismatch test добавлен, advisory/runtime/readiness boundaries сохранены |
 | Generated-client/OpenAPI readiness | Не заявлена |
 | Generated-client-ready subset / generated clients | Non-readiness manifest candidate создан; generated-client-ready subset/readiness и generated clients не созданы |
 | Full conformance gate | Не реализован |
@@ -46,7 +47,7 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
-| Stage 7 | В работе / ожидает отдельную явную задачу | Bounded Kotlin + Ktor backend foundation, assistant boundaries, conformance-tool work, documentation stabilization, resume-development handoff, technical context review, manifest candidate definition, manifest validation hardening, endpoint candidate review, assistant endpoint candidate clarification, contract/runtime alignment notes, cleanup decision, contract shape cleanup, runtime contract test cleanup, conformance/tooling follow-up decision, conformance candidate implementation и verification завершены до Stage 7.43 включительно. Подробности см. в Stage 7 checklist ниже. |
+| Stage 7 | В работе / ожидает отдельную явную задачу | Bounded Kotlin + Ktor backend foundation, assistant boundaries, conformance-tool work, documentation stabilization, resume-development handoff, technical context review, manifest candidate definition, manifest validation hardening, endpoint candidate review, assistant endpoint candidate clarification, contract/runtime alignment notes, cleanup decision, contract shape cleanup, runtime contract test cleanup, conformance/tooling follow-up decision, conformance candidate implementation, verification и shape guard hardening завершены до Stage 7.44 включительно. Подробности см. в Stage 7 checklist ниже. |
 | Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
@@ -318,6 +319,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Assistant endpoint conformance/tooling follow-up decision | Stage 7.41 | Будущие Assistant endpoint conformance/tooling checks классифицированы; conformance tool implementation, production backend behavior, OpenAPI contracts, manifest, generated clients и readiness state не изменены. |
 | Assistant endpoint conformance candidate implementation | Stage 7.42 | Static/advisory Assistant endpoint candidate checks добавлены; backend runtime HTTP checks, OpenAPI contracts, manifest, generated clients, CI/Gradle gate и readiness state не изменены. |
 | Assistant endpoint conformance candidate verification | Stage 7.43 | Stage 7.42 проверен на Stage 7.41 alignment, bounded scope, static/advisory distinction и readiness safety; Critical/Major findings отсутствуют, один Minor hardening candidate оставлен отдельному future stage. |
+| Assistant conformance shape guard hardening | Stage 7.44 | Property presence и required membership для `message`/`nextAction` проверяются отдельно; добавлен targeted negative inventory test; runtime semantics остаются advisory-only, readiness state не изменен. |
 
 **Documentation stabilization track:**
 
@@ -379,6 +381,10 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 - [x] Stage 7.43 — Assistant Endpoint Conformance Candidate Verification
 
+**Assistant conformance shape guard hardening:**
+
+- [x] Stage 7.44 — Assistant Conformance Shape Guard Hardening
+
 **Текущие исключения Stage 7 и неначатые работы:**
 
 | Category | Status |
@@ -417,8 +423,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 7.41 assistant endpoint conformance/tooling follow-up decision | `stage-7-41-assistant-endpoint-conformance-tooling-follow-up-decision.md` |
 | Stage 7.42 assistant endpoint conformance candidate implementation | `stage-7-42-assistant-endpoint-conformance-candidate-implementation.md` |
 | Stage 7.43 assistant endpoint conformance candidate verification | `stage-7-43-assistant-endpoint-conformance-candidate-verification.md` |
+| Stage 7.44 assistant conformance shape guard hardening | `stage-7-44-assistant-conformance-shape-guard-hardening.md` |
 
-**Следующий шаг:** Stage 7.44 — Assistant Conformance Shape Guard Hardening, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status, `docs/reviews/stage-7-41-assistant-endpoint-conformance-tooling-follow-up-decision.md`, `docs/reviews/stage-7-42-assistant-endpoint-conformance-candidate-implementation.md`, `docs/reviews/stage-7-43-assistant-endpoint-conformance-candidate-verification.md`, `tools/openapi-conformance/README.md` и relevant files under `tools/openapi-conformance/src/`. Stage 7.44 должен оставаться маленьким implementation-focused этапом только для property-presence guardrails и targeted inventory-drift test; он не должен менять manifest, OpenAPI contracts, backend runtime, generated clients, подключать CI/Gradle gate, запускать runtime HTTP checks или заявлять readiness. Stage 8+ остаются Planned и не активированы. Generated-client/OpenAPI readiness не заявлена.
+**Следующий шаг:** Stage 7.45 — Assistant Conformance Output Documentation / Operator Guidance, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status, `docs/reviews/stage-7-42-assistant-endpoint-conformance-candidate-implementation.md`, `docs/reviews/stage-7-43-assistant-endpoint-conformance-candidate-verification.md`, `docs/reviews/stage-7-44-assistant-conformance-shape-guard-hardening.md` и `tools/openapi-conformance/README.md`. Stage 7.45 должен быть узким documentation-only этапом для интерпретации Assistant static checks, blocking/advisory findings и non-readiness output; он не должен менять tool behavior, manifest, OpenAPI contracts, backend runtime, generated clients, frontend, CI/Gradle или заявлять readiness. Stage 8+ остаются Planned и не активированы. Generated-client/OpenAPI readiness не заявлена.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 

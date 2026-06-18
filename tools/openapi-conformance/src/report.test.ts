@@ -205,6 +205,9 @@ describe("buildReport", () => {
   it("reports Assistant contract shape drift as blocking without readiness promotion", () => {
     const report = buildReport(
       assistantOpenApiInventory({
+        messagePropertyPresent: false,
+        messageRequired: false,
+        nextActionPropertyPresent: false,
         nextActionRequired: false,
       }),
       assistantRuntimeRoutes(),
@@ -215,13 +218,47 @@ describe("buildReport", () => {
       report.checks.some(
         (check) =>
           check.name === "assistant_endpoint_contract_shape" &&
-          check.status === "failed",
+          check.status === "failed" &&
+          check.summary.includes(
+            "AssistantMessageRequest.message property present",
+          ) &&
+          check.summary.includes("AssistantMessageRequest.message required") &&
+          check.summary.includes(
+            "AssistantMessageResponse.nextAction property present",
+          ) &&
+          check.summary.includes(
+            "AssistantMessageResponse.nextAction required",
+          ),
       ),
     );
     assert.ok(
       report.blockingFindings.some(
         (finding) =>
           finding.code === "ASSISTANT_ENDPOINT_CONTRACT_SHAPE_MISMATCH",
+      ),
+    );
+    assert.equal(report.status, "not_ready");
+    assert.equal(report.readinessClaim, false);
+  });
+
+  it("reports missing Assistant candidate inventory as blocking without readiness promotion", () => {
+    const report = buildReport(
+      assistantOpenApiInventory(),
+      assistantRuntimeRoutes().slice(0, 1),
+      missingSubsetManifest(),
+    );
+
+    assert.ok(
+      report.checks.some(
+        (check) =>
+          check.name === "assistant_endpoint_candidate_inventory" &&
+          check.status === "failed",
+      ),
+    );
+    assert.ok(
+      report.blockingFindings.some(
+        (finding) =>
+          finding.code === "ASSISTANT_ENDPOINT_CANDIDATE_INVENTORY_MISMATCH",
       ),
     );
     assert.equal(report.status, "not_ready");
@@ -403,8 +440,10 @@ function assistantOpenApiInventory(
     assistantContractShape: {
       createSessionRequestBodyOptional: true,
       continueSessionRequestBodyRequired: true,
+      messagePropertyPresent: true,
       messageRequired: true,
       clientContextOptional: true,
+      nextActionPropertyPresent: true,
       nextActionRequired: true,
       sessionNotFoundResponsePresent: true,
       validationErrorResponsesPresent: true,

@@ -31,7 +31,7 @@ npm install
 - placeholder endpoints остаются видимыми как excluded/foundation-only;
 - выводится `endpointClassificationSummary` с количеством `foundation_candidate`, `placeholder_excluded`, `runtime_only` и `unclassified` endpoints;
 - статически проверяется presence/classification двух Assistant foundation candidates в OpenAPI и Ktor route inventories;
-- статически проверяется bounded Assistant contract shape: request-body required/optional semantics, required `message`, optional `clientContext`, required `nextAction` и наличие `404` response на message endpoint;
+- статически проверяется bounded Assistant contract shape: request-body required/optional semantics, presence и required status для `message`/`nextAction`, optional `clientContext` и наличие `404` response на message endpoint;
 - runtime semantics для `clientContext`, empty-object validation, malformed/unknown JSON и `message.maxLength` enforcement остаются advisory и не проверяются через HTTP;
 - generated-client compile checks и runtime HTTP contract tests выводятся как `future_only` / `not_run`.
 
