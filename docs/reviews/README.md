@@ -91,6 +91,7 @@
 | `stage-7-42-assistant-endpoint-conformance-candidate-implementation.md` | Завершенный bounded implementation report / Stage 7.42 | Добавляет static/advisory Assistant endpoint conformance candidate checks без backend runtime HTTP checks, OpenAPI changes, manifest expansion, generated clients, CI/Gradle gate, readiness claim или Stage 8 activation. |
 | `stage-7-43-assistant-endpoint-conformance-candidate-verification.md` | Завершенный review-only verification report / Stage 7.43 | Проверяет Stage 7.42 на соответствие Stage 7.41, bounded static/advisory scope и readiness safety; фиксирует один Minor hardening candidate без tool/backend/OpenAPI/manifest/generated-client/CI changes или readiness claim. |
 | `stage-7-44-assistant-conformance-shape-guard-hardening.md` | Завершенный bounded implementation report / Stage 7.44 | Закрывает Stage 7.43 findings: отдельно проверяет property presence и required membership для `message`/`nextAction`, добавляет candidate inventory mismatch test и сохраняет advisory/runtime/readiness boundaries. |
+| `stage-7-45-assistant-conformance-output-operator-guidance.md` | Завершенный documentation/tooling-guidance report / Stage 7.45 | Документирует запуск и интерпретацию conformance JSON output, Assistant static/advisory checks и non-readiness boundaries без изменения tool logic, tests, backend, OpenAPI, manifest, generated clients или CI/Gradle. |
 
 ## Inventory review artifacts
 
@@ -158,6 +159,7 @@
 | `stage-7-42-assistant-endpoint-conformance-candidate-implementation.md` | Завершенный bounded implementation report | Stage 7.42 реализует static/advisory Assistant endpoint candidate checks и рекомендует отдельный Stage 7.43 verification без readiness claim. |
 | `stage-7-43-assistant-endpoint-conformance-candidate-verification.md` | Завершенный review-only verification report | Stage 7.43 подтверждает bounded/readiness-safe реализацию Stage 7.42 и рекомендует отдельный narrow Stage 7.44 hardening без readiness claim. |
 | `stage-7-44-assistant-conformance-shape-guard-hardening.md` | Завершенный bounded implementation report | Stage 7.44 усиливает property-presence shape guards и negative inventory coverage без runtime checks, manifest/generated-client expansion или readiness claim. |
+| `stage-7-45-assistant-conformance-output-operator-guidance.md` | Завершенный documentation/tooling-guidance report | Stage 7.45 добавляет compact operator guidance для conformance output и рекомендует отдельную Stage 7.46 verification без readiness claim. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -230,8 +232,9 @@
 59. `docs/reviews/stage-7-42-assistant-endpoint-conformance-candidate-implementation.md`
 60. `docs/reviews/stage-7-43-assistant-endpoint-conformance-candidate-verification.md`
 61. `docs/reviews/stage-7-44-assistant-conformance-shape-guard-hardening.md`
-62. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
-63. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
+62. `docs/reviews/stage-7-45-assistant-conformance-output-operator-guidance.md`
+63. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
+64. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
 
 ## Historical / superseded документы
 
