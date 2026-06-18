@@ -18,6 +18,49 @@ npm install
 ./check
 ```
 
+Локальные команды из директории `tools/openapi-conformance`:
+
+```bash
+npm run check
+npm test
+npm run build
+```
+
+`./tools/openapi-conformance/check` и `npm run check` формируют JSON report в `stdout`.
+
+## Как читать output
+
+| Поле | Интерпретация |
+|---|---|
+| `status: "not_ready"` | Ожидаемое состояние текущего Stage 7, а не ошибка команды. Tool намеренно не подтверждает readiness. |
+| `readinessClaim: false` | Generated-client readiness, manifest expansion readiness и final Stage 7 readiness не заявлены. |
+| `blockingFindings` | Static/schema/manifest drift, который требует отдельного решения или исправления. Наличие finding не меняет `status` на `ready` и само по себе не делает tool CI gate. |
+| `advisoryFindings` | Наблюдения и ограничения текущего read-only/static режима. Они не являются blocking findings. |
+| `checks` | Результаты выполненных static/advisory checks; каждый check нужно читать вместе с его `status` и `summary`. |
+| `futureOnlyChecks` | Проверки, которые не выполняются в текущем scope, например generated-client compile и runtime HTTP contract tests. |
+
+Успешный exit code `0` означает, что JSON report сформирован. Он не означает generated-client readiness или завершение Stage 7. Для текущего repository state ожидаются `blockingFindings: []`, `status: "not_ready"` и `readinessClaim: false`.
+
+### Assistant checks
+
+- `assistant_endpoint_candidate_inventory` — enforced static check наличия и classification двух Assistant foundation candidates в OpenAPI/static Ktor inventories; runtime behavior не проверяет.
+- `assistant_endpoint_contract_shape` — enforced bounded static check request/response shape, включая presence и required status для `message`/`nextAction`, optional `clientContext` и `404` contract response.
+- `assistant_endpoint_runtime_semantics` — advisory-only observation. `clientContext` behavior, empty-object validation, malformed/unknown JSON и `message.maxLength` runtime enforcement не проверяются.
+- `ASSISTANT_RUNTIME_SEMANTICS_NOT_CHECKED` в `advisoryFindings` явно напоминает, что static tool не делает runtime validation.
+
+Enforced static checks могут добавить finding в `blockingFindings`. Advisory checks и observations остаются advisory и не должны трактоваться как runtime failure или readiness evidence.
+
+### Что tool не делает
+
+- не запускает backend server;
+- не выполняет HTTP/network calls;
+- не валидирует live runtime behavior;
+- не генерирует и не компилирует clients;
+- не расширяет generated-client-ready subset manifest;
+- не меняет OpenAPI source;
+- не является CI/Gradle gate;
+- не заявляет generated-client, manifest expansion, final Stage 7 или runtime HTTP validation readiness.
+
 ## Что проверяется
 
 - определяется OpenAPI source, по умолчанию `docs/architecture/stage-6/openapi-draft.yaml`;
