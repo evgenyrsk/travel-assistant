@@ -34,8 +34,10 @@ export interface OpenApiInventory {
 export interface AssistantContractShape {
   createSessionRequestBodyOptional: boolean;
   continueSessionRequestBodyRequired: boolean;
+  messagePropertyPresent: boolean;
   messageRequired: boolean;
   clientContextOptional: boolean;
+  nextActionPropertyPresent: boolean;
   nextActionRequired: boolean;
   sessionNotFoundResponsePresent: boolean;
   validationErrorResponsesPresent: boolean;

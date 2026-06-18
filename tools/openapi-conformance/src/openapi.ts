@@ -152,6 +152,7 @@ function inspectAssistantContractShape(
   const requestSchema = recordValue(schemas?.AssistantMessageRequest);
   const responseSchema = recordValue(schemas?.AssistantMessageResponse);
   const requestProperties = recordValue(requestSchema?.properties);
+  const responseProperties = recordValue(responseSchema?.properties);
   const messageProperty = recordValue(requestProperties?.message);
 
   return {
@@ -159,10 +160,13 @@ function inspectAssistantContractShape(
       recordValue(createSession?.requestBody)?.required === false,
     continueSessionRequestBodyRequired:
       recordValue(continueSession?.requestBody)?.required === true,
+    messagePropertyPresent: messageProperty !== undefined,
     messageRequired: stringArray(requestSchema?.required).includes("message"),
     clientContextOptional:
       recordValue(requestProperties?.clientContext) !== undefined &&
       !stringArray(requestSchema?.required).includes("clientContext"),
+    nextActionPropertyPresent:
+      recordValue(responseProperties?.nextAction) !== undefined,
     nextActionRequired: stringArray(responseSchema?.required).includes("nextAction"),
     sessionNotFoundResponsePresent:
       responseRef(continueSession, "404") ===
