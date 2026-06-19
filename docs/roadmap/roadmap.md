@@ -9,8 +9,8 @@ Roadmap не является task tracker, продуктовой специф�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 7 — реализация MVP / ожидает отдельную явную задачу |
-| Последний завершенный этап | Stage 7.46 — Assistant Conformance Documentation Verification |
-| Следующий планируемый шаг | Stage 7.47 — Assistant Conformance Stage Summary / Carryover Decision, только через отдельную явную roadmap-aligned задачу |
+| Последний завершенный этап | Stage 7.47 — Сверка оставшегося объёма Stage 7 |
+| Следующий планируемый шаг | Stage 7.48 — Минимальный backend-поток поиска отелей с `fake provider`, только через отдельную явную roadmap-aligned задачу |
 | Подробный roadmap/status source of truth | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -34,6 +34,7 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 7 assistant conformance shape guard hardening | Stage 7.44 завершен; property presence и required membership для `message`/`nextAction` проверяются отдельно, candidate inventory mismatch test добавлен, advisory/runtime/readiness boundaries сохранены |
 | Stage 7 assistant conformance output/operator guidance | Stage 7.45 завершен; запуск и интерпретация JSON output, static/blocking/advisory semantics и Assistant checks документированы без изменения tool logic, tests или readiness state |
 | Stage 7 assistant conformance documentation verification | Stage 7.46 завершен; Stage 7.45 guidance подтвержден относительно фактического tool output, source-of-truth roles и readiness boundaries без изменения README, tool logic/tests или implementation areas |
+| Сверка оставшегося объёма Stage 7 | Stage 7.47 завершен; Assistant conformance подпоток признан достаточно закрытым, а обязательный остаток Stage 7 возвращён к hotel search, offers, ranking/explanation и end-to-end MVP behavior |
 | Generated-client/OpenAPI readiness | Не заявлена |
 | Generated-client-ready subset / generated clients | Non-readiness manifest candidate создан; generated-client-ready subset/readiness и generated clients не созданы |
 | Full conformance gate | Не реализован |
@@ -49,7 +50,7 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
-| Stage 7 | В работе / ожидает отдельную явную задачу | Bounded Kotlin + Ktor backend foundation, assistant boundaries, conformance-tool work, documentation stabilization, resume-development handoff, technical context review, manifest candidate definition, manifest validation hardening, endpoint candidate review, assistant endpoint candidate clarification, contract/runtime alignment notes, cleanup decision, contract shape cleanup, runtime contract test cleanup, conformance/tooling follow-up decision, conformance candidate implementation, verification, shape guard hardening, operator guidance и documentation verification завершены до Stage 7.46 включительно. Подробности см. в Stage 7 checklist ниже. |
+| Stage 7 | В работе / ожидает отдельную явную задачу | Backend/Assistant foundation, contract/runtime cleanup, conformance-tool guardrails и documentation stabilization завершены до Stage 7.47 включительно. Основной hotel-only MVP flow, hotel search/offers, ranking/explanation и frontend end-to-end остаются не реализованы. Подробности см. в Stage 7 checklist ниже. |
 | Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
@@ -324,6 +325,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Assistant conformance shape guard hardening | Stage 7.44 | Property presence и required membership для `message`/`nextAction` проверяются отдельно; добавлен targeted negative inventory test; runtime semantics остаются advisory-only, readiness state не изменен. |
 | Assistant conformance output/operator guidance | Stage 7.45 | Документированы команды запуска, интерпретация `not_ready`/`readinessClaim`, blocking/advisory findings и Assistant checks; tool logic, tests и readiness state не изменены. |
 | Assistant conformance documentation verification | Stage 7.46 | Operator guidance проверен относительно фактического JSON output, static/advisory behavior и source-of-truth boundaries; factual inconsistencies и readiness overclaims не найдены. |
+| Сверка оставшегося объёма Stage 7 | Stage 7.47 | Подтверждено, что conformance подпоток не требует дальнейшего дробления; следующий практический шаг возвращён к минимальному hotel search flow с `fake provider`. |
 
 **Documentation stabilization track:**
 
@@ -397,6 +399,10 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 - [x] Stage 7.46 — Assistant Conformance Documentation Verification
 
+**Сверка оставшегося объёма Stage 7:**
+
+- [x] Stage 7.47 — Сверка оставшегося объёма Stage 7
+
 **Текущие исключения Stage 7 и неначатые работы:**
 
 | Category | Status |
@@ -438,8 +444,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 7.44 assistant conformance shape guard hardening | `stage-7-44-assistant-conformance-shape-guard-hardening.md` |
 | Stage 7.45 assistant conformance output/operator guidance | `stage-7-45-assistant-conformance-output-operator-guidance.md` |
 | Stage 7.46 assistant conformance documentation verification | `stage-7-46-assistant-conformance-documentation-verification.md` |
+| Stage 7.47 remaining scope review | `stage-7-47-stage-7-remaining-scope-review.md` |
 
-**Следующий шаг:** Stage 7.47 — Assistant Conformance Stage Summary / Carryover Decision, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status, Stage 7.41-7.46 reports и `tools/openapi-conformance/README.md`. Stage 7.47 должен быть narrow review/decision-only этапом для сводки результатов Assistant conformance track, классификации оставшегося carryover и выбора следующего bounded roadmap step; он не должен менять tool logic/tests, manifest, OpenAPI contracts, backend runtime, generated clients, frontend, CI/Gradle или заявлять readiness. Stage 8+ остаются Planned и не активированы. Generated-client/OpenAPI readiness не заявлена.
+**Следующий шаг:** Stage 7.48 — Минимальный backend-поток поиска отелей с `fake provider`, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status, `docs/reviews/stage-7-47-stage-7-remaining-scope-review.md`, backend layering/development rules, `services/backend/README.md` и Stage 6 hotel search contract context. Stage 7.48 должен быть небольшим implementation-focused этапом: provider-agnostic hotel offer model, deterministic `fake provider`, минимальный hotel search application flow и targeted backend tests. Он не должен включать real provider/API integration, ranking, frontend, generated clients, manifest expansion, conformance tool changes, CI/Gradle integration, Stage 8 activation или readiness claims. Generated-client/OpenAPI readiness не заявлена.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
