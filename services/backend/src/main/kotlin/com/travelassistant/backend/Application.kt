@@ -3,6 +3,11 @@ package com.travelassistant.backend
 import com.travelassistant.backend.api.configureApiRoutes
 import com.travelassistant.backend.api.configureErrorHandling
 import com.travelassistant.backend.api.configureSerialization
+import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
+import com.travelassistant.backend.application.assistant.InMemoryAssistantSessionStateStore
+import com.travelassistant.backend.application.hotel.CreateHotelSearchUseCase
+import com.travelassistant.backend.application.hotel.InMemoryHotelSearchStateStore
+import com.travelassistant.backend.infrastructure.provider.FakeHotelOfferProvider
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -17,7 +22,20 @@ fun main() {
 }
 
 fun Application.module() {
+    val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
+    val assistantSessionBoundary = CreateAssistantSessionUseCase(
+        sessionStateStore = assistantSessionStateStore,
+    )
+    val hotelSearchBoundary = CreateHotelSearchUseCase(
+        assistantSessionStateStore = assistantSessionStateStore,
+        hotelOfferProvider = FakeHotelOfferProvider(),
+        hotelSearchStateStore = InMemoryHotelSearchStateStore(),
+    )
+
     configureSerialization()
     configureErrorHandling()
-    configureApiRoutes()
+    configureApiRoutes(
+        assistantSessionBoundary = assistantSessionBoundary,
+        hotelSearchBoundary = hotelSearchBoundary,
+    )
 }

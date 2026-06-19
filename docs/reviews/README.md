@@ -94,6 +94,7 @@
 | `stage-7-45-assistant-conformance-output-operator-guidance.md` | Завершенный documentation/tooling-guidance report / Stage 7.45 | Документирует запуск и интерпретацию conformance JSON output, Assistant static/advisory checks и non-readiness boundaries без изменения tool logic, tests, backend, OpenAPI, manifest, generated clients или CI/Gradle. |
 | `stage-7-46-assistant-conformance-documentation-verification.md` | Завершенный review-only verification report / Stage 7.46 | Подтверждает соответствие Stage 7.45 operator guidance фактическому output, source-of-truth roles и readiness boundaries без изменения README, tool logic/tests или implementation areas. |
 | `stage-7-47-stage-7-remaining-scope-review.md` | Завершенный review/decision report / Stage 7.47 | Сверяет весь Stage 7, закрывает дальнейшее дробление Assistant conformance подпотока и возвращает следующий шаг к практическому hotel search flow с `fake provider`. |
+| `stage-7-48-minimal-backend-hotel-search-fake-provider.md` | Завершенный backend implementation report / Stage 7.48 | Добавляет process-local hotel search flow и детерминированный `FakeHotelOfferProvider` без real provider, ranking, frontend, generated clients, manifest/CI/tool changes или readiness claims. |
 
 ## Inventory review artifacts
 
@@ -164,6 +165,7 @@
 | `stage-7-45-assistant-conformance-output-operator-guidance.md` | Завершенный documentation/tooling-guidance report | Stage 7.45 добавляет compact operator guidance для conformance output и рекомендует отдельную Stage 7.46 verification без readiness claim. |
 | `stage-7-46-assistant-conformance-documentation-verification.md` | Завершенный review-only verification report | Stage 7.46 подтверждает точность operator guidance относительно текущего tool output и рекомендует отдельный Stage 7.47 summary/carryover decision без readiness claim. |
 | `stage-7-47-stage-7-remaining-scope-review.md` | Завершенный review/decision report | Stage 7.47 фиксирует обязательный остаток всего Stage 7 и рекомендует практический Stage 7.48 hotel search slice вместо новых conformance микроэтапов. |
+| `stage-7-48-minimal-backend-hotel-search-fake-provider.md` | Завершенный backend implementation report | Stage 7.48 реализует минимальный fake-provider hotel search flow и рекомендует следующий практический ranking slice без Stage 7/readiness claims. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -239,8 +241,9 @@
 62. `docs/reviews/stage-7-45-assistant-conformance-output-operator-guidance.md`
 63. `docs/reviews/stage-7-46-assistant-conformance-documentation-verification.md`
 64. `docs/reviews/stage-7-47-stage-7-remaining-scope-review.md`
-65. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
-66. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
+65. `docs/reviews/stage-7-48-minimal-backend-hotel-search-fake-provider.md`
+66. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
+67. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
 
 ## Historical / superseded документы
 

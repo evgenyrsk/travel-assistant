@@ -41,6 +41,9 @@ enum class ErrorCode {
     @SerialName("SESSION_NOT_FOUND")
     SESSION_NOT_FOUND,
 
+    @SerialName("HOTEL_SEARCH_NOT_FOUND")
+    HOTEL_SEARCH_NOT_FOUND,
+
     @SerialName("INTERNAL_ERROR")
     INTERNAL_ERROR,
 }

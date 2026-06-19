@@ -3,8 +3,8 @@ package com.travelassistant.backend.application.hotel
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 
-interface HotelSearchBoundary {
-    fun createSearch(command: CreateHotelSearchCommand): HotelSearch
+interface HotelSearchStateStore {
+    fun save(search: HotelSearch): HotelSearch
 
-    fun getSearch(searchId: HotelSearchId): HotelSearch
+    fun findById(searchId: HotelSearchId): HotelSearch?
 }
