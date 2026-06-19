@@ -9,8 +9,8 @@ Roadmap не является task tracker, продуктовой специф�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 7 — реализация MVP / ожидает отдельную явную задачу |
-| Последний завершенный этап | Stage 7.48 — Минимальный backend-поток поиска отелей с `fake provider` |
-| Следующий планируемый шаг | Stage 7.49 — Минимальное ранжирование hotel offers, только через отдельную явную roadmap-aligned задачу |
+| Последний завершенный этап | Stage 7.49 — Минимальное ранжирование hotel offers |
+| Следующий планируемый шаг | Stage 7.50 — Минимальный `Assistant-to-search handoff`, только через отдельную явную roadmap-aligned задачу |
 | Подробный roadmap/status source of truth | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -36,10 +36,11 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 7 assistant conformance documentation verification | Stage 7.46 завершен; Stage 7.45 guidance подтвержден относительно фактического tool output, source-of-truth roles и readiness boundaries без изменения README, tool logic/tests или implementation areas |
 | Сверка оставшегося объёма Stage 7 | Stage 7.47 завершен; Assistant conformance подпоток признан достаточно закрытым, а обязательный остаток Stage 7 возвращён к hotel search, offers, ranking/explanation и end-to-end MVP behavior |
 | Минимальный backend-поток поиска отелей | Stage 7.48 завершен; process-local search flow и deterministic `FakeHotelOfferProvider` добавлены без real provider, ranking, frontend, generated-client/manifest/CI/tool changes или readiness claims |
+| Минимальное ранжирование hotel offers | Stage 7.49 завершен; provider-independent deterministic ranking и короткий `matchSummary` добавлены поверх local fake offers без LLM, real provider, frontend, OpenAPI/generated-client/manifest/CI/tool changes или readiness claims |
 | Generated-client/OpenAPI readiness | Не заявлена |
 | Generated-client-ready subset / generated clients | Non-readiness manifest candidate создан; generated-client-ready subset/readiness и generated clients не созданы |
 | Full conformance gate | Не реализован |
-| Hotel search / broader implementation | Минимальный fake-provider backend flow начат; ranking, explanations, Assistant handoff, frontend, real provider, DB/storage и production implementation не начаты |
+| Hotel search / broader implementation | Минимальный fake-provider backend flow и deterministic foundation ranking реализованы; Assistant handoff, frontend, real provider, DB/storage, personalization и production implementation не начаты |
 
 | Этап | Статус | Краткое описание |
 |---|---|---|
@@ -51,7 +52,7 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
-| Stage 7 | В работе / ожидает отдельную явную задачу | Backend/Assistant foundation, contract/runtime cleanup, conformance-tool guardrails, documentation stabilization и минимальный fake-provider hotel search flow завершены до Stage 7.48 включительно. Ranking/explanation, Assistant handoff и frontend end-to-end остаются не реализованы. Подробности см. в Stage 7 checklist ниже. |
+| Stage 7 | В работе / ожидает отдельную явную задачу | Backend/Assistant foundation, contract/runtime cleanup, conformance-tool guardrails, documentation stabilization, минимальный fake-provider hotel search flow и deterministic foundation ranking завершены до Stage 7.49 включительно. Assistant handoff и frontend end-to-end остаются не реализованы. Подробности см. в Stage 7 checklist ниже. |
 | Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
@@ -328,6 +329,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Assistant conformance documentation verification | Stage 7.46 | Operator guidance проверен относительно фактического JSON output, static/advisory behavior и source-of-truth boundaries; factual inconsistencies и readiness overclaims не найдены. |
 | Сверка оставшегося объёма Stage 7 | Stage 7.47 | Подтверждено, что conformance подпоток не требует дальнейшего дробления; следующий практический шаг возвращён к минимальному hotel search flow с `fake provider`. |
 | Минимальный backend-поток поиска отелей | Stage 7.48 | Existing hotel search contract реализован как process-local flow с deterministic `FakeHotelOfferProvider`, targeted validation/tests и нормализованными offers без ranking/readiness claims. |
+| Минимальное ранжирование hotel offers | Stage 7.49 | Offers ранжируются по availability, rating, total stay price и stable offer ID; существующий `matchSummary` используется для короткого deterministic объяснения без LLM или readiness claims. |
 
 **Documentation stabilization track:**
 
@@ -409,6 +411,10 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 - [x] Stage 7.48 — Минимальный backend-поток поиска отелей с `fake provider`
 
+**Минимальное ранжирование hotel offers:**
+
+- [x] Stage 7.49 — Минимальное ранжирование hotel offers
+
 **Текущие исключения Stage 7 и неначатые работы:**
 
 | Category | Status |
@@ -417,7 +423,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Generated-client-ready subset | Non-readiness candidate manifest создан; ready subset не заявлен |
 | Generated clients | Не созданы |
 | Full conformance gate | Не реализован |
-| Real hotel search business logic, ranking and recommendation behavior | Не начаты |
+| Real hotel search business logic, personalization and production recommendation behavior | Не начаты; Stage 7.48-7.49 покрывают только local fake-provider flow и deterministic foundation ranking |
 | Provider integration, provider-specific DTO/contracts and production integrations | Не начаты |
 | DB/storage, Redis/cache, auth/account flows and persistent account history | Не начаты |
 | Frontend, booking, payment, flights and combined itinerary | Не начаты / вне текущего MVP v1 scope, пока не активированы отдельно |
@@ -452,8 +458,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 7.46 assistant conformance documentation verification | `stage-7-46-assistant-conformance-documentation-verification.md` |
 | Stage 7.47 remaining scope review | `stage-7-47-stage-7-remaining-scope-review.md` |
 | Stage 7.48 minimal backend hotel search with fake provider | `stage-7-48-minimal-backend-hotel-search-fake-provider.md` |
+| Stage 7.49 minimal hotel offer ranking | `stage-7-49-minimal-hotel-offer-ranking.md` |
 
-**Следующий шаг:** Stage 7.49 — Минимальное ранжирование hotel offers, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status, `docs/reviews/stage-7-47-stage-7-remaining-scope-review.md`, `docs/reviews/stage-7-48-minimal-backend-hotel-search-fake-provider.md`, backend layering/development rules и product ranking boundaries. Stage 7.49 должен быть небольшим backend implementation этапом: deterministic provider-independent ranking policy поверх существующих fake offers и targeted tests, без LLM explanations, frontend, real provider/API integration, generated clients, manifest expansion, conformance tool changes, CI/Gradle integration, Stage 8 activation или readiness claims. Generated-client/OpenAPI readiness не заявлена.
+**Следующий шаг:** Stage 7.50 — Минимальный `Assistant-to-search handoff`, только через отдельную явную roadmap-aligned задачу. Перед стартом читать current roadmap/status, `docs/reviews/stage-7-47-stage-7-remaining-scope-review.md`, `docs/reviews/stage-7-48-minimal-backend-hotel-search-fake-provider.md`, `docs/reviews/stage-7-49-minimal-hotel-offer-ranking.md`, backend layering/development rules и product/architecture boundaries. Stage 7.50 должен быть небольшим backend implementation этапом: связать явно собранные structured hotel requirements с существующим search boundary без natural-language extraction, LLM orchestration, frontend, real provider/API integration, generated clients, manifest expansion, conformance tool changes, CI/Gradle integration, Stage 8 activation или readiness claims. Generated-client/OpenAPI readiness не заявлена.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 

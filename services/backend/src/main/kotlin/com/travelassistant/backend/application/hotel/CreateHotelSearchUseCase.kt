@@ -4,11 +4,13 @@ import com.travelassistant.backend.application.assistant.AssistantSessionNotFoun
 import com.travelassistant.backend.application.assistant.AssistantSessionStateStore
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchId
+import com.travelassistant.backend.domain.hotel.HotelOfferRanker
 import com.travelassistant.backend.domain.provider.HotelOfferProviderBoundary
 
 class CreateHotelSearchUseCase(
     private val assistantSessionStateStore: AssistantSessionStateStore,
     private val hotelOfferProvider: HotelOfferProviderBoundary,
+    private val hotelOfferRanker: HotelOfferRanker = HotelOfferRanker(),
     private val hotelSearchStateStore: HotelSearchStateStore = InMemoryHotelSearchStateStore(),
     private val idGenerator: HotelSearchIdGenerator = LocalHotelSearchIdGenerator(),
 ) : HotelSearchBoundary {
@@ -17,8 +19,9 @@ class CreateHotelSearchUseCase(
         assistantSessionStateStore.findById(command.sessionId)
             ?: throw AssistantSessionNotFoundException(command.sessionId)
 
-        val offers = hotelOfferProvider.search(command.criteria)
-        val status = if (offers.isEmpty()) {
+        val providerOffers = hotelOfferProvider.search(command.criteria)
+        val rankedOffers = hotelOfferRanker.rank(providerOffers)
+        val status = if (rankedOffers.isEmpty()) {
             HotelSearch.Status.COMPLETED_NO_OFFERS
         } else {
             HotelSearch.Status.COMPLETED_WITH_OFFERS
@@ -30,7 +33,7 @@ class CreateHotelSearchUseCase(
                 sessionId = command.sessionId,
                 criteria = command.criteria,
                 status = status,
-                offers = offers,
+                offers = rankedOffers,
             ),
         )
     }

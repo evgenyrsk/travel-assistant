@@ -32,7 +32,7 @@ data class HotelOffersResponse(
                     freshness = "fresh",
                     providerState = "available",
                     warnings = listOf(
-                        "Offers preserve fake-provider order; ranking is not applied.",
+                        "Offers use deterministic foundation ranking; no personalization or LLM is applied.",
                     ),
                 ),
                 providerFacts = offers.flatMap { it.providerFacts },

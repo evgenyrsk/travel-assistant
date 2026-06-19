@@ -46,8 +46,12 @@ class CreateHotelSearchUseCaseTest {
         assertEquals("hotel-search-local-000001", search.id.value)
         assertEquals("completed_with_offers", search.status.apiValue)
         assertEquals(2, search.offers.size)
-        assertEquals("fake-offer-rome-001", search.offers.first().id)
-        assertEquals("local_fake_provider", search.offers.first().source)
+        assertEquals("fake-offer-rome-001", search.offers.first().offer.id)
+        assertEquals("local_fake_provider", search.offers.first().offer.source)
+        assertEquals(
+            "Available; ranked by rating, total stay price, then offer ID.",
+            search.offers.first().matchSummary,
+        )
         assertEquals(search, searchStore.findById(search.id))
     }
 }

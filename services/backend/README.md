@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и bounded behavior / cleanup slices до Stage 7.48.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и bounded behavior / cleanup slices до Stage 7.49.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft на уровне текущих application boundaries: Stage 7.3-7.15 формируют assistant/session foundation, а Stage 7.48 добавляет минимальный process-local hotel search flow с детерминированным `FakeHotelOfferProvider`. Shortlist и explanation routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft на уровне текущих application boundaries: Stage 7.3-7.15 формируют assistant/session foundation, Stage 7.48 добавляет минимальный process-local hotel search flow с детерминированным `FakeHotelOfferProvider`, а Stage 7.49 ранжирует полученные offers по простому domain policy. Shortlist и explanation routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -94,7 +94,7 @@ Invalid или blank `message` возвращает structured `400 Bad Request`
 
 ## Минимальный hotel search flow
 
-Stage 7.48 реализует process-local flow поверх существующего Stage 6 contract shape:
+Stage 7.48-7.49 реализуют process-local flow поверх существующего Stage 6 contract shape:
 
 1. Создать assistant session через `POST /api/v1/assistant/sessions`.
 2. Передать `sessionId` и criteria в `POST /api/v1/hotel-searches`.
@@ -108,9 +108,16 @@ Stage 7.48 реализует process-local flow поверх существую
 - `guests.adults`, optional `guests.children`;
 - `rooms` или видимая `room_count` entry в `derivedAssumptions`.
 
-Search и offers сохраняются только в памяти текущего процесса. `FakeHotelOfferProvider` не выполняет HTTP/network calls, возвращает детерминированные local offers и сохраняет provider order без ranking. Response включает stable offer identifiers, hotel name, location, total price, rating, amenities, availability, source/freshness markers и provider facts.
+Search и offers сохраняются только в памяти текущего процесса. `FakeHotelOfferProvider` не выполняет HTTP/network calls и возвращает детерминированные local offers в собственном порядке. Перед сохранением search application layer применяет provider-independent ranking policy:
 
-Это foundation behavior, а не real provider integration, generated-client readiness, production search, pricing guarantee или availability guarantee.
+1. `available` раньше `limited`, затем `unknown`;
+2. более высокий rating раньше;
+3. меньшая total stay price раньше;
+4. `offerId` как стабильный tie-breaker.
+
+Текущий fake provider возвращает offers в одной валюте, поэтому price comparison ограничен локальным single-currency набором. Каждый offer получает короткий deterministic `matchSummary`, который объясняет foundation ranking без LLM и персонализации. Response также включает stable offer identifiers, hotel name, location, total price, rating, amenities, availability, source/freshness markers и provider facts.
+
+Это foundation behavior, а не real provider integration, generated-client readiness, production search, pricing guarantee, availability guarantee или production recommendation engine.
 
 Placeholder routes для оставшихся hotel-only MVP boundaries:
 
@@ -124,7 +131,7 @@ Placeholder routes для оставшихся hotel-only MVP boundaries:
 Stage 7.14 strategy для generated-client readiness:
 
 - shortlist и explanation endpoints остаются runtime-only foundation placeholders;
-- Stage 7.48 hotel search endpoints возвращают fake-provider foundation data, но не входят автоматически в generated-client-ready subset;
+- Stage 7.48-7.49 hotel search endpoints возвращают ranked fake-provider foundation data, но не входят автоматически в generated-client-ready subset;
 - оставшиеся placeholder endpoints не входят в будущий generated-client-ready subset, пока отдельная roadmap-aligned задача не заменит `501 NOT_IMPLEMENTED` на contract-aligned success/error behavior;
 - placeholder responses не должны имитировать реальные `ShortlistResponse`, `ShortlistItem` или `AssistantExplanationResponse`;
 - `NOT_IMPLEMENTED` и generic `NOT_FOUND` являются foundation-only runtime codes, а не финальной generated-client taxonomy;
@@ -141,7 +148,7 @@ Stage 7.14 strategy для generated-client readiness:
 - final generated-client-ready API contract semantics;
 - real public search readiness semantics и `hotelSearchRequest` construction;
 - production hotel search business logic и provider mapping;
-- hotel offer ranking;
+- персонализированное, criteria-aware, AI/LLM или production hotel offer ranking;
 - shortlist behavior;
 - explanation/compare behavior;
 - реальные hotel provider integrations;
