@@ -1,6 +1,7 @@
 package com.travelassistant.backend.api
 
 import com.travelassistant.backend.module
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -42,6 +43,7 @@ class AssistantSessionRoutesTest {
             assistantMessage?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("hotelSearchId"))
         assertEquals(false, body.containsKey("hotelSearchRequest"))
         assertEquals(false, body.containsKey("assistantReply"))
         assertEquals(false, body.containsKey("hotelRequirementsState"))
@@ -88,6 +90,7 @@ class AssistantSessionRoutesTest {
             assistantMessage?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("hotelSearchId"))
         assertEquals(false, body.containsKey("hotelSearchRequest"))
         assertEquals(false, body.containsKey("assistantReply"))
         assertEquals(false, body.containsKey("hotelRequirementsState"))
@@ -100,6 +103,49 @@ class AssistantSessionRoutesTest {
         assertEquals(false, session?.containsKey("hotelRequirementsCoveragePlan"))
         assertTrue(updatedAt.isNotBlank())
         Instant.parse(updatedAt)
+    }
+
+    @Test
+    fun completeExplicitAssistantMessageCreatesSearchAndExposesRankedOffers() = testApplication {
+        application {
+            module()
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["session"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content.orEmpty()
+
+        val assistantResponse = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """
+                {
+                  "message": "hotel-search; destination=Rome; check-in=2026-07-01; check-out=2026-07-04; adults=2; rooms=1"
+                }
+                """.trimIndent(),
+            )
+        }
+        val assistantBody = Json.parseToJsonElement(assistantResponse.bodyAsText()).jsonObject
+        val hotelSearchId = assistantBody["hotelSearchId"]?.jsonPrimitive?.content.orEmpty()
+
+        assertEquals(HttpStatusCode.OK, assistantResponse.status)
+        assertEquals("show_hotel_results", assistantBody["nextAction"]?.jsonPrimitive?.content)
+        assertEquals("hotel-search-local-000001", hotelSearchId)
+        assertEquals(
+            "Hotel search created. Ranked offers are ready.",
+            assistantBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
+
+        val offersResponse = client.get("/api/v1/hotel-searches/$hotelSearchId/offers")
+        val offersBody = Json.parseToJsonElement(offersResponse.bodyAsText()).jsonObject
+        val offers = offersBody["offers"]?.jsonArray.orEmpty()
+
+        assertEquals(HttpStatusCode.OK, offersResponse.status)
+        assertEquals("fake-offer-rome-001", offers.first().jsonObject["offerId"]?.jsonPrimitive?.content)
+        assertEquals(
+            "Available; ranked by rating, total stay price, then offer ID.",
+            offers.first().jsonObject["matchSummary"]?.jsonPrimitive?.content,
+        )
     }
 
     @Test
