@@ -1,6 +1,6 @@
 package com.travelassistant.backend.api
 
-import com.travelassistant.backend.domain.hotel.HotelOffer
+import com.travelassistant.backend.domain.hotel.RankedHotelOffer
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -15,6 +15,7 @@ data class HotelOfferResponse(
     val availability: String,
     val source: String,
     val freshness: String,
+    val matchSummary: String,
     val providerFacts: List<ProviderFact>,
 ) {
     @Serializable
@@ -55,8 +56,10 @@ data class HotelOfferResponse(
     )
 
     companion object {
-        fun from(offer: HotelOffer): HotelOfferResponse =
-            HotelOfferResponse(
+        fun from(rankedOffer: RankedHotelOffer): HotelOfferResponse {
+            val offer = rankedOffer.offer
+
+            return HotelOfferResponse(
                 offerId = offer.id,
                 providerOfferRef = offer.providerReference,
                 hotelName = offer.hotelName,
@@ -86,6 +89,7 @@ data class HotelOfferResponse(
                 availability = offer.availability.apiValue,
                 source = offer.source,
                 freshness = offer.freshness.apiValue,
+                matchSummary = rankedOffer.matchSummary,
                 providerFacts = listOf(
                     ProviderFact(
                         field = "availability",
@@ -95,5 +99,6 @@ data class HotelOfferResponse(
                     ),
                 ),
             )
+        }
     }
 }

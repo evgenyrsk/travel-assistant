@@ -7,7 +7,7 @@ data class HotelSearch(
     val sessionId: AssistantSessionId,
     val criteria: HotelSearchCriteria,
     val status: Status,
-    val offers: List<HotelOffer>,
+    val offers: List<RankedHotelOffer>,
 ) {
     enum class Status(val apiValue: String) {
         COMPLETED_WITH_OFFERS("completed_with_offers"),
