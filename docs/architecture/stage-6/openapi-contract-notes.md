@@ -83,6 +83,12 @@ Assistant session contract остается current-session/process-local bounda
 
 Stage 7.39 не финализирует OpenAPI и не делает Assistant endpoints generated-client-ready. Следующие возможные шаги должны идти отдельными roadmap-aligned задачами: сначала runtime tests для уже выбранной contract shape, затем conformance/tooling follow-up, затем только последующее manifest candidate update без readiness claim.
 
+## Stage 7.50 — Минимальная передача от Assistant к hotel search
+
+Stage 7.50 активирует bounded process-local handoff только для явного deterministic message format. Если Assistant message создает hotel search, response возвращает `nextAction = show_hotel_results` и optional opaque `hotelSearchId`, по которому можно прочитать offers через `GET /api/v1/hotel-searches/{searchId}/offers`.
+
+`hotelSearchId` добавлен как optional поле, потому что существующий string `nextAction` и future-only `hotelSearchRequest` не идентифицируют уже созданный backend search. Это минимальное contract extension не заявляет generated-client readiness, manifest expansion, OpenAPI finalization, natural-language extraction, LLM orchestration или production search readiness.
+
 ## Search state pattern
 
 Search lifecycle использует единый enum:

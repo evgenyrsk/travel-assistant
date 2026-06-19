@@ -515,6 +515,12 @@ components:
             - show_hotel_results
             - show_boundary_message
             - none
+        hotelSearchId:
+          type: string
+          description: >
+            Optional opaque identifier of a hotel search created by the current
+            assistant message. It is present only when nextAction is
+            show_hotel_results and does not imply generated-client readiness.
         hotelSearchRequest:
           $ref: "#/components/schemas/HotelSearchRequest"
           description: >

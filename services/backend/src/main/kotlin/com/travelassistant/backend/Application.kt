@@ -3,6 +3,7 @@ package com.travelassistant.backend
 import com.travelassistant.backend.api.configureApiRoutes
 import com.travelassistant.backend.api.configureErrorHandling
 import com.travelassistant.backend.api.configureSerialization
+import com.travelassistant.backend.application.assistant.AssistantHotelSearchHandoffUseCase
 import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
 import com.travelassistant.backend.application.assistant.InMemoryAssistantSessionStateStore
 import com.travelassistant.backend.application.hotel.CreateHotelSearchUseCase
@@ -23,13 +24,16 @@ fun main() {
 
 fun Application.module() {
     val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
-    val assistantSessionBoundary = CreateAssistantSessionUseCase(
-        sessionStateStore = assistantSessionStateStore,
-    )
     val hotelSearchBoundary = CreateHotelSearchUseCase(
         assistantSessionStateStore = assistantSessionStateStore,
         hotelOfferProvider = FakeHotelOfferProvider(),
         hotelSearchStateStore = InMemoryHotelSearchStateStore(),
+    )
+    val assistantSessionBoundary = AssistantHotelSearchHandoffUseCase(
+        assistantSessionBoundary = CreateAssistantSessionUseCase(
+            sessionStateStore = assistantSessionStateStore,
+        ),
+        hotelSearchBoundary = hotelSearchBoundary,
     )
 
     configureSerialization()

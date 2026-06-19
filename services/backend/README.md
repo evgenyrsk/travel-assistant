@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и bounded behavior / cleanup slices до Stage 7.49.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и bounded behavior / cleanup slices до Stage 7.50.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft на уровне текущих application boundaries: Stage 7.3-7.15 формируют assistant/session foundation, Stage 7.48 добавляет минимальный process-local hotel search flow с детерминированным `FakeHotelOfferProvider`, а Stage 7.49 ранжирует полученные offers по простому domain policy. Shortlist и explanation routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft на уровне текущих application boundaries: Stage 7.3-7.15 формируют assistant/session foundation, Stage 7.48 добавляет минимальный process-local hotel search flow с детерминированным `FakeHotelOfferProvider`, Stage 7.49 ранжирует offers, а Stage 7.50 связывает явный Assistant message format с существующим search boundary. Shortlist и explanation routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -46,7 +46,7 @@ Stage 7.3 - Stage 7.11 session creation возвращает `201 Created` со 
 
 `sessionId` является process-local deterministic identifier и не подразумевает persistence, retrieval, account history или cross-device storage.
 
-Stage 7.11 также принимает optional initial `message` body на `POST /api/v1/assistant/sessions`. Если initial `message` передан и не blank, он обрабатывается как bounded foundation intake: session создается, минимальные clarification metadata обновляются, internal coverage plan пересчитывается, но message text не сохраняется как history, не анализируется, не извлекает requirements, не заполняет slots и не вызывает LLM/provider.
+Stage 7.11 также принимает optional initial `message` body на `POST /api/v1/assistant/sessions`. Если initial `message` передан и не blank, session создается, минимальные clarification metadata обновляются и internal coverage plan пересчитывается. Обычный text остается foundation intake; только явный Stage 7.50 `hotel-search; ...` format может создать process-local fake-provider search. Message text не сохраняется как history, slots не заполняются, LLM не вызывается.
 
 Stage 7.6 регистрирует созданную session только в process-local memory. Stage 7.7 инициализирует для нее минимальное process-local `clarificationState` metadata: фазу `collecting_requirements`, признак ожидания пользовательского ввода, счетчик принятых user messages, timestamps создания/обновления и timestamp последнего принятого сообщения после message intake.
 
@@ -74,6 +74,8 @@ Stage 7.15 добавляет minimal application-level `AssistantResponseSemant
 
 `show_boundary_message` является foundation-only safe boundary signal. Он не означает, что real hotel search можно выполнить, не создает `hotelSearchRequest`, не вызывает provider/search route и не добавляет fake search values.
 
+Stage 7.50 отдельно использует `show_hotel_results`, только когда strict deterministic parser уже создал process-local hotel search и response содержит его opaque `hotelSearchId`.
+
 Эти metadata не возвращаются в public response, не являются финальным API contract и не означают production state machine. Это не durable persistence, не DB/storage, не account state и не multi-instance coordination.
 
 Фактический путь локального приема user message: `POST /api/v1/assistant/sessions/{sessionId}/messages`.
@@ -84,9 +86,15 @@ Stage 7.4 - Stage 7.11 message intake принимает JSON с `message` и в
 - `assistantMessage` с deterministic placeholder `role` и `content`;
 - `nextAction`.
 
-`assistantMessage` является deterministic placeholder clarification response. Этот endpoint обновляет только минимальные session-local clarification metadata, сохраняет internal hotel slot metadata без заполнения значений и пересчитывает internal coverage plan без анализа текста. Он не сохраняет message history, не проверяет session через durable storage, не выполняет stateful clarification flow, не извлекает requirements и не возвращает hotel offers.
+Для обычного message `assistantMessage` остается deterministic placeholder clarification response. Endpoint обновляет только минимальные session-local clarification metadata, сохраняет internal hotel slot metadata без заполнения значений и пересчитывает internal coverage plan. Он не сохраняет message history, не проверяет session через durable storage и не выполняет stateful clarification flow.
 
-Поскольку public message intake не парсит текст и не заполняет slots, обычные user messages не делают session search-ready. Optional initial `message` также остается foundation intake only и не создает `hotelSearchRequest`.
+Stage 7.50 распознает только явный format:
+
+```text
+hotel-search; destination=Rome; check-in=2026-07-01; check-out=2026-07-04; adults=2; rooms=1
+```
+
+Optional `children` поддерживается как non-negative integer. Полный format создает hotel search через существующий application boundary и возвращает `nextAction = show_hotel_results` вместе с `hotelSearchId`. Неполный explicit format не создает search и возвращает `ask_clarification`; любой другой user message сохраняет прежнее clarification behavior. Это не natural-language intent parsing и не полноценный conversational planner.
 
 Если `sessionId` не найден в process-local state текущего процесса, endpoint возвращает structured `404 Not Found` с `code = SESSION_NOT_FOUND`. Этот error code является foundation-level behavior, а не финальным generated-client/API contract.
 
@@ -94,12 +102,14 @@ Invalid или blank `message` возвращает structured `400 Bad Request`
 
 ## Минимальный hotel search flow
 
-Stage 7.48-7.49 реализуют process-local flow поверх существующего Stage 6 contract shape:
+Stage 7.48-7.50 реализуют process-local flow поверх существующего Stage 6 contract shape:
 
 1. Создать assistant session через `POST /api/v1/assistant/sessions`.
 2. Передать `sessionId` и criteria в `POST /api/v1/hotel-searches`.
 3. Получить `202 Accepted` с `searchId` и terminal foundation status.
 4. Прочитать нормализованные fake offers через `GET /api/v1/hotel-searches/{searchId}/offers`.
+
+В Stage 7.50 шаги 2-3 также может выполнить Assistant handoff для полного explicit `hotel-search; ...` message. Assistant response сразу возвращает созданный `hotelSearchId`; offers читаются тем же существующим GET endpoint.
 
 Минимальные criteria:
 
@@ -131,7 +141,7 @@ Placeholder routes для оставшихся hotel-only MVP boundaries:
 Stage 7.14 strategy для generated-client readiness:
 
 - shortlist и explanation endpoints остаются runtime-only foundation placeholders;
-- Stage 7.48-7.49 hotel search endpoints возвращают ranked fake-provider foundation data, но не входят автоматически в generated-client-ready subset;
+- Stage 7.48-7.50 hotel search flow возвращает ranked fake-provider foundation data, но не входит автоматически в generated-client-ready subset;
 - оставшиеся placeholder endpoints не входят в будущий generated-client-ready subset, пока отдельная roadmap-aligned задача не заменит `501 NOT_IMPLEMENTED` на contract-aligned success/error behavior;
 - placeholder responses не должны имитировать реальные `ShortlistResponse`, `ShortlistItem` или `AssistantExplanationResponse`;
 - `NOT_IMPLEMENTED` и generic `NOT_FOUND` являются foundation-only runtime codes, а не финальной generated-client taxonomy;

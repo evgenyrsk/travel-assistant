@@ -16,6 +16,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
 fun Route.assistantPlaceholderRoutes(
@@ -112,11 +114,14 @@ data class AssistantClientContext(
     val timezone: String? = null,
 )
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class AssistantMessageResponse(
     val session: AssistantSessionResponse,
     val assistantMessage: AssistantMessageBodyResponse,
     val nextAction: String,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val hotelSearchId: String? = null,
 ) {
     companion object {
         private const val PLACEHOLDER_ASSISTANT_MESSAGE =
@@ -153,9 +158,8 @@ data class AssistantMessageResponse(
                     role = "assistant",
                     content = acceptedMessage.assistantReply.message,
                 ),
-                nextAction = AssistantResponseSemantics.nextActionFor(
-                    acceptedMessage.hotelRequirementsCoveragePlan,
-                ).apiValue,
+                nextAction = acceptedMessage.nextAction.apiValue,
+                hotelSearchId = acceptedMessage.hotelSearchId?.value,
             )
     }
 }

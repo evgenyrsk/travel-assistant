@@ -119,6 +119,8 @@ class CreateAssistantSessionUseCaseTest {
             "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
             acceptedMessage.assistantReply.message,
         )
+        assertEquals(AssistantNextAction.ASK_CLARIFICATION, acceptedMessage.nextAction)
+        assertNull(acceptedMessage.hotelSearchId)
 
         val storedSession = sessionStateStore.findById(session.id)
         assertEquals(1, storedSession?.clarificationState?.acceptedUserMessageCount)

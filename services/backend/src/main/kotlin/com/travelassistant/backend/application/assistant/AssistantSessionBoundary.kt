@@ -8,6 +8,7 @@ import com.travelassistant.backend.domain.assistant.AssistantSessionStatus
 import com.travelassistant.backend.domain.assistant.HotelRequirementsCoveragePlan
 import com.travelassistant.backend.domain.assistant.HotelRequirementsCoveragePlanner
 import com.travelassistant.backend.domain.assistant.HotelRequirementsState
+import com.travelassistant.backend.domain.hotel.HotelSearchId
 import java.time.Clock
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
@@ -38,10 +39,13 @@ data class AcceptedAssistantMessage(
     val hotelRequirementsState: HotelRequirementsState,
     val hotelRequirementsCoveragePlan: HotelRequirementsCoveragePlan,
     val assistantReply: AssistantReply,
+    val nextAction: AssistantNextAction,
+    val hotelSearchId: HotelSearchId?,
 )
 
 enum class AssistantReplyType(val apiValue: String) {
     CLARIFICATION("clarification"),
+    HOTEL_SEARCH_RESULTS("hotel_search_results"),
 }
 
 data class AssistantReply(
@@ -117,6 +121,10 @@ class CreateAssistantSessionUseCase(
                 type = AssistantReplyType.CLARIFICATION,
                 message = "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
             ),
+            nextAction = AssistantResponseSemantics.nextActionFor(
+                updatedSession.hotelRequirementsCoveragePlan,
+            ),
+            hotelSearchId = null,
         )
     }
 }
