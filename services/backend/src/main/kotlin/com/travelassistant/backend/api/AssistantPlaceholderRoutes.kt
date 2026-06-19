@@ -4,7 +4,6 @@ import com.travelassistant.backend.application.assistant.AcceptAssistantMessageC
 import com.travelassistant.backend.application.assistant.AcceptedAssistantMessage
 import com.travelassistant.backend.application.assistant.AssistantResponseSemantics
 import com.travelassistant.backend.application.assistant.AssistantSessionBoundary
-import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
 import com.travelassistant.backend.domain.assistant.AssistantSession
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import io.ktor.http.HttpStatusCode
@@ -19,9 +18,9 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import kotlinx.serialization.Serializable
 
-fun Route.assistantPlaceholderRoutes() {
-    val createAssistantSession: AssistantSessionBoundary = CreateAssistantSessionUseCase()
-
+fun Route.assistantPlaceholderRoutes(
+    createAssistantSession: AssistantSessionBoundary,
+) {
     route("/assistant/sessions") {
         post {
             val request = runCatching {

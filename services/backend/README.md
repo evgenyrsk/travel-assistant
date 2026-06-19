@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и первые bounded behavior / cleanup slices Stage 7.3 - Stage 7.15.
+Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и bounded behavior / cleanup slices до Stage 7.48.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft только на уровне application boundaries: health endpoint реализован, Stage 7.3 добавляет локальное создание assistant session, Stage 7.4 добавляет локальный message intake boundary, Stage 7.5 добавляет минимальный placeholder clarification reply, Stage 7.6 добавляет process-local session state, Stage 7.7 добавляет session-local clarification metadata, Stage 7.8 добавляет internal hotel requirements slot metadata, Stage 7.9 добавляет internal slot coverage / clarification planning metadata, Stage 7.11 выравнивает assistant runtime response shape и validation error shape ближе к Stage 6 contract direction без включения real assistant behavior, Stage 7.12 добавляет internal requirements slot update boundary для explicit structured internal input, Stage 7.13 фиксирует generated-client/OpenAPI readiness checkpoint, Stage 7.14 уточняет placeholder/error readiness strategy, Stage 7.15 уточняет assistant response semantics / search readiness boundary, а остальные hotel-only assistant/search routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft на уровне текущих application boundaries: Stage 7.3-7.15 формируют assistant/session foundation, а Stage 7.48 добавляет минимальный process-local hotel search flow с детерминированным `FakeHotelOfferProvider`. Shortlist и explanation routes остаются явными placeholder endpoints без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -31,6 +31,8 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 - `GET /health`
 - `POST /assistant/sessions`
 - `POST /assistant/sessions/{sessionId}/messages`
+- `POST /hotel-searches`
+- `GET /hotel-searches/{searchId}/offers`
 
 Фактический путь проверки доступности: `GET /api/v1/health`.
 
@@ -90,24 +92,43 @@ Stage 7.4 - Stage 7.11 message intake принимает JSON с `message` и в
 
 Invalid или blank `message` возвращает structured `400 Bad Request` с `code = VALIDATION_ERROR` и `fields`. Foundation-only `NOT_IMPLEMENTED` и generic `NOT_FOUND` остаются runtime placeholder codes и не считаются финальной generated-client taxonomy.
 
-Placeholder routes для будущих hotel-only MVP boundaries:
+## Минимальный hotel search flow
+
+Stage 7.48 реализует process-local flow поверх существующего Stage 6 contract shape:
+
+1. Создать assistant session через `POST /api/v1/assistant/sessions`.
+2. Передать `sessionId` и criteria в `POST /api/v1/hotel-searches`.
+3. Получить `202 Accepted` с `searchId` и terminal foundation status.
+4. Прочитать нормализованные fake offers через `GET /api/v1/hotel-searches/{searchId}/offers`.
+
+Минимальные criteria:
+
+- `destination`;
+- `checkInDate` и `checkOutDate` в ISO-8601 date format;
+- `guests.adults`, optional `guests.children`;
+- `rooms` или видимая `room_count` entry в `derivedAssumptions`.
+
+Search и offers сохраняются только в памяти текущего процесса. `FakeHotelOfferProvider` не выполняет HTTP/network calls, возвращает детерминированные local offers и сохраняет provider order без ranking. Response включает stable offer identifiers, hotel name, location, total price, rating, amenities, availability, source/freshness markers и provider facts.
+
+Это foundation behavior, а не real provider integration, generated-client readiness, production search, pricing guarantee или availability guarantee.
+
+Placeholder routes для оставшихся hotel-only MVP boundaries:
 
 - `GET /api/v1/assistant/sessions/{sessionId}/shortlist`
 - `PUT /api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}`
 - `DELETE /api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}`
 - `POST /api/v1/assistant/sessions/{sessionId}/explanations`
-- `POST /api/v1/hotel-searches`
-- `GET /api/v1/hotel-searches/{searchId}/offers`
 
 Эти placeholder routes возвращают structured `501 Not Implemented` response и не вызывают provider, DB, LLM или mock business logic.
 
 Stage 7.14 strategy для generated-client readiness:
 
-- placeholder hotel search, offers, shortlist и explanation endpoints остаются runtime-only foundation placeholders;
-- они не входят в будущий generated-client-ready subset, пока отдельная roadmap-aligned задача не заменит `501 NOT_IMPLEMENTED` на contract-aligned success/error behavior;
-- placeholder responses не должны имитировать реальные `HotelSearchResponse`, `HotelOffersResponse`, `ShortlistResponse`, `ShortlistItem` или `AssistantExplanationResponse`;
+- shortlist и explanation endpoints остаются runtime-only foundation placeholders;
+- Stage 7.48 hotel search endpoints возвращают fake-provider foundation data, но не входят автоматически в generated-client-ready subset;
+- оставшиеся placeholder endpoints не входят в будущий generated-client-ready subset, пока отдельная roadmap-aligned задача не заменит `501 NOT_IMPLEMENTED` на contract-aligned success/error behavior;
+- placeholder responses не должны имитировать реальные `ShortlistResponse`, `ShortlistItem` или `AssistantExplanationResponse`;
 - `NOT_IMPLEMENTED` и generic `NOT_FOUND` являются foundation-only runtime codes, а не финальной generated-client taxonomy;
-- resource-specific `HOTEL_SEARCH_NOT_FOUND`, `HOTEL_OFFER_NOT_FOUND` и `SHORTLIST_ITEM_NOT_FOUND` должны появляться только вместе с реальными resource semantics соответствующих endpoints;
+- `HOTEL_SEARCH_NOT_FOUND` используется для process-local Stage 7.48 search resource; `HOTEL_OFFER_NOT_FOUND` и `SHORTLIST_ITEM_NOT_FOUND` остаются future behavior;
 - generated clients, OpenAPI finalization и runtime/OpenAPI conformance gate остаются будущей отдельной задачей.
 
 ## Намеренно не реализовано
@@ -119,10 +140,10 @@ Stage 7.14 strategy для generated-client readiness:
 - dynamic clarification planning или user-facing clarification question generation;
 - final generated-client-ready API contract semantics;
 - real public search readiness semantics и `hotelSearchRequest` construction;
-- hotel search business logic;
+- production hotel search business logic и provider mapping;
+- hotel offer ranking;
 - shortlist behavior;
 - explanation/compare behavior;
-- business logic поиска и ранжирования;
 - реальные hotel provider integrations;
 - provider-specific DTO/contracts;
 - DB migrations, entities, repositories и storage model;

@@ -1,10 +1,15 @@
 package com.travelassistant.backend.domain.provider
 
+import com.travelassistant.backend.domain.hotel.HotelOffer
+import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
+
 /**
- * Placeholder provider boundary for future hotel offer sources.
+ * Provider-agnostic boundary for hotel offer sources.
  *
- * Stage 7.2 intentionally keeps this empty: real provider contracts,
- * provider-specific DTOs, fake providers, retries, and error taxonomy are
- * future work.
+ * Implementations map their own source data into domain hotel offers. Real
+ * provider contracts, credentials, retries, and provider-specific error
+ * taxonomy remain outside the current boundary.
  */
-interface HotelOfferProviderBoundary
+fun interface HotelOfferProviderBoundary {
+    fun search(criteria: HotelSearchCriteria): List<HotelOffer>
+}
