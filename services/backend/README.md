@@ -166,7 +166,7 @@ Stage 7.14 strategy для generated-client readiness:
 - DB migrations, entities, repositories и storage model;
 - Redis/cache;
 - LLM integration и orchestration;
-- frontend/generated clients;
+- production frontend integration и generated clients;
 - generated-client-ready subset для placeholder endpoints;
 - OpenAPI/runtime conformance gate;
 - booking, payment, flights, combined itinerary, account flows.

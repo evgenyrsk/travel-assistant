@@ -20,9 +20,9 @@
 - Stage 4.1 - Completed как `docs/product/stage-4/stage-4-consistency-review.md`.
 - Stage 5 - Completed.
 - Stage 6 - Completed как contract/design phase.
-- Stage 7 - In progress / awaiting explicit next task; текущий detailed status находится в `docs/roadmap/roadmap.md`.
+- Stage 7 - Completed в bounded hotel-only foundation scope; detailed closure и carryover находятся в `docs/roadmap/roadmap.md`.
 
-Stage 6 contract work завершен отдельными roadmap-задачами и не создавал production implementation. Stage 7 временно блокировался из-за backend stack drift, затем Java/Spring Boot skeleton drift был исправлен на минимальный Kotlin + Ktor backend skeleton. Любая дальнейшая Stage 7 работа может продолжаться только через отдельную явную roadmap-aligned задачу, а актуальный next step нужно брать из primary roadmap.
+Stage 6 contract work завершен отдельными roadmap-задачами и не создавал production implementation. Stage 7 сформировал bounded hotel-only foundation с process-local backend flow, fake provider, deterministic ranking, strict Assistant handoff и минимальным frontend-сценарием. Это закрытие не означает production readiness, real provider, generated clients, manifest expansion, booking, durable storage или auth. Следующий этап начинается только через отдельную явную roadmap-aligned задачу.
 
 ## 3. Scope MVP v1
 
