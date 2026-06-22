@@ -16,15 +16,15 @@
 
 - Stage 5 - Completed.
 - Stage 6 - Completed as contract/documentation phase.
-- Stage 7 - In progress / awaiting explicit next task; detailed status находится в `docs/roadmap/roadmap.md`.
+- Stage 7 - Completed в bounded hotel-only foundation scope; detailed closure и carryover находятся в `docs/roadmap/roadmap.md`.
 - Architecture baseline сформирован на conceptual level и дополнен backend stack decision на уровне документации/governance.
-- Minimal Kotlin + Ktor backend skeleton существует в `services/backend/`.
-- Business logic, provider integration, DB/storage, frontend, generated clients и production implementation еще не создавались.
-- API/OpenAPI contract draft создан в Stage 6 как documentation-level frontend/backend boundary; provider adapters еще не создавались.
+- Kotlin + Ktor backend foundation с process-local Assistant/hotel-search boundaries существует в `services/backend/`.
+- Bounded fake-provider search, deterministic ranking и минимальный frontend существуют; real provider, DB/storage, generated clients и production implementation не создавались.
+- API/OpenAPI contract draft создан в Stage 6 как documentation-level frontend/backend boundary; существует только local `FakeHotelOfferProvider`, real provider adapters не создавались.
 - Auth/security/DevOps/testing backlog еще не создавался.
-- Documentation cleanup и technical Stage 7 work продолжаются только через отдельные roadmap-aligned задачи.
+- Stage 8 и любая future integration/production work начинаются только через отдельные roadmap-aligned задачи.
 
-Следующая implementation задача может начаться только через отдельную явную roadmap-aligned задачу. Этот architecture baseline не активирует future implementation work.
+Следующая implementation задача может начаться только через отдельную явную roadmap-aligned задачу. Этот architecture baseline не активирует Stage 8 или другую future implementation work.
 
 ## 3. Backend stack baseline
 
@@ -77,7 +77,7 @@ UI остается conceptual/product-driven: Stage 5 не создает front
 - Data boundary: current-session shortlist не является account history, persistent saved trips или cross-device sync.
 - Integration boundary: provider abstractions являются conceptual boundaries, а не API contracts.
 - Stack boundary: backend implementation использует Kotlin + Ktor, если только будущий ADR явно не меняет это решение.
-- Implementation boundary: production implementation не начата; Stage 7.0b ограничен минимальным Kotlin + Ktor skeleton и health endpoint.
+- Implementation boundary: Stage 7 завершил bounded process-local foundation; production implementation, real integrations и durable infrastructure не активированы.
 
 Future flights, combined itinerary, booking, payment, account history и full auth остаются outside MVP v1.
 

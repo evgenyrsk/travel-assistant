@@ -8,14 +8,14 @@ Roadmap не является task tracker, продуктовой специф�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 7 — реализация MVP / ожидает отдельную явную задачу |
-| Последний завершенный этап | Stage 7.52 — Финальная сверка hotel-only MVP slice |
-| Следующий планируемый шаг | Stage 7.53 — Финальное закрытие Stage 7 и перенос оставшихся пунктов, только через отдельную явную roadmap-aligned задачу |
+| Текущий этап | Stage 7 завершен; Stage 8 не начат |
+| Последний завершенный этап | Stage 7.53 — Финальное закрытие Stage 7 и перенос оставшихся пунктов |
+| Следующий планируемый шаг | Stage 8 — AI/LLM Orchestration Improvements, только через отдельную явную roadmap-aligned задачу |
 | Подробный roadmap/status source of truth | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
 |---|---|
-| Stage 0-6 | Завершены |
+| Stage 0-7 | Завершены |
 | Stage 7 implementation foundation | Минимальная Kotlin + Ktor backend-основа и ограниченные assistant/conformance-tool slices завершены до Stage 7.25 включительно |
 | Stage 7 documentation stabilization | Stage 7.26-7.30 завершены |
 | Stage 7 resume development handoff | Stage 7.31 завершен; следующий technical task должен быть выбран отдельной явной roadmap-aligned задачей |
@@ -39,7 +39,8 @@ Roadmap не является task tracker, продуктовой специф�
 | Минимальное ранжирование hotel offers | Stage 7.49 завершен; provider-independent deterministic ranking и короткий `matchSummary` добавлены поверх local fake offers без LLM, real provider, frontend, OpenAPI/generated-client/manifest/CI/tool changes или readiness claims |
 | Минимальная передача от Assistant к hotel search | Stage 7.50 завершен; strict explicit message format создает process-local search и возвращает `show_hotel_results` / `hotelSearchId` без LLM, real provider, frontend, generated-client/manifest/CI/tool changes или readiness claims |
 | Минимальный frontend-сценарий hotel search | Stage 7.51 завершен; отдельная structured форма вызывает существующие process-local search/offers endpoints и показывает ranked offers без generated clients, manifest expansion, backend/OpenAPI/tool/CI changes или readiness claims |
-| Финальная сверка hotel-only MVP slice | Stage 7.52 завершен; Stage 7.48-7.51 согласованы по коду, contract shape и automated checks, но live browser-to-backend сценарий не запускался и Stage 7 ещё не закрыт |
+| Финальная сверка hotel-only MVP slice | Stage 7.52 завершен; Stage 7.48-7.51 согласованы по коду, contract shape и automated checks, а отсутствие live browser-to-backend проверки перенесено в явный carryover Stage 7.53 |
+| Финальное закрытие Stage 7 | Stage 7.53 завершен; bounded hotel-only foundation закрыт, оставшаяся работа перенесена без production/generated-client/manifest/real-provider readiness claims и без активации Stage 8 |
 | Generated-client/OpenAPI readiness | Не заявлена |
 | Generated-client-ready subset / generated clients | Non-readiness manifest candidate создан; generated-client-ready subset/readiness и generated clients не созданы |
 | Full conformance gate | Не реализован |
@@ -55,7 +56,7 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
-| Stage 7 | В работе / ожидает отдельную явную задачу | Минимальный hotel-only MVP slice проверен до Stage 7.52 включительно. Новая implementation работа перед закрытием не требуется; отдельный Stage 7.53 должен формально закрыть этап и перенести generated clients, manifest и прочие deferred items без readiness overclaim. |
+| Stage 7 | Завершен | Bounded hotel-only MVP foundation закрыт Stage 7.53: backend/search/fake-provider/ranking/Assistant handoff/minimal frontend и supporting contract/conformance/documentation work завершены в заявленных границах. Production readiness не заявлена. |
 | Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
 | Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
@@ -301,9 +302,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 7 — MVP Implementation
 
-**Статус:** В работе / ожидает отдельную явную задачу.
+**Статус:** завершен.
 
-**Назначение:** реализация согласованного hotel-only MVP v1 после Stage 6 через отдельные bounded tasks. Stage 7 больше не заблокирован backend stack drift или restart readiness review.
+**Назначение:** реализация bounded hotel-only MVP foundation после Stage 6 через отдельные задачи. Stage 7 закрыт с явным carryover; его завершение не означает production readiness.
 
 **Прогресс Stage 7 по областям:**
 
@@ -336,6 +337,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Минимальная передача от Assistant к hotel search | Stage 7.50 | Strict explicit Assistant message format вызывает существующий search boundary; response возвращает `show_hotel_results` и opaque `hotelSearchId`, а ordinary/incomplete messages сохраняют clarification behavior. |
 | Минимальный frontend-сценарий hotel search | Stage 7.51 | Отдельная structured форма создаёт process-local session/search, загружает ranked offers и показывает `matchSummary` через ручной local API client без generated clients. |
 | Финальная сверка hotel-only MVP slice | Stage 7.52 | Backend и frontend slices согласованы по request/response shape и проходят раздельные automated gates; live browser-to-backend E2E не заявлен. |
+| Финальное закрытие и carryover | Stage 7.53 | Stage 7 закрыт в bounded foundation scope; future integration, production и AI/LLM work перенесены без автоматической активации. |
 
 **Documentation stabilization track:**
 
@@ -433,20 +435,24 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 - [x] Stage 7.52 — Финальная сверка hotel-only MVP slice
 
-**Текущие исключения Stage 7 и неначатые работы:**
+**Финальное закрытие Stage 7:**
 
-| Category | Status |
+- [x] Stage 7.53 — Финальное закрытие Stage 7 и перенос оставшихся пунктов
+
+**Carryover после Stage 7:**
+
+| Категория | Статус после закрытия |
 |---|---|
-| Generated-client/OpenAPI readiness | Не заявлена |
-| Generated-client-ready subset | Non-readiness candidate manifest создан; ready subset не заявлен |
-| Generated clients | Не созданы |
-| Full conformance gate | Не реализован |
-| Real hotel search business logic, personalization and production recommendation behavior | Не начаты; Stage 7.48-7.49 покрывают только local fake-provider flow и deterministic foundation ranking |
-| Provider integration, provider-specific DTO/contracts and production integrations | Не начаты |
-| DB/storage, Redis/cache, auth/account flows and persistent account history | Не начаты |
-| Frontend, booking, payment, flights and combined itinerary | Минимальный ручной frontend-сценарий Stage 7.51 реализован; production frontend, booking, payment, flights и combined itinerary не начаты или остаются вне текущего MVP v1 scope |
+| Live browser-to-backend E2E и visual verification | Перенесены в отдельную integration/stabilization задачу; не являются выполненными |
+| Generated clients и ready subset | Не созданы; manifest остается non-readiness candidate без expansion claim |
+| CI/Gradle integration и runtime conformance gate | Не реализованы; требуют отдельного tooling решения |
+| Real provider integration | Перенесена в Stage 9 / отдельную roadmap-aligned задачу после доступности provider contract |
+| LLM orchestration и richer Assistant UI | Перенесены в Stage 8; Stage 8 не активирован |
+| DB/storage, Redis/cache, auth/account flows | Перенесены до отдельного product/architecture решения |
+| Booking, payment, flights и combined itinerary | Не входят в закрытый hotel-only Stage 7 scope |
+| Production UI, security, observability и deployment hardening | Не заявлены и остаются future work |
 
-**Ключевой guardrail Stage 7:** завершенные Stage 7 slices не означают generated-client readiness, OpenAPI finalization, DB/storage activation, real provider integration, production frontend readiness или Stage 8 activation. Любая следующая implementation, cleanup или expansion work требует отдельной явной roadmap-aligned задачи.
+**Ключевой guardrail закрытия:** завершение Stage 7 не означает generated-client readiness, OpenAPI finalization, DB/storage activation, real provider integration, production frontend readiness, CI gate readiness или автоматическую активацию Stage 8.
 
 **Stage 7 linked artifacts by group:**
 
@@ -480,8 +486,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 7.50 minimal Assistant-to-hotel-search handoff | `stage-7-50-minimal-assistant-to-hotel-search-handoff.md` |
 | Stage 7.51 minimal frontend hotel search scenario | `stage-7-51-minimal-frontend-hotel-search-scenario.md` |
 | Stage 7.52 hotel-only MVP slice final review | `stage-7-52-hotel-only-mvp-slice-final-review.md` |
+| Stage 7.53 final closure and carryover | `stage-7-53-final-stage-7-closure-and-carryover.md` |
 
-**Следующий шаг:** Stage 7.53 — Финальное закрытие Stage 7 и перенос оставшихся пунктов, только через отдельную явную roadmap-aligned задачу. Этап должен быть review/documentation-only: зафиксировать завершение bounded Stage 7 foundation, перенести live browser-to-backend verification, generated clients, manifest expansion, real provider и production hardening в явные future/deferred categories и не активировать Stage 8 автоматически.
+**Следующий шаг:** Stage 8 — AI/LLM Orchestration Improvements, только через отдельную явную roadmap-aligned задачу. Закрытие Stage 7 не активирует Stage 8 автоматически; перед стартом требуется отдельное определение bounded scope с учетом carryover Stage 7.53.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
