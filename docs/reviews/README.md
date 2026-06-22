@@ -97,6 +97,7 @@
 | `stage-7-48-minimal-backend-hotel-search-fake-provider.md` | Завершенный backend implementation report / Stage 7.48 | Добавляет process-local hotel search flow и детерминированный `FakeHotelOfferProvider` без real provider, ranking, frontend, generated clients, manifest/CI/tool changes или readiness claims. |
 | `stage-7-49-minimal-hotel-offer-ranking.md` | Завершенный backend implementation report / Stage 7.49 | Добавляет deterministic provider-independent ranking и короткий `matchSummary` для fake hotel offers без LLM, real provider, frontend, OpenAPI/generated-client/manifest/CI/tool changes или readiness claims. |
 | `stage-7-50-minimal-assistant-to-hotel-search-handoff.md` | Завершенный backend implementation report / Stage 7.50 | Связывает strict explicit Assistant message format с process-local hotel search и ranked offers через `show_hotel_results` / `hotelSearchId` без LLM, real provider, frontend, generated clients, manifest/CI/tool changes или readiness claims. |
+| `stage-7-51-minimal-frontend-hotel-search-scenario.md` | Завершенный frontend implementation report / Stage 7.51 | Добавляет отдельную structured hotel search форму, ручной local API client и отображение ranked offers без generated clients, manifest expansion, backend/OpenAPI/tool/CI changes или readiness claims. |
 
 ## Inventory review artifacts
 
@@ -170,6 +171,7 @@
 | `stage-7-48-minimal-backend-hotel-search-fake-provider.md` | Завершенный backend implementation report | Stage 7.48 реализует минимальный fake-provider hotel search flow и рекомендует следующий практический ranking slice без Stage 7/readiness claims. |
 | `stage-7-49-minimal-hotel-offer-ranking.md` | Завершенный backend implementation report | Stage 7.49 ранжирует local offers по availability, rating, total price и stable offer ID, используя существующий `matchSummary` без OpenAPI update или readiness claims. |
 | `stage-7-50-minimal-assistant-to-hotel-search-handoff.md` | Завершенный backend implementation report | Stage 7.50 добавляет bounded Assistant-to-search handoff для explicit format, сохраняя ordinary clarification behavior и non-readiness boundaries. |
+| `stage-7-51-minimal-frontend-hotel-search-scenario.md` | Завершенный frontend implementation report | Stage 7.51 добавляет минимальный ручной hotel search flow через существующие local backend endpoints без generated clients, manifest expansion или production UI claims. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -248,8 +250,9 @@
 65. `docs/reviews/stage-7-48-minimal-backend-hotel-search-fake-provider.md`
 66. `docs/reviews/stage-7-49-minimal-hotel-offer-ranking.md`
 67. `docs/reviews/stage-7-50-minimal-assistant-to-hotel-search-handoff.md`
-68. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
-69. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
+68. `docs/reviews/stage-7-51-minimal-frontend-hotel-search-scenario.md`
+69. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
+70. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
 
 ## Historical / superseded документы
 
