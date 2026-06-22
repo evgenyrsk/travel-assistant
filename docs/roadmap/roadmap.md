@@ -10,7 +10,7 @@ Roadmap не является трекером задач, продуктово�
 |---|---|
 | Текущий этап | Stage 7 завершен; Stage 8 не начат |
 | Последний завершенный этап | Stage 7.53 — Финальное закрытие Stage 7 и перенос оставшихся пунктов |
-| Следующий планируемый шаг | Stage 8 — AI/LLM Orchestration Improvements, только через отдельную явную задачу, согласованную с roadmap |
+| Следующий планируемый шаг | Stage 8.1 — LLM Orchestration Boundary and Safety Plan, только через отдельную явную planning-only задачу |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -38,7 +38,7 @@ Roadmap не является трекером задач, продуктово�
 | Минимальный backend-поток поиска отелей | Stage 7.48 завершен; process-local search flow и deterministic `FakeHotelOfferProvider` добавлены без real provider, ranking, frontend, generated-client/manifest/CI/tool changes или readiness claims |
 | Минимальное ранжирование hotel offers | Stage 7.49 завершен; provider-independent deterministic ranking и короткий `matchSummary` добавлены поверх local fake offers без LLM, real provider, frontend, OpenAPI/generated-client/manifest/CI/tool changes или readiness claims |
 | Минимальная передача от Assistant к hotel search | Stage 7.50 завершен; strict explicit message format создает process-local search и возвращает `show_hotel_results` / `hotelSearchId` без LLM, real provider, frontend, generated-client/manifest/CI/tool changes или readiness claims |
-| Минимальный frontend-сценарий hotel search | Stage 7.51 завершен; отдельная structured форма вызывает существующие process-local search/offers endpoints и показывает ranked offers без generated clients, manifest expansion, backend/OpenAPI/tool/CI changes или readiness claims |
+| Минимальный frontend-сценарий hotel search | Stage 7.51 завершен; отдельная structured форма проверяет существующие process-local search/offers endpoints и показывает ranked offers. Это временная technical demo shell, а не целевой chat-first UI |
 | Финальная сверка hotel-only MVP slice | Stage 7.52 завершен; Stage 7.48-7.51 согласованы по коду, contract shape и automated checks, а отсутствие live browser-to-backend проверки перенесено в явный carryover Stage 7.53 |
 | Финальное закрытие Stage 7 | Stage 7.53 завершен; ограниченная hotel-only основа закрыта, оставшаяся работа перенесена без заявлений о готовности к промышленному использованию, generated clients, manifest или real provider и без активации Stage 8 |
 | Готовность generated clients/OpenAPI | Не заявлена |
@@ -56,8 +56,8 @@ Roadmap не является трекером задач, продуктово�
 | Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
-| Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant, минимальный frontend и сопутствующая работа с контрактами, проверками и документацией завершены в заявленных границах. Готовность к промышленному использованию не заявлена. |
-| Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP. |
+| Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Целевой chat-first flow и LLM orchestration не завершены. |
+| Stage 8 | Запланирован | Развитие chat-first AI/LLM orchestration после отдельного определения границ и безопасности. |
 | Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
 
@@ -488,13 +488,26 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 7.52 hotel-only MVP slice final review | `stage-7-52-hotel-only-mvp-slice-final-review.md` |
 | Stage 7.53 final closure and carryover | `stage-7-53-final-stage-7-closure-and-carryover.md` |
 
-**Следующий шаг:** Stage 8 — AI/LLM Orchestration Improvements, только через отдельную явную roadmap-aligned задачу. Закрытие Stage 7 не активирует Stage 8 автоматически; перед стартом требуется отдельное определение bounded scope с учетом carryover Stage 7.53.
+**Следующий шаг:** Stage 8.1 — LLM Orchestration Boundary and Safety Plan, только через отдельную явную planning-only задачу. Закрытие Stage 7 и эта Pre-Stage 8 синхронизация не активируют Stage 8 автоматически.
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
 **Статус:** Запланирован.
 
-**Границы:** улучшение уточнений, объяснений, сравнения и устойчивости AI behaviour без привязки продукта к одному LLM provider.
+**Целевое направление:** chat-first travel assistant, в котором пользователь пишет естественный запрос, Assistant извлекает параметры, задает уточнения, вызывает provider boundaries при достаточных данных и показывает объяснения вместе со структурированными результатами.
+
+**Рекомендуемый первый шаг:** Stage 8.1 — LLM Orchestration Boundary and Safety Plan. Это planning-only этап для определения:
+
+- provider-independent `LlmClient` boundary;
+- допустимых данных для передачи в LLM;
+- извлечения intent и hotel-search параметров;
+- стратегии уточняющих вопросов;
+- границы tool/provider calls;
+- fallback при ошибке или невалидном ответе LLM;
+- тестирования через fake LLM без внешних вызовов;
+- минимального объема последующего implementation-этапа.
+
+**Границы:** Stage 8 не должен преждевременно выбирать LLM SDK/model provider, добавлять secrets, выдумывать real provider contract или смешивать LLM orchestration с Stage 9 provider integration. Форма Stage 7.51 временно остается diagnostic/demo shell и не считается целевым UI.
 
 ### Stage 9 — Real Provider/API Integration Hardening
 

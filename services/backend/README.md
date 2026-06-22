@@ -6,6 +6,8 @@ Backend остается основой hotel-only MVP v1. Он следует �
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
+Форма из `../../app/` напрямую вызывает текущие session/search endpoints только как техническая проверка Stage 7. Она обходит будущий chat-first Assistant UI и не является финальной frontend/backend интеграцией или доказательством готовности LLM orchestration.
+
 ## Запуск
 
 ```bash
