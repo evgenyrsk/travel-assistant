@@ -1,8 +1,8 @@
 # Roadmap Progress — Travel Assistant
 
-Этот документ является **primary roadmap** проекта Travel Assistant. Он фиксирует статусы этапов, progression, границы этапов, quality gates, carryover и следующий разрешенный шаг.
+Этот документ является **основным roadmap** проекта Travel Assistant. Он фиксирует статусы и границы этапов, критерии качества, перенесенные пункты и следующий разрешенный шаг.
 
-Roadmap не является task tracker, продуктовой спецификацией, архитектурной спецификацией, ADR registry или implementation backlog. Детальные product baseline и architecture baseline вынесены в отдельные документы и указаны ниже.
+Roadmap не является трекером задач, продуктовой или архитектурной спецификацией, реестром ADR либо активным списком реализации. Подробные продуктовая и архитектурная основы вынесены в отдельные документы и указаны ниже.
 
 ## 1. Текущий статус проекта
 
@@ -10,8 +10,8 @@ Roadmap не является task tracker, продуктовой специф�
 |---|---|
 | Текущий этап | Stage 7 завершен; Stage 8 не начат |
 | Последний завершенный этап | Stage 7.53 — Финальное закрытие Stage 7 и перенос оставшихся пунктов |
-| Следующий планируемый шаг | Stage 8 — AI/LLM Orchestration Improvements, только через отдельную явную roadmap-aligned задачу |
-| Подробный roadmap/status source of truth | Только этот документ: `docs/roadmap/roadmap.md` |
+| Следующий планируемый шаг | Stage 8 — AI/LLM Orchestration Improvements, только через отдельную явную задачу, согласованную с roadmap |
+| Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
 |---|---|
@@ -40,9 +40,9 @@ Roadmap не является task tracker, продуктовой специф�
 | Минимальная передача от Assistant к hotel search | Stage 7.50 завершен; strict explicit message format создает process-local search и возвращает `show_hotel_results` / `hotelSearchId` без LLM, real provider, frontend, generated-client/manifest/CI/tool changes или readiness claims |
 | Минимальный frontend-сценарий hotel search | Stage 7.51 завершен; отдельная structured форма вызывает существующие process-local search/offers endpoints и показывает ranked offers без generated clients, manifest expansion, backend/OpenAPI/tool/CI changes или readiness claims |
 | Финальная сверка hotel-only MVP slice | Stage 7.52 завершен; Stage 7.48-7.51 согласованы по коду, contract shape и automated checks, а отсутствие live browser-to-backend проверки перенесено в явный carryover Stage 7.53 |
-| Финальное закрытие Stage 7 | Stage 7.53 завершен; bounded hotel-only foundation закрыт, оставшаяся работа перенесена без production/generated-client/manifest/real-provider readiness claims и без активации Stage 8 |
-| Generated-client/OpenAPI readiness | Не заявлена |
-| Generated-client-ready subset / generated clients | Non-readiness manifest candidate создан; generated-client-ready subset/readiness и generated clients не созданы |
+| Финальное закрытие Stage 7 | Stage 7.53 завершен; ограниченная hotel-only основа закрыта, оставшаяся работа перенесена без заявлений о готовности к промышленному использованию, generated clients, manifest или real provider и без активации Stage 8 |
+| Готовность generated clients/OpenAPI | Не заявлена |
+| Generated-client-ready subset / generated clients | Создан manifest-кандидат без заявления готовности; готовый subset и generated clients не созданы |
 | Full conformance gate | Не реализован |
 | Hotel search / broader implementation | Минимальный fake-provider backend flow, deterministic foundation ranking, bounded Assistant handoff и ручной frontend-сценарий реализованы; real provider, DB/storage, personalization и production implementation не начаты |
 
@@ -56,18 +56,18 @@ Roadmap не является task tracker, продуктовой специф�
 | Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
-| Stage 7 | Завершен | Bounded hotel-only MVP foundation закрыт Stage 7.53: backend/search/fake-provider/ranking/Assistant handoff/minimal frontend и supporting contract/conformance/documentation work завершены в заявленных границах. Production readiness не заявлена. |
-| Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP implementation. |
+| Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant, минимальный frontend и сопутствующая работа с контрактами, проверками и документацией завершены в заявленных границах. Готовность к промышленному использованию не заявлена. |
+| Stage 8 | Запланирован | Улучшения AI/LLM orchestration после появления основы MVP. |
 | Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
 
 ## 2. Правила управления roadmap
 
-- `docs/roadmap/roadmap.md` является source of truth по статусам этапов, progression, границам этапов, carryover и следующему разрешенному шагу.
-- `docs/ROADMAP.md` является верхнеуровневым navigation overview, а не конкурирующим источником текущего статуса. Он должен содержать только stage-purpose map и не должен включать матрицу текущего состояния, last completed step, next planned step или implementation readiness.
-- Документы правил в `docs/development/` являются активными engineering rules для явно ограниченных задач. `docs/development/roadmap.md` и `docs/development/implementation-strategy.md` остаются future/reference material, а не active implementation backlog. Все development docs должны следовать этому roadmap.
-- Planned и future stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи.
-- Recommendations, carryover и future candidates не должны автоматически выполняться во время review или cleanup задач.
+- `docs/roadmap/roadmap.md` является источником истины по статусам и границам этапов, перенесенным пунктам и следующему разрешенному шагу.
+- `docs/ROADMAP.md` является верхнеуровневым навигационным обзором, а не конкурирующим источником текущего статуса. Он содержит только карту назначения этапов и не ведет матрицу состояния, последний завершенный шаг, следующий планируемый шаг или готовность реализации.
+- Документы в `docs/development/` являются активными инженерными правилами для явно ограниченных задач. `docs/development/roadmap.md` и `docs/development/implementation-strategy.md` остаются справочными материалами, а не активным списком реализации. Все документы разработки должны следовать этому roadmap.
+- Запланированные и будущие этапы не являются активным списком задач. Каждый будущий этап начинается только после отдельной явной задачи roadmap.
+- Рекомендации, перенесенные пункты и будущие кандидаты не должны автоматически выполняться во время задач проверки или чистки.
 - Implementation, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog и production code требуют отдельного явного roadmap step.
 - Product baseline и architecture baseline кратко фиксируют текущее состояние; roadmap должен ссылаться на них, а не дублировать их полностью.
 - ADR candidates, drafts и decision inventory не являются accepted ADR.
@@ -104,9 +104,9 @@ MVP v1 остается hotel-only:
 
 Provider/API data является source of truth для travel facts. LLM может интерпретировать, объяснять, ранжировать, резюмировать и уточнять, но не должна выдумывать цены, доступность, рейтинги, amenities или другие provider facts.
 
-## 5. Open Decisions and Carryover
+## 5. Открытые решения и перенесенные пункты
 
-Эти пункты являются carryover и входными данными для будущих решений, а не active backlog:
+Эти пункты перенесены как входные данные для будущих решений и не являются активным списком задач:
 
 - Provider-backed open destination discovery для hotel search, если это потребуется для MVP v1.
 - Сроки и формат предоставления existing travel API contract.
@@ -304,7 +304,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Статус:** завершен.
 
-**Назначение:** реализация bounded hotel-only MVP foundation после Stage 6 через отдельные задачи. Stage 7 закрыт с явным carryover; его завершение не означает production readiness.
+**Назначение:** реализация ограниченной основы hotel-only MVP после Stage 6 через отдельные задачи. Stage 7 закрыт с явным переносом оставшихся пунктов; его завершение не означает готовность к промышленному использованию.
 
 **Прогресс Stage 7 по областям:**
 
@@ -439,20 +439,20 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 - [x] Stage 7.53 — Финальное закрытие Stage 7 и перенос оставшихся пунктов
 
-**Carryover после Stage 7:**
+**Перенесенные пункты после Stage 7:**
 
 | Категория | Статус после закрытия |
 |---|---|
-| Live browser-to-backend E2E и visual verification | Перенесены в отдельную integration/stabilization задачу; не являются выполненными |
-| Generated clients и ready subset | Не созданы; manifest остается non-readiness candidate без expansion claim |
-| CI/Gradle integration и runtime conformance gate | Не реализованы; требуют отдельного tooling решения |
-| Real provider integration | Перенесена в Stage 9 / отдельную roadmap-aligned задачу после доступности provider contract |
-| LLM orchestration и richer Assistant UI | Перенесены в Stage 8; Stage 8 не активирован |
-| DB/storage, Redis/cache, auth/account flows | Перенесены до отдельного product/architecture решения |
-| Booking, payment, flights и combined itinerary | Не входят в закрытый hotel-only Stage 7 scope |
-| Production UI, security, observability и deployment hardening | Не заявлены и остаются future work |
+| Полная browser-to-backend E2E и визуальная проверка | Перенесены в отдельную задачу интеграции/стабилизации; не являются выполненными |
+| Generated clients и готовый subset | Не созданы; manifest остается кандидатом без заявления готовности или расширения |
+| Интеграция CI/Gradle и runtime conformance gate | Не реализованы; требуют отдельного решения по инструментам |
+| Интеграция real provider | Перенесена в Stage 9 или отдельную задачу, согласованную с roadmap, после появления provider contract |
+| LLM orchestration и расширенный Assistant UI | Перенесены в Stage 8; Stage 8 не активирован |
+| DB/storage, Redis/cache, auth/account flows | Перенесены до отдельного продуктового или архитектурного решения |
+| Booking, payment, flights и combined itinerary | Не входят в закрытые границы hotel-only Stage 7 |
+| Production UI, security, observability и deployment hardening | Не заявлены и остаются будущей работой |
 
-**Ключевой guardrail закрытия:** завершение Stage 7 не означает generated-client readiness, OpenAPI finalization, DB/storage activation, real provider integration, production frontend readiness, CI gate readiness или автоматическую активацию Stage 8.
+**Ключевое ограничение закрытия:** завершение Stage 7 не означает готовность generated clients, завершение OpenAPI, активацию DB/storage, интеграцию real provider, промышленную готовность frontend, готовность CI gate или автоматическую активацию Stage 8.
 
 **Stage 7 linked artifacts by group:**
 

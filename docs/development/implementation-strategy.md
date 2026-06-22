@@ -1,14 +1,14 @@
 # Стратегия реализации через opencode
 
-Этот документ описывает будущий подход к работе с development tasks для Travel Assistant. Он нужен, чтобы после явной активации реализации продукт развивался маленькими проверяемыми шагами, а архитектура оставалась пригодной для web, mobile, desktop и будущих интеграций с провайдерами.
+Этот документ описывает будущий подход к задачам разработки Travel Assistant. Он нужен, чтобы после явной активации реализации продукт развивался маленькими проверяемыми шагами, а архитектура оставалась пригодной для web, mobile, desktop и будущих интеграций с провайдерами.
 
-Документ не является primary roadmap. Актуальный статус этапов, чеклисты артефактов, stage gates, carryover и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
+Документ не является основным roadmap. Актуальный статус этапов, checklist артефактов, критерии перехода, перенесенные пункты и следующий шаг фиксируются в `docs/roadmap/roadmap.md`.
 
-Подтвержденный backend stack — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает active implementation backlog. Текущий статус этапов и следующий разрешенный шаг нужно брать из `docs/roadmap/roadmap.md`.
+Подтвержденный стек backend — Kotlin + Ktor. Этот документ является справочным материалом для будущих задач и не создает активный список реализации. Текущий статус этапов и следующий разрешенный шаг нужно брать из `docs/roadmap/roadmap.md`.
 
-Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые implementation artifacts. Любой task format, milestone или implementation sequence ниже применяется только после отдельного явного roadmap step или явно поставленной задачи, совместимой с primary roadmap.
+Этот документ не разрешает создавать production code, API/OpenAPI contracts, endpoint specs, DB schema, storage model, auth/security/DevOps/testing backlog или любые артефакты реализации. Любой формат задачи, milestone или порядок реализации ниже применяется только после отдельного явного шага roadmap или явно поставленной задачи, совместимой с основным roadmap.
 
-Active engineering rules for current implementation, testing, documentation and quality work live in `docs/development/README.md` and linked rule files.
+Активные инженерные правила реализации, тестирования, документации и качества находятся в `docs/development/README.md` и связанных с ним файлах.
 
 ## Общий подход
 
@@ -163,7 +163,7 @@ Active engineering rules for current implementation, testing, documentation and 
 
 Этот список является справочной последовательностью для будущей реализации, а не текущим backlog, roadmap status или task tracker. Он показывает возможную последовательность после явной активации реализации, но не создает задачи сам по себе.
 
-Каждый пункт требует отдельного явного roadmap step или явно поставленной задачи в соответствии с primary roadmap. Следующий Stage 7 implementation step не активирован этим документом.
+Каждый пункт требует отдельного явного шага roadmap или явно поставленной задачи в соответствии с основным roadmap. Следующий этап не активируется этим документом.
 
 1. Зафиксировать требования, границы MVP и API-контракты.
 2. Создать backend skeleton и health endpoint.

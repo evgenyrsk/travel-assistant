@@ -1,20 +1,20 @@
-# Reviews и audit trail
+# Проверки и исторический журнал
 
-Этот раздел содержит review, audit, readiness и cleanup reports проекта Travel Assistant.
+Этот раздел содержит отчеты о проверках, аудитах, готовности и чистке документации проекта Travel Assistant.
 
-`docs/reviews/**` является audit trail: эти документы фиксируют состояние, findings, решения cleanup-задач и рекомендации на момент конкретной проверки. Они не являются primary roadmap, product baseline, architecture baseline, ADR registry, implementation backlog или разрешением выполнять future work.
+`docs/reviews/**` является историческим журналом: документы фиксируют состояние, выводы, решения задач чистки и рекомендации на момент конкретной проверки. Они не являются основным roadmap, продуктовой или архитектурной основой, реестром ADR, активным списком реализации или разрешением выполнять будущую работу.
 
 ## Источники истины
 
 Для текущих задач используй источники в таком порядке:
 
-- `docs/roadmap/roadmap.md` — primary roadmap, статусы этапов, progression, carryover и следующий разрешенный шаг.
-- `docs/product/product-baseline.md` — актуальный product/MVP baseline.
-- `docs/architecture/architecture-baseline.md` — актуальный architecture baseline и backend stack authority.
+- `docs/roadmap/roadmap.md` — основной roadmap, статусы и границы этапов, перенесенные пункты и следующий разрешенный шаг.
+- `docs/product/product-baseline.md` — актуальная продуктовая основа MVP.
+- `docs/architecture/architecture-baseline.md` — актуальная архитектурная основа и источник решения о стеке backend.
 - `AGENTS.md` — обязательные правила работы Codex/AI-агентов в этом репозитории.
 - `docs/decisions/README.md` — ADR/decision taxonomy; accepted ADR files отсутствуют, пока отдельная задача их не создаст.
 
-Если review artifact конфликтует с текущим roadmap или baseline, приоритет имеют текущие source-of-truth документы. Review artifact следует читать как исторический контекст, если он явно не является последним cleanup/readiness gate для текущей задачи.
+Если отчет конфликтует с текущим roadmap или baseline, приоритет имеют действующие документы-источники истины. Отчет следует читать как исторический контекст, если он явно не является последней проверкой для текущей задачи.
 
 ## Как Codex должен использовать этот раздел
 
@@ -100,6 +100,7 @@
 | `stage-7-51-minimal-frontend-hotel-search-scenario.md` | Завершенный frontend implementation report / Stage 7.51 | Добавляет отдельную structured hotel search форму, ручной local API client и отображение ranked offers без generated clients, manifest expansion, backend/OpenAPI/tool/CI changes или readiness claims. |
 | `stage-7-52-hotel-only-mvp-slice-final-review.md` | Завершенный review/decision report / Stage 7.52 | Подтверждает связность минимального hotel-only slice по коду, контрактам и раздельным automated checks; рекомендует отдельное финальное закрытие Stage 7 без новых implementation claims. |
 | `stage-7-53-final-stage-7-closure-and-carryover.md` | Завершенный closure/carryover report / Stage 7.53 | Формально закрывает Stage 7 в границах bounded hotel-only foundation и переносит live E2E, generated clients, manifest, real provider, LLM и production work без readiness overclaim или Stage 8 activation. |
+| `pre-stage-8-documentation-consistency-and-language-review.md` | Завершенная документационная проверка / Pre-Stage 8 | Проверяет согласованность активных статусов и ролей документов после Stage 7, устраняет устаревшие ссылки на Stage 7 и выравнивает русскоязычные формулировки без активации Stage 8. |
 
 ## Inventory review artifacts
 
@@ -176,6 +177,7 @@
 | `stage-7-51-minimal-frontend-hotel-search-scenario.md` | Завершенный frontend implementation report | Stage 7.51 добавляет минимальный ручной hotel search flow через существующие local backend endpoints без generated clients, manifest expansion или production UI claims. |
 | `stage-7-52-hotel-only-mvp-slice-final-review.md` | Завершенный review/decision report | Stage 7.52 сверяет Stage 7.48-7.51, фиксирует отсутствие live browser-to-backend проверки и рекомендует Stage 7.53 как отдельное финальное закрытие/carryover решение. |
 | `stage-7-53-final-stage-7-closure-and-carryover.md` | Завершенный closure/carryover report | Stage 7.53 закрывает Stage 7, сохраняет explicit non-production boundaries и оставляет Stage 8 запланированным, но не начатым. |
+| `pre-stage-8-documentation-consistency-and-language-review.md` | Завершенная документационная проверка | Подтверждает согласованность активных статусов после закрытия Stage 7, уточняет роли источников истины и выполняет точечную языковую чистку перед отдельным решением о старте Stage 8. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -257,8 +259,9 @@
 68. `docs/reviews/stage-7-51-minimal-frontend-hotel-search-scenario.md`
 69. `docs/reviews/stage-7-52-hotel-only-mvp-slice-final-review.md`
 70. `docs/reviews/stage-7-53-final-stage-7-closure-and-carryover.md`
-71. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
-72. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
+71. `docs/reviews/pre-stage-8-documentation-consistency-and-language-review.md`
+72. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
+73. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
 
 ## Historical / superseded документы
 

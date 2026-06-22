@@ -2,7 +2,7 @@
 
 Travel Assistant — приватный проект для разработки AI-помощника по планированию путешествий.
 
-README является входной картой проекта: он помогает понять назначение репозитория и найти ключевые документы. README не является подробным roadmap, продуктовой спецификацией, архитектурной спецификацией, task tracker или implementation backlog.
+README является входной картой проекта: он помогает понять назначение репозитория и найти ключевые документы. README не является подробным roadmap, продуктовой или архитектурной спецификацией, трекером задач либо активным списком реализации.
 
 ## Цели
 
@@ -19,10 +19,10 @@ README является входной картой проекта: он пом�
 ├── .env.example         # Пример локальных переменных окружения
 ├── .gitignore           # Правила исключения локальных и сгенерированных файлов
 ├── .github/             # Шаблоны GitHub issues и pull requests
-├── app/                 # Минимальный frontend-сценарий hotel search Stage 7.51
-├── services/            # Модули backend/services; services/backend содержит базовую Kotlin + Ktor backend-основу Stage 7
-├── docs/                # Продуктовая, roadmap-, архитектурная и development-документация
-├── tests/               # Будущие тесты, fixtures и e2e-сценарии
+├── app/                 # Минимальный frontend-сценарий поиска отелей Stage 7.51
+├── services/            # Backend-модули; services/backend содержит основу на Kotlin + Ktor
+├── docs/                # Продуктовая, архитектурная и инженерная документация, а также roadmap
+├── tests/               # Будущие тесты, fixtures и E2E-сценарии
 └── scripts/             # Будущие скрипты разработки и автоматизации
 ```
 
@@ -41,42 +41,42 @@ README является входной картой проекта: он пом�
 - `docs/ARCHITECTURE.md` — предварительные архитектурные ориентиры; текущий backend stack подтвержден как Kotlin + Ktor в architecture baseline.
 - `docs/architecture/README.md` — индекс архитектурной документации и метки ролей; только навигация.
 - `docs/architecture/architecture-baseline.md` — источник истины по архитектуре, authority по backend stack и актуальное компактное архитектурное состояние после Stage 5.
-- `docs/roadmap/roadmap.md` — primary roadmap и source of truth по статусам этапов, progression, carryover и следующему разрешенному шагу.
-- `docs/ROADMAP.md` — краткая карта этапов без текущих статусов, не конкурирующий roadmap и не source of truth.
-- `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, guardrails и безопасного рефакторинга документации.
-- `docs/reviews/README.md` — индекс review/audit artifacts и правила чтения исторических и текущих cleanup reports.
-- `docs/reviews/*.md` — audit trail, cleanup reports и historical reviews; читать через `docs/reviews/README.md`.
+- `docs/roadmap/roadmap.md` — основной roadmap и единственный источник текущих статусов этапов, перенесенных пунктов и следующего разрешенного шага.
+- `docs/ROADMAP.md` — краткая навигационная карта этапов без текущих статусов; не конкурирует с основным roadmap.
+- `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, ограничений и безопасного рефакторинга документации.
+- `docs/reviews/README.md` — индекс отчетов о проверках и правила чтения исторических и текущих отчетов.
+- `docs/reviews/*.md` — исторический журнал проверок и чисток; читать через `docs/reviews/README.md`.
 - `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
-- `docs/development/README.md` — индекс активных engineering rules для implementation, testing, documentation и quality work.
+- `docs/development/README.md` — индекс активных инженерных правил для реализации, тестирования, документации и проверок качества.
 - `docs/development/coding-standards.md` — общие правила написания кода.
 - `docs/development/kotlin-backend-style-guide.md` — Kotlin + Ktor backend style rules.
 - `docs/development/testing-strategy.md` — testing strategy и coverage expectations.
 - `docs/development/documentation-guidelines.md` — documentation source-of-truth, navigation и language policy rules.
 - `docs/development/definition-of-done.md` — task completion criteria.
 - `docs/development/quality-gates.md` — supported validation gates и reporting expectations.
-- `docs/development/roadmap.md` — компактный development reference и milestone vocabulary; future/reference material, не источник roadmap-статусов и не active backlog.
-- `docs/development/implementation-strategy.md` — будущая стратегия реализации и правила декомпозиции задач; не primary roadmap и не active implementation backlog.
-- `services/backend/README.md` — инструкция запуска Stage 7 Kotlin + Ktor backend foundation и текущих локальных endpoints.
-- `app/README.md` — запуск и проверки минимального frontend-сценария hotel search.
+- `docs/development/roadmap.md` — компактный справочник по будущим направлениям разработки; не источник статусов и не активный список задач.
+- `docs/development/implementation-strategy.md` — справочная стратегия реализации и правила декомпозиции задач; не основной roadmap и не активный список реализации.
+- `services/backend/README.md` — инструкция по запуску backend на Kotlin + Ktor и описание текущих локальных endpoints.
+- `app/README.md` — запуск и проверки минимального frontend-сценария поиска отелей.
 - `docs/prompts/README.md` — индекс Codex prompt templates.
-- `docs/prompts/codex-task-template.md` — практический шаблон Codex для implementation/maintenance задач.
-- `docs/prompts/codex-review-template.md` — практический шаблон Codex для review-only задач.
+- `docs/prompts/codex-task-template.md` — практический шаблон Codex для задач реализации и сопровождения.
+- `docs/prompts/codex-review-template.md` — практический шаблон Codex для задач только на проверку.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
 - `.github/` — GitHub templates для постановки задач и описания pull requests.
 
 ## Начало работы
 
-Актуальный статус, завершенные артефакты, открытые решения, generated-client/OpenAPI readiness и следующий разрешенный шаг фиксируются только в primary roadmap: `docs/roadmap/roadmap.md`.
+Актуальный статус, завершенные артефакты, открытые решения, готовность generated clients/OpenAPI и следующий разрешенный шаг фиксируются только в основном roadmap: `docs/roadmap/roadmap.md`.
 
 ## Рабочий процесс Codex
 
 - Обязательные правила репозитория для Codex-агентов находятся в `AGENTS.md`.
-- Active engineering rules находятся в `docs/development/README.md`.
-- Backend layering rules находятся в `docs/architecture/backend-layering-rules.md`.
-- Переиспользуемый шаблон постановки задач находится в `docs/prompts/codex-task-template.md`; legacy compact template сохранен только как compatibility redirect.
-- Шаблон read-only review находится в `docs/prompts/codex-review-template.md`; legacy review template сохранен только как compatibility redirect.
-- Canonical entry-point правила roadmap, scope, ADR, validation, language policy и отчетности находятся в `AGENTS.md`; подробные implementation rules живут в `docs/development/**`.
+- Активные инженерные правила находятся в `docs/development/README.md`.
+- Правила слоев backend находятся в `docs/architecture/backend-layering-rules.md`.
+- Переиспользуемый шаблон постановки задач находится в `docs/prompts/codex-task-template.md`; устаревший компактный шаблон сохранен только как совместимая переадресация.
+- Шаблон проверки без изменений кода находится в `docs/prompts/codex-review-template.md`; устаревший шаблон сохранен только как совместимая переадресация.
+- Основные правила работы с roadmap, границами задач, ADR, проверками, языком и отчетностью находятся в `AGENTS.md`; подробные правила реализации живут в `docs/development/**`.
 - GitHub PR checklist находится в `.github/pull_request_template.md`.
-- Primary roadmap со статусами этапов находится в `docs/roadmap/roadmap.md`.
+- Основной roadmap со статусами этапов находится в `docs/roadmap/roadmap.md`.
 - Верхнеуровневый список этапов находится в `docs/ROADMAP.md`.
-- Secondary development reference находится в `docs/development/roadmap.md`.
+- Дополнительный справочник по разработке находится в `docs/development/roadmap.md`.

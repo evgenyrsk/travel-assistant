@@ -1,16 +1,16 @@
 # Roadmap
 
-Этот документ является кратким навигационным обзором этапов Travel Assistant. Он помогает быстро увидеть порядок этапов и перейти к нужным roadmap-документам.
+Этот документ является кратким навигационным обзором этапов Travel Assistant. Он помогает быстро увидеть порядок этапов и перейти к нужным документам.
 
-Primary roadmap и source of truth по статусам этапов, progression, carryover, границам этапов и следующему разрешенному шагу находится в `docs/roadmap/roadmap.md`.
+Основной roadmap и единственный источник текущих статусов, границ этапов, перенесенных пунктов и следующего разрешенного шага находится в `docs/roadmap/roadmap.md`.
 
-`docs/ROADMAP.md` не конкурирует с primary roadmap, не является task tracker или implementation backlog. Справочные development guidance находятся в `docs/development/roadmap.md` и `docs/development/implementation-strategy.md`; эти документы являются future/reference material и следуют primary roadmap.
+`docs/ROADMAP.md` не конкурирует с основным roadmap и не является трекером задач или активным списком реализации. Справочные материалы по разработке находятся в `docs/development/roadmap.md` и `docs/development/implementation-strategy.md`; они подчиняются основному roadmap.
 
 ## Как читать roadmap
 
 Этот файл отвечает только за порядок и назначение этапов. Он не ведет матрицу состояния проекта, не фиксирует последний выполненный шаг и не определяет разрешенный следующий шаг.
 
-За актуальным состоянием проекта, подробными checklist, carryover, ограничениями и разрешенным следующим шагом обращайся только к `docs/roadmap/roadmap.md`.
+За актуальным состоянием проекта, подробными checklist, перенесенными пунктами, ограничениями и разрешенным следующим шагом обращайся только к `docs/roadmap/roadmap.md`.
 
 ## Этап 0 — перезапуск проекта и продуктовая рамка
 
@@ -39,7 +39,7 @@ Primary roadmap и source of truth по статусам этапов, progressi
 - Определить screen map и navigation model MVP.
 - Описать основные UX flows и screen states.
 - Зафиксировать required fields и acceptance criteria для MVP user flows.
-- Зафиксировать hotel-only scope для MVP v1.
+- Зафиксировать hotel-only границы MVP v1.
 - Перенести flight search в next expansion, а combined search — в later expansion после flight flow.
 - Отделить MVP UX boundaries от будущего объема работ.
 
@@ -54,15 +54,15 @@ Primary roadmap и source of truth по статусам этапов, progressi
 
 - Описать архитектурные границы.
 - Зафиксировать подход к AI/LLM-абстракции.
-- Зафиксировать подход к hotel provider abstraction для MVP v1 и future flight provider abstraction для следующего расширения.
+- Зафиксировать подход к абстракции hotel provider для MVP v1 и будущей абстракции flight provider для следующего расширения.
 - Определить ответственность backend, frontend, domain и integrations.
 
 ## Этап 6 — подготовка реализации
 
 - Подготовить рамку будущих задач реализации.
-- Уточнить подход к provider abstractions, mock/fake providers, contract placeholders и использованию предоставленного travel API-контракта на уровне scope/planning.
+- Уточнить подход к абстракциям provider, mock/fake providers, контрактам-заглушкам и использованию предоставленного travel API-контракта на уровне планирования.
 - Подготовить стратегию проверки и границы локального рабочего процесса.
-- Не создавать backend/frontend implementation, DB schema, storage model, auth/security/DevOps/testing backlog или production implementation без отдельной явной roadmap-задачи.
+- Не создавать реализацию backend/frontend, DB schema, storage model, auth/security/DevOps/testing backlog или промышленную реализацию без отдельной явной задачи roadmap.
 
 ## Этап 7 — реализация MVP
 

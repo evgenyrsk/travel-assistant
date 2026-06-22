@@ -1,8 +1,8 @@
 # Travel Assistant Backend
 
-Минимальная Kotlin + Ktor backend foundation для Stage 7.2 и bounded behavior / cleanup slices до Stage 7.50.
+Минимальная основа backend на Kotlin + Ktor, развивавшаяся с Stage 7.2 до Stage 7.50 небольшими ограниченными шагами.
 
-Backend остается foundation для hotel-only MVP v1. Он следует Stage 6 OpenAPI draft на уровне текущих application boundaries: Stage 7.3-7.15 формируют assistant/session foundation, Stage 7.48 добавляет минимальный process-local hotel search flow с детерминированным `FakeHotelOfferProvider`, Stage 7.49 ранжирует offers, а Stage 7.50 связывает явный Assistant message format с существующим search boundary. Shortlist и explanation routes остаются явными placeholder endpoints без бизнес-логики:
+Backend остается основой hotel-only MVP v1. Он следует черновику OpenAPI Stage 6 в границах текущего application-слоя: Stage 7.3-7.15 формируют основу Assistant/session, Stage 7.48 добавляет минимальный process-local поиск отелей с детерминированным `FakeHotelOfferProvider`, Stage 7.49 ранжирует offers, а Stage 7.50 связывает явный формат сообщения Assistant с существующей границей поиска. Routes shortlist и explanations остаются endpoints-заглушками без бизнес-логики:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -38,15 +38,15 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 
 Фактический путь создания локальной assistant session: `POST /api/v1/assistant/sessions`.
 
-Stage 7.3 - Stage 7.11 session creation возвращает `201 Created` со structured JSON в foundation version of Stage 6-like assistant response shape:
+Stage 7.3 - Stage 7.11: создание session возвращает `201 Created` со структурированным JSON в базовой форме ответа Assistant:
 
 - `session` с `sessionId`, `status`, `createdAt`, `updatedAt`;
 - `assistantMessage` с deterministic placeholder `role` и `content`;
 - `nextAction`.
 
-`sessionId` является process-local deterministic identifier и не подразумевает persistence, retrieval, account history или cross-device storage.
+`sessionId` является детерминированным process-local идентификатором и не подразумевает persistence, retrieval, account history или cross-device storage.
 
-Stage 7.11 также принимает optional initial `message` body на `POST /api/v1/assistant/sessions`. Если initial `message` передан и не blank, session создается, минимальные clarification metadata обновляются и internal coverage plan пересчитывается. Обычный text остается foundation intake; только явный Stage 7.50 `hotel-search; ...` format может создать process-local fake-provider search. Message text не сохраняется как history, slots не заполняются, LLM не вызывается.
+Stage 7.11 также принимает необязательное начальное поле `message` в body `POST /api/v1/assistant/sessions`. Если `message` передано и не пусто, session создается, минимальные clarification metadata обновляются, а внутренний coverage plan пересчитывается. Обычный текст остается базовым вводом; только явный формат Stage 7.50 `hotel-search; ...` может создать process-local поиск через fake provider. Текст сообщения не сохраняется как history, slots не заполняются, LLM не вызывается.
 
 Stage 7.6 регистрирует созданную session только в process-local memory. Stage 7.7 инициализирует для нее минимальное process-local `clarificationState` metadata: фазу `collecting_requirements`, признак ожидания пользовательского ввода, счетчик принятых user messages, timestamps создания/обновления и timestamp последнего принятого сообщения после message intake.
 
@@ -127,7 +127,7 @@ Search и offers сохраняются только в памяти текущ�
 
 Текущий fake provider возвращает offers в одной валюте, поэтому price comparison ограничен локальным single-currency набором. Каждый offer получает короткий deterministic `matchSummary`, который объясняет foundation ranking без LLM и персонализации. Response также включает stable offer identifiers, hotel name, location, total price, rating, amenities, availability, source/freshness markers и provider facts.
 
-Это foundation behavior, а не real provider integration, generated-client readiness, production search, pricing guarantee, availability guarantee или production recommendation engine.
+Это базовое поведение, а не интеграция real provider, готовность generated clients, промышленный поиск, гарантия цены или доступности либо промышленный recommendation engine.
 
 Placeholder routes для оставшихся hotel-only MVP boundaries:
 
@@ -150,14 +150,14 @@ Stage 7.14 strategy для generated-client readiness:
 
 ## Намеренно не реализовано
 
-- production assistant sessions, session persistence/retrieval и message history;
+- промышленные Assistant sessions, session persistence/retrieval и message history;
 - durable persistence, DB/storage и multi-instance session state;
 - stateful clarification flow, intent classification или requirements extraction;
 - public slot update endpoints, natural-language slot filling или сохранение extracted hotel requirement values;
 - dynamic clarification planning или user-facing clarification question generation;
-- final generated-client-ready API contract semantics;
+- финальная семантика API-контракта для generated clients;
 - real public search readiness semantics и `hotelSearchRequest` construction;
-- production hotel search business logic и provider mapping;
+- промышленная бизнес-логика поиска отелей и provider mapping;
 - персонализированное, criteria-aware, AI/LLM или production hotel offer ranking;
 - shortlist behavior;
 - explanation/compare behavior;
@@ -166,7 +166,7 @@ Stage 7.14 strategy для generated-client readiness:
 - DB migrations, entities, repositories и storage model;
 - Redis/cache;
 - LLM integration и orchestration;
-- production frontend integration и generated clients;
+- промышленная интеграция frontend и generated clients;
 - generated-client-ready subset для placeholder endpoints;
 - OpenAPI/runtime conformance gate;
 - booking, payment, flights, combined itinerary, account flows.

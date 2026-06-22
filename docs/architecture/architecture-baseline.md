@@ -1,30 +1,30 @@
 # Architecture Baseline
 
-**Роль:** current architecture source of truth и backend stack authority для Travel Assistant. Historical `docs/architecture/stage-*` artifacts и contract drafts сохраняют traceability, но не переопределяют этот baseline.
+**Роль:** источник истины по текущей архитектуре и принятому стеку backend Travel Assistant. Исторические артефакты `docs/architecture/stage-*` и черновики контрактов сохраняют ход решений, но не переопределяют эту основу.
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальный architecture baseline Travel Assistant после завершения Stage 5 и последующей backend stack correction / documentation synchronization. Текущий статус этапов, последний завершенный Stage 7 шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Этот документ фиксирует актуальную архитектурную основу Travel Assistant после завершения Stage 5, исправления стека backend и синхронизации документации. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
 
 Он нужен как компактная точка входа в текущее архитектурное состояние: какие границы подтверждены, где находится conceptual architecture baseline и какие Stage 5 artifacts являются исходными источниками.
 
-Документ не заменяет historical Stage 5 artifacts, не переписывает architecture decisions и не добавляет accepted ADR. Roadmap остается source of truth по статусам этапов и progression.
+Документ не заменяет исторические артефакты Stage 5, не переписывает архитектурные решения и не добавляет принятые ADR. Roadmap остается источником истины по статусам этапов.
 
 Этот документ не является implementation plan, API contract, OpenAPI specification, DB schema, storage model, provider adapter design или backlog задач.
 
 ## 2. Текущий статус архитектуры
 
-- Stage 5 - Completed.
-- Stage 6 - Completed as contract/documentation phase.
-- Stage 7 - Completed в bounded hotel-only foundation scope; detailed closure и carryover находятся в `docs/roadmap/roadmap.md`.
-- Architecture baseline сформирован на conceptual level и дополнен backend stack decision на уровне документации/governance.
+- Stage 5 - завершен.
+- Stage 6 - завершен как этап контрактов и документации.
+- Stage 7 - завершен в границах ограниченной hotel-only основы; подробности закрытия и перенесенные пункты находятся в `docs/roadmap/roadmap.md`.
+- Архитектурная основа сформирована на концептуальном уровне и дополнена документированным решением о стеке backend.
 - Kotlin + Ktor backend foundation с process-local Assistant/hotel-search boundaries существует в `services/backend/`.
-- Bounded fake-provider search, deterministic ranking и минимальный frontend существуют; real provider, DB/storage, generated clients и production implementation не создавались.
+- Ограниченный поиск через fake provider, детерминированное ранжирование и минимальный frontend существуют; real provider, DB/storage, generated clients и промышленная реализация не создавались.
 - API/OpenAPI contract draft создан в Stage 6 как documentation-level frontend/backend boundary; существует только local `FakeHotelOfferProvider`, real provider adapters не создавались.
 - Auth/security/DevOps/testing backlog еще не создавался.
-- Stage 8 и любая future integration/production work начинаются только через отдельные roadmap-aligned задачи.
+- Stage 8 и любая будущая интеграционная или промышленная работа начинаются только через отдельные задачи, согласованные с roadmap.
 
-Следующая implementation задача может начаться только через отдельную явную roadmap-aligned задачу. Этот architecture baseline не активирует Stage 8 или другую future implementation work.
+Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap. Эта архитектурная основа не активирует Stage 8 или другую будущую реализацию.
 
 ## 3. Backend stack baseline
 
@@ -181,11 +181,11 @@ Stage 5 documents сохраняются как historical architecture artifact
 
 Roadmap остается source of truth по статусам и progression.
 
-## 13. Architecture carryover
+## 13. Перенос архитектурных вопросов
 
-Актуальный carryover уже зафиксирован в `docs/architecture/stage-5/stage-5-summary-and-carryover.md` и related Stage 5 artifacts. Этот раздел не добавляет новые carryover items.
+Актуальные перенесенные вопросы уже зафиксированы в `docs/architecture/stage-5/stage-5-summary-and-carryover.md` и связанных артефактах Stage 5. Этот раздел не добавляет новые пункты.
 
-Ключевые темы carryover:
+Ключевые перенесенные темы:
 
 - сохранить facts / assumptions / unknowns separation;
 - сохранить provider-agnostic hotel boundary;
@@ -197,7 +197,7 @@ Roadmap остается source of truth по статусам и progression.
 - получить existing hotel provider/API contract до concrete API mapping;
 - решать storage, auth, telemetry, security и provider hardening только через отдельные future decisions.
 
-Carryover не является active backlog, Stage 6 task list или implementation plan.
+Перенесенные темы не являются активным списком задач, списком Stage 6 или планом реализации.
 
 ## 14. Связанные документы
 
