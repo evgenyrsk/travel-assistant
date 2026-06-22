@@ -26,6 +26,8 @@
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap. Эта архитектурная основа не активирует Stage 8 или другую будущую реализацию.
 
+Текущая frontend-форма Stage 7.51 напрямую использует session/search API как диагностическая оболочка. Она не меняет архитектурное направление: целевой frontend остается chat-first, backend/application сохраняет orchestration boundary, LLM в будущем интерпретирует запрос и формирует уточнения через provider-independent boundary, а provider API остается источником hotel facts за `HotelOfferProviderBoundary`.
+
 ## 3. Backend stack baseline
 
 Подтвержденный backend stack Travel Assistant: Kotlin + Ktor.
@@ -66,6 +68,8 @@ LLM помогает интерпретировать запрос, уточня
 Backend/application/orchestration conceptually координирует flow между user intent, assistant/LLM layer, hotel provider abstraction и results view. Framework layer для backend должен соответствовать Kotlin + Ktor, при этом domain/application logic остается независимой от Ktor.
 
 UI остается conceptual/product-driven: Stage 5 не создает frontend implementation, component props, API endpoints или production screens.
+
+Stage 8 должен сначала отдельно определить границу `LlmClient`, разрешенные данные, fallback и test strategy. Реальное LLM-подключение, выбор SDK/model provider и интеграция предоставленного real provider API contract не выводятся автоматически из этой архитектурной основы.
 
 ## 6. Основные архитектурные границы
 
