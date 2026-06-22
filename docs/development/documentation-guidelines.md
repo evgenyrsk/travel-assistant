@@ -66,8 +66,8 @@ Do not update documentation only to:
 
 ## Language Policy
 
-- Use English for source code, package names, class names, method names, API contracts, database identifiers, logs, errors, technical comments, ADRs, development standards, engineering governance docs, and Codex prompt templates.
-- Product documentation, roadmap, stage reports, review reports, and business-facing documentation may remain in Russian.
-- Do not rewrite existing Russian product, roadmap, stage, or historical documents only to normalize language.
-- Prefer English for documents that directly constrain implementation.
-- Avoid mixing Russian and English inside one technical artifact unless English technical terms improve precision.
+- Активная документация и документы-источники истины используют русский текст по умолчанию.
+- Английский используется для исходного кода, package/class/method names, API-контрактов, идентификаторов базы данных, логов, ошибок, технических комментариев, названий ADR и других технических идентификаторов.
+- Последовательно англоязычные инженерные правила и шаблоны Codex могут оставаться на английском; смешивать обычные русские и английские фразы без необходимости не следует.
+- Не переписывай исторические отчеты или существующие русские документы только ради унификации языка.
+- Технические термины можно оставлять на английском, когда перевод снижает точность.

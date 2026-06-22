@@ -1,29 +1,29 @@
 # Development reference — Travel Assistant
 
-Этот документ является compact development reference для будущих implementation-oriented задач Travel Assistant.
+Этот документ является компактным справочником для будущих задач реализации Travel Assistant.
 
-Он не является primary roadmap, task tracker, active backlog, source of truth по статусам этапов или разрешением начинать следующий Stage 7 шаг. Актуальный roadmap status, stage gates, carryover и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Он не является основным roadmap, трекером задач, активным списком работ, источником статусов этапов или разрешением начинать следующий этап. Актуальный статус, критерии перехода, перенесенные пункты и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
 
 ## Роль документа
 
-Используй этот файл только после того, как отдельная явная roadmap-aligned задача активировала соответствующую implementation работу.
+Используй этот файл только после того, как отдельная явная задача, согласованная с roadmap, активировала соответствующую реализацию.
 
 Приоритет источников:
 
 1. `docs/roadmap/roadmap.md` — статусы этапов и следующий разрешенный шаг.
-2. `AGENTS.md` — repository/agent governance.
-3. `docs/product/product-baseline.md` — product/MVP scope.
-4. `docs/architecture/architecture-baseline.md` — architecture baseline и backend stack.
-5. Active engineering rules in `docs/development/` — implementation, testing, documentation and quality rules for explicit tasks.
-6. `docs/development/roadmap.md` and `docs/development/implementation-strategy.md` — future/reference material, not active backlog.
+2. `AGENTS.md` — правила репозитория и работы агентов.
+3. `docs/product/product-baseline.md` — продуктовые границы MVP.
+4. `docs/architecture/architecture-baseline.md` — архитектурная основа и стек backend.
+5. Активные правила в `docs/development/` — реализация, тестирование, документация и качество для явно поставленных задач.
+6. `docs/development/roadmap.md` и `docs/development/implementation-strategy.md` — справочные материалы, а не активный список задач.
 
-Если этот документ конфликтует с primary roadmap или baseline-документами, приоритет имеют primary roadmap и baseline-документы.
+Если этот документ конфликтует с основным roadmap или документами-основами, приоритет имеют основной roadmap и документы-основы.
 
 ## Статус и активация
 
-Этот reference не фиксирует текущий статус проекта. Для текущего Stage 7 состояния, последнего завершенного шага и следующего разрешенного шага всегда используй `docs/roadmap/roadmap.md`.
+Этот справочник не фиксирует текущий статус проекта. Последний завершенный этап и следующий разрешенный шаг всегда проверяй в `docs/roadmap/roadmap.md`.
 
-Business logic, provider integration, DB/storage, frontend, generated clients и production implementation не начинаются без отдельной явной roadmap-aligned задачи.
+Бизнес-логика, интеграция provider, DB/storage, frontend, generated clients и промышленная реализация не начинаются без отдельной явной задачи, согласованной с roadmap.
 
 ## Development areas, reference only
 
@@ -37,22 +37,22 @@ Business logic, provider integration, DB/storage, frontend, generated clients и
 | Hotel search abstraction | MVP v1 остается hotel-only; provider/API details должны быть за abstraction. |
 | Web frontend | Next.js + React + Tailwind + shadcn/ui остаются рабочей гипотезой, но frontend work не активирован этим документом. |
 | Testing / quality | Тесты добавляются вместе с явно активированными behavior/code changes. |
-| Security / observability / local development | Использовать как future readiness areas, не как текущий backlog. |
+| Security / observability / local development | Использовать как справочные области будущей готовности, а не как текущий список задач. |
 
 ## Milestone vocabulary, reference only
 
-Эти milestone areas помогают обсуждать размер и направленность будущих implementation tasks после явной roadmap activation. Они не задают порядок выполнения и не являются active backlog.
+Эти области milestones помогают обсуждать размер и направленность будущих задач реализации после явной активации через roadmap. Они не задают порядок выполнения и не являются активным списком задач.
 
 | Milestone area | Reference value |
 |---|---|
 | Project/process foundation | Навигация, правила задач, базовая документация и repo workflow. |
 | Product/architecture foundation | Требования, MVP boundaries, architecture boundaries и domain/API preparation на уровне документации. |
-| Backend foundation | Минимальный Kotlin + Ktor foundation после явной activation; текущий backend state сверять с primary roadmap. |
+| Backend foundation | Минимальная основа на Kotlin + Ktor после явной активации; текущее состояние backend сверять с основным roadmap. |
 | AI orchestration foundation | `LlmClient`, intent/slot/clarification flow и testable orchestration после отдельной задачи. |
 | Hotel search foundation | Hotel-only provider abstraction, mock/fake providers and ranking-ready hotel data. |
 | Web MVP | Chat UI, hotel results UI и frontend/backend integration после явной activation. |
 | End-to-end MVP | Hotel-only flow from request to ranked/explained hotel offers. |
-| Quality/readiness | Testing, security, observability, local development and production readiness references. |
+| Quality/readiness | Справочные темы тестирования, security, observability, локальной разработки и готовности к промышленному использованию. |
 
 ## Как формулировать будущие development tasks
 
@@ -70,12 +70,12 @@ Business logic, provider integration, DB/storage, frontend, generated clients и
 
 - текущий roadmap status;
 - порядок этапов;
-- next Stage 7 step activation;
-- active implementation backlog;
+- активацию следующего этапа;
+- активный список реализации;
 - API/OpenAPI contracts;
 - DB schema/storage model;
 - auth/security/DevOps/testing backlog;
-- production implementation plan;
+- план промышленной реализации;
 - provider-specific integration design.
 
 Для этих вопросов используй explicit roadmap task и relevant source-of-truth documents.

@@ -1,30 +1,30 @@
 # Product Baseline
 
-**Роль:** current product source of truth для MVP v1 scope, active product framing и product guardrails. Historical `docs/product/stage-*` artifacts сохраняют traceability, но не переопределяют этот baseline.
+**Роль:** источник истины по текущим продуктовым границам MVP v1 и продуктовым ограничениям. Исторические артефакты `docs/product/stage-*` сохраняют ход решений, но не переопределяют эту основу.
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальный product baseline Travel Assistant после завершения Stage 0-5 и последующей документационной синхронизации. Текущий статус этапов, последний завершенный Stage 7 шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Этот документ фиксирует актуальную продуктовую основу Travel Assistant после завершения Stage 0-5 и последующей документационной синхронизации. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
 
 Он нужен как компактная точка входа в текущее продуктовое состояние: что входит в MVP v1, что остается за его пределами, какие продуктовые границы уже подтверждены и где искать исходные stage artifacts.
 
-Документ не заменяет historical stage artifacts в `docs/product/stage-*`, не переписывает требования и не добавляет новые product decisions. Если нужен текущий статус этапов, source of truth остается `docs/roadmap/roadmap.md`.
+Документ не заменяет исторические артефакты этапов в `docs/product/stage-*`, не переписывает требования и не добавляет новые продуктовые решения. Источником текущего статуса этапов остается `docs/roadmap/roadmap.md`.
 
 ## 2. Текущий статус продукта
 
-- Stage 0 - Completed.
-- Stage 1 - Completed.
-- Stage 2 - Completed.
-- Stage 3 - Completed.
-- Stage 4 - Completed.
-- Stage 4.1 - Completed как `docs/product/stage-4/stage-4-consistency-review.md`.
-- Stage 5 - Completed.
-- Stage 6 - Completed как contract/design phase.
-- Stage 7 - Completed в bounded hotel-only foundation scope; detailed closure и carryover находятся в `docs/roadmap/roadmap.md`.
+- Stage 0 - завершен.
+- Stage 1 - завершен.
+- Stage 2 - завершен.
+- Stage 3 - завершен.
+- Stage 4 - завершен.
+- Stage 4.1 - завершен отчетом `docs/product/stage-4/stage-4-consistency-review.md`.
+- Stage 5 - завершен.
+- Stage 6 - завершен как этап контрактов и проектирования.
+- Stage 7 - завершен в границах ограниченной hotel-only основы; подробности закрытия и перенесенные пункты находятся в `docs/roadmap/roadmap.md`.
 
-Stage 6 contract work завершен отдельными roadmap-задачами и не создавал production implementation. Stage 7 сформировал bounded hotel-only foundation с process-local backend flow, fake provider, deterministic ranking, strict Assistant handoff и минимальным frontend-сценарием. Это закрытие не означает production readiness, real provider, generated clients, manifest expansion, booking, durable storage или auth. Следующий этап начинается только через отдельную явную roadmap-aligned задачу.
+Работа Stage 6 с контрактами завершена отдельными задачами roadmap и не создавала промышленную реализацию. Stage 7 сформировал ограниченную hotel-only основу с process-local потоком backend, fake provider, детерминированным ранжированием, строгой передачей от Assistant и минимальным frontend-сценарием. Это закрытие не означает готовность к промышленному использованию, наличие real provider, generated clients, расширенного manifest, booking, durable storage или auth. Следующий этап начинается только через отдельную явную задачу, согласованную с roadmap.
 
-## 3. Scope MVP v1
+## 3. Границы MVP v1
 
 MVP v1 - это hotel-only travel assistant.
 
@@ -41,7 +41,7 @@ MVP v1 - это hotel-only travel assistant.
 
 MVP v1 не является полным планировщиком поездки, booking flow или аккаунтной историей путешествий.
 
-## 4. Явно вне scope MVP v1
+## 4. Явно вне границ MVP v1
 
 В MVP v1 явно не входят:
 
@@ -55,7 +55,7 @@ MVP v1 не является полным планировщиком поезд�
 - account-level saved trips;
 - cross-device sync как обязательная функция;
 - production integrations за пределами явно запланированных provider abstractions;
-- любой future scope, который не активирован отдельной задачей roadmap.
+- любые будущие возможности, не активированные отдельной задачей roadmap.
 
 Flight search остается следующим расширением после hotel flow. Combined itinerary возвращается только после появления flight flow и отдельного product decision.
 
@@ -96,7 +96,7 @@ Assumptions и unknowns должны оставаться видимыми. Prov
 - Provider facts должны приходить от provider layer/source data.
 - Assistant assumptions должны быть явно обозначены.
 - Unknown data не нужно превращать в уверенные факты.
-- Future features не являются текущим scope.
+- Будущие функции не входят в текущие границы.
 - Current-session shortlist не является account history.
 - Save/shortlist не означает booking, payment, price guarantee или availability guarantee.
 
@@ -133,11 +133,11 @@ Stage 0-4.1 documents сохраняются как historical stage artifacts �
 - `docs/product/stage-4/stage-4-summary-and-carryover.md` - итог Stage 4.
 - `docs/product/stage-4/stage-4-consistency-review.md` - Stage 4.1 consistency review.
 
-## 9. Открытые продуктовые вопросы / carryover
+## 9. Открытые продуктовые вопросы и перенесенные пункты
 
-Актуальные open questions и carryover уже зафиксированы в roadmap и stage summaries. Этот раздел не добавляет новые вопросы.
+Актуальные открытые вопросы и перенесенные пункты уже зафиксированы в roadmap и итогах этапов. Этот раздел не добавляет новые вопросы.
 
-Ключевые темы carryover:
+Ключевые перенесенные темы:
 
 - какой объем provider-backed open destination discovery нужен в MVP v1, если он применим к hotel search;
 - когда и в каком виде будет предоставлен existing travel API hotel offer contract;
@@ -146,7 +146,7 @@ Stage 0-4.1 documents сохраняются как historical stage artifacts �
 - как показывать unknown data, partial provider data и stale results в будущей реализации;
 - какие accessibility gates нужны перед frontend implementation.
 
-Carryover не является active backlog. Любой следующий шаг должен быть выбран отдельной задачей и оставаться согласованным с primary roadmap.
+Перенесенные темы не являются активным списком задач. Любой следующий шаг должен быть выбран отдельной задачей и оставаться согласованным с основным roadmap.
 
 ## 10. Связанные документы
 

@@ -1,24 +1,24 @@
 # Development Governance
 
-Эта директория содержит активные engineering rules для implementation, review, testing, documentation и maintenance задач в репозитории.
+Эта директория содержит активные инженерные правила для задач реализации, проверки, тестирования, документации и сопровождения репозитория.
 
-Эти документы не задают roadmap status или product scope. Для roadmap status используй `../roadmap/roadmap.md`, для MVP scope — `../product/product-baseline.md`, для architecture baseline и backend stack authority — `../architecture/architecture-baseline.md`.
+Эти документы не задают статус roadmap или продуктовые границы. Для статуса используй `../roadmap/roadmap.md`, для границ MVP — `../product/product-baseline.md`, для архитектурной основы и принятого стека backend — `../architecture/architecture-baseline.md`.
 
-## Active Rules
+## Активные правила
 
 - [Coding standards](coding-standards.md) - общие правила написания кода, независимые от конкретной технологии.
-- [Kotlin backend style guide](kotlin-backend-style-guide.md) - стиль Kotlin + Ktor backend implementation.
-- [Testing strategy](testing-strategy.md) - ожидания по тестам и правила coverage.
-- [Documentation guidelines](documentation-guidelines.md) - правила source-of-truth, navigation и language policy для документации.
+- [Kotlin backend style guide](kotlin-backend-style-guide.md) - стиль реализации backend на Kotlin + Ktor.
+- [Testing strategy](testing-strategy.md) - ожидания по тестам и правила покрытия.
+- [Documentation guidelines](documentation-guidelines.md) - правила источников истины, навигации и языка документации.
 - [Definition of Done](definition-of-done.md) - критерии завершения задач в репозитории.
-- [Quality gates](quality-gates.md) - validation commands, diff checks и risk reporting.
+- [Quality gates](quality-gates.md) - команды проверки, проверка diff и отчетность о рисках.
 - [Backend layering rules](../architecture/backend-layering-rules.md) - допустимые зависимости и границы слоев.
-- [Codex task template](../prompts/codex-task-template.md) - prompt template для implementation-задач.
-- [Codex review template](../prompts/codex-review-template.md) - prompt template для review-only задач.
+- [Codex task template](../prompts/codex-task-template.md) - шаблон запроса для задач реализации.
+- [Codex review template](../prompts/codex-review-template.md) - шаблон запроса для задач только на проверку.
 
-## Reference-Only Development Context
+## Справочный контекст разработки
 
-- [Development roadmap reference](roadmap.md) - future/reference vocabulary and milestone vocabulary, не active backlog.
-- [Implementation strategy reference](implementation-strategy.md) - future implementation approach, не активация задачи.
+- [Development roadmap reference](roadmap.md) - справочная терминология будущих направлений, не активный список задач.
+- [Implementation strategy reference](implementation-strategy.md) - справочный подход к будущей реализации, не активация задачи.
 
-Если active engineering rule конфликтует с `AGENTS.md`, primary roadmap, accepted ADR или architecture/product baselines, следуй источнику с более высоким приоритетом и сообщи о конфликте.
+Если активное инженерное правило конфликтует с `AGENTS.md`, основным roadmap, принятым ADR или продуктовыми/архитектурными основами, следуй источнику с более высоким приоритетом и сообщи о конфликте.

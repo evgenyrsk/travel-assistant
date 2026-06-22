@@ -4,13 +4,13 @@
 
 Этот документ является compact reference по возможным будущим development milestones Travel Assistant.
 
-Он не является source of truth по roadmap status, active backlog, task tracker или разрешением начинать следующий Stage 7 шаг. Текущий статус, следующий шаг, stage gates и carryover фиксируются только в `docs/roadmap/roadmap.md`.
+Он не является источником статуса roadmap, активным списком задач, трекером задач или разрешением начинать следующий этап. Текущий статус, следующий шаг, критерии перехода и перенесенные пункты фиксируются только в `docs/roadmap/roadmap.md`.
 
 ## Роль milestones
 
-Milestones помогают обсуждать размер и направленность будущих implementation задач после явной roadmap activation. Они не задают порядок выполнения и не заменяют primary roadmap.
+Milestones помогают обсуждать размер и направленность будущих задач реализации после явной активации через roadmap. Они не задают порядок выполнения и не заменяют основной roadmap.
 
-Если milestone звучит конкретнее, чем `docs/roadmap/roadmap.md`, он должен читаться как future reference, а не как текущая задача.
+Если milestone звучит конкретнее, чем `docs/roadmap/roadmap.md`, его следует читать как справочный материал для будущего, а не как текущую задачу.
 
 ## Compact milestone map
 
@@ -18,12 +18,12 @@ Milestones помогают обсуждать размер и направле�
 |---|---|
 | Project/process foundation | Навигация, правила задач, базовая документация и repo workflow. |
 | Product/architecture foundation | Требования, MVP boundaries, architecture boundaries и domain/API preparation на уровне документации. |
-| Backend foundation | Минимальный Kotlin + Ktor foundation после явной activation; current skeleton already exists from Stage 7.0b. |
+| Backend foundation | Минимальная основа на Kotlin + Ktor после явной активации; текущая реализация сверяется с основным roadmap. |
 | AI orchestration foundation | `LlmClient`, intent/slot/clarification flow и testable orchestration после отдельной задачи. |
 | Hotel search foundation | Hotel-only provider abstraction, mock/fake providers and ranking-ready hotel data. |
 | Web MVP | Chat UI, hotel results UI и frontend/backend integration после явной activation. |
 | End-to-end MVP | Hotel-only flow from request to ranked/explained hotel offers. |
-| Quality/readiness | Testing, security, observability, local development and production readiness references. |
+| Quality/readiness | Справочные темы тестирования, security, observability, локальной разработки и готовности к промышленному использованию. |
 
 ## Как использовать
 
@@ -43,9 +43,9 @@ Milestones помогают обсуждать размер и направле�
 - DB schema/storage model;
 - auth/security/DevOps/testing backlog;
 - provider-specific integration work;
-- next Stage 7 step activation;
+- активацию следующего этапа;
 - changes to roadmap order or MVP scope.
 
 ## Future merge note
 
-Milestone vocabulary объединен с `docs/development/roadmap.md` в рамках conservative documentation dedup cleanup. Для новых задач используй `docs/development/roadmap.md` и `docs/development/implementation-strategy.md`; этот файл остается compatibility artifact, а не active backlog.
+Терминология milestones объединена с `docs/development/roadmap.md` в рамках осторожного устранения повторов. Для новых задач используй `docs/development/roadmap.md` и `docs/development/implementation-strategy.md`; этот файл остается артефактом совместимости, а не активным списком задач.
