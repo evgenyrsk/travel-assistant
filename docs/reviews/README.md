@@ -103,6 +103,8 @@
 | `pre-stage-8-documentation-consistency-and-language-review.md` | Завершенная документационная проверка / Pre-Stage 8 | Проверяет согласованность активных статусов и ролей документов после Stage 7, устраняет устаревшие ссылки на Stage 7 и выравнивает русскоязычные формулировки без активации Stage 8. |
 | `pre-stage-8-chat-first-product-direction-review.md` | Завершенное уточнение направления / Pre-Stage 8 | Фиксирует форму Stage 7.51 как временную technical demo shell, подтверждает целевой chat-first UX и рекомендует отдельный planning-only Stage 8.1 без начала LLM или real provider integration. |
 | `stage-8-0-ai-orchestration-entry-review.md` | Завершенный review/planning report / Stage 8.0 | Проверяет точку входа в Stage 8, классифицирует carryover Stage 7 и подтверждает planning-only Stage 8.1 без изменения статуса roadmap, поведения приложения, UI или API contracts. |
+| `stage-8-1-llm-client-boundary-design.md` | Завершенный design/review report / Stage 8.1 | Определяет внутреннюю provider-independent границу `LlmClient`, допустимые данные, validation, fallback и fake LLM testing model без кода, runtime changes или real LLM integration. |
+| `stage-8-2-internal-llm-client-skeleton.md` | Завершенный backend implementation report / Stage 8.2 | Добавляет application-owned `LlmClient`, internal candidate/result models, validator, deterministic fake и targeted tests без route wiring, network или public API changes. |
 
 ## Inventory review artifacts
 
@@ -182,6 +184,8 @@
 | `pre-stage-8-documentation-consistency-and-language-review.md` | Завершенная документационная проверка | Подтверждает согласованность активных статусов после закрытия Stage 7, уточняет роли источников истины и выполняет точечную языковую чистку перед отдельным решением о старте Stage 8. |
 | `pre-stage-8-chat-first-product-direction-review.md` | Завершенное уточнение направления | Предотвращает трактовку structured form Stage 7.51 как целевого продукта и отделяет будущую LLM orchestration от последующей интеграции предоставленного real provider contract. |
 | `stage-8-0-ai-orchestration-entry-review.md` | Завершенный review/planning report | Классифицирует Stage 7 carryover относительно Stage 8 и подтверждает Stage 8.1 как первый безопасный шаг только для планирования без активации реализации. |
+| `stage-8-1-llm-client-boundary-design.md` | Завершенный design/review report | Фиксирует design внутреннего `LlmClient` и рекомендует отдельный Stage 8.2 с минимальным contract/fake/test boundary без public runtime wiring. |
+| `stage-8-2-internal-llm-client-skeleton.md` | Завершенный backend implementation report | Фиксирует минимальный internal `LlmClient` skeleton и рекомендует отдельный Stage 8.3 orchestration use case без подключения к routes. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -268,6 +272,8 @@
 73. `docs/reviews/stage-7-documentation-dedup-sync-cleanup.md`
 74. `docs/reviews/stage-7-roadmap-role-separation-cleanup.md`
 75. `docs/reviews/stage-8-0-ai-orchestration-entry-review.md`
+76. `docs/reviews/stage-8-1-llm-client-boundary-design.md`
+77. `docs/reviews/stage-8-2-internal-llm-client-skeleton.md`
 
 ## Historical / superseded документы
 
