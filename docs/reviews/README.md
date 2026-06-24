@@ -111,6 +111,7 @@
 | `stage-8-6-internal-natural-language-assistant-handoff-planning.md` | Завершенный review/design report / Stage 8.6 | Определяет mapping из `AssistantCandidateDecision` в future assistant actions и рекомендует Stage 8.7 readiness gate перед route wiring. |
 | `stage-8-7-assistant-llm-route-wiring-readiness-gate.md` | Завершенный review-only readiness gate / Stage 8.7 | Проверяет Assistant route/public contract readiness и рекомендует Stage 8.8 как narrow wiring только для clarification/fallback без `ProceedWithCandidate`. |
 | `stage-8-8-minimal-assistant-llm-route-wiring.md` | Завершенный backend implementation report / Stage 8.8 | Подключает internal LLM pipeline к assistant runtime только для `AskClarification`/`Fallback`, сохраняет strict `hotel-search;` handoff и откладывает `ProceedWithCandidate` search creation. |
+| `stage-8-9-proceed-with-candidate-criteria-contract-review.md` | Завершенный review/design report / Stage 8.9 | Проверяет будущий `ProceedWithCandidate -> hotel search` путь и рекомендует Stage 8.10 как internal criteria validator без route wiring или search creation. |
 
 ## Inventory review artifacts
 
@@ -198,6 +199,7 @@
 | `stage-8-6-internal-natural-language-assistant-handoff-planning.md` | Завершенный review/design report | Фиксирует future action mapping для `AssistantCandidateDecision` и рекомендует отдельный Stage 8.7 readiness gate перед route wiring. |
 | `stage-8-7-assistant-llm-route-wiring-readiness-gate.md` | Завершенный review-only readiness gate | Подтверждает conditional readiness для `AskClarification`/`Fallback` и откладывает `ProceedWithCandidate` route wiring. |
 | `stage-8-8-minimal-assistant-llm-route-wiring.md` | Завершенный backend implementation report | Фиксирует narrow route wiring для `AskClarification`/`Fallback` через deterministic fake path без public contract changes и без `ProceedWithCandidate` hotel search. |
+| `stage-8-9-proceed-with-candidate-criteria-contract-review.md` | Завершенный review/design report | Фиксирует required hotel-search criteria, complete/partial candidate rules и validation gate перед любым будущим `ProceedWithCandidate` search handoff. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -292,6 +294,7 @@
 81. `docs/reviews/stage-8-6-internal-natural-language-assistant-handoff-planning.md`
 82. `docs/reviews/stage-8-7-assistant-llm-route-wiring-readiness-gate.md`
 83. `docs/reviews/stage-8-8-minimal-assistant-llm-route-wiring.md`
+84. `docs/reviews/stage-8-9-proceed-with-candidate-criteria-contract-review.md`
 
 ## Historical / superseded документы
 
