@@ -4,10 +4,17 @@ import com.travelassistant.backend.api.configureApiRoutes
 import com.travelassistant.backend.api.configureErrorHandling
 import com.travelassistant.backend.api.configureSerialization
 import com.travelassistant.backend.application.assistant.AssistantHotelSearchHandoffUseCase
+import com.travelassistant.backend.application.assistant.AssistantLlmRouteWiringUseCase
 import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
 import com.travelassistant.backend.application.assistant.InMemoryAssistantSessionStateStore
+import com.travelassistant.backend.application.assistant.PlanAssistantLlmDecisionUseCase
 import com.travelassistant.backend.application.hotel.CreateHotelSearchUseCase
 import com.travelassistant.backend.application.hotel.InMemoryHotelSearchStateStore
+import com.travelassistant.backend.application.llm.GenerateLlmCandidateUseCase
+import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.application.llm.LlmClient
+import com.travelassistant.backend.application.llm.LlmClientResponse
+import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.infrastructure.provider.FakeHotelOfferProvider
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
@@ -23,17 +30,29 @@ fun main() {
 }
 
 fun Application.module() {
+    moduleWithAssistantLlm(defaultAssistantLlmClient())
+}
+
+internal fun Application.moduleWithAssistantLlm(llmClient: LlmClient) {
     val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
     val hotelSearchBoundary = CreateHotelSearchUseCase(
         assistantSessionStateStore = assistantSessionStateStore,
         hotelOfferProvider = FakeHotelOfferProvider(),
         hotelSearchStateStore = InMemoryHotelSearchStateStore(),
     )
-    val assistantSessionBoundary = AssistantHotelSearchHandoffUseCase(
+    val assistantHotelSearchHandoffBoundary = AssistantHotelSearchHandoffUseCase(
         assistantSessionBoundary = CreateAssistantSessionUseCase(
             sessionStateStore = assistantSessionStateStore,
         ),
         hotelSearchBoundary = hotelSearchBoundary,
+    )
+    val assistantSessionBoundary = AssistantLlmRouteWiringUseCase(
+        assistantSessionBoundary = assistantHotelSearchHandoffBoundary,
+        planAssistantLlmDecisionUseCase = PlanAssistantLlmDecisionUseCase(
+            generateLlmCandidateUseCase = GenerateLlmCandidateUseCase(
+                llmClient = llmClient,
+            ),
+        ),
     )
 
     configureSerialization()
@@ -43,3 +62,18 @@ fun Application.module() {
         hotelSearchBoundary = hotelSearchBoundary,
     )
 }
+
+private fun defaultAssistantLlmClient(): LlmClient =
+    FakeLlmClient(
+        LlmClientResponse.Candidate(
+            LlmCandidate(
+                outcome = LlmCandidate.Outcome.NEEDS_CLARIFICATION,
+                intent = LlmCandidate.Intent.HOTEL_SEARCH,
+                missingRequiredFields = listOf("destination", "stay_dates", "guests"),
+                clarificationQuestion = DEFAULT_LLM_CLARIFICATION_MESSAGE,
+            ),
+        ),
+    )
+
+private const val DEFAULT_LLM_CLARIFICATION_MESSAGE =
+    "I received your hotel request. Please share destination, dates, guests, and budget so I can continue."
