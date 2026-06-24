@@ -1,6 +1,10 @@
 package com.travelassistant.backend.api
 
+import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.application.llm.LlmClientResponse
+import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.module
+import com.travelassistant.backend.moduleWithAssistantLlm
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -12,6 +16,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.server.testing.testApplication
 import java.time.Instant
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -179,6 +184,121 @@ class AssistantSessionRoutesTest {
         }
 
         assertEquals(HttpStatusCode.OK, followUp.status)
+    }
+
+    @Test
+    fun llmClarificationPathReturnsExistingAssistantResponseShape() = testApplication {
+        application {
+            moduleWithAssistantLlm(
+                FakeLlmClient(
+                    LlmClientResponse.Candidate(
+                        LlmCandidate(
+                            outcome = LlmCandidate.Outcome.NEEDS_CLARIFICATION,
+                            intent = LlmCandidate.Intent.HOTEL_SEARCH,
+                            missingRequiredFields = listOf("stay_dates"),
+                            clarificationQuestion = "What are your stay dates?",
+                        ),
+                    ),
+                ),
+            )
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["session"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content.orEmpty()
+
+        val response = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"Find me a quiet hotel in Rome"}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "What are your stay dates?",
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
+        assertEquals(false, body.containsKey("hotelSearchId"))
+        body.assertNoRawLlmFields()
+    }
+
+    @Test
+    fun llmFallbackPathReturnsSafePublicOutcomeWithoutRawReason() = testApplication {
+        application {
+            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Empty))
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["session"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content.orEmpty()
+
+        val response = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"Find me something nice"}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("show_boundary_message", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("hotelSearchId"))
+        assertEquals(false, body.containsKey("fallbackReason"))
+        body.assertNoRawLlmFields()
+    }
+
+    @Test
+    fun llmProceedCandidateDoesNotCreateHotelSearchOrExposeCandidate() = testApplication {
+        application {
+            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Candidate(interpretedHotelSearchCandidate())))
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["session"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content.orEmpty()
+
+        val response = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"Find a hotel in Rome for two adults"}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("show_boundary_message", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("hotelSearchId"))
+        body.assertNoRawLlmFields()
+
+        val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
+        assertEquals(HttpStatusCode.NotFound, offersResponse.status)
+    }
+
+    @Test
+    fun explicitHotelSearchHandoffStillCreatesSearchWhenLlmWouldProceed() = testApplication {
+        application {
+            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Candidate(interpretedHotelSearchCandidate())))
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["session"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content.orEmpty()
+
+        val assistantResponse = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """
+                {
+                  "message": "hotel-search; destination=Rome; check-in=2026-07-01; check-out=2026-07-04; adults=2; rooms=1"
+                }
+                """.trimIndent(),
+            )
+        }
+        val assistantBody = Json.parseToJsonElement(assistantResponse.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.OK, assistantResponse.status)
+        assertEquals("show_hotel_results", assistantBody["nextAction"]?.jsonPrimitive?.content)
+        assertEquals("hotel-search-local-000001", assistantBody["hotelSearchId"]?.jsonPrimitive?.content)
+
+        val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
+        assertEquals(HttpStatusCode.OK, offersResponse.status)
     }
 
     @Test
@@ -359,5 +479,27 @@ class AssistantSessionRoutesTest {
         assertEquals("VALIDATION_ERROR", body["code"]?.jsonPrimitive?.content)
         assertEquals("Request validation failed.", body["message"]?.jsonPrimitive?.content)
         assertEquals("message", body["fields"]?.jsonArray?.get(0)?.jsonObject?.get("field")?.jsonPrimitive?.content)
+    }
+
+    private fun interpretedHotelSearchCandidate(): LlmCandidate =
+        LlmCandidate(
+            outcome = LlmCandidate.Outcome.INTERPRETED,
+            intent = LlmCandidate.Intent.HOTEL_SEARCH,
+            extractedConstraints = mapOf("destination" to "Rome"),
+        )
+
+    private fun JsonObject.assertNoRawLlmFields() {
+        listOf(
+            "candidate",
+            "llmCandidate",
+            "candidatePayload",
+            "modelResponse",
+            "extractedConstraints",
+            "missingRequiredFields",
+            "conflicts",
+            "warnings",
+        ).forEach { field ->
+            assertEquals(false, containsKey(field))
+        }
     }
 }
