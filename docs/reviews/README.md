@@ -106,6 +106,7 @@
 | `stage-8-1-llm-client-boundary-design.md` | Завершенный design/review report / Stage 8.1 | Определяет внутреннюю provider-independent границу `LlmClient`, допустимые данные, validation, fallback и fake LLM testing model без кода, runtime changes или real LLM integration. |
 | `stage-8-2-internal-llm-client-skeleton.md` | Завершенный backend implementation report / Stage 8.2 | Добавляет application-owned `LlmClient`, internal candidate/result models, validator, deterministic fake и targeted tests без route wiring, network или public API changes. |
 | `stage-8-3-internal-llm-orchestration-use-case.md` | Завершенный backend implementation report / Stage 8.3 | Добавляет internal `GenerateLlmCandidateUseCase`, который вызывает `LlmClient`, применяет validator и возвращает typed accepted/fallback result без route wiring или runtime behavior changes. |
+| `stage-8-4-internal-assistant-candidate-decision-planning.md` | Завершенный backend implementation report / Stage 8.4 | Добавляет internal `AssistantCandidateDecision` и `PlanAssistantCandidateDecisionUseCase`, которые превращают `LlmCandidateValidationResult` в safe proceed/clarification/fallback decision без route wiring. |
 
 ## Inventory review artifacts
 
@@ -188,6 +189,7 @@
 | `stage-8-1-llm-client-boundary-design.md` | Завершенный design/review report | Фиксирует design внутреннего `LlmClient` и рекомендует отдельный Stage 8.2 с минимальным contract/fake/test boundary без public runtime wiring. |
 | `stage-8-2-internal-llm-client-skeleton.md` | Завершенный backend implementation report | Фиксирует минимальный internal `LlmClient` skeleton и рекомендует отдельный Stage 8.3 orchestration use case без подключения к routes. |
 | `stage-8-3-internal-llm-orchestration-use-case.md` | Завершенный backend implementation report | Фиксирует минимальный internal `GenerateLlmCandidateUseCase` и рекомендует отдельный Stage 8.4 decision planning boundary без route wiring. |
+| `stage-8-4-internal-assistant-candidate-decision-planning.md` | Завершенный backend implementation report | Фиксирует минимальный internal decision layer и рекомендует отдельный Stage 8.5 internal pipeline composition без route wiring. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -277,6 +279,7 @@
 76. `docs/reviews/stage-8-1-llm-client-boundary-design.md`
 77. `docs/reviews/stage-8-2-internal-llm-client-skeleton.md`
 78. `docs/reviews/stage-8-3-internal-llm-orchestration-use-case.md`
+79. `docs/reviews/stage-8-4-internal-assistant-candidate-decision-planning.md`
 
 ## Historical / superseded документы
 

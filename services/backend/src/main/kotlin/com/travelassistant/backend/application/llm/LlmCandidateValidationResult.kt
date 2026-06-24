@@ -8,6 +8,7 @@ sealed interface LlmCandidateValidationResult {
     data class Rejected(
         val reason: Reason,
         val fallbackAction: FallbackAction = FallbackAction.ASK_CLARIFICATION,
+        val clarificationQuestion: String? = null,
     ) : LlmCandidateValidationResult
 
     enum class Reason {
