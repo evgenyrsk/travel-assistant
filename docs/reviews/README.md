@@ -118,6 +118,7 @@
 | `stage-8-13-internal-confirmation-planning-composition.md` | Завершенный backend implementation report / Stage 8.13 | Добавляет internal confirmation planning composition для `ProceedWithCandidate` без route wiring, public contract changes или search creation. |
 | `stage-8-14-confirmation-prompt-route-wiring-readiness-gate.md` | Завершенный review-only readiness gate / Stage 8.14 | Проверяет readiness для text-only confirmation prompt через existing `ask_clarification` response shape без route wiring или search creation. |
 | `stage-8-15-minimal-confirmation-prompt-route-wiring.md` | Завершенный backend implementation report / Stage 8.15 | Подключает internal confirmation planning к assistant route для text-only confirmation prompt без public contract changes, `hotelSearchId` или search creation. |
+| `stage-8-16-post-confirmation-handling-boundary-review.md` | Завершенный review/design report / Stage 8.16 | Определяет boundary для будущего post-confirmation handling и рекомендует internal pending confirmation state skeleton без route wiring или search creation. |
 
 ## Inventory review artifacts
 
@@ -212,6 +213,7 @@
 | `stage-8-13-internal-confirmation-planning-composition.md` | Завершенный backend implementation report | Фиксирует composition-only планирование confirmation proposal / clarification / fallback без route wiring или search creation. |
 | `stage-8-14-confirmation-prompt-route-wiring-readiness-gate.md` | Завершенный review-only readiness gate | Подтверждает conditional readiness для text-only confirmation prompt без public contract changes или search creation. |
 | `stage-8-15-minimal-confirmation-prompt-route-wiring.md` | Завершенный backend implementation report | Фиксирует minimal route wiring для confirmation prompt через existing `ask_clarification` response shape без `hotelSearchId` или search creation. |
+| `stage-8-16-post-confirmation-handling-boundary-review.md` | Завершенный review/design report | Фиксирует, что explicit confirmation recognition требует pending validated criteria/state и не должен создавать search без отдельного future step. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -313,6 +315,7 @@
 88. `docs/reviews/stage-8-13-internal-confirmation-planning-composition.md`
 89. `docs/reviews/stage-8-14-confirmation-prompt-route-wiring-readiness-gate.md`
 90. `docs/reviews/stage-8-15-minimal-confirmation-prompt-route-wiring.md`
+91. `docs/reviews/stage-8-16-post-confirmation-handling-boundary-review.md`
 
 ## Historical / superseded документы
 
