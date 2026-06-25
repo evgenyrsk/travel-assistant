@@ -6,6 +6,8 @@ import com.travelassistant.backend.domain.assistant.AssistantSession
 class AssistantLlmRouteWiringUseCase(
     private val assistantSessionBoundary: AssistantSessionBoundary,
     private val planAssistantLlmDecisionUseCase: PlanAssistantLlmDecisionUseCase,
+    private val planProceedWithCandidateConfirmationUseCase: PlanProceedWithCandidateConfirmationUseCase =
+        PlanProceedWithCandidateConfirmationUseCase(),
     private val explicitHotelSearchMessageParser: MinimalHotelSearchMessageParser =
         MinimalHotelSearchMessageParser(),
 ) : AssistantSessionBoundary {
@@ -29,7 +31,9 @@ class AssistantLlmRouteWiringUseCase(
                 acceptedMessage.withSafeBoundaryMessage()
 
             is AssistantCandidateDecision.ProceedWithCandidate ->
-                acceptedMessage.withSafeBoundaryMessage()
+                acceptedMessage.withConfirmationPlan(
+                    planProceedWithCandidateConfirmationUseCase(decision),
+                )
         }
     }
 
@@ -63,6 +67,23 @@ class AssistantLlmRouteWiringUseCase(
             nextAction = AssistantNextAction.SHOW_BOUNDARY_MESSAGE,
             hotelSearchId = null,
         )
+
+    private fun AcceptedAssistantMessage.withConfirmationPlan(
+        plan: ProceedWithCandidateConfirmationPlan,
+    ): AcceptedAssistantMessage =
+        when (plan) {
+            is ProceedWithCandidateConfirmationPlan.ConfirmationRequired ->
+                withClarification(plan.proposal.confirmationPromptMessage())
+
+            is ProceedWithCandidateConfirmationPlan.ClarificationRequired ->
+                withClarification(plan.question)
+
+            is ProceedWithCandidateConfirmationPlan.Fallback ->
+                withSafeBoundaryMessage()
+        }
+
+    private fun ProceedWithCandidateConfirmationProposal.confirmationPromptMessage(): String =
+        "$summary $confirmationQuestion"
 
     private companion object {
         const val SAFE_BOUNDARY_MESSAGE =

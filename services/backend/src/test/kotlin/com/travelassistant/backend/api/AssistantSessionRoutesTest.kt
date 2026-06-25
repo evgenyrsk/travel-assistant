@@ -247,7 +247,7 @@ class AssistantSessionRoutesTest {
     }
 
     @Test
-    fun llmProceedCandidateDoesNotCreateHotelSearchOrExposeCandidate() = testApplication {
+    fun llmProceedCandidateReturnsConfirmationPromptWithoutCreatingHotelSearch() = testApplication {
         application {
             moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Candidate(interpretedHotelSearchCandidate())))
         }
@@ -263,9 +263,75 @@ class AssistantSessionRoutesTest {
         val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
 
         assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("show_boundary_message", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
+                "выезд: 2026-07-04; взрослые: 2; дети: 0; номера: 1. " +
+                "Проверить отели по этим параметрам?",
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
         assertEquals(false, body.containsKey("hotelSearchId"))
         body.assertNoRawLlmFields()
+
+        val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
+        assertEquals(HttpStatusCode.NotFound, offersResponse.status)
+    }
+
+    @Test
+    fun partialProceedCandidateReturnsClarificationWithoutCreatingHotelSearch() = testApplication {
+        application {
+            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Candidate(partialInterpretedHotelSearchCandidate())))
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["session"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content.orEmpty()
+
+        val response = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"Find a hotel in Rome"}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "Please confirm the destination, dates, guests, and rooms before I prepare a hotel search confirmation.",
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
+        assertEquals(false, body.containsKey("hotelSearchId"))
+        body.assertNoRawLlmFields()
+
+        val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
+        assertEquals(HttpStatusCode.NotFound, offersResponse.status)
+    }
+
+    @Test
+    fun unsafeProceedCandidateReturnsSafeFallbackWithoutRawReason() = testApplication {
+        application {
+            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Candidate(warningInterpretedHotelSearchCandidate())))
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["session"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content.orEmpty()
+
+        val response = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"Find a hotel in Rome for two adults"}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("show_boundary_message", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, body.containsKey("hotelSearchId"))
+        assertEquals(false, body.containsKey("fallbackReason"))
+        body.assertNoRawLlmFields()
+        assertEquals(
+            false,
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content.orEmpty()
+                .contains("CONFLICTS_OR_WARNINGS"),
+        )
 
         val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
         assertEquals(HttpStatusCode.NotFound, offersResponse.status)
@@ -485,7 +551,35 @@ class AssistantSessionRoutesTest {
         LlmCandidate(
             outcome = LlmCandidate.Outcome.INTERPRETED,
             intent = LlmCandidate.Intent.HOTEL_SEARCH,
+            extractedConstraints = mapOf(
+                "destination" to "Rome",
+                "check-in" to "2026-07-01",
+                "check-out" to "2026-07-04",
+                "adults" to "2",
+                "children" to "0",
+                "rooms" to "1",
+            ),
+        )
+
+    private fun partialInterpretedHotelSearchCandidate(): LlmCandidate =
+        LlmCandidate(
+            outcome = LlmCandidate.Outcome.INTERPRETED,
+            intent = LlmCandidate.Intent.HOTEL_SEARCH,
             extractedConstraints = mapOf("destination" to "Rome"),
+        )
+
+    private fun warningInterpretedHotelSearchCandidate(): LlmCandidate =
+        LlmCandidate(
+            outcome = LlmCandidate.Outcome.INTERPRETED,
+            intent = LlmCandidate.Intent.HOTEL_SEARCH,
+            extractedConstraints = mapOf(
+                "destination" to "Rome",
+                "check-in" to "2026-07-01",
+                "check-out" to "2026-07-04",
+                "adults" to "2",
+                "rooms" to "1",
+            ),
+            warnings = listOf("Destination may be ambiguous."),
         )
 
     private fun JsonObject.assertNoRawLlmFields() {
@@ -498,6 +592,11 @@ class AssistantSessionRoutesTest {
             "missingRequiredFields",
             "conflicts",
             "warnings",
+            "displayFields",
+            "confirmationQuestion",
+            "confirmationProposal",
+            "validationIssues",
+            "fallbackReason",
         ).forEach { field ->
             assertEquals(false, containsKey(field))
         }
