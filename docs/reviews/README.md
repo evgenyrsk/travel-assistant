@@ -114,6 +114,7 @@
 | `stage-8-9-proceed-with-candidate-criteria-contract-review.md` | Завершенный review/design report / Stage 8.9 | Проверяет будущий `ProceedWithCandidate -> hotel search` путь и рекомендует Stage 8.10 как internal criteria validator без route wiring или search creation. |
 | `stage-8-10-proceed-candidate-criteria-validator-skeleton.md` | Завершенный backend implementation report / Stage 8.10 | Добавляет internal `ProceedWithCandidate` criteria validator/result model и targeted tests без route wiring, runtime changes или search creation. |
 | `stage-8-11-explicit-confirmation-boundary-review.md` | Завершенный review/design report / Stage 8.11 | Фиксирует границу явного confirmation перед будущим `ProceedWithCandidate` search handoff и рекомендует Stage 8.12 как internal confirmation proposal skeleton. |
+| `stage-8-12-confirmation-proposal-model-skeleton.md` | Завершенный backend implementation report / Stage 8.12 | Добавляет internal confirmation proposal model/builder для accepted `ProceedWithCandidate` criteria без route wiring, public contract changes или search creation. |
 
 ## Inventory review artifacts
 
@@ -204,6 +205,7 @@
 | `stage-8-9-proceed-with-candidate-criteria-contract-review.md` | Завершенный review/design report | Фиксирует required hotel-search criteria, complete/partial candidate rules и validation gate перед любым будущим `ProceedWithCandidate` search handoff. |
 | `stage-8-10-proceed-candidate-criteria-validator-skeleton.md` | Завершенный backend implementation report | Фиксирует validator-only skeleton для complete/partial `ProceedWithCandidate` criteria без public contract changes или search creation. |
 | `stage-8-11-explicit-confirmation-boundary-review.md` | Завершенный review/design report | Подтверждает, что accepted LLM criteria должны идти через text-only user confirmation до любого будущего search creation. |
+| `stage-8-12-confirmation-proposal-model-skeleton.md` | Завершенный backend implementation report | Фиксирует proposal-model-only skeleton для human-readable confirmation summary без raw candidate leakage или search creation. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -301,6 +303,7 @@
 84. `docs/reviews/stage-8-9-proceed-with-candidate-criteria-contract-review.md`
 85. `docs/reviews/stage-8-10-proceed-candidate-criteria-validator-skeleton.md`
 86. `docs/reviews/stage-8-11-explicit-confirmation-boundary-review.md`
+87. `docs/reviews/stage-8-12-confirmation-proposal-model-skeleton.md`
 
 ## Historical / superseded документы
 
