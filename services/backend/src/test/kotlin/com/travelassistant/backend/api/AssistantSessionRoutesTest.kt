@@ -1,7 +1,11 @@
 package com.travelassistant.backend.api
 
+import com.travelassistant.backend.application.assistant.InMemoryPendingConfirmationStore
+import com.travelassistant.backend.application.assistant.PendingConfirmationStatus
 import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.application.llm.LlmClient
 import com.travelassistant.backend.application.llm.LlmClientResponse
+import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.module
 import com.travelassistant.backend.moduleWithAssistantLlm
@@ -14,7 +18,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpHeaders
 import io.ktor.server.testing.testApplication
+import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
@@ -25,6 +32,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class AssistantSessionRoutesTest {
+    private val routeNow = Instant.parse("2026-06-27T10:00:00Z")
+    private val routeClock = Clock.fixed(routeNow, ZoneOffset.UTC)
 
     @Test
     fun createAssistantSessionReturnsCreatedSessionMetadata() = testApplication {
@@ -188,6 +197,8 @@ class AssistantSessionRoutesTest {
 
     @Test
     fun llmClarificationPathReturnsExistingAssistantResponseShape() = testApplication {
+        val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+
         application {
             moduleWithAssistantLlm(
                 FakeLlmClient(
@@ -200,6 +211,8 @@ class AssistantSessionRoutesTest {
                         ),
                     ),
                 ),
+                pendingConfirmationStore = pendingConfirmationStore,
+                clock = routeClock,
             )
         }
 
@@ -221,12 +234,25 @@ class AssistantSessionRoutesTest {
         )
         assertEquals(false, body.containsKey("hotelSearchId"))
         body.assertNoRawLlmFields()
+        assertEquals(
+            null,
+            pendingConfirmationStore.findActiveBySession(
+                sessionId = AssistantSessionId(sessionId),
+                now = routeNow.plusSeconds(1),
+            ),
+        )
     }
 
     @Test
     fun llmFallbackPathReturnsSafePublicOutcomeWithoutRawReason() = testApplication {
+        val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+
         application {
-            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Empty))
+            moduleWithAssistantLlm(
+                FakeLlmClient(LlmClientResponse.Empty),
+                pendingConfirmationStore = pendingConfirmationStore,
+                clock = routeClock,
+            )
         }
 
         val createdSession = client.post("/api/v1/assistant/sessions")
@@ -244,12 +270,25 @@ class AssistantSessionRoutesTest {
         assertEquals(false, body.containsKey("hotelSearchId"))
         assertEquals(false, body.containsKey("fallbackReason"))
         body.assertNoRawLlmFields()
+        assertEquals(
+            null,
+            pendingConfirmationStore.findActiveBySession(
+                sessionId = AssistantSessionId(sessionId),
+                now = routeNow.plusSeconds(1),
+            ),
+        )
     }
 
     @Test
     fun llmProceedCandidateReturnsConfirmationPromptWithoutCreatingHotelSearch() = testApplication {
+        val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+
         application {
-            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Candidate(interpretedHotelSearchCandidate())))
+            moduleWithAssistantLlm(
+                FakeLlmClient(LlmClientResponse.Candidate(interpretedHotelSearchCandidate())),
+                pendingConfirmationStore = pendingConfirmationStore,
+                clock = routeClock,
+            )
         }
 
         val createdSession = client.post("/api/v1/assistant/sessions")
@@ -273,14 +312,52 @@ class AssistantSessionRoutesTest {
         assertEquals(false, body.containsKey("hotelSearchId"))
         body.assertNoRawLlmFields()
 
+        val pendingConfirmation = pendingConfirmationStore.findActiveBySession(
+            sessionId = AssistantSessionId(sessionId),
+            now = routeNow.plusSeconds(1),
+        )
+
+        assertEquals("Rome", pendingConfirmation?.criteria?.destination)
+        assertEquals(LocalDate.parse("2026-07-01"), pendingConfirmation?.criteria?.checkInDate)
+        assertEquals(LocalDate.parse("2026-07-04"), pendingConfirmation?.criteria?.checkOutDate)
+        assertEquals(2, pendingConfirmation?.criteria?.guests?.adults)
+        assertEquals(0, pendingConfirmation?.criteria?.guests?.children)
+        assertEquals(1, pendingConfirmation?.criteria?.rooms)
+        assertEquals(PendingConfirmationStatus.PENDING, pendingConfirmation?.status)
+        assertEquals(routeNow, pendingConfirmation?.createdAt)
+        assertEquals(routeNow, pendingConfirmation?.updatedAt)
+        assertEquals(routeNow.plusSeconds(900), pendingConfirmation?.expiresAt)
+        assertEquals(
+            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
+                "выезд: 2026-07-04; взрослые: 2; дети: 0; номера: 1.",
+            pendingConfirmation?.proposal?.summary,
+        )
+        listOf(
+            "LlmCandidate",
+            "raw candidate",
+            "candidatePayload",
+            "modelResponse",
+            "validationIssues",
+            "hotelSearchId",
+            "show_hotel_results",
+        ).forEach { forbidden ->
+            assertEquals(false, pendingConfirmation.toString().contains(forbidden))
+        }
+
         val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
         assertEquals(HttpStatusCode.NotFound, offersResponse.status)
     }
 
     @Test
     fun partialProceedCandidateReturnsClarificationWithoutCreatingHotelSearch() = testApplication {
+        val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+
         application {
-            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Candidate(partialInterpretedHotelSearchCandidate())))
+            moduleWithAssistantLlm(
+                FakeLlmClient(LlmClientResponse.Candidate(partialInterpretedHotelSearchCandidate())),
+                pendingConfirmationStore = pendingConfirmationStore,
+                clock = routeClock,
+            )
         }
 
         val createdSession = client.post("/api/v1/assistant/sessions")
@@ -301,6 +378,13 @@ class AssistantSessionRoutesTest {
         )
         assertEquals(false, body.containsKey("hotelSearchId"))
         body.assertNoRawLlmFields()
+        assertEquals(
+            null,
+            pendingConfirmationStore.findActiveBySession(
+                sessionId = AssistantSessionId(sessionId),
+                now = routeNow.plusSeconds(1),
+            ),
+        )
 
         val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
         assertEquals(HttpStatusCode.NotFound, offersResponse.status)
@@ -308,8 +392,14 @@ class AssistantSessionRoutesTest {
 
     @Test
     fun unsafeProceedCandidateReturnsSafeFallbackWithoutRawReason() = testApplication {
+        val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+
         application {
-            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Candidate(warningInterpretedHotelSearchCandidate())))
+            moduleWithAssistantLlm(
+                FakeLlmClient(LlmClientResponse.Candidate(warningInterpretedHotelSearchCandidate())),
+                pendingConfirmationStore = pendingConfirmationStore,
+                clock = routeClock,
+            )
         }
 
         val createdSession = client.post("/api/v1/assistant/sessions")
@@ -332,6 +422,13 @@ class AssistantSessionRoutesTest {
             body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content.orEmpty()
                 .contains("CONFLICTS_OR_WARNINGS"),
         )
+        assertEquals(
+            null,
+            pendingConfirmationStore.findActiveBySession(
+                sessionId = AssistantSessionId(sessionId),
+                now = routeNow.plusSeconds(1),
+            ),
+        )
 
         val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
         assertEquals(HttpStatusCode.NotFound, offersResponse.status)
@@ -339,8 +436,14 @@ class AssistantSessionRoutesTest {
 
     @Test
     fun explicitHotelSearchHandoffStillCreatesSearchWhenLlmWouldProceed() = testApplication {
+        val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+
         application {
-            moduleWithAssistantLlm(FakeLlmClient(LlmClientResponse.Candidate(interpretedHotelSearchCandidate())))
+            moduleWithAssistantLlm(
+                FakeLlmClient(LlmClientResponse.Candidate(interpretedHotelSearchCandidate())),
+                pendingConfirmationStore = pendingConfirmationStore,
+                clock = routeClock,
+            )
         }
 
         val createdSession = client.post("/api/v1/assistant/sessions")
@@ -362,9 +465,75 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, assistantResponse.status)
         assertEquals("show_hotel_results", assistantBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals("hotel-search-local-000001", assistantBody["hotelSearchId"]?.jsonPrimitive?.content)
+        assertEquals(
+            null,
+            pendingConfirmationStore.findActiveBySession(
+                sessionId = AssistantSessionId(sessionId),
+                now = routeNow.plusSeconds(1),
+            ),
+        )
 
         val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
         assertEquals(HttpStatusCode.OK, offersResponse.status)
+    }
+
+    @Test
+    fun confirmationReplyIsNotConsumedOrTurnedIntoHotelSearch() = testApplication {
+        val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+        var llmResponse: LlmClientResponse =
+            LlmClientResponse.Candidate(interpretedHotelSearchCandidate())
+        val testLlmClient = LlmClient { llmResponse }
+
+        application {
+            moduleWithAssistantLlm(
+                testLlmClient,
+                pendingConfirmationStore = pendingConfirmationStore,
+                clock = routeClock,
+            )
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val createdSessionBody = Json.parseToJsonElement(createdSession.bodyAsText()).jsonObject
+        val sessionId = createdSessionBody["session"]?.jsonObject?.get("sessionId")?.jsonPrimitive?.content.orEmpty()
+
+        val confirmationPromptResponse = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"Find a hotel in Rome for two adults"}""")
+        }
+        val activePendingBeforeReply = pendingConfirmationStore.findActiveBySession(
+            sessionId = AssistantSessionId(sessionId),
+            now = routeNow.plusSeconds(1),
+        )
+
+        llmResponse = LlmClientResponse.Candidate(
+            LlmCandidate(
+                outcome = LlmCandidate.Outcome.NEEDS_CLARIFICATION,
+                intent = LlmCandidate.Intent.HOTEL_SEARCH,
+                missingRequiredFields = listOf("explicit_confirmation"),
+                clarificationQuestion = "Please confirm the hotel search parameters explicitly.",
+            ),
+        )
+
+        val replyResponse = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"да"}""")
+        }
+        val replyBody = Json.parseToJsonElement(replyResponse.bodyAsText()).jsonObject
+        val activePendingAfterReply = pendingConfirmationStore.findActiveBySession(
+            sessionId = AssistantSessionId(sessionId),
+            now = routeNow.plusSeconds(1),
+        )
+
+        assertEquals(HttpStatusCode.OK, confirmationPromptResponse.status)
+        assertEquals(HttpStatusCode.OK, replyResponse.status)
+        assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, replyBody.containsKey("hotelSearchId"))
+        assertEquals(PendingConfirmationStatus.PENDING, activePendingBeforeReply?.status)
+        assertEquals(PendingConfirmationStatus.PENDING, activePendingAfterReply?.status)
+        assertEquals(activePendingBeforeReply, activePendingAfterReply)
+
+        val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
+        assertEquals(HttpStatusCode.NotFound, offersResponse.status)
     }
 
     @Test

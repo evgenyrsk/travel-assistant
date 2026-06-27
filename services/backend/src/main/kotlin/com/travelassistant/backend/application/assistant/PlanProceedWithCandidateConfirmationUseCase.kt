@@ -25,6 +25,7 @@ class PlanProceedWithCandidateConfirmationUseCase private constructor(
         when (val validationResult = validateCriteria(decision)) {
             is ProceedWithCandidateValidationResult.Accepted ->
                 ProceedWithCandidateConfirmationPlan.ConfirmationRequired(
+                    criteria = validationResult.criteria,
                     proposal = buildProposal(validationResult),
                 )
 

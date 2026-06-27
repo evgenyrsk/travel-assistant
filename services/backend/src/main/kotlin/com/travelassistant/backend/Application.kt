@@ -7,6 +7,8 @@ import com.travelassistant.backend.application.assistant.AssistantHotelSearchHan
 import com.travelassistant.backend.application.assistant.AssistantLlmRouteWiringUseCase
 import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
 import com.travelassistant.backend.application.assistant.InMemoryAssistantSessionStateStore
+import com.travelassistant.backend.application.assistant.InMemoryPendingConfirmationStore
+import com.travelassistant.backend.application.assistant.PendingConfirmationStore
 import com.travelassistant.backend.application.assistant.PlanAssistantLlmDecisionUseCase
 import com.travelassistant.backend.application.hotel.CreateHotelSearchUseCase
 import com.travelassistant.backend.application.hotel.InMemoryHotelSearchStateStore
@@ -19,6 +21,7 @@ import com.travelassistant.backend.infrastructure.provider.FakeHotelOfferProvide
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import java.time.Clock
 
 fun main() {
     embeddedServer(
@@ -33,7 +36,11 @@ fun Application.module() {
     moduleWithAssistantLlm(defaultAssistantLlmClient())
 }
 
-internal fun Application.moduleWithAssistantLlm(llmClient: LlmClient) {
+internal fun Application.moduleWithAssistantLlm(
+    llmClient: LlmClient,
+    pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
+    clock: Clock = Clock.systemUTC(),
+) {
     val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
     val hotelSearchBoundary = CreateHotelSearchUseCase(
         assistantSessionStateStore = assistantSessionStateStore,
@@ -42,6 +49,7 @@ internal fun Application.moduleWithAssistantLlm(llmClient: LlmClient) {
     )
     val assistantHotelSearchHandoffBoundary = AssistantHotelSearchHandoffUseCase(
         assistantSessionBoundary = CreateAssistantSessionUseCase(
+            clock = clock,
             sessionStateStore = assistantSessionStateStore,
         ),
         hotelSearchBoundary = hotelSearchBoundary,
@@ -53,6 +61,8 @@ internal fun Application.moduleWithAssistantLlm(llmClient: LlmClient) {
                 llmClient = llmClient,
             ),
         ),
+        pendingConfirmationStore = pendingConfirmationStore,
+        clock = clock,
     )
 
     configureSerialization()

@@ -2,12 +2,17 @@ package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.domain.assistant.AssistantSession
+import java.time.Clock
+import java.time.Duration
 
 class AssistantLlmRouteWiringUseCase(
     private val assistantSessionBoundary: AssistantSessionBoundary,
     private val planAssistantLlmDecisionUseCase: PlanAssistantLlmDecisionUseCase,
     private val planProceedWithCandidateConfirmationUseCase: PlanProceedWithCandidateConfirmationUseCase =
         PlanProceedWithCandidateConfirmationUseCase(),
+    private val pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
+    private val clock: Clock = Clock.systemUTC(),
+    private val pendingConfirmationTtl: Duration = DEFAULT_PENDING_CONFIRMATION_TTL,
     private val explicitHotelSearchMessageParser: MinimalHotelSearchMessageParser =
         MinimalHotelSearchMessageParser(),
 ) : AssistantSessionBoundary {
@@ -72,8 +77,10 @@ class AssistantLlmRouteWiringUseCase(
         plan: ProceedWithCandidateConfirmationPlan,
     ): AcceptedAssistantMessage =
         when (plan) {
-            is ProceedWithCandidateConfirmationPlan.ConfirmationRequired ->
+            is ProceedWithCandidateConfirmationPlan.ConfirmationRequired -> {
+                savePendingConfirmation(plan)
                 withClarification(plan.proposal.confirmationPromptMessage())
+            }
 
             is ProceedWithCandidateConfirmationPlan.ClarificationRequired ->
                 withClarification(plan.question)
@@ -85,7 +92,25 @@ class AssistantLlmRouteWiringUseCase(
     private fun ProceedWithCandidateConfirmationProposal.confirmationPromptMessage(): String =
         "$summary $confirmationQuestion"
 
+    private fun AcceptedAssistantMessage.savePendingConfirmation(
+        plan: ProceedWithCandidateConfirmationPlan.ConfirmationRequired,
+    ) {
+        val createdAt = clock.instant()
+        pendingConfirmationStore.save(
+            PendingProceedWithCandidateConfirmation(
+                sessionId = sessionId,
+                criteria = plan.criteria,
+                proposal = plan.proposal,
+                createdAt = createdAt,
+                updatedAt = createdAt,
+                expiresAt = createdAt.plus(pendingConfirmationTtl),
+            ),
+        )
+    }
+
     private companion object {
+        val DEFAULT_PENDING_CONFIRMATION_TTL: Duration = Duration.ofMinutes(15)
+
         const val SAFE_BOUNDARY_MESSAGE =
             "I could not safely turn that message into a hotel search yet. " +
                 "Please keep the request hotel-only and share destination, dates, guests, and rooms."

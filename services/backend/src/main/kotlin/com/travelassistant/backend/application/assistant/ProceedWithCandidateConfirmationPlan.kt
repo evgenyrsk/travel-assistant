@@ -2,6 +2,7 @@ package com.travelassistant.backend.application.assistant
 
 sealed interface ProceedWithCandidateConfirmationPlan {
     data class ConfirmationRequired(
+        val criteria: ProceedWithCandidateCriteria,
         val proposal: ProceedWithCandidateConfirmationProposal,
     ) : ProceedWithCandidateConfirmationPlan
 
