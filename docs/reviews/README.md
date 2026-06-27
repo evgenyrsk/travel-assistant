@@ -126,6 +126,7 @@
 | `stage-8-21-post-confirmation-route-integration-readiness-gate.md` | Завершенный review/design report / Stage 8.21 | Проверяет readiness для post-confirmation route integration и рекомендует save-only pending confirmation wiring без consuming reply или search creation. |
 | `stage-8-22-save-only-pending-confirmation-route-wiring.md` | Завершенный backend implementation report / Stage 8.22 | Подключает save-only `PendingConfirmationStore` wiring для `ConfirmationRequired` без consuming reply, `hotelSearchId` или search creation. |
 | `stage-8-23-consuming-confirmation-reply-lifecycle-gate.md` | Завершенный review/design report / Stage 8.23 | Определяет lifecycle и `markConsumed` rules для future consuming confirmation reply wiring без `hotelSearchId` или search creation. |
+| `stage-8-24-consuming-confirmation-reply-route-wiring.md` | Завершенный backend implementation report / Stage 8.24 | Подключает consuming confirmation reply route wiring для active pending state без `hotelSearchId`, `show_hotel_results` или search creation. |
 
 ## Inventory review artifacts
 
@@ -228,6 +229,7 @@
 | `stage-8-21-post-confirmation-route-integration-readiness-gate.md` | Завершенный review/design report | Фиксирует, что consuming route wiring пока не готов, а safe next step — save-only pending confirmation state wiring без search creation. |
 | `stage-8-22-save-only-pending-confirmation-route-wiring.md` | Завершенный backend implementation report | Фиксирует save-only pending confirmation route wiring с process-local store, TTL и unchanged public response shape. |
 | `stage-8-23-consuming-confirmation-reply-lifecycle-gate.md` | Завершенный review/design report | Фиксирует conditional readiness, lifecycle и outcome mapping для future non-search consuming confirmation reply handling. |
+| `stage-8-24-consuming-confirmation-reply-route-wiring.md` | Завершенный backend implementation report | Фиксирует non-search consuming confirmation reply route wiring, lifecycle consume rules и unchanged public response shape. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -337,6 +339,7 @@
 96. `docs/reviews/stage-8-21-post-confirmation-route-integration-readiness-gate.md`
 97. `docs/reviews/stage-8-22-save-only-pending-confirmation-route-wiring.md`
 98. `docs/reviews/stage-8-23-consuming-confirmation-reply-lifecycle-gate.md`
+99. `docs/reviews/stage-8-24-consuming-confirmation-reply-route-wiring.md`
 
 ## Historical / superseded документы
 
