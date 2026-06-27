@@ -122,6 +122,7 @@
 | `stage-8-17-pending-confirmation-state-skeleton.md` | Завершенный backend implementation report / Stage 8.17 | Добавляет internal process-local pending confirmation state/store skeleton без route wiring, durable persistence или search creation. |
 | `stage-8-18-confirmation-reply-recognition-boundary-review.md` | Завершенный review/design report / Stage 8.18 | Фиксирует правила future explicit confirmation recognition только при active pending state без route wiring, public contract changes или search creation. |
 | `stage-8-19-confirmation-reply-classifier-skeleton.md` | Завершенный backend implementation report / Stage 8.19 | Добавляет internal deterministic confirmation reply classifier skeleton без route wiring, pending store wiring или search creation. |
+| `stage-8-20-post-confirmation-decision-composition-skeleton.md` | Завершенный backend implementation report / Stage 8.20 | Добавляет internal post-confirmation decision composition поверх active pending state и classifier без route wiring или search creation. |
 
 ## Inventory review artifacts
 
@@ -220,6 +221,7 @@
 | `stage-8-17-pending-confirmation-state-skeleton.md` | Завершенный backend implementation report | Фиксирует process-local pending confirmation state/store skeleton с expiry/consumed behavior без runtime wiring или search creation. |
 | `stage-8-18-confirmation-reply-recognition-boundary-review.md` | Завершенный review/design report | Фиксирует confirmation reply recognition boundary: positive reply допустим только при active pending state, без search creation или public contract changes. |
 | `stage-8-19-confirmation-reply-classifier-skeleton.md` | Завершенный backend implementation report | Фиксирует conservative confirmation reply classifier для positive/ambiguous/negative/correction/unknown без pending store wiring или route changes. |
+| `stage-8-20-post-confirmation-decision-composition-skeleton.md` | Завершенный backend implementation report | Фиксирует internal post-confirmation decision outcomes для active/missing/expired/consumed pending state без runtime wiring, public contract changes или search creation. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -325,6 +327,7 @@
 92. `docs/reviews/stage-8-17-pending-confirmation-state-skeleton.md`
 93. `docs/reviews/stage-8-18-confirmation-reply-recognition-boundary-review.md`
 94. `docs/reviews/stage-8-19-confirmation-reply-classifier-skeleton.md`
+95. `docs/reviews/stage-8-20-post-confirmation-decision-composition-skeleton.md`
 
 ## Historical / superseded документы
 
