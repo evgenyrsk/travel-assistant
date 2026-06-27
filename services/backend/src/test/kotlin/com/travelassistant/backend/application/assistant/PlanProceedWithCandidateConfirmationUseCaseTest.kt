@@ -15,6 +15,10 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
         val plan = useCase(proceedWithCandidate())
 
         val confirmation = assertIs<ProceedWithCandidateConfirmationPlan.ConfirmationRequired>(plan)
+        assertEquals("Rome", confirmation.criteria.destination)
+        assertEquals(2, confirmation.criteria.guests.adults)
+        assertEquals(1, confirmation.criteria.guests.children)
+        assertEquals(1, confirmation.criteria.rooms)
         assertEquals(
             "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
                 "выезд: 2026-07-04; взрослые: 2; дети: 1; номера: 1.",
