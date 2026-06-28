@@ -128,6 +128,7 @@
 | `stage-8-23-consuming-confirmation-reply-lifecycle-gate.md` | Завершенный review/design report / Stage 8.23 | Определяет lifecycle и `markConsumed` rules для future consuming confirmation reply wiring без `hotelSearchId` или search creation. |
 | `stage-8-24-consuming-confirmation-reply-route-wiring.md` | Завершенный backend implementation report / Stage 8.24 | Подключает consuming confirmation reply route wiring для active pending state без `hotelSearchId`, `show_hotel_results` или search creation. |
 | `stage-8-25-confirmed-to-search-creation-readiness-gate.md` | Завершенный review/design report / Stage 8.25 | Проверяет readiness для `PostConfirmationDecision.Confirmed(criteria)` -> hotel search creation и рекомендует internal mapper skeleton перед route search creation. |
+| `stage-8-26-criteria-to-search-mapper-skeleton.md` | Завершенный backend implementation report / Stage 8.26 | Добавляет internal `ProceedWithCandidateCriteria` -> `HotelSearchCriteria` mapper skeleton без route wiring, `hotelSearchId`, `show_hotel_results` или search creation. |
 
 ## Inventory review artifacts
 
@@ -232,6 +233,7 @@
 | `stage-8-23-consuming-confirmation-reply-lifecycle-gate.md` | Завершенный review/design report | Фиксирует conditional readiness, lifecycle и outcome mapping для future non-search consuming confirmation reply handling. |
 | `stage-8-24-consuming-confirmation-reply-route-wiring.md` | Завершенный backend implementation report | Фиксирует non-search consuming confirmation reply route wiring, lifecycle consume rules и unchanged public response shape. |
 | `stage-8-25-confirmed-to-search-creation-readiness-gate.md` | Завершенный review/design report | Фиксирует split-path verdict для future confirmed-to-search creation: сначала internal criteria-to-search mapper skeleton, затем отдельный route wiring gate. |
+| `stage-8-26-criteria-to-search-mapper-skeleton.md` | Завершенный backend implementation report | Фиксирует deterministic criteria-to-search mapper skeleton без search side effects, public contract changes или route/runtime wiring. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -343,6 +345,7 @@
 98. `docs/reviews/stage-8-23-consuming-confirmation-reply-lifecycle-gate.md`
 99. `docs/reviews/stage-8-24-consuming-confirmation-reply-route-wiring.md`
 100. `docs/reviews/stage-8-25-confirmed-to-search-creation-readiness-gate.md`
+101. `docs/reviews/stage-8-26-criteria-to-search-mapper-skeleton.md`
 
 ## Historical / superseded документы
 
