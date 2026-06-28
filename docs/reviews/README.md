@@ -131,6 +131,7 @@
 | `stage-8-26-criteria-to-search-mapper-skeleton.md` | Завершенный backend implementation report / Stage 8.26 | Добавляет internal `ProceedWithCandidateCriteria` -> `HotelSearchCriteria` mapper skeleton без route wiring, `hotelSearchId`, `show_hotel_results` или search creation. |
 | `stage-8-27-mapper-integration-readiness-gate.md` | Завершенный review/design report / Stage 8.27 | Проверяет mapper integration readiness для future confirmed-to-search route wiring и рекомендует internal confirmed-search planning skeleton без search creation. |
 | `stage-8-28-confirmed-search-creation-plan-skeleton.md` | Завершенный backend implementation report / Stage 8.28 | Добавляет internal confirmed-search creation plan/use case skeleton без route wiring, `hotelSearchId`, `show_hotel_results`, `CreateHotelSearchUseCase` call или search creation. |
+| `stage-8-29-command-construction-readiness-gate.md` | Завершенный review/design report / Stage 8.29 | Проверяет readiness для `ConfirmedSearchCreationPlan -> CreateHotelSearchCommand` и рекомендует internal command builder skeleton без route wiring или search creation. |
 
 ## Inventory review artifacts
 
@@ -238,6 +239,7 @@
 | `stage-8-26-criteria-to-search-mapper-skeleton.md` | Завершенный backend implementation report | Фиксирует deterministic criteria-to-search mapper skeleton без search side effects, public contract changes или route/runtime wiring. |
 | `stage-8-27-mapper-integration-readiness-gate.md` | Завершенный review/design report | Фиксирует, что mapper готов для internal composition, но direct route search creation требует failure/idempotency/lifecycle guardrails. |
 | `stage-8-28-confirmed-search-creation-plan-skeleton.md` | Завершенный backend implementation report | Фиксирует internal confirmed-search planning skeleton и lifecycle policy metadata без route/runtime wiring или search side effects. |
+| `stage-8-29-command-construction-readiness-gate.md` | Завершенный review/design report | Фиксирует split-path verdict: нужен internal command builder до любого confirmed-search route execution. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -352,6 +354,7 @@
 101. `docs/reviews/stage-8-26-criteria-to-search-mapper-skeleton.md`
 102. `docs/reviews/stage-8-27-mapper-integration-readiness-gate.md`
 103. `docs/reviews/stage-8-28-confirmed-search-creation-plan-skeleton.md`
+104. `docs/reviews/stage-8-29-command-construction-readiness-gate.md`
 
 ## Historical / superseded документы
 
