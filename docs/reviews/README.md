@@ -139,6 +139,7 @@
 | `stage-8-34-pending-state-idempotency-guard-skeleton.md` | Завершенный backend implementation report / Stage 8.34 | Добавляет internal pending-state/idempotency guard skeleton для confirmed-search execution без route wiring, state mutation или actual search execution. |
 | `stage-8-35-guard-integration-readiness-gate.md` | Завершенный review/design report / Stage 8.35 | Проверяет guard integration readiness и фиксирует, что перед actual execution нужен internal attempt/idempotency skeleton. |
 | `stage-8-36-execution-attempt-idempotency-model-skeleton.md` | Завершенный backend implementation report / Stage 8.36 | Добавляет internal execution attempt/idempotency model/use case skeleton без attempt store, route wiring или actual search execution. |
+| `stage-8-37-attempt-store-readiness-gate.md` | Завершенный review/design report / Stage 8.37 | Проверяет attempt store readiness и рекомендует process-local store skeleton перед любым actual confirmed-search execution. |
 
 ## Inventory review artifacts
 
@@ -254,6 +255,7 @@
 | `stage-8-34-pending-state-idempotency-guard-skeleton.md` | Завершенный backend implementation report | Фиксирует read-only guard: matching active pending state returns blocked-until-idempotency result; missing/expired/consumed/mismatch rejected. |
 | `stage-8-35-guard-integration-readiness-gate.md` | Завершенный review/design report | Фиксирует, что guard достаточен как precondition boundary, но не как permission для `CreateHotelSearchUseCase` call. |
 | `stage-8-36-execution-attempt-idempotency-model-skeleton.md` | Завершенный backend implementation report | Фиксирует attempt/idempotency skeleton: prepared attempts и duplicate branches остаются blocked без attempt store или execution policy. |
+| `stage-8-37-attempt-store-readiness-gate.md` | Завершенный review/design report | Фиксирует, что process-local attempt store skeleton нужен до actual execution, но сам store не добавляется в Stage 8.37. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -376,6 +378,7 @@
 109. `docs/reviews/stage-8-34-pending-state-idempotency-guard-skeleton.md`
 110. `docs/reviews/stage-8-35-guard-integration-readiness-gate.md`
 111. `docs/reviews/stage-8-36-execution-attempt-idempotency-model-skeleton.md`
+112. `docs/reviews/stage-8-37-attempt-store-readiness-gate.md`
 
 ## Historical / superseded документы
 
