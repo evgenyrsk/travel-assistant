@@ -10,6 +10,7 @@ data class ConfirmedSearchExecutionAttempt(
     val commandPlan: ConfirmedSearchCreationCommandPlan.CommandReady,
     val status: ConfirmedSearchExecutionAttemptStatus,
     val createdSearchId: HotelSearchId? = null,
+    val failureReason: ConfirmedSearchExecutionAttemptFailureReason? = null,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
