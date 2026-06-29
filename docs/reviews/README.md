@@ -258,6 +258,7 @@
 | `stage-8-36-execution-attempt-idempotency-model-skeleton.md` | Завершенный backend implementation report | Фиксирует attempt/idempotency skeleton: prepared attempts и duplicate branches остаются blocked без attempt store или execution policy. |
 | `stage-8-37-attempt-store-readiness-gate.md` | Завершенный review/design report | Фиксирует, что process-local attempt store skeleton нужен до actual execution, но сам store не добавляется в Stage 8.37. |
 | `stage-8-38-in-memory-attempt-store-skeleton.md` | Завершенный backend implementation report | Фиксирует process-local attempt store skeleton: prepared/in-progress/succeeded/failed transitions и duplicate handling без execution. |
+| `stage-8-39-attempt-store-integration-readiness-gate.md` | Завершенный review/design report | Фиксирует, что store достаточен как storage primitive, но перед runtime wiring нужен application-level transition orchestration use case. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -382,6 +383,7 @@
 111. `docs/reviews/stage-8-36-execution-attempt-idempotency-model-skeleton.md`
 112. `docs/reviews/stage-8-37-attempt-store-readiness-gate.md`
 113. `docs/reviews/stage-8-38-in-memory-attempt-store-skeleton.md`
+114. `docs/reviews/stage-8-39-attempt-store-integration-readiness-gate.md`
 
 ## Historical / superseded документы
 
