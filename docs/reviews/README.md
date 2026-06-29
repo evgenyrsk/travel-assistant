@@ -136,6 +136,7 @@
 | `stage-8-31-confirmed-search-execution-readiness-gate.md` | Завершенный review/design report / Stage 8.31 | Проверяет confirmed-search execution readiness и рекомендует internal execution result/use case skeleton без route wiring или actual search execution. |
 | `stage-8-32-confirmed-search-execution-result-skeleton.md` | Завершенный backend implementation report / Stage 8.32 | Добавляет internal confirmed-search execution result/use case skeleton с typed policy и `PreparedButNotExecuted` без route wiring или actual search execution. |
 | `stage-8-33-execution-skeleton-integration-gate.md` | Завершенный review/design report / Stage 8.33 | Проверяет integration readiness после `PreparedButNotExecuted` и рекомендует pending-state/idempotency guard skeleton без route wiring или actual execution. |
+| `stage-8-34-pending-state-idempotency-guard-skeleton.md` | Завершенный backend implementation report / Stage 8.34 | Добавляет internal pending-state/idempotency guard skeleton для confirmed-search execution без route wiring, state mutation или actual search execution. |
 
 ## Inventory review artifacts
 
@@ -248,6 +249,7 @@
 | `stage-8-31-confirmed-search-execution-readiness-gate.md` | Завершенный review/design report | Фиксирует, что direct route execution не готов: нужны typed execution/failure/idempotency outcomes before route wiring. |
 | `stage-8-32-confirmed-search-execution-result-skeleton.md` | Завершенный backend implementation report | Фиксирует internal execution result/use case skeleton: command-ready input produces `PreparedButNotExecuted` with lifecycle/failure/idempotency policy. |
 | `stage-8-33-execution-skeleton-integration-gate.md` | Завершенный review/design report | Фиксирует, что actual execution пока не готов: нужен pending-state/idempotency guard до `CreateHotelSearchUseCase` route wiring. |
+| `stage-8-34-pending-state-idempotency-guard-skeleton.md` | Завершенный backend implementation report | Фиксирует read-only guard: matching active pending state returns blocked-until-idempotency result; missing/expired/consumed/mismatch rejected. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -367,6 +369,7 @@
 106. `docs/reviews/stage-8-31-confirmed-search-execution-readiness-gate.md`
 107. `docs/reviews/stage-8-32-confirmed-search-execution-result-skeleton.md`
 108. `docs/reviews/stage-8-33-execution-skeleton-integration-gate.md`
+109. `docs/reviews/stage-8-34-pending-state-idempotency-guard-skeleton.md`
 
 ## Historical / superseded документы
 
