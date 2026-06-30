@@ -268,6 +268,7 @@
 | `stage-8-46-response-mapping-skeleton.md` | Завершенный backend implementation report | Фиксирует internal typed response mapping skeleton: directive model, message kinds и mapper use case без route wiring или actual search results. |
 | `stage-8-47-confirmed-search-transition-integration-readiness-gate.md` | Завершенный review/design report | Фиксирует, что Stage 8.40–8.46 skeletons internally coherent, но route wiring blocked из-за consume ordering, integration composition и отсутствия actual execution. |
 | `stage-8-48-integration-composition-skeleton.md` | Завершенный backend implementation report | Фиксирует internal integration composition skeleton: orchestration + response mapping + safe message planning + explicit non-consume instruction без route wiring. |
+| `stage-8-49-non-results-route-wiring-readiness-gate.md` | Завершенный review/design report | Фиксирует, что Stage 8.50 может безопасно wire non-results composition к runtime при условии test updates и explicit non-consume behavior. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -402,6 +403,7 @@
 121. `docs/reviews/stage-8-46-response-mapping-skeleton.md`
 122. `docs/reviews/stage-8-47-confirmed-search-transition-integration-readiness-gate.md`
 123. `docs/reviews/stage-8-48-integration-composition-skeleton.md`
+124. `docs/reviews/stage-8-49-non-results-route-wiring-readiness-gate.md`
 
 ## Historical / superseded документы
 
