@@ -266,6 +266,7 @@
 | `stage-8-44-retry-transition-support.md` | Завершенный backend implementation report | Фиксирует retry transition support: `FAILED(STALE_EXECUTION)` и `FAILED(SEARCH_CREATION_FAILED)` allow retry; `FAILED(EXECUTION_STATE_UNKNOWN)` blocks; без route wiring или durable history. |
 | `stage-8-45-stage-7-compatibility-proof.md` | Завершенный test-only compatibility report | Фиксирует test-based proof: Stage 7 strict handoff remains единственным search creation path; `ExecuteConfirmedSearchTransitionUseCase` не подключён к runtime; production code не менялся. |
 | `stage-8-46-response-mapping-skeleton.md` | Завершенный backend implementation report | Фиксирует internal typed response mapping skeleton: directive model, message kinds и mapper use case без route wiring или actual search results. |
+| `stage-8-47-confirmed-search-transition-integration-readiness-gate.md` | Завершенный review/design report | Фиксирует, что Stage 8.40–8.46 skeletons internally coherent, но route wiring blocked из-за consume ordering, integration composition и отсутствия actual execution. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -398,6 +399,7 @@
 119. `docs/reviews/stage-8-44-retry-transition-support.md`
 120. `docs/reviews/stage-8-45-stage-7-compatibility-proof.md`
 121. `docs/reviews/stage-8-46-response-mapping-skeleton.md`
+122. `docs/reviews/stage-8-47-confirmed-search-transition-integration-readiness-gate.md`
 
 ## Historical / superseded документы
 
