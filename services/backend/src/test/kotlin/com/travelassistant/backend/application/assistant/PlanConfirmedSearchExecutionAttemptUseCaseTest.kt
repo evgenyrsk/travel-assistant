@@ -268,6 +268,7 @@ class PlanConfirmedSearchExecutionAttemptUseCaseTest {
         status: ConfirmedSearchExecutionAttemptStatus =
             ConfirmedSearchExecutionAttemptStatus.PREPARED,
         createdSearchId: HotelSearchId? = null,
+        expiresAt: Instant = now.plusSeconds(900),
     ): ConfirmedSearchExecutionAttempt =
         ConfirmedSearchExecutionAttempt(
             idempotencyKey = ConfirmedSearchExecutionIdempotencyKey.from(
@@ -279,6 +280,7 @@ class PlanConfirmedSearchExecutionAttemptUseCaseTest {
             createdSearchId = createdSearchId,
             createdAt = now,
             updatedAt = now,
+            expiresAt = expiresAt,
         )
 
     private fun commandReadyPlan(

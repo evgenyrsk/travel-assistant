@@ -26,7 +26,7 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
         )
 
         assertEquals(attempt, result.attempt)
-        assertEquals(attempt, store.findByIdempotencyKey(attempt.idempotencyKey))
+        assertEquals(attempt, store.findByIdempotencyKey(attempt.idempotencyKey, now))
     }
 
     @Test
@@ -42,7 +42,7 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
         )
 
         assertEquals(originalAttempt, result.existingAttempt)
-        assertEquals(originalAttempt, store.findByIdempotencyKey(originalAttempt.idempotencyKey))
+        assertEquals(originalAttempt, store.findByIdempotencyKey(originalAttempt.idempotencyKey, now))
     }
 
     @Test
@@ -61,7 +61,7 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
         assertEquals(ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS, result.attempt.status)
         assertEquals(now.plusSeconds(1), result.attempt.updatedAt)
         assertNull(result.attempt.createdSearchId)
-        assertEquals(result.attempt, store.findByIdempotencyKey(attempt.idempotencyKey))
+        assertEquals(result.attempt, store.findByIdempotencyKey(attempt.idempotencyKey, now))
     }
 
     @Test
@@ -79,7 +79,7 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
         assertEquals(inProgressAttempt, result.existingAttempt)
         assertEquals(
             inProgressAttempt,
-            store.findByIdempotencyKey(inProgressAttempt.idempotencyKey),
+            store.findByIdempotencyKey(inProgressAttempt.idempotencyKey, now),
         )
     }
 
@@ -100,7 +100,7 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
         assertEquals(ConfirmedSearchExecutionAttemptStatus.SUCCEEDED, result.attempt.status)
         assertEquals(createdSearchId, result.attempt.createdSearchId)
         assertNull(result.attempt.failureReason)
-        assertEquals(result.attempt, store.findByIdempotencyKey(inProgressAttempt.idempotencyKey))
+        assertEquals(result.attempt, store.findByIdempotencyKey(inProgressAttempt.idempotencyKey, now))
     }
 
     @Test
@@ -143,7 +143,7 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
             result.attempt.failureReason,
         )
         assertNull(result.attempt.createdSearchId)
-        assertEquals(result.attempt, store.findByIdempotencyKey(inProgressAttempt.idempotencyKey))
+        assertEquals(result.attempt, store.findByIdempotencyKey(inProgressAttempt.idempotencyKey, now))
     }
 
     @Test
@@ -187,7 +187,7 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
             ConfirmedSearchExecutionAttemptStoreResult.RejectionReason.ATTEMPT_NOT_IN_PROGRESS,
             result.reason,
         )
-        assertEquals(attempt, store.findByIdempotencyKey(attempt.idempotencyKey))
+        assertEquals(attempt, store.findByIdempotencyKey(attempt.idempotencyKey, now))
     }
 
     @Test
@@ -215,8 +215,8 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
 
         firstStore.savePrepared(attempt)
 
-        assertEquals(attempt, firstStore.findByIdempotencyKey(attempt.idempotencyKey))
-        assertNull(secondStore.findByIdempotencyKey(attempt.idempotencyKey))
+        assertEquals(attempt, firstStore.findByIdempotencyKey(attempt.idempotencyKey, now))
+        assertNull(secondStore.findByIdempotencyKey(attempt.idempotencyKey, now))
     }
 
     @Test
@@ -254,6 +254,97 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
         }
     }
 
+    @Test
+    fun staleInProgressIsConvertedToFailedWithStaleExecutionReason() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt(expiresAt = now.plusSeconds(60))
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+
+        val result = store.findByIdempotencyKey(
+            attempt.idempotencyKey,
+            now = now.plusSeconds(61),
+        )
+
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.FAILED, result!!.status)
+        assertEquals(
+            ConfirmedSearchExecutionAttemptFailureReason.STALE_EXECUTION,
+            result.failureReason,
+        )
+        assertNull(result.createdSearchId)
+        assertEquals(now.plusSeconds(61), result.updatedAt)
+    }
+
+    @Test
+    fun staleInProgressIsPersistedAsFailedAndReturnedOnSubsequentLookup() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt(expiresAt = now.plusSeconds(60))
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+
+        store.findByIdempotencyKey(attempt.idempotencyKey, now = now.plusSeconds(61))
+
+        val secondLookup = store.findByIdempotencyKey(
+            attempt.idempotencyKey,
+            now = now.plusSeconds(120),
+        )
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.FAILED, secondLookup!!.status)
+        assertEquals(
+            ConfirmedSearchExecutionAttemptFailureReason.STALE_EXECUTION,
+            secondLookup.failureReason,
+        )
+    }
+
+    @Test
+    fun nonStaleInProgressRemainsDuplicateBlocking() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt(expiresAt = now.plusSeconds(900))
+        store.savePrepared(attempt)
+        val inProgressAttempt = assertIs<ConfirmedSearchExecutionAttemptStoreResult.Stored>(
+            store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1)),
+        ).attempt
+
+        val result = store.findByIdempotencyKey(
+            attempt.idempotencyKey,
+            now = now.plusSeconds(60),
+        )
+
+        assertEquals(inProgressAttempt, result)
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS, result!!.status)
+    }
+
+    @Test
+    fun staleDetectionDoesNotAffectNonInProgressAttempts() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt(expiresAt = now.plusSeconds(60))
+        store.savePrepared(attempt)
+
+        val result = store.findByIdempotencyKey(
+            attempt.idempotencyKey,
+            now = now.plusSeconds(61),
+        )
+
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.PREPARED, result!!.status)
+        assertNull(result.failureReason)
+    }
+
+    @Test
+    fun staleDetectionDoesNotCreateNewAttempt() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt(expiresAt = now.plusSeconds(60))
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+
+        val result = store.findByIdempotencyKey(
+            attempt.idempotencyKey,
+            now = now.plusSeconds(61),
+        )
+
+        assertEquals(attempt.idempotencyKey, result!!.idempotencyKey)
+        assertEquals(attempt.sessionId, result.sessionId)
+        assertEquals(attempt.commandPlan, result.commandPlan)
+    }
+
     private fun savedInProgressAttempt(
         store: InMemoryConfirmedSearchExecutionAttemptStore,
     ): ConfirmedSearchExecutionAttempt {
@@ -274,6 +365,7 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
             commandReadyPlan(sessionId = sessionId),
         createdAt: Instant = now,
         updatedAt: Instant = now,
+        expiresAt: Instant = now.plusSeconds(900),
     ): ConfirmedSearchExecutionAttempt =
         ConfirmedSearchExecutionAttempt(
             idempotencyKey = ConfirmedSearchExecutionIdempotencyKey.from(commandPlan),
@@ -282,6 +374,7 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
             status = ConfirmedSearchExecutionAttemptStatus.PREPARED,
             createdAt = createdAt,
             updatedAt = updatedAt,
+            expiresAt = expiresAt,
         )
 
     private fun commandReadyPlan(

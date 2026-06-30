@@ -36,7 +36,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
             result.pendingConsumptionDecision,
         )
 
-        val storedAttempt = store.findByIdempotencyKey(result.attempt.idempotencyKey)
+        val storedAttempt = store.findByIdempotencyKey(result.attempt.idempotencyKey, now)
         assertEquals(result.attempt, storedAttempt)
     }
 
@@ -83,7 +83,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
         val idempotencyKey = ConfirmedSearchExecutionIdempotencyKey.from(
             commandReadyPlan(sessionId = sessionId),
         )
-        assertNull(store.findByIdempotencyKey(idempotencyKey))
+        assertNull(store.findByIdempotencyKey(idempotencyKey, now))
     }
 
     @Test
@@ -125,7 +125,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
 
         assertEquals(ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS, result.attempt.status)
         assertEquals(request.sessionId, result.attempt.sessionId)
-        val storedAttempt = store.findByIdempotencyKey(result.attempt.idempotencyKey)
+        val storedAttempt = store.findByIdempotencyKey(result.attempt.idempotencyKey, now)
         assertEquals(result.attempt, storedAttempt)
     }
 

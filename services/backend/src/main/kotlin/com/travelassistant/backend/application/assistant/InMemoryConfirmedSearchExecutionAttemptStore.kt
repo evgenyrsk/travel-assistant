@@ -31,9 +31,27 @@ class InMemoryConfirmedSearchExecutionAttemptStore :
         return ConfirmedSearchExecutionAttemptStoreResult.Stored(attempt)
     }
 
+    @Synchronized
     override fun findByIdempotencyKey(
         idempotencyKey: ConfirmedSearchExecutionIdempotencyKey,
-    ): ConfirmedSearchExecutionAttempt? = attempts[idempotencyKey]
+        now: Instant,
+    ): ConfirmedSearchExecutionAttempt? {
+        val existingAttempt = attempts[idempotencyKey] ?: return null
+
+        if (existingAttempt.status == ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS &&
+            !now.isBefore(existingAttempt.expiresAt)
+        ) {
+            val staleAttempt = existingAttempt.copy(
+                status = ConfirmedSearchExecutionAttemptStatus.FAILED,
+                failureReason = ConfirmedSearchExecutionAttemptFailureReason.STALE_EXECUTION,
+                updatedAt = now,
+            )
+            attempts[idempotencyKey] = staleAttempt
+            return staleAttempt
+        }
+
+        return existingAttempt
+    }
 
     @Synchronized
     override fun markInProgress(

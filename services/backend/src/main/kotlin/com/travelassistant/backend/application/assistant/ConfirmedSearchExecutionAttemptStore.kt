@@ -10,6 +10,7 @@ interface ConfirmedSearchExecutionAttemptStore {
 
     fun findByIdempotencyKey(
         idempotencyKey: ConfirmedSearchExecutionIdempotencyKey,
+        now: Instant,
     ): ConfirmedSearchExecutionAttempt?
 
     fun markInProgress(

@@ -13,4 +13,5 @@ data class ConfirmedSearchExecutionAttempt(
     val failureReason: ConfirmedSearchExecutionAttemptFailureReason? = null,
     val createdAt: Instant,
     val updatedAt: Instant,
+    val expiresAt: Instant,
 )

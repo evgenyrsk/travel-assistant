@@ -35,7 +35,7 @@ class ExecuteConfirmedSearchTransitionUseCase(
             ),
         )
 
-        val existingAttempt = attemptStore.findByIdempotencyKey(idempotencyKey)
+        val existingAttempt = attemptStore.findByIdempotencyKey(idempotencyKey, request.now)
 
         val attemptPlanningResult = planAttempt(guardResult, request.now, existingAttempt)
 
