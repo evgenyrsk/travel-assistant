@@ -5,8 +5,11 @@ import com.travelassistant.backend.api.configureErrorHandling
 import com.travelassistant.backend.api.configureSerialization
 import com.travelassistant.backend.application.assistant.AssistantHotelSearchHandoffUseCase
 import com.travelassistant.backend.application.assistant.AssistantLlmRouteWiringUseCase
+import com.travelassistant.backend.application.assistant.ComposeConfirmedSearchTransitionResponseUseCase
 import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
+import com.travelassistant.backend.application.assistant.ExecuteConfirmedSearchTransitionUseCase
 import com.travelassistant.backend.application.assistant.InMemoryAssistantSessionStateStore
+import com.travelassistant.backend.application.assistant.InMemoryConfirmedSearchExecutionAttemptStore
 import com.travelassistant.backend.application.assistant.InMemoryPendingConfirmationStore
 import com.travelassistant.backend.application.assistant.PendingConfirmationStore
 import com.travelassistant.backend.application.assistant.PlanAssistantLlmDecisionUseCase
@@ -62,6 +65,11 @@ internal fun Application.moduleWithAssistantLlm(
             ),
         ),
         pendingConfirmationStore = pendingConfirmationStore,
+        composeTransitionResponse = ComposeConfirmedSearchTransitionResponseUseCase(
+            executeTransition = ExecuteConfirmedSearchTransitionUseCase(
+                attemptStore = InMemoryConfirmedSearchExecutionAttemptStore(),
+            ),
+        ),
         clock = clock,
     )
 
