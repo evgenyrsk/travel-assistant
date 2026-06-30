@@ -24,6 +24,10 @@ class InMemoryConfirmedSearchExecutionAttemptStore :
 
         val existingAttempt = attempts[attempt.idempotencyKey]
         if (existingAttempt != null) {
+            if (existingAttempt.isRetryAllowed()) {
+                attempts[attempt.idempotencyKey] = attempt
+                return ConfirmedSearchExecutionAttemptStoreResult.Stored(attempt)
+            }
             return ConfirmedSearchExecutionAttemptStoreResult.Duplicate(existingAttempt)
         }
 
@@ -147,6 +151,10 @@ class InMemoryConfirmedSearchExecutionAttemptStore :
         attempts[attempt.idempotencyKey] = attempt
         return ConfirmedSearchExecutionAttemptStoreResult.Stored(attempt)
     }
+
+    private fun ConfirmedSearchExecutionAttempt.isRetryAllowed(): Boolean =
+        status == ConfirmedSearchExecutionAttemptStatus.FAILED &&
+            failureReason?.isRetryAllowed() == true
 
     private fun attemptNotFound(): ConfirmedSearchExecutionAttemptStoreResult =
         ConfirmedSearchExecutionAttemptStoreResult.Rejected(

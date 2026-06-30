@@ -345,6 +345,141 @@ class InMemoryConfirmedSearchExecutionAttemptStoreTest {
         assertEquals(attempt.commandPlan, result.commandPlan)
     }
 
+    @Test
+    fun failedWithStaleExecutionAllowsRetrySave() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt()
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+        store.markFailed(
+            attempt.idempotencyKey,
+            ConfirmedSearchExecutionAttemptFailureReason.STALE_EXECUTION,
+            now.plusSeconds(2),
+        )
+
+        val retryAttempt = preparedAttempt()
+        val result = store.savePrepared(retryAttempt)
+
+        assertIs<ConfirmedSearchExecutionAttemptStoreResult.Stored>(result)
+        assertEquals(retryAttempt, result.attempt)
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.PREPARED, result.attempt.status)
+    }
+
+    @Test
+    fun failedWithSearchCreationFailedAllowsRetrySave() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt()
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+        store.markFailed(
+            attempt.idempotencyKey,
+            ConfirmedSearchExecutionAttemptFailureReason.SEARCH_CREATION_FAILED,
+            now.plusSeconds(2),
+        )
+
+        val retryAttempt = preparedAttempt()
+        val result = store.savePrepared(retryAttempt)
+
+        assertIs<ConfirmedSearchExecutionAttemptStoreResult.Stored>(result)
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.PREPARED, result.attempt.status)
+    }
+
+    @Test
+    fun failedWithExecutionStateUnknownBlocksRetry() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt()
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+        val failedResult = assertIs<ConfirmedSearchExecutionAttemptStoreResult.Stored>(
+            store.markFailed(
+                attempt.idempotencyKey,
+                ConfirmedSearchExecutionAttemptFailureReason.EXECUTION_STATE_UNKNOWN,
+                now.plusSeconds(2),
+            ),
+        )
+
+        val retryAttempt = preparedAttempt()
+        val result = store.savePrepared(retryAttempt)
+
+        assertIs<ConfirmedSearchExecutionAttemptStoreResult.Duplicate>(result)
+        assertEquals(failedResult.attempt, result.existingAttempt)
+    }
+
+    @Test
+    fun staleInProgressFollowedByRetrySaveIsAllowed() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt(expiresAt = now.plusSeconds(60))
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+
+        val staleResult = store.findByIdempotencyKey(
+            attempt.idempotencyKey,
+            now = now.plusSeconds(61),
+        )
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.FAILED, staleResult!!.status)
+        assertEquals(
+            ConfirmedSearchExecutionAttemptFailureReason.STALE_EXECUTION,
+            staleResult.failureReason,
+        )
+
+        val retryAttempt = preparedAttempt()
+        val retrySaveResult = store.savePrepared(retryAttempt)
+
+        assertIs<ConfirmedSearchExecutionAttemptStoreResult.Stored>(retrySaveResult)
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.PREPARED, retrySaveResult.attempt.status)
+    }
+
+    @Test
+    fun succeededAttemptBlocksRetry() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt()
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+        val succeededResult = assertIs<ConfirmedSearchExecutionAttemptStoreResult.Stored>(
+            store.markSucceeded(
+                attempt.idempotencyKey,
+                HotelSearchId("future-modeled-search-id"),
+                now.plusSeconds(2),
+            ),
+        )
+
+        val retryAttempt = preparedAttempt()
+        val result = store.savePrepared(retryAttempt)
+
+        assertIs<ConfirmedSearchExecutionAttemptStoreResult.Duplicate>(result)
+        assertEquals(succeededResult.attempt, result.existingAttempt)
+    }
+
+    @Test
+    fun retrySaveDoesNotCreateRealHotelSearchIdOrExposeForbiddenTokens() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val attempt = preparedAttempt()
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+        store.markFailed(
+            attempt.idempotencyKey,
+            ConfirmedSearchExecutionAttemptFailureReason.STALE_EXECUTION,
+            now.plusSeconds(2),
+        )
+
+        val retryAttempt = preparedAttempt()
+        val result = store.savePrepared(retryAttempt)
+        val resultText = result.toString()
+
+        assertNull(retryAttempt.createdSearchId)
+        listOf(
+            "show_hotel_results",
+            "CreateHotelSearchUseCase",
+            "provider",
+            "markConsumed",
+        ).forEach { forbidden ->
+            assertFalse(
+                resultText.contains(forbidden),
+                "Retry save result must not expose $forbidden",
+            )
+        }
+    }
+
     private fun savedInProgressAttempt(
         store: InMemoryConfirmedSearchExecutionAttemptStore,
     ): ConfirmedSearchExecutionAttempt {
