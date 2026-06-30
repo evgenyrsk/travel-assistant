@@ -14,6 +14,12 @@ class AssistantLlmRouteWiringUseCase(
     private val pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
     private val planPostConfirmationDecisionUseCase: PlanPostConfirmationDecisionUseCase =
         PlanPostConfirmationDecisionUseCase(pendingConfirmationStore),
+    private val composeTransitionResponse: ComposeConfirmedSearchTransitionResponseUseCase =
+        ComposeConfirmedSearchTransitionResponseUseCase(
+            executeTransition = ExecuteConfirmedSearchTransitionUseCase(
+                attemptStore = InMemoryConfirmedSearchExecutionAttemptStore(),
+            ),
+        ),
     private val clock: Clock = Clock.systemUTC(),
     private val pendingConfirmationTtl: Duration = DEFAULT_PENDING_CONFIRMATION_TTL,
     private val explicitHotelSearchMessageParser: MinimalHotelSearchMessageParser =
@@ -46,6 +52,7 @@ class AssistantLlmRouteWiringUseCase(
                     ),
                 ),
                 decidedAt = now,
+                activePendingConfirmation = activePendingConfirmation,
             )
         }
 
@@ -113,11 +120,19 @@ class AssistantLlmRouteWiringUseCase(
     private fun AcceptedAssistantMessage.withPostConfirmationDecision(
         decision: PostConfirmationDecision,
         decidedAt: Instant,
+        activePendingConfirmation: PendingProceedWithCandidateConfirmation? = null,
     ): AcceptedAssistantMessage =
         when (decision) {
             is PostConfirmationDecision.Confirmed -> {
-                consumePendingConfirmation(decidedAt)
-                withClarification(CONFIRMATION_RECEIVED_MESSAGE)
+                val composedResult = composeTransitionResponse(
+                    ComposeConfirmedSearchTransitionResponseRequest(
+                        sessionId = sessionId,
+                        decision = decision,
+                        pendingConfirmation = activePendingConfirmation,
+                        now = decidedAt,
+                    ),
+                )
+                withClarification(composedResult.messageText)
             }
 
             PostConfirmationDecision.NeedsClarification ->
@@ -174,9 +189,6 @@ class AssistantLlmRouteWiringUseCase(
         const val SAFE_BOUNDARY_MESSAGE =
             "I could not safely turn that message into a hotel search yet. " +
                 "Please keep the request hotel-only and share destination, dates, guests, and rooms."
-
-        const val CONFIRMATION_RECEIVED_MESSAGE =
-            "Confirmation received. I will not start a hotel search automatically yet."
 
         const val CONFIRMATION_NEEDS_CLARIFICATION_MESSAGE =
             "Please confirm clearly, cancel, or share corrected hotel search criteria."
