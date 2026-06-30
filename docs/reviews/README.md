@@ -263,6 +263,7 @@
 | `stage-8-41-confirmed-search-transition-runtime-wiring-readiness-gate.md` | Завершенный review/design report | Фиксирует, что orchestration skeleton полезен, но runtime wiring blocked до explicit consume ordering, attempt TTL, retry policy и response mapping design. |
 | `stage-8-42-attempt-lifecycle-and-response-mapping-policy.md` | Завершенный review/design report | Фиксирует explicit attempt lifecycle, TTL/stale, retry, consume ordering и response mapping policy для future wiring без production code changes. |
 | `stage-8-43-attempt-ttl-and-stale-detection-model.md` | Завершенный backend implementation report | Фиксирует attempt TTL model (`expiresAt`), `STALE_EXECUTION` failure reason и narrow stale detection в store без retry или route wiring. |
+| `stage-8-44-retry-transition-support.md` | Завершенный backend implementation report | Фиксирует retry transition support: `FAILED(STALE_EXECUTION)` и `FAILED(SEARCH_CREATION_FAILED)` allow retry; `FAILED(EXECUTION_STATE_UNKNOWN)` blocks; без route wiring или durable history. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -392,6 +393,7 @@
 116. `docs/reviews/stage-8-41-confirmed-search-transition-runtime-wiring-readiness-gate.md`
 117. `docs/reviews/stage-8-42-attempt-lifecycle-and-response-mapping-policy.md`
 118. `docs/reviews/stage-8-43-attempt-ttl-and-stale-detection-model.md`
+119. `docs/reviews/stage-8-44-retry-transition-support.md`
 
 ## Historical / superseded документы
 

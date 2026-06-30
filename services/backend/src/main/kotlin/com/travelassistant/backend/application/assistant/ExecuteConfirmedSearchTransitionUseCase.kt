@@ -37,7 +37,9 @@ class ExecuteConfirmedSearchTransitionUseCase(
 
         val existingAttempt = attemptStore.findByIdempotencyKey(idempotencyKey, request.now)
 
-        val attemptPlanningResult = planAttempt(guardResult, request.now, existingAttempt)
+        val planningInput = if (existingAttempt.isRetryEligible()) null else existingAttempt
+
+        val attemptPlanningResult = planAttempt(guardResult, request.now, planningInput)
 
         return handlePlanningResult(attemptPlanningResult, executionResult, request)
     }
@@ -147,6 +149,11 @@ class ExecuteConfirmedSearchTransitionUseCase(
                 ExecuteConfirmedSearchTransitionResult.PendingConsumptionDecision
                     .DO_NOT_CONSUME
         }
+
+    private fun ConfirmedSearchExecutionAttempt?.isRetryEligible(): Boolean =
+        this != null &&
+            status == ConfirmedSearchExecutionAttemptStatus.FAILED &&
+            failureReason?.isRetryAllowed() == true
 
     private fun ConfirmedSearchExecutionAttemptStatus.toDuplicateReason():
         ConfirmedSearchExecutionAttemptResult.DuplicateReason =

@@ -154,6 +154,62 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     }
 
     @Test
+    fun retryAfterStaleInProgressReturnsTransitioned() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val useCase = ExecuteConfirmedSearchTransitionUseCase(attemptStore = store)
+        val request = transitionRequest(
+            pendingConfirmation = pendingConfirmation(
+                expiresAt = now.plusSeconds(3600),
+            ),
+        )
+
+        assertIs<ExecuteConfirmedSearchTransitionResult.Transitioned>(
+            useCase(request),
+        )
+
+        val retryRequest = transitionRequest(
+            now = now.plusSeconds(901),
+            pendingConfirmation = pendingConfirmation(
+                expiresAt = now.plusSeconds(3600),
+            ),
+        )
+        val retryResult = assertIs<ExecuteConfirmedSearchTransitionResult.Transitioned>(
+            useCase(retryRequest),
+        )
+
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS, retryResult.attempt.status)
+        assertNull(retryResult.attempt.createdSearchId)
+    }
+
+    @Test
+    fun retryBlockedAfterExecutionStateUnknown() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val useCase = ExecuteConfirmedSearchTransitionUseCase(attemptStore = store)
+        val firstRequest = transitionRequest()
+
+        assertIs<ExecuteConfirmedSearchTransitionResult.Transitioned>(
+            useCase(firstRequest),
+        )
+
+        store.markFailed(
+            ConfirmedSearchExecutionIdempotencyKey.from(
+                commandReadyPlan(),
+            ),
+            ConfirmedSearchExecutionAttemptFailureReason.EXECUTION_STATE_UNKNOWN,
+            now.plusSeconds(2),
+        )
+
+        val retryResult = assertIs<ExecuteConfirmedSearchTransitionResult.DuplicateDetected>(
+            useCase(firstRequest),
+        )
+
+        assertEquals(
+            ConfirmedSearchExecutionAttemptResult.DuplicateReason.FAILED,
+            retryResult.duplicateReason,
+        )
+    }
+
+    @Test
     fun doesNotMutatePendingConfirmationStore() {
         val pendingStore = InMemoryPendingConfirmationStore()
         val pendingConfirmation = pendingStore.save(pendingConfirmation())
