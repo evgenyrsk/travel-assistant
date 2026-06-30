@@ -1,8 +1,11 @@
 package com.travelassistant.backend.application.assistant
 
+import java.time.Duration
 import java.time.Instant
 
-class PlanConfirmedSearchExecutionAttemptUseCase {
+class PlanConfirmedSearchExecutionAttemptUseCase(
+    private val attemptTtl: Duration = DEFAULT_ATTEMPT_TTL,
+) {
 
     operator fun invoke(
         guardResult: ConfirmedSearchExecutionGuardResult,
@@ -56,6 +59,7 @@ class PlanConfirmedSearchExecutionAttemptUseCase {
                     createdSearchId = attempt.createdSearchId,
                     createdAt = now,
                     updatedAt = now,
+                    expiresAt = now.plus(attemptTtl),
                 ),
                 reason = attempt.status.toDuplicateReason(),
                 lifecyclePolicy = guardResult.lifecyclePolicy,
@@ -71,6 +75,7 @@ class PlanConfirmedSearchExecutionAttemptUseCase {
                 status = ConfirmedSearchExecutionAttemptStatus.PREPARED,
                 createdAt = now,
                 updatedAt = now,
+                expiresAt = now.plus(attemptTtl),
             ),
             lifecyclePolicy = guardResult.lifecyclePolicy,
             executionPolicy = guardResult.executionPolicy,
@@ -112,4 +117,8 @@ class PlanConfirmedSearchExecutionAttemptUseCase {
             ConfirmedSearchExecutionAttemptStatus.DUPLICATE_BLOCKED ->
                 ConfirmedSearchExecutionAttemptResult.DuplicateReason.DUPLICATE_BLOCKED
         }
+
+    private companion object {
+        val DEFAULT_ATTEMPT_TTL: Duration = Duration.ofMinutes(15)
+    }
 }
