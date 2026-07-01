@@ -47,6 +47,18 @@ If documents conflict, follow the higher-priority source, report the conflict, a
 - Do not modify unrelated files.
 - Do not add dependencies, tooling, directories, skeletons, provider integrations, database schema, frontend code, or infrastructure unless explicitly requested and roadmap-aligned.
 
+### Stage Sizing Policy
+
+- Default stage size is medium-small rather than micro, where safe.
+- A stage may combine closely related design, model, mapper, composition, and unit-test work only when the work belongs to one boundary and one risk profile.
+- Review/design-only stages may cover several related blockers if they remain docs-only.
+- Backend skeleton stages may include model + use case + mapper + tests if they are part of one internal boundary.
+- Runtime wiring stages must remain narrow: one flow or branch at a time, with route/runtime tests.
+- Do not combine runtime wiring with actual execution, `markConsumed`, `show_hotel_results`, provider calls, OpenAPI/frontend changes, durable storage, or booking flow.
+- Actual execution stages must remain focused and separately committed.
+- OpenAPI/frontend changes must remain separate after backend behavior is stable.
+- Every stage still requires explicit scope, validation, review report, and a separate commit.
+
 ## Architecture Guardrails
 
 - Backend implementation must use Kotlin + Ktor unless a future accepted ADR and roadmap-aligned task explicitly change the stack.
