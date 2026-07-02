@@ -274,6 +274,7 @@
 | `stage-8-52-post-wiring-verification-and-actual-execution-readiness-plan.md` | Завершенный review/design report | Фиксирует post-wiring verification: runtime safe; actual execution blocked (B1-B5 chain); recommended sequence 8.53-8.55. |
 | `stage-8-53-successful-execution-result-model-and-mapper-support.md` | Завершенный backend implementation report | Фиксирует internal successful result support: `RESULTS_READY` directive, `SHOW_HOTEL_RESULTS` mapping, `CONSUME_AFTER_SUCCESS` instruction, `hotelSearchId` propagation; без actual execution или route changes. |
 | `stage-8-54-actual-execution-call-and-succeeded-recording.md` | Завершенный backend implementation report | Фиксирует actual local `CreateHotelSearchUseCase` call, `SUCCEEDED` recording с real `hotelSearchId`, route response с `show_hotel_results`; без `markConsumed`. |
+| `stage-8-55-consume-after-success-policy-and-route-cleanup.md` | Завершенный backend implementation report | Фиксирует conditional `markConsumed` после successful search creation; pending consumed after success; duplicate-after-consume через LLM path. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -414,6 +415,7 @@
 127. `docs/reviews/stage-8-52-post-wiring-verification-and-actual-execution-readiness-plan.md`
 128. `docs/reviews/stage-8-53-successful-execution-result-model-and-mapper-support.md`
 129. `docs/reviews/stage-8-54-actual-execution-call-and-succeeded-recording.md`
+130. `docs/reviews/stage-8-55-consume-after-success-policy-and-route-cleanup.md`
 
 ## Historical / superseded документы
 

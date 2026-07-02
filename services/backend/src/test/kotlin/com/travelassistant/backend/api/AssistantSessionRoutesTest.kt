@@ -478,7 +478,7 @@ class AssistantSessionRoutesTest {
     }
 
     @Test
-    fun positiveConfirmationReplyKeepsPendingActiveAndCreatesHotelSearch() = testApplication {
+    fun positiveConfirmationReplyConsumesPendingAfterSuccessfulSearchCreation() = testApplication {
         val pendingConfirmationStore = InMemoryPendingConfirmationStore()
         var llmResponse: LlmClientResponse =
             LlmClientResponse.Candidate(interpretedHotelSearchCandidate())
@@ -527,7 +527,7 @@ class AssistantSessionRoutesTest {
         assertTrue(hotelSearchId.isNotBlank())
         replyBody.assertNoRawLlmFields()
         assertEquals(PendingConfirmationStatus.PENDING, activePendingBeforeReply?.status)
-        assertEquals(activePendingBeforeReply, activePendingAfterReply)
+        assertEquals(null, activePendingAfterReply)
 
         val offersResponse = client.get("/api/v1/hotel-searches/$hotelSearchId/offers")
         assertEquals(HttpStatusCode.OK, offersResponse.status)
@@ -1012,7 +1012,7 @@ class AssistantSessionRoutesTest {
             sessionId = AssistantSessionId(sessionId),
             now = routeNow.plusSeconds(1),
         )
-        assertEquals(PendingConfirmationStatus.PENDING, activePendingAfterConfirmation?.status)
+        assertEquals(null, activePendingAfterConfirmation)
     }
 
     @Test
@@ -1069,7 +1069,7 @@ class AssistantSessionRoutesTest {
     }
 
     @Test
-    fun repeatedConfirmationReplyReturnsSameHotelSearchResults() = testApplication {
+    fun repeatedConfirmationAfterConsumedSuccessGoesThroughLlmPath() = testApplication {
         val pendingConfirmationStore = InMemoryPendingConfirmationStore()
         var llmResponse: LlmClientResponse =
             LlmClientResponse.Candidate(interpretedHotelSearchCandidate())
@@ -1101,30 +1101,24 @@ class AssistantSessionRoutesTest {
         val firstReplyBody = Json.parseToJsonElement(firstReplyResponse.bodyAsText()).jsonObject
         val firstSearchId = firstReplyBody["hotelSearchId"]?.jsonPrimitive?.content.orEmpty()
 
+        assertEquals("show_hotel_results", firstReplyBody["nextAction"]?.jsonPrimitive?.content)
+        assertTrue(firstSearchId.isNotBlank())
+
         val secondReplyResponse = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             setBody("""{"message":"да"}""")
         }
         val secondReplyBody = Json.parseToJsonElement(secondReplyResponse.bodyAsText()).jsonObject
-        val secondSearchId = secondReplyBody["hotelSearchId"]?.jsonPrimitive?.content.orEmpty()
 
         assertEquals(HttpStatusCode.OK, secondReplyResponse.status)
-        assertEquals("show_hotel_results", secondReplyBody["nextAction"]?.jsonPrimitive?.content)
-        assertEquals(
-            "The search is ready. Hotel results are available.",
-            secondReplyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
-        )
-        assertEquals(firstSearchId, secondSearchId)
-        assertTrue(firstSearchId.isNotBlank())
-
-        val offersResponse = client.get("/api/v1/hotel-searches/$secondSearchId/offers")
-        assertEquals(HttpStatusCode.OK, offersResponse.status)
+        assertEquals("show_boundary_message", secondReplyBody["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(false, secondReplyBody.containsKey("hotelSearchId"))
 
         val activePendingAfterReplies = pendingConfirmationStore.findActiveBySession(
             sessionId = AssistantSessionId(sessionId),
             now = routeNow.plusSeconds(1),
         )
-        assertEquals(PendingConfirmationStatus.PENDING, activePendingAfterReplies?.status)
+        assertEquals(null, activePendingAfterReplies)
     }
 
     @Test
