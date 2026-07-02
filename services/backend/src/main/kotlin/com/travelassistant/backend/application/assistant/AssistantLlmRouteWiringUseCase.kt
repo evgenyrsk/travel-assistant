@@ -14,12 +14,7 @@ class AssistantLlmRouteWiringUseCase(
     private val pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
     private val planPostConfirmationDecisionUseCase: PlanPostConfirmationDecisionUseCase =
         PlanPostConfirmationDecisionUseCase(pendingConfirmationStore),
-    private val composeTransitionResponse: ComposeConfirmedSearchTransitionResponseUseCase =
-        ComposeConfirmedSearchTransitionResponseUseCase(
-            executeTransition = ExecuteConfirmedSearchTransitionUseCase(
-                attemptStore = InMemoryConfirmedSearchExecutionAttemptStore(),
-            ),
-        ),
+    private val composeTransitionResponse: ComposeConfirmedSearchTransitionResponseUseCase,
     private val clock: Clock = Clock.systemUTC(),
     private val pendingConfirmationTtl: Duration = DEFAULT_PENDING_CONFIRMATION_TTL,
     private val explicitHotelSearchMessageParser: MinimalHotelSearchMessageParser =
@@ -132,7 +127,20 @@ class AssistantLlmRouteWiringUseCase(
                         now = decidedAt,
                     ),
                 )
-                withClarification(composedResult.messageText)
+                when (composedResult.responseDirective.nextAction) {
+                    InternalTransitionNextAction.SHOW_HOTEL_RESULTS ->
+                        copy(
+                            assistantReply = AssistantReply(
+                                type = AssistantReplyType.CLARIFICATION,
+                                message = composedResult.messageText,
+                            ),
+                            nextAction = AssistantNextAction.SHOW_HOTEL_RESULTS,
+                            hotelSearchId = composedResult.hotelSearchId,
+                        )
+
+                    InternalTransitionNextAction.ASK_CLARIFICATION ->
+                        withClarification(composedResult.messageText)
+                }
             }
 
             PostConfirmationDecision.NeedsClarification ->
