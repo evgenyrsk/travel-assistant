@@ -1,6 +1,9 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
+import com.travelassistant.backend.domain.hotel.HotelSearchId
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.Test
@@ -194,6 +197,69 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
                 "Composed result must not expose $forbidden",
             )
         }
+    }
+
+    @Test
+    fun duplicateSucceededWithSearchIdComposesShowHotelResultsDirective() {
+        val store = InMemoryConfirmedSearchExecutionAttemptStore()
+        val criteria = proceedCriteria()
+        val commandPlan = ConfirmedSearchCreationCommandPlan.CommandReady(
+            command = CreateHotelSearchCommand(
+                sessionId = AssistantSessionId("assistant-session-local-000123"),
+                criteria = HotelSearchCriteria(
+                    destination = criteria.destination,
+                    checkInDate = criteria.checkInDate,
+                    checkOutDate = criteria.checkOutDate,
+                    guests = HotelSearchCriteria.Guests(
+                        adults = criteria.guests.adults,
+                        children = criteria.guests.children,
+                    ),
+                    rooms = criteria.rooms,
+                ),
+            ),
+            lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+        )
+        val attempt = ConfirmedSearchExecutionAttempt(
+            idempotencyKey = ConfirmedSearchExecutionIdempotencyKey.from(commandPlan),
+            sessionId = AssistantSessionId("assistant-session-local-000123"),
+            commandPlan = commandPlan,
+            status = ConfirmedSearchExecutionAttemptStatus.PREPARED,
+            createdAt = now,
+            updatedAt = now,
+            expiresAt = now.plusSeconds(900),
+        )
+        store.savePrepared(attempt)
+        store.markInProgress(attempt.idempotencyKey, now.plusSeconds(1))
+        val searchId = HotelSearchId("hotel-search-local-composed-001")
+        store.markSucceeded(attempt.idempotencyKey, searchId, now.plusSeconds(2))
+
+        val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
+            executeTransition = ExecuteConfirmedSearchTransitionUseCase(attemptStore = store),
+        )
+
+        val result = useCase(
+            compositionRequest(
+                pendingConfirmation = pendingConfirmation(
+                    expiresAt = now.plusSeconds(3600),
+                ),
+            ),
+        )
+
+        assertIs<ExecuteConfirmedSearchTransitionResult.DuplicateDetected>(result.transitionResult)
+        assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, result.responseDirective.nextAction)
+        assertEquals(TransitionMessageKind.RESULTS_READY, result.responseDirective.messageKind)
+        assertEquals(searchId, result.responseDirective.hotelSearchId)
+        assertEquals(searchId, result.hotelSearchId)
+        assertEquals(true, result.responseDirective.mayShowHotelResults)
+        assertEquals(true, result.responseDirective.shouldConsumePendingConfirmation)
+        assertEquals(
+            PendingConsumeInstruction.CONSUME_PENDING_CONFIRMATION_AFTER_SUCCESS,
+            result.pendingConsumeInstruction,
+        )
+        assertEquals(
+            "The search is ready. Hotel results are available.",
+            result.messageText,
+        )
     }
 
     private fun compositionRequest(

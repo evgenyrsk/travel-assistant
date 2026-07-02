@@ -24,10 +24,19 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
             transitionResult = transitionResult,
             responseDirective = directive,
             messageText = safeMessageText(directive.messageKind),
-            pendingConsumeInstruction =
-                PendingConsumeInstruction.DO_NOT_CONSUME_PENDING_CONFIRMATION,
+            pendingConsumeInstruction = consumeInstruction(directive),
+            hotelSearchId = directive.hotelSearchId,
         )
     }
+
+    private fun consumeInstruction(
+        directive: ConfirmedSearchTransitionResponseDirective,
+    ): PendingConsumeInstruction =
+        if (directive.shouldConsumePendingConfirmation) {
+            PendingConsumeInstruction.CONSUME_PENDING_CONFIRMATION_AFTER_SUCCESS
+        } else {
+            PendingConsumeInstruction.DO_NOT_CONSUME_PENDING_CONFIRMATION
+        }
 
     private fun safeMessageText(kind: TransitionMessageKind): String =
         when (kind) {
@@ -42,6 +51,9 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
 
             TransitionMessageKind.TEMPORARY_FAILURE ->
                 TEMPORARY_FAILURE_MESSAGE
+
+            TransitionMessageKind.RESULTS_READY ->
+                RESULTS_READY_MESSAGE
         }
 
     private companion object {
@@ -56,5 +68,8 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
 
         const val TEMPORARY_FAILURE_MESSAGE =
             "I could not record the search transition. Please try again."
+
+        const val RESULTS_READY_MESSAGE =
+            "The search is ready. Hotel results are available."
     }
 }

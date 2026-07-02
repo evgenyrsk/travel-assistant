@@ -7,10 +7,7 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCase {
     ): ConfirmedSearchTransitionResponseDirective =
         when (result) {
             is ExecuteConfirmedSearchTransitionResult.Transitioned ->
-                ConfirmedSearchTransitionResponseDirective(
-                    nextAction = InternalTransitionNextAction.ASK_CLARIFICATION,
-                    messageKind = TransitionMessageKind.PROCESSING,
-                )
+                mapTransitioned(result)
 
             is ExecuteConfirmedSearchTransitionResult.DuplicateDetected ->
                 mapDuplicate(result)
@@ -28,17 +25,48 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCase {
                 )
         }
 
+    private fun mapTransitioned(
+        result: ExecuteConfirmedSearchTransitionResult.Transitioned,
+    ): ConfirmedSearchTransitionResponseDirective {
+        val executionResult = result.executionResult
+        if (executionResult is ConfirmedSearchExecutionResult.SearchCreated) {
+            return ConfirmedSearchTransitionResponseDirective(
+                nextAction = InternalTransitionNextAction.SHOW_HOTEL_RESULTS,
+                messageKind = TransitionMessageKind.RESULTS_READY,
+                hotelSearchId = executionResult.searchId,
+                mayShowHotelResults = true,
+                shouldConsumePendingConfirmation = true,
+            )
+        }
+        return ConfirmedSearchTransitionResponseDirective(
+            nextAction = InternalTransitionNextAction.ASK_CLARIFICATION,
+            messageKind = TransitionMessageKind.PROCESSING,
+        )
+    }
+
     private fun mapDuplicate(
         result: ExecuteConfirmedSearchTransitionResult.DuplicateDetected,
     ): ConfirmedSearchTransitionResponseDirective =
         when (result.existingAttempt.status) {
-            ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS ->
-                ConfirmedSearchTransitionResponseDirective(
-                    nextAction = InternalTransitionNextAction.ASK_CLARIFICATION,
-                    messageKind = TransitionMessageKind.ALREADY_PROCESSING,
-                )
+            ConfirmedSearchExecutionAttemptStatus.SUCCEEDED -> {
+                val searchId = result.existingAttempt.createdSearchId
+                if (searchId != null) {
+                    ConfirmedSearchTransitionResponseDirective(
+                        nextAction = InternalTransitionNextAction.SHOW_HOTEL_RESULTS,
+                        messageKind = TransitionMessageKind.RESULTS_READY,
+                        hotelSearchId = searchId,
+                        mayShowHotelResults = true,
+                        shouldConsumePendingConfirmation = true,
+                    )
+                } else {
+                    ConfirmedSearchTransitionResponseDirective(
+                        nextAction = InternalTransitionNextAction.ASK_CLARIFICATION,
+                        messageKind = TransitionMessageKind.ALREADY_PROCESSING,
+                    )
+                }
+            }
 
-            ConfirmedSearchExecutionAttemptStatus.SUCCEEDED ->
+            ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS ->
                 ConfirmedSearchTransitionResponseDirective(
                     nextAction = InternalTransitionNextAction.ASK_CLARIFICATION,
                     messageKind = TransitionMessageKind.ALREADY_PROCESSING,

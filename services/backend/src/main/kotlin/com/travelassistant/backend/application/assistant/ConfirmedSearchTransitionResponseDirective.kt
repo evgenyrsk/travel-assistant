@@ -20,4 +20,5 @@ enum class TransitionMessageKind {
     ALREADY_PROCESSING,
     CONFIRMATION_REJECTED,
     TEMPORARY_FAILURE,
+    RESULTS_READY,
 }

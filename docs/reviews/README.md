@@ -272,6 +272,7 @@
 | `stage-8-50-narrow-non-results-route-wiring.md` | Завершенный backend implementation report | Фиксирует narrow non-results route wiring: composition подключён к Confirmed branch; pending remains active; safe text; без hotelSearchId/show_hotel_results/markConsumed. |
 | `stage-8-51-stage-sizing-policy-sync.md` | Завершенный docs-only process sync report | Фиксирует stage sizing policy в `AGENTS.md`: medium-small stages разрешены при одном boundary и risk profile; dangerous work remains split. |
 | `stage-8-52-post-wiring-verification-and-actual-execution-readiness-plan.md` | Завершенный review/design report | Фиксирует post-wiring verification: runtime safe; actual execution blocked (B1-B5 chain); recommended sequence 8.53-8.55. |
+| `stage-8-53-successful-execution-result-model-and-mapper-support.md` | Завершенный backend implementation report | Фиксирует internal successful result support: `RESULTS_READY` directive, `SHOW_HOTEL_RESULTS` mapping, `CONSUME_AFTER_SUCCESS` instruction, `hotelSearchId` propagation; без actual execution или route changes. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -410,6 +411,7 @@
 125. `docs/reviews/stage-8-50-narrow-non-results-route-wiring.md`
 126. `docs/reviews/stage-8-51-stage-sizing-policy-sync.md`
 127. `docs/reviews/stage-8-52-post-wiring-verification-and-actual-execution-readiness-plan.md`
+128. `docs/reviews/stage-8-53-successful-execution-result-model-and-mapper-support.md`
 
 ## Historical / superseded документы
 
