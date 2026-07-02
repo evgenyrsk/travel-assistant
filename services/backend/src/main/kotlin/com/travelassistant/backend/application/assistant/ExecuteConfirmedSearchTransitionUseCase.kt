@@ -1,17 +1,18 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.application.hotel.HotelSearchBoundary
+
 class ExecuteConfirmedSearchTransitionUseCase(
     private val planSearchCreation: PlanConfirmedSearchCreationUseCase =
         PlanConfirmedSearchCreationUseCase(),
     private val buildCommand: BuildConfirmedSearchCreationCommandUseCase =
         BuildConfirmedSearchCreationCommandUseCase(),
-    private val planExecution: PlanConfirmedSearchExecutionUseCase =
-        PlanConfirmedSearchExecutionUseCase(),
     private val guardUseCase: PlanConfirmedSearchExecutionGuardUseCase =
         PlanConfirmedSearchExecutionGuardUseCase(),
     private val planAttempt: PlanConfirmedSearchExecutionAttemptUseCase =
         PlanConfirmedSearchExecutionAttemptUseCase(),
     private val attemptStore: ConfirmedSearchExecutionAttemptStore,
+    private val hotelSearchBoundary: HotelSearchBoundary,
 ) {
 
     operator fun invoke(
@@ -23,7 +24,6 @@ class ExecuteConfirmedSearchTransitionUseCase(
         val commandPlan = when (val command = buildCommand(request.sessionId, creationPlan)) {
             is ConfirmedSearchCreationCommandPlan.CommandReady -> command
         }
-        val executionResult = planExecution(commandPlan)
         val idempotencyKey = ConfirmedSearchExecutionIdempotencyKey.from(commandPlan)
 
         val guardResult = guardUseCase(
@@ -41,12 +41,12 @@ class ExecuteConfirmedSearchTransitionUseCase(
 
         val attemptPlanningResult = planAttempt(guardResult, request.now, planningInput)
 
-        return handlePlanningResult(attemptPlanningResult, executionResult, request)
+        return handlePlanningResult(attemptPlanningResult, commandPlan, request)
     }
 
     private fun handlePlanningResult(
         result: ConfirmedSearchExecutionAttemptResult,
-        executionResult: ConfirmedSearchExecutionResult,
+        commandPlan: ConfirmedSearchCreationCommandPlan.CommandReady,
         request: ExecuteConfirmedSearchTransitionRequest,
     ): ExecuteConfirmedSearchTransitionResult =
         when (result) {
@@ -61,19 +61,19 @@ class ExecuteConfirmedSearchTransitionUseCase(
                 buildDuplicateResult(result)
 
             is ConfirmedSearchExecutionAttemptResult.AttemptPreparedButExecutionBlocked ->
-                persistAndTransition(result, executionResult, request)
+                persistAndExecute(result, commandPlan, request)
         }
 
-    private fun persistAndTransition(
+    private fun persistAndExecute(
         planningResult: ConfirmedSearchExecutionAttemptResult.AttemptPreparedButExecutionBlocked,
-        executionResult: ConfirmedSearchExecutionResult,
+        commandPlan: ConfirmedSearchCreationCommandPlan.CommandReady,
         request: ExecuteConfirmedSearchTransitionRequest,
     ): ExecuteConfirmedSearchTransitionResult {
         val saveResult = attemptStore.savePrepared(planningResult.attempt)
 
         return when (saveResult) {
             is ConfirmedSearchExecutionAttemptStoreResult.Stored ->
-                transitionExecution(saveResult.attempt, executionResult, planningResult, request)
+                executeSearchCreation(saveResult.attempt, commandPlan, planningResult, request)
 
             is ConfirmedSearchExecutionAttemptStoreResult.Duplicate ->
                 buildDuplicateFromStore(saveResult.existingAttempt, planningResult)
@@ -87,9 +87,9 @@ class ExecuteConfirmedSearchTransitionUseCase(
         }
     }
 
-    private fun transitionExecution(
+    private fun executeSearchCreation(
         storedAttempt: ConfirmedSearchExecutionAttempt,
-        executionResult: ConfirmedSearchExecutionResult,
+        commandPlan: ConfirmedSearchCreationCommandPlan.CommandReady,
         planningResult: ConfirmedSearchExecutionAttemptResult.AttemptPreparedButExecutionBlocked,
         request: ExecuteConfirmedSearchTransitionRequest,
     ): ExecuteConfirmedSearchTransitionResult {
@@ -98,13 +98,48 @@ class ExecuteConfirmedSearchTransitionUseCase(
             now = request.now,
         )
 
-        val transitionedAttempt = when (inProgressResult) {
-            is ConfirmedSearchExecutionAttemptStoreResult.Stored -> inProgressResult.attempt
-            else -> storedAttempt
+        if (inProgressResult !is ConfirmedSearchExecutionAttemptStoreResult.Stored) {
+            return ExecuteConfirmedSearchTransitionResult.StoreRejected(
+                reason = ConfirmedSearchExecutionAttemptStoreResult.RejectionReason.ATTEMPT_NOT_FOUND,
+                lifecyclePolicy = planningResult.lifecyclePolicy,
+                executionPolicy = planningResult.executionPolicy,
+            )
         }
 
+        val createdSearch = try {
+            hotelSearchBoundary.createSearch(commandPlan.command)
+        } catch (e: Exception) {
+            attemptStore.markFailed(
+                idempotencyKey = storedAttempt.idempotencyKey,
+                reason = ConfirmedSearchExecutionAttemptFailureReason.SEARCH_CREATION_FAILED,
+                now = request.now,
+            )
+            return ExecuteConfirmedSearchTransitionResult.StoreRejected(
+                reason = ConfirmedSearchExecutionAttemptStoreResult.RejectionReason.ATTEMPT_NOT_IN_PROGRESS,
+                lifecyclePolicy = planningResult.lifecyclePolicy,
+                executionPolicy = planningResult.executionPolicy,
+            )
+        }
+
+        val succeededResult = attemptStore.markSucceeded(
+            idempotencyKey = storedAttempt.idempotencyKey,
+            createdSearchId = createdSearch.id,
+            now = request.now,
+        )
+
+        val finalAttempt = when (succeededResult) {
+            is ConfirmedSearchExecutionAttemptStoreResult.Stored -> succeededResult.attempt
+            else -> inProgressResult.attempt
+        }
+
+        val executionResult = ConfirmedSearchExecutionResult.SearchCreated(
+            searchId = createdSearch.id,
+            lifecyclePolicy = planningResult.lifecyclePolicy,
+            executionPolicy = planningResult.executionPolicy,
+        )
+
         return ExecuteConfirmedSearchTransitionResult.Transitioned(
-            attempt = transitionedAttempt,
+            attempt = finalAttempt,
             executionResult = executionResult,
             pendingConsumptionDecision =
                 ExecuteConfirmedSearchTransitionResult.PendingConsumptionDecision

@@ -68,6 +68,7 @@ internal fun Application.moduleWithAssistantLlm(
         composeTransitionResponse = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
                 attemptStore = InMemoryConfirmedSearchExecutionAttemptStore(),
+                hotelSearchBoundary = hotelSearchBoundary,
             ),
         ),
         clock = clock,
