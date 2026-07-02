@@ -210,6 +210,80 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
         assertEquals(InternalTransitionNextAction.ASK_CLARIFICATION, directive.nextAction)
     }
 
+    @Test
+    fun transitionedWithSearchCreatedMapsToShowHotelResultsDirective() {
+        val searchId = HotelSearchId("hotel-search-local-success-001")
+        val result = ExecuteConfirmedSearchTransitionResult.Transitioned(
+            attempt = attempt(status = ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS),
+            executionResult = ConfirmedSearchExecutionResult.SearchCreated(
+                searchId = searchId,
+                lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+                executionPolicy = ConfirmedSearchExecutionPolicy(),
+            ),
+            pendingConsumptionDecision =
+                ExecuteConfirmedSearchTransitionResult.PendingConsumptionDecision
+                    .CONSUME_AFTER_SUCCESSFUL_RECORDING,
+            lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+            executionPolicy = ConfirmedSearchExecutionPolicy(),
+        )
+
+        val directive = mapper(result)
+
+        assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, directive.nextAction)
+        assertEquals(TransitionMessageKind.RESULTS_READY, directive.messageKind)
+        assertEquals(searchId, directive.hotelSearchId)
+        assertEquals(true, directive.mayShowHotelResults)
+        assertEquals(true, directive.shouldConsumePendingConfirmation)
+    }
+
+    @Test
+    fun duplicateSucceededWithSearchIdMapsToShowHotelResultsDirective() {
+        val searchId = HotelSearchId("hotel-search-local-dup-001")
+        val result = ExecuteConfirmedSearchTransitionResult.DuplicateDetected(
+            existingAttempt = attempt(
+                status = ConfirmedSearchExecutionAttemptStatus.SUCCEEDED,
+                createdSearchId = searchId,
+            ),
+            duplicateReason = ConfirmedSearchExecutionAttemptResult.DuplicateReason.SUCCEEDED,
+            pendingConsumptionDecision =
+                ExecuteConfirmedSearchTransitionResult.PendingConsumptionDecision
+                    .CONSUME_AFTER_SUCCESSFUL_RECORDING,
+            lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+            executionPolicy = ConfirmedSearchExecutionPolicy(),
+        )
+
+        val directive = mapper(result)
+
+        assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, directive.nextAction)
+        assertEquals(TransitionMessageKind.RESULTS_READY, directive.messageKind)
+        assertEquals(searchId, directive.hotelSearchId)
+        assertEquals(true, directive.mayShowHotelResults)
+        assertEquals(true, directive.shouldConsumePendingConfirmation)
+    }
+
+    @Test
+    fun duplicateSucceededWithoutSearchIdMapsToAlreadyProcessing() {
+        val result = ExecuteConfirmedSearchTransitionResult.DuplicateDetected(
+            existingAttempt = attempt(
+                status = ConfirmedSearchExecutionAttemptStatus.SUCCEEDED,
+                createdSearchId = null,
+            ),
+            duplicateReason = ConfirmedSearchExecutionAttemptResult.DuplicateReason.SUCCEEDED,
+            pendingConsumptionDecision =
+                ExecuteConfirmedSearchTransitionResult.PendingConsumptionDecision.DO_NOT_CONSUME,
+            lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+            executionPolicy = ConfirmedSearchExecutionPolicy(),
+        )
+
+        val directive = mapper(result)
+
+        assertEquals(InternalTransitionNextAction.ASK_CLARIFICATION, directive.nextAction)
+        assertEquals(TransitionMessageKind.ALREADY_PROCESSING, directive.messageKind)
+        assertNull(directive.hotelSearchId)
+        assertFalse(directive.mayShowHotelResults)
+        assertFalse(directive.shouldConsumePendingConfirmation)
+    }
+
     private fun attempt(
         status: ConfirmedSearchExecutionAttemptStatus,
         createdSearchId: HotelSearchId? = null,
