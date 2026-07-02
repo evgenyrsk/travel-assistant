@@ -127,6 +127,11 @@ class AssistantLlmRouteWiringUseCase(
                         now = decidedAt,
                     ),
                 )
+                if (composedResult.pendingConsumeInstruction ==
+                    PendingConsumeInstruction.CONSUME_PENDING_CONFIRMATION_AFTER_SUCCESS
+                ) {
+                    consumePendingConfirmation(decidedAt)
+                }
                 when (composedResult.responseDirective.nextAction) {
                     InternalTransitionNextAction.SHOW_HOTEL_RESULTS ->
                         copy(
