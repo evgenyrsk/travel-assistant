@@ -283,6 +283,7 @@
 | `stage-9-3-provider-adapter-skeleton-and-fake-real-seam.md` | Завершенный provider adapter skeleton / fake-vs-real seam report | Реализует HotelProviderMode, HotelProviderConfig, RealHotelOfferProviderAdapter skeleton, HotelOfferProviderFactory; обновляет Application.kt; 8 новых tests; все existing tests pass. |
 | `stage-9-4-provider-error-taxonomy-and-error-handling.md` | Завершенный provider error taxonomy / error handling report | Реализует HotelProviderErrorCategory (7 categories), HotelProviderException; подтверждает propagation через CreateHotelSearchUseCase и Stage 8 compatibility; 7 новых tests. |
 | `stage-9-5-provider-integration-verification.md` | Завершенный provider integration verification report | Verifies FAKE + REAL end-to-end через application composition; 3 targeted integration tests; readiness verdict: ready for provider selection. |
+| `stage-9-6-real-provider-selection-and-configuration-design.md` | Завершенный provider selection / configuration design report | Background comparison 7 provider candidates; configuration/secrets/sandbox design; verdict: shortlist selected — owner input required; next stage: 9.7 contract intake. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -432,6 +433,7 @@
 136. `docs/reviews/stage-9-3-provider-adapter-skeleton-and-fake-real-seam.md`
 137. `docs/reviews/stage-9-4-provider-error-taxonomy-and-error-handling.md`
 138. `docs/reviews/stage-9-5-provider-integration-verification.md`
+139. `docs/reviews/stage-9-6-real-provider-selection-and-configuration-design.md`
 
 ## Historical / superseded документы
 

@@ -10,7 +10,7 @@ Roadmap не является трекером задач, продуктово�
 |---|---|
 | Текущий этап | Stage 8 завершен (backend confirmation lifecycle); Stage 9 не начат |
 | Последний завершенный этап | Stage 8.57 — Stage 8 closure and readiness gate |
-| Следующий планируемый шаг | Stage 9.6 — real provider selection и configuration design согласно Stage 9.5 review report |
+| Следующий планируемый шаг | Stage 9.7 — selected provider contract intake и readiness gate согласно Stage 9.6 review report |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.5 завершен (provider integration verification); Stage 9 implementation продолжается.
+**Статус:** Stage 9.6 завершен (provider selection background comparison и configuration design); Stage 9 implementation deferred pending owner contract intake.
 
 **Planning:**
 
@@ -550,10 +550,11 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.3 | Provider adapter skeleton и fake-vs-real seam | Завершен |
 | Stage 9.4 | Provider error taxonomy и error handling | Завершен |
 | Stage 9.5 | Provider integration verification | Завершен |
+| Stage 9.6 | Real provider selection background comparison и configuration design | Завершен |
 
 **Границы:** adapter design, provider-specific error handling, reliability и production-hardening вокруг реального provider/API после предоставления и активации нужных контрактов.
 
-**Следующий шаг:** Stage 9.6 — real provider selection и configuration design, согласно Stage 9.5 review report.
+**Следующий шаг:** Stage 9.7 — selected provider contract intake и readiness gate, согласно Stage 9.6 review report. Требуется input от project owner: конкретный hotel API/provider service и contract details (без secrets).
 
 ### Stage 10 — Cross-platform Expansion
 
