@@ -8,14 +8,15 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 7 завершен; Stage 8 не начат |
-| Последний завершенный этап | Stage 7.53 — Финальное закрытие Stage 7 и перенос оставшихся пунктов |
-| Следующий планируемый шаг | Stage 8.1 — LLM Orchestration Boundary and Safety Plan, только через отдельную явную planning-only задачу |
+| Текущий этап | Stage 8 завершен (backend confirmation lifecycle); Stage 9 не начат |
+| Последний завершенный этап | Stage 8.57 — Stage 8 closure and readiness gate |
+| Следующий планируемый шаг | Stage 9 planning/readiness review, только через отдельную явную planning-only задачу |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
 |---|---|
 | Stage 0-7 | Завершены |
+| Stage 8 | Завершен (backend confirmation lifecycle) с carryover (InMemory stores, fake LLM/provider) |
 | Stage 7 implementation foundation | Минимальная Kotlin + Ktor backend-основа и ограниченные assistant/conformance-tool slices завершены до Stage 7.25 включительно |
 | Stage 7 documentation stabilization | Stage 7.26-7.30 завершены |
 | Stage 7 resume development handoff | Stage 7.31 завершен; следующий technical task должен быть выбран отдельной явной roadmap-aligned задачей |
@@ -57,7 +58,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
 | Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Целевой chat-first flow и LLM orchestration не завершены. |
-| Stage 8 | Запланирован | Развитие chat-first AI/LLM orchestration после отдельного определения границ и безопасности. |
+| Stage 8 | Завершен | Backend confirmation lifecycle: LLM orchestration boundary, confirmation flow, local search execution, consume-after-success. Закрыт с carryover (InMemory stores, fake LLM/provider). |
 | Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
 
@@ -492,22 +493,48 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 8 — AI/LLM Orchestration Improvements
 
-**Статус:** Запланирован.
+**Статус:** завершен.
 
-**Целевое направление:** chat-first travel assistant, в котором пользователь пишет естественный запрос, Assistant извлекает параметры, задает уточнения, вызывает provider boundaries при достаточных данных и показывает объяснения вместе со структурированными результатами.
+**Назначение:** развитие chat-first AI/LLM orchestration: provider-independent `LlmClient` boundary, confirmation lifecycle, local search execution после user confirmation и consume-after-success policy.
 
-**Рекомендуемый первый шаг:** Stage 8.1 — LLM Orchestration Boundary and Safety Plan. Это planning-only этап для определения:
+**Прогресс Stage 8 по областям:**
 
-- provider-independent `LlmClient` boundary;
-- допустимых данных для передачи в LLM;
-- извлечения intent и hotel-search параметров;
-- стратегии уточняющих вопросов;
-- границы tool/provider calls;
-- fallback при ошибке или невалидном ответе LLM;
-- тестирования через fake LLM без внешних вызовов;
-- минимального объема последующего implementation-этапа.
+| Область | Завершено до | Статус |
+|---|---|---|
+| Entry review and planning | Stage 8.0 | Carryover classification и Stage 8.1 planning завершены. |
+| LLM boundary design | Stage 8.1–8.5 | `LlmClient` boundary, skeleton, orchestration, decision planning, pipeline composition завершены. |
+| Handoff planning and minimal wiring | Stage 8.6–8.8 | Readiness gate, clarification/fallback wiring завершены; `ProceedWithCandidate` deferred. |
+| Criteria validation and confirmation | Stage 8.9–8.15 | Proceed candidate validator, confirmation proposal, prompt wiring завершены. |
+| Pending confirmation lifecycle | Stage 8.16–8.24 | Pending state, reply classifier, decision composition, consuming wiring завершены. |
+| Confirmed-search pipeline | Stage 8.25–8.39 | Criteria mapper, creation plan, command builder, execution result, guard, attempt store, orchestration завершены. |
+| Response mapping and integration | Stage 8.40–8.50 | Lifecycle policy, TTL/stale, retry, response mapping, integration composition, non-results wiring завершены. |
+| Actual execution and consume | Stage 8.51–8.55 | Actual `CreateHotelSearchUseCase` call, SUCCEEDED recording, consume-after-success завершены. |
+| Lifecycle verification and closure | Stage 8.56–8.57 | End-to-end lifecycle verified; Stage 8 formally closed with carryover. |
 
-**Границы:** Stage 8 не должен преждевременно выбирать LLM SDK/model provider, добавлять secrets, выдумывать real provider contract или смешивать LLM orchestration с Stage 9 provider integration. Форма Stage 7.51 временно остается diagnostic/demo shell и не считается целевым UI.
+**Перенесенные пункты после Stage 8:**
+
+| Категория | Статус после закрытия |
+|---|---|
+| InMemory stores (pending, attempt, session, search) | Accepted carryover; durable persistence — future infrastructure work |
+| FakeLlmClient (deterministic) | Accepted carryover; real LLM provider — Stage 9+ |
+| FakeHotelOfferProvider | Accepted carryover; real hotel provider — Stage 9 |
+| Static message text | Accepted carryover; production UX copy — future work |
+| Real provider/API integration | Перенесена в Stage 9 |
+| Durable persistence (PostgreSQL, Redis) | Перенесена до отдельного infrastructure решения |
+| Frontend UX polish (rich cards, inline retry) | Перенесена в отдельную UX задачу |
+| Auth/API keys, production observability | Перенесены до отдельных security/operations решений |
+| Booking, payment, flights и combined itinerary | Не входят в закрытые границы hotel-only Stage 8 |
+
+**Ключевое ограничение закрытия:** завершение Stage 8 не означает ready real provider, real LLM, durable persistence, production readiness или автоматическую активацию Stage 9.
+
+**Stage 8 linked artifacts by group:**
+
+| Group | Key artifacts |
+|---|---|
+| Full review/audit trail | `docs/reviews/README.md` (Stage 8.0–8.57) |
+| Closure and lifecycle verification | `stage-8-57-stage-8-closure-and-readiness-gate.md`, `stage-8-56-end-to-end-confirmation-lifecycle-verification.md` |
+
+**Следующий шаг:** Stage 9 planning/readiness review, только через отдельную явную planning-only задачу. Закрытие Stage 8 не активирует Stage 9 автоматически.
 
 ### Stage 9 — Real Provider/API Integration Hardening
 

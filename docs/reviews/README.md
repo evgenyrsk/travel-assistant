@@ -276,6 +276,7 @@
 | `stage-8-54-actual-execution-call-and-succeeded-recording.md` | Завершенный backend implementation report | Фиксирует actual local `CreateHotelSearchUseCase` call, `SUCCEEDED` recording с real `hotelSearchId`, route response с `show_hotel_results`; без `markConsumed`. |
 | `stage-8-55-consume-after-success-policy-and-route-cleanup.md` | Завершенный backend implementation report | Фиксирует conditional `markConsumed` после successful search creation; pending consumed after success; duplicate-after-consume через LLM path. |
 | `stage-8-56-end-to-end-confirmation-lifecycle-verification.md` | Завершенный review/design report | Фиксирует end-to-end verification полного Stage 8 confirmation lifecycle: happy path, failure/duplicate safety, Stage 7 compatibility; verdict passed with notes; backend core flow closeable. |
+| `stage-8-57-stage-8-closure-and-readiness-gate.md` | Завершенный closure/readiness gate report | Формально закрывает Stage 8 как completed backend confirmation lifecycle; фиксирует carryover; verdict passed; следующий шаг — Stage 9 planning. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -418,6 +419,7 @@
 129. `docs/reviews/stage-8-54-actual-execution-call-and-succeeded-recording.md`
 130. `docs/reviews/stage-8-55-consume-after-success-policy-and-route-cleanup.md`
 131. `docs/reviews/stage-8-56-end-to-end-confirmation-lifecycle-verification.md`
+132. `docs/reviews/stage-8-57-stage-8-closure-and-readiness-gate.md`
 
 ## Historical / superseded документы
 
