@@ -280,6 +280,7 @@
 | `stage-9-0-documentation-audit-and-stage-9-planning-readiness-review.md` | Завершенный documentation audit / planning readiness review | Проводит documentation audit перед Stage 9, устраняет stale wording в architecture docs, определяет рекомендуемое первое направление Stage 9 и предлагает Stage 9.1 scope. |
 | `stage-9-1-hotel-provider-boundary-review-and-adapter-design.md` | Завершенный provider boundary review / adapter design report | Inspect hotel provider boundary, классифицирует boundary ownership, сравнивает 4 adapter design options, рекомендует Option A (сохранить текущий interface, adapter за ним) и определяет Stage 9.2 scope. |
 | `stage-9-2-provider-result-contract-and-domain-mapping.md` | Завершенный provider result contract / domain mapping report | Gap analysis по 19 категориям, 12 normalization rules, domain mapping classification; рекомендует сохранить domain model без изменений для Stage 9.3. |
+| `stage-9-3-provider-adapter-skeleton-and-fake-real-seam.md` | Завершенный provider adapter skeleton / fake-vs-real seam report | Реализует HotelProviderMode, HotelProviderConfig, RealHotelOfferProviderAdapter skeleton, HotelOfferProviderFactory; обновляет Application.kt; 8 новых tests; все existing tests pass. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -426,6 +427,7 @@
 133. `docs/reviews/stage-9-0-documentation-audit-and-stage-9-planning-readiness-review.md`
 134. `docs/reviews/stage-9-1-hotel-provider-boundary-review-and-adapter-design.md`
 135. `docs/reviews/stage-9-2-provider-result-contract-and-domain-mapping.md`
+136. `docs/reviews/stage-9-3-provider-adapter-skeleton-and-fake-real-seam.md`
 
 ## Historical / superseded документы
 

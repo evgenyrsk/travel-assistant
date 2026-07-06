@@ -20,7 +20,8 @@ import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmClient
 import com.travelassistant.backend.application.llm.LlmClientResponse
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
-import com.travelassistant.backend.infrastructure.provider.FakeHotelOfferProvider
+import com.travelassistant.backend.infrastructure.provider.HotelOfferProviderFactory
+import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -36,18 +37,22 @@ fun main() {
 }
 
 fun Application.module() {
-    moduleWithAssistantLlm(defaultAssistantLlmClient())
+    moduleWithAssistantLlm(
+        llmClient = defaultAssistantLlmClient(),
+        providerConfig = HotelProviderConfig.fromEnvironment(),
+    )
 }
 
 internal fun Application.moduleWithAssistantLlm(
     llmClient: LlmClient,
+    providerConfig: HotelProviderConfig = HotelProviderConfig(),
     pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
     clock: Clock = Clock.systemUTC(),
 ) {
     val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
     val hotelSearchBoundary = CreateHotelSearchUseCase(
         assistantSessionStateStore = assistantSessionStateStore,
-        hotelOfferProvider = FakeHotelOfferProvider(),
+        hotelOfferProvider = HotelOfferProviderFactory.create(providerConfig),
         hotelSearchStateStore = InMemoryHotelSearchStateStore(),
     )
     val assistantHotelSearchHandoffBoundary = AssistantHotelSearchHandoffUseCase(
