@@ -22,9 +22,10 @@
 - Ограниченный поиск через fake provider, детерминированное ранжирование и минимальный frontend существуют; real provider, DB/storage, generated clients и промышленная реализация не создавались.
 - API/OpenAPI contract draft создан в Stage 6 как documentation-level frontend/backend boundary; существует только local `FakeHotelOfferProvider`, real provider adapters не создавались.
 - Auth/security/DevOps/testing backlog еще не создавался.
-- Stage 8 и любая будущая интеграционная или промышленная работа начинаются только через отдельные задачи, согласованные с roadmap.
+- Stage 8 - завершен (backend confirmation lifecycle) с carryover (InMemory stores, fake LLM/provider); подробности закрытия и перенесенные пункты находятся в `docs/roadmap/roadmap.md`.
+- Stage 9 и любая будущая интеграционная или промышленная работа начинаются только через отдельные задачи, согласованные с roadmap.
 
-Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap. Эта архитектурная основа не активирует Stage 8 или другую будущую реализацию.
+Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 
 Текущая frontend-форма Stage 7.51 напрямую использует session/search API как диагностическая оболочка. Она не меняет архитектурное направление: целевой frontend остается chat-first, backend/application сохраняет orchestration boundary, LLM в будущем интерпретирует запрос и формирует уточнения через provider-independent boundary, а provider API остается источником hotel facts за `HotelOfferProviderBoundary`.
 

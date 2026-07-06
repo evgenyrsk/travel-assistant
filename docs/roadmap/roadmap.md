@@ -10,7 +10,7 @@ Roadmap не является трекером задач, продуктово�
 |---|---|
 | Текущий этап | Stage 8 завершен (backend confirmation lifecycle); Stage 9 не начат |
 | Последний завершенный этап | Stage 8.57 — Stage 8 closure and readiness gate |
-| Следующий планируемый шаг | Stage 9 planning/readiness review, только через отдельную явную planning-only задачу |
+| Следующий планируемый шаг | Stage 9.1 — первый implementation step согласно Stage 9.0 review report |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,9 +538,17 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Запланирован.
+**Статус:** Stage 9.0 завершен (documentation audit и planning readiness review); Stage 9 implementation не начат.
+
+**Planning:**
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 9.0 | Documentation audit и Stage 9 planning readiness review | Завершен |
 
 **Границы:** adapter design, provider-specific error handling, reliability и production-hardening вокруг реального provider/API после предоставления и активации нужных контрактов.
+
+**Следующий шаг:** Stage 9.1 — hotel provider boundary review и adapter design, согласно Stage 9.0 review report.
 
 ### Stage 10 — Cross-platform Expansion
 

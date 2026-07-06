@@ -12,8 +12,9 @@ Stage 5/6/7 documents сохраняются как architecture audit trail, co
 
 - Stage 5 — Technical Architecture / System Design: завершен.
 - Stage 6 — API Contracts / OpenAPI / Integration Boundary: завершен; Stage 6.1-6.9 завершены.
-- Stage 7 — MVP Implementation: в работе / ожидает отдельную явную задачу; актуальные sub-stage статусы находятся в primary roadmap `../roadmap/roadmap.md`.
-- Code/API/DB/UI implementation: минимальный Kotlin + Ktor backend skeleton существует; business logic, provider integration, DB/storage, frontend, generated clients и production implementation не начаты.
+- Stage 7 — MVP Implementation: завершен в границах ограниченной hotel-only основы; подробности закрытия и перенесенные пункты находятся в primary roadmap `../roadmap/roadmap.md`.
+- Stage 8 — AI/LLM Orchestration Improvements: завершен (backend confirmation lifecycle) с carryover (InMemory stores, fake LLM/provider).
+- Code/API/DB/UI implementation: Kotlin + Ktor backend-основа с LLM orchestration boundary, confirmation lifecycle и process-local hotel search flow существует; real provider integration, DB/storage, frontend polish, generated clients и production implementation не начаты.
 
 `architecture-baseline.md` фиксирует актуальный compact architecture baseline и подтверждает backend stack Kotlin + Ktor. Java/Spring Boot не является принятым Travel Assistant backend stack без явного будущего ADR и задачи, согласованной с roadmap. Документы Stage 5 сохраняются как historical architecture artifacts, deliverables и audit trail: они описывают границы, ответственности и guardrails для hotel-only MVP v1, но не являются implementation backlog, API/OpenAPI contract, endpoint specification, database schema, storage model, provider adapter design, auth/security/DevOps/testing plan или production implementation plan.
 
