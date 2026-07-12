@@ -285,6 +285,7 @@
 | `stage-9-5-provider-integration-verification.md` | Завершенный provider integration verification report | Verifies FAKE + REAL end-to-end через application composition; 3 targeted integration tests; readiness verdict: ready for provider selection. |
 | `stage-9-6-real-provider-selection-and-configuration-design.md` | Завершенный provider selection / configuration design report | Background comparison 7 provider candidates; configuration/secrets/sandbox design; verdict: shortlist selected — owner input required; next stage: 9.7 contract intake. |
 | `stage-9-7-selected-hotels-api-contract-reconciliation-and-implementation-plan.md` | Завершенный selected Hotels API contract reconciliation / implementation plan | Анализирует OpenAPI 1.0/2.0/3.0 внутреннего HotelsApi, выбирает v1 search для MVP, фиксирует autocomplete/occupancy/auth gaps и разрешает только Stage 9.8 configuration skeleton. |
+| `stage-9-8-hotels-api-configuration-skeleton.md` | Завершенный Hotels API configuration skeleton report | Добавляет typed REAL config, fail-closed validation и secret redaction при сохранении FAKE default; HTTP/client/network/runtime adapter wiring отсутствуют. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -436,6 +437,7 @@
 138. `docs/reviews/stage-9-5-provider-integration-verification.md`
 139. `docs/reviews/stage-9-6-real-provider-selection-and-configuration-design.md`
 140. `docs/reviews/stage-9-7-selected-hotels-api-contract-reconciliation-and-implementation-plan.md`
+141. `docs/reviews/stage-9-8-hotels-api-configuration-skeleton.md`
 
 ## Historical / superseded документы
 

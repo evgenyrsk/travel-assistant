@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9 contract intake завершен; Hotels API runtime implementation еще не начата |
-| Последний завершенный этап | Stage 9.7 — Hotels API contract reconciliation and implementation plan |
-| Следующий планируемый шаг | Stage 9.8 — Hotels API configuration skeleton без HTTP/network calls |
+| Текущий этап | Stage 9 configuration boundary завершен; Hotels API transport/runtime integration еще не начата |
+| Последний завершенный этап | Stage 9.8 — Hotels API configuration skeleton |
+| Следующий планируемый шаг | Stage 9.9 — mock-only HTTP/OAuth transport boundary после owner auth input |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.7 завершен как selected Hotels API contract reconciliation и implementation plan. Hotels API transport/runtime integration еще не начата.
+**Статус:** Stage 9.8 завершен как typed Hotels API configuration skeleton с FAKE default и fail-closed REAL validation. HTTP transport/runtime integration еще не начата.
 
 **Planning:**
 
@@ -552,8 +552,8 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.5 | Provider integration verification | Завершен |
 | Stage 9.6 | Real provider selection background comparison и configuration design | Завершен |
 | Stage 9.7 | Selected Hotels API contract reconciliation и implementation plan | Завершен |
-| Stage 9.8 | Hotels API configuration skeleton без HTTP | Следующий шаг |
-| Stage 9.9 | HTTP transport и OAuth boundary с mock transport | Запланирован; требует owner auth input |
+| Stage 9.8 | Hotels API configuration skeleton без HTTP | Завершен |
+| Stage 9.9 | HTTP transport и OAuth boundary с mock transport | Следующий шаг; требует owner auth input |
 | Stage 9.10 | Autocomplete/location resolution | Заблокирован до получения autocomplete contract |
 | Stage 9.11 | Search DTO и domain mapping reconciliation | Запланирован; требует occupancy/review decisions |
 | Stage 9.12 | Real adapter orchestration без runtime wiring | Запланирован |
@@ -566,7 +566,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Границы:** selected contract — внутренний HotelsApi OpenAPI 1.0/2.0/3.0. Для MVP выбран `POST /api/v1/hotels/search`; autocomplete contract отсутствует. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.8 — typed configuration skeleton с FAKE default и fail-closed REAL mode, без HTTP client или network calls. Stage 9.9-9.12 требуют owner inputs по base URL, OAuth scope/audience, autocomplete и occupancy semantics.
+**Следующий шаг:** Stage 9.9 — mock-only HTTP/OAuth transport boundary без live calls и runtime wiring. Требуются owner inputs по base URL и OAuth token URL/scope/audience; Stage 9.10-9.12 дополнительно требуют autocomplete и occupancy semantics.
 
 ### Stage 10 — Cross-platform Expansion
 

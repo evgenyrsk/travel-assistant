@@ -7,6 +7,8 @@ import com.travelassistant.backend.application.llm.LlmClientResponse
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
 import com.travelassistant.backend.infrastructure.provider.HotelProviderMode
+import com.travelassistant.backend.infrastructure.provider.HotelsApiConfig
+import com.travelassistant.backend.infrastructure.provider.RedactedSecret
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -32,6 +34,20 @@ class ProviderSeamIntegrationTest {
     private val routeNow = Instant.parse("2026-06-27T10:00:00Z")
     private val routeClock = Clock.fixed(routeNow, ZoneOffset.UTC)
 
+    private fun completeRealProviderConfig(): HotelProviderConfig =
+        HotelProviderConfig(
+            mode = HotelProviderMode.REAL,
+            hotelsApi = HotelsApiConfig(
+                baseUrl = "https://hotels-api.test",
+                tokenUrl = "https://identity.test/oauth/token",
+                clientId = "hotels-client",
+                clientSecret = RedactedSecret.of("synthetic-secret"),
+                scope = "hotels.search",
+                connectTimeoutMillis = 2_000,
+                requestTimeoutMillis = 5_000,
+            ),
+        )
+
     @Test
     fun realProviderModeReturnsCompletedNoOffersThroughHotelSearchRoute() = testApplication {
         application {
@@ -46,7 +62,7 @@ class ProviderSeamIntegrationTest {
                         ),
                     ),
                 ),
-                providerConfig = HotelProviderConfig(mode = HotelProviderMode.REAL),
+                providerConfig = completeRealProviderConfig(),
                 clock = routeClock,
             )
         }
@@ -104,7 +120,7 @@ class ProviderSeamIntegrationTest {
         application {
             moduleWithAssistantLlm(
                 llmClient = testLlmClient,
-                providerConfig = HotelProviderConfig(mode = HotelProviderMode.REAL),
+                providerConfig = completeRealProviderConfig(),
                 pendingConfirmationStore = pendingConfirmationStore,
                 clock = routeClock,
             )

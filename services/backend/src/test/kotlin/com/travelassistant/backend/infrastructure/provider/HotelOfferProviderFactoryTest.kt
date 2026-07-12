@@ -16,7 +16,7 @@ class HotelOfferProviderFactoryTest {
 
     @Test
     fun realModeCreatesRealHotelOfferProviderAdapter() {
-        val config = HotelProviderConfig(mode = HotelProviderMode.REAL)
+        val config = completeRealConfig()
 
         val provider = HotelOfferProviderFactory.create(config)
 
@@ -31,4 +31,18 @@ class HotelOfferProviderFactoryTest {
 
         assertIs<FakeHotelOfferProvider>(provider)
     }
+
+    private fun completeRealConfig(): HotelProviderConfig =
+        HotelProviderConfig(
+            mode = HotelProviderMode.REAL,
+            hotelsApi = HotelsApiConfig(
+                baseUrl = "https://hotels-api.test",
+                tokenUrl = "https://identity.test/oauth/token",
+                clientId = "hotels-client",
+                clientSecret = RedactedSecret.of("synthetic-secret"),
+                scope = "hotels.search",
+                connectTimeoutMillis = 2_000,
+                requestTimeoutMillis = 5_000,
+            ),
+        )
 }
