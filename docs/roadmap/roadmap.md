@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 8 завершен (backend confirmation lifecycle); Stage 9 не начат |
-| Последний завершенный этап | Stage 8.57 — Stage 8 closure and readiness gate |
-| Следующий планируемый шаг | Stage 9.7 — selected provider contract intake и readiness gate согласно Stage 9.6 review report |
+| Текущий этап | Stage 9 contract intake завершен; Hotels API runtime implementation еще не начата |
+| Последний завершенный этап | Stage 9.7 — Hotels API contract reconciliation and implementation plan |
+| Следующий планируемый шаг | Stage 9.8 — Hotels API configuration skeleton без HTTP/network calls |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -59,7 +59,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
 | Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Целевой chat-first flow и LLM orchestration не завершены. |
 | Stage 8 | Завершен | Backend confirmation lifecycle: LLM orchestration boundary, confirmation flow, local search execution, consume-after-success. Закрыт с carryover (InMemory stores, fake LLM/provider). |
-| Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
+| Stage 9 | В работе | Внутренний HotelsApi выбран и проанализирован; Hotels API transport/runtime integration еще не начата. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
 
 ## 2. Правила управления roadmap
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.6 завершен (provider selection background comparison и configuration design); Stage 9 implementation deferred pending owner contract intake.
+**Статус:** Stage 9.7 завершен как selected Hotels API contract reconciliation и implementation plan. Hotels API transport/runtime integration еще не начата.
 
 **Planning:**
 
@@ -551,10 +551,22 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.4 | Provider error taxonomy и error handling | Завершен |
 | Stage 9.5 | Provider integration verification | Завершен |
 | Stage 9.6 | Real provider selection background comparison и configuration design | Завершен |
+| Stage 9.7 | Selected Hotels API contract reconciliation и implementation plan | Завершен |
+| Stage 9.8 | Hotels API configuration skeleton без HTTP | Следующий шаг |
+| Stage 9.9 | HTTP transport и OAuth boundary с mock transport | Запланирован; требует owner auth input |
+| Stage 9.10 | Autocomplete/location resolution | Заблокирован до получения autocomplete contract |
+| Stage 9.11 | Search DTO и domain mapping reconciliation | Запланирован; требует occupancy/review decisions |
+| Stage 9.12 | Real adapter orchestration без runtime wiring | Запланирован |
+| Stage 9.13 | Bounded pagination | Запланирован |
+| Stage 9.14 | Sanitized fixture contract verification | Запланирован |
+| Stage 9.15 | Sandbox readiness gate | Запланирован |
+| Stage 9.16 | First controlled QA call | Запланирован; только по отдельному разрешению |
+| Stage 9.17 | Opt-in REAL runtime wiring с FAKE default | Запланирован |
+| Stage 9.18 | Integration closure | Запланирован |
 
-**Границы:** adapter design, provider-specific error handling, reliability и production-hardening вокруг реального provider/API после предоставления и активации нужных контрактов.
+**Границы:** selected contract — внутренний HotelsApi OpenAPI 1.0/2.0/3.0. Для MVP выбран `POST /api/v1/hotels/search`; autocomplete contract отсутствует. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.7 — selected provider contract intake и readiness gate, согласно Stage 9.6 review report. Требуется input от project owner: конкретный hotel API/provider service и contract details (без secrets).
+**Следующий шаг:** Stage 9.8 — typed configuration skeleton с FAKE default и fail-closed REAL mode, без HTTP client или network calls. Stage 9.9-9.12 требуют owner inputs по base URL, OAuth scope/audience, autocomplete и occupancy semantics.
 
 ### Stage 10 — Cross-platform Expansion
 
