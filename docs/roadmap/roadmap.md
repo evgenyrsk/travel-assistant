@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Граница HTTP-транспорта публичного Hotels API без авторизации завершена; интеграция adapter/runtime еще не начата |
-| Последний завершенный этап | Stage 9.9 — HTTP-транспорт публичного Hotels API без авторизации |
-| Следующий планируемый шаг | Получение контракта autocomplete и семантики поиска перед Stage 9.10–9.11 |
+| Текущий этап | Минимальные DTO поиска Hotels API добавлены без преобразования доменных моделей и без интеграции с runtime |
+| Последний завершенный этап | Stage 9.11a — DTO поиска без преобразования доменных моделей |
+| Следующий планируемый шаг | Получение контракта autocomplete/location перед Stage 9.10; Stage 9.11b ожидает решения по правилам преобразования |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.9 добавил проверенный через `MockEngine` HTTP-транспорт публичного Hotels API без сетевого движка и подключения к runtime. `FAKE` остается provider по умолчанию; интеграция real adapter еще не начата.
+**Статус:** Stage 9.11a добавил минимальные provider DTO поиска без преобразования, вызова транспорта и подключения к runtime. Stage 9.10 ожидает контракт autocomplete/location; `FAKE` остается provider по умолчанию.
 
 **Planning:**
 
@@ -556,7 +556,8 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.8a | Hotels API authentication configuration reconciliation без HTTP/JWT signing | Завершен |
 | Stage 9.9 | HTTP-транспорт публичного Hotels API без авторизации, проверяемый через `MockEngine` | Завершен; расхождение с auth в Swagger остается риском sandbox |
 | Stage 9.10 | Autocomplete/location resolution | Заблокирован до получения autocomplete contract |
-| Stage 9.11 | Search DTO и domain mapping reconciliation | Запланирован; требует occupancy/review decisions |
+| Stage 9.11a | DTO поиска по Swagger без преобразования доменных моделей | Завершен; использован синтетический fixture |
+| Stage 9.11b | Преобразование search DTO в доменные модели | Заблокирован до решений по destination, размещению гостей, review и price |
 | Stage 9.12 | Real adapter orchestration без runtime wiring | Запланирован |
 | Stage 9.13 | Bounded pagination | Запланирован |
 | Stage 9.14 | Sanitized fixture contract verification | Запланирован |
@@ -567,7 +568,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Границы:** selected contract — внутренний HotelsApi OpenAPI 1.0/2.0/3.0. Для MVP выбран `POST /api/v1/hotels/search`; autocomplete contract отсутствует. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.10 остается заблокирован до получения контракта autocomplete/location. Для Stage 9.11 также нужны правила размещения гостей и возраста детей, rating, состав `shownPrice` и семантика примера ответа. До их получения допустима только отдельная review-only проверка входных данных; реальные вызовы и подключение к runtime не активированы.
+**Следующий шаг:** получить контракт autocomplete/location для Stage 9.10. Stage 9.11b остается заблокирован до решений по destination, размещению гостей, возрасту детей, timezone, nullable rating и составу `shownPrice`. Реальные вызовы и подключение к runtime не активированы.
 
 ### Stage 10 — Cross-platform Expansion
 
