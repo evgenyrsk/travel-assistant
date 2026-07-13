@@ -288,6 +288,7 @@
 | `stage-9-8-hotels-api-configuration-skeleton.md` | Завершенный Hotels API configuration skeleton report | Добавляет typed REAL config, fail-closed validation и secret redaction при сохранении FAKE default; HTTP/client/network/runtime adapter wiring отсутствуют. |
 | `stage-9-tbank-web-hotel-search-contract-observation.md` | Contract observation / audit artifact | Фиксирует методы, endpoint-ы и request shapes публичной web-формы Т-Банка на 13 июля 2026 года; не заменяет выбранный внутренний HotelsApi contract и не активирует runtime integration. |
 | `stage-9-11b-provider-target-and-mapping-policy-readiness-gate.md` | Завершенный review/design-only readiness gate | Подтверждает внутренний Hotels API на `hotels.tbank.ru`, изолирует публичный web-сценарий и разрешает отдельный configuration-only Stage 9.11b1 перед заблокированным mapper Stage 9.11c. |
+| `stage-9-11b1-public-base-url-configuration-reconciliation.md` | Завершенный configuration-only implementation report | Меняет default `HOTELS_API_PUBLIC_BASE_URL` на подтвержденный `https://hotels.tbank.ru/` без transport/runtime wiring и сохраняет `FAKE` по умолчанию. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -446,6 +447,7 @@
 145. `docs/reviews/stage-9-10-autocomplete-location-resolution-contract-boundary.md`
 146. `docs/reviews/stage-9-tbank-web-hotel-search-contract-observation.md`
 147. `docs/reviews/stage-9-11b-provider-target-and-mapping-policy-readiness-gate.md`
+148. `docs/reviews/stage-9-11b1-public-base-url-configuration-reconciliation.md`
 
 ## Historical / superseded документы
 

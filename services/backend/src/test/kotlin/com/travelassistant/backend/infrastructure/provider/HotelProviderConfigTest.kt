@@ -41,7 +41,7 @@ class HotelProviderConfigTest {
 
         val hotelsApi = config.hotelsApi
         assertEquals(HotelProviderMode.REAL, config.mode)
-        assertEquals(HotelsApiTargetConfig.DEFAULT_PUBLIC_BASE_URL, hotelsApi?.publicTarget?.baseUri)
+        assertEquals("https://hotels.tbank.ru/", hotelsApi?.publicTarget?.baseUri)
         assertEquals(60_000, hotelsApi?.publicTarget?.timeoutMillis)
         assertEquals(HotelsApiTargetConfig.DEFAULT_PRIVATE_BASE_URI, hotelsApi?.privateTarget?.baseUri)
         assertEquals(10_000, hotelsApi?.privateTarget?.timeoutMillis)

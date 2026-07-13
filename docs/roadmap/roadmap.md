@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Внутренний Hotels API и его base URL `https://hotels.tbank.ru/` подтверждены без runtime integration |
-| Последний завершенный этап | Stage 9.11b — provider target and mapping policy readiness gate |
-| Следующий планируемый шаг | Stage 9.11b1 — configuration-only замена public base URL; затем данные по guests/rooms, dates, review/rating и price перед Stage 9.11c |
+| Текущий этап | Default public base URL Hotels API приведен к подтвержденному `https://hotels.tbank.ru/` без runtime integration |
+| Последний завершенный этап | Stage 9.11b1 — public base URL configuration reconciliation |
+| Следующий планируемый шаг | Данные по guests/rooms, dates, review/rating и price перед Stage 9.11c mapping implementation |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.11b подтвердил внутренний Hotels API на `https://hotels.tbank.ru/`: anonymous v1 search и v2 filters вернули `200`, v2/v3 URL routes подтвердились validation response. Публичный `/search-api/**` остается отдельной resolver-границей. Search mapper не реализован; `FAKE` остается provider по умолчанию.
+**Статус:** Stage 9.11b1 изменил default public base URL на подтвержденный `https://hotels.tbank.ru/` и добавил точную configuration test assertion. Transport/runtime wiring не изменены, search mapper не реализован, `FAKE` остается provider по умолчанию.
 
 **Planning:**
 
@@ -558,7 +558,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.10 | Autocomplete/location contract boundary, provider DTO и location mapper | Завершен без transport/runtime wiring; требуется fixture verification |
 | Stage 9.11a | DTO поиска по Swagger без преобразования доменных моделей | Завершен; использован синтетический fixture |
 | Stage 9.11b | Provider target and mapping policy readiness gate | Завершен; внутренний API и `https://hotels.tbank.ru/` подтверждены, public web orchestration не активирована |
-| Stage 9.11b1 | Configuration-only public base URL reconciliation | Разрешен; без transport/runtime wiring |
+| Stage 9.11b1 | Configuration-only public base URL reconciliation | Завершен; default URL изменен на `https://hotels.tbank.ru/` без transport/runtime wiring |
 | Stage 9.11c | Преобразование search DTO выбранного API в доменные модели | Заблокирован до данных владельца по guests/rooms, dates, review/rating и price |
 | Stage 9.12 | Real adapter orchestration без runtime wiring | Запланирован |
 | Stage 9.13 | Bounded pagination | Запланирован |
@@ -570,7 +570,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Границы:** selected search contract — внутренний HotelsApi OpenAPI 1.0/2.0/3.0 на `https://hotels.tbank.ru/`. Для MVP выбран `POST /api/v1/hotels/search`; его anonymous вызов подтвержден. Autocomplete технически проверен через отдельный `/search-api/search/autocomplete`, но не объединяется с внутренними DTO и не подключен к transport/runtime. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.11b1 должен заменить default public base URL на `https://hotels.tbank.ru/` с targeted configuration tests, без transport/runtime wiring. Stage 9.11c остается заблокирован до решений по размещению гостей, возрасту детей, timezone, nullable review/rating и составу `shownPrice`. Дополнительные реальные вызовы и подключение к runtime не активированы.
+**Следующий шаг:** Stage 9.11c остается заблокирован до решений по размещению гостей, возрасту детей, timezone, nullable review/rating и составу `shownPrice`. Дополнительные реальные вызовы и подключение к runtime не активированы.
 
 ### Stage 10 — Cross-platform Expansion
 

@@ -46,7 +46,7 @@ class HotelsApiTargetConfig private constructor(
         internal const val PRIVATE_BASE_URI_KEY = "HOTELS_API_PRIVATE_BASE_URI"
         internal const val PRIVATE_TIMEOUT_KEY = "HOTELS_API_PRIVATE_TIMEOUT_MS"
 
-        internal const val DEFAULT_PUBLIC_BASE_URL = "https://hotels.tcsbank.ru/"
+        internal const val DEFAULT_PUBLIC_BASE_URL = "https://hotels.tbank.ru/"
         internal const val DEFAULT_PUBLIC_TIMEOUT_MILLIS = 60_000L
         internal const val DEFAULT_PRIVATE_BASE_URI = "https://hotels-private.tcsbank.ru/"
         internal const val DEFAULT_PRIVATE_TIMEOUT_MILLIS = 10_000L
