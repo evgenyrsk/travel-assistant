@@ -441,6 +441,7 @@
 142. `docs/reviews/stage-9-8a-hotels-api-authentication-configuration-reconciliation.md`
 143. `docs/reviews/stage-9-9-public-anonymous-hotels-api-http-transport.md`
 144. `docs/reviews/stage-9-11a-hotels-api-search-dto-without-domain-mapping.md`
+145. `docs/reviews/stage-9-10-autocomplete-location-resolution-contract-boundary.md`
 
 ## Historical / superseded документы
 
