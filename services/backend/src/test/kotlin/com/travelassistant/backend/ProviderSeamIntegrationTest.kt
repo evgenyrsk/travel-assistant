@@ -8,6 +8,7 @@ import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
 import com.travelassistant.backend.infrastructure.provider.HotelProviderMode
 import com.travelassistant.backend.infrastructure.provider.HotelsApiConfig
+import com.travelassistant.backend.infrastructure.provider.HotelsApiJwtAuthConfig
 import com.travelassistant.backend.infrastructure.provider.RedactedSecret
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -38,13 +39,12 @@ class ProviderSeamIntegrationTest {
         HotelProviderConfig(
             mode = HotelProviderMode.REAL,
             hotelsApi = HotelsApiConfig(
-                baseUrl = "https://hotels-api.test",
-                tokenUrl = "https://identity.test/oauth/token",
-                clientId = "hotels-client",
-                clientSecret = RedactedSecret.of("synthetic-secret"),
-                scope = "hotels.search",
-                connectTimeoutMillis = 2_000,
-                requestTimeoutMillis = 5_000,
+                jwtAuth = HotelsApiJwtAuthConfig(
+                    privateKey = RedactedSecret.of(
+                        "synthetic-private-key",
+                        HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY,
+                    ),
+                ),
             ),
         )
 

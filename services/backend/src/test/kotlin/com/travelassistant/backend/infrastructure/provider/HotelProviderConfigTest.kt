@@ -22,7 +22,7 @@ class HotelProviderConfigTest {
         val config = HotelProviderConfig.fromEnvironment(
             mapOf(
                 "HOTEL_PROVIDER_MODE" to "FAKE",
-                HotelsApiConfig.CLIENT_SECRET_KEY to "must-not-be-read",
+                HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY to "must-not-be-read",
             ),
         )
 
@@ -31,32 +31,38 @@ class HotelProviderConfigTest {
     }
 
     @Test
-    fun `real mode accepts complete explicit settings`() {
-        val config = HotelProviderConfig(
-            mode = HotelProviderMode.REAL,
-            hotelsApi = completeHotelsApiConfig(),
+    fun `real environment uses confirmed public private and JWT defaults`() {
+        val config = HotelProviderConfig.fromEnvironment(
+            mapOf(
+                "HOTEL_PROVIDER_MODE" to "REAL",
+                HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY to "synthetic-private-key",
+            ),
         )
 
+        val hotelsApi = config.hotelsApi
         assertEquals(HotelProviderMode.REAL, config.mode)
-        assertEquals("https://hotels-api.test", config.hotelsApi?.baseUrl)
-        assertEquals(2_000, config.hotelsApi?.connectTimeoutMillis)
-        assertEquals("ru", config.hotelsApi?.userLanguage)
+        assertEquals(HotelsApiTargetConfig.DEFAULT_PUBLIC_BASE_URL, hotelsApi?.publicTarget?.baseUri)
+        assertEquals(60_000, hotelsApi?.publicTarget?.timeoutMillis)
+        assertEquals(HotelsApiTargetConfig.DEFAULT_PRIVATE_BASE_URI, hotelsApi?.privateTarget?.baseUri)
+        assertEquals(10_000, hotelsApi?.privateTarget?.timeoutMillis)
+        assertEquals(HotelsApiJwtAuthConfig.DEFAULT_ISSUER, hotelsApi?.jwtAuth?.issuer)
+        assertEquals(HotelsApiJwtAuthConfig.DEFAULT_AUDIENCE, hotelsApi?.jwtAuth?.audience)
     }
 
     @Test
-    fun `real environment is parsed into typed Hotels API settings`() {
+    fun `real environment accepts target JWT and header overrides`() {
         val config = HotelProviderConfig.fromEnvironment(completeRealEnvironment())
+        val hotelsApi = config.hotelsApi
 
-        assertEquals(HotelProviderMode.REAL, config.mode)
-        assertEquals("https://hotels-api.test", config.hotelsApi?.baseUrl)
-        assertEquals("https://identity.test/oauth/token", config.hotelsApi?.tokenUrl)
-        assertEquals("hotels-client", config.hotelsApi?.clientId)
-        assertEquals("hotels.search", config.hotelsApi?.scope)
-        assertEquals(2_000, config.hotelsApi?.connectTimeoutMillis)
-        assertEquals(5_000, config.hotelsApi?.requestTimeoutMillis)
-        assertEquals("ru", config.hotelsApi?.userLanguage)
-        assertEquals("travel-assistant", config.hotelsApi?.sourcePlatform)
-        assertEquals("stage-9-test", config.hotelsApi?.appVersion)
+        assertEquals("https://public-hotels.test/", hotelsApi?.publicTarget?.baseUri)
+        assertEquals(12_000, hotelsApi?.publicTarget?.timeoutMillis)
+        assertEquals("https://private-hotels.test/", hotelsApi?.privateTarget?.baseUri)
+        assertEquals(3_000, hotelsApi?.privateTarget?.timeoutMillis)
+        assertEquals("TEST-ISSUER", hotelsApi?.jwtAuth?.issuer)
+        assertEquals("TEST-AUDIENCE", hotelsApi?.jwtAuth?.audience)
+        assertEquals("ru", hotelsApi?.userLanguage)
+        assertEquals("travel-assistant", hotelsApi?.sourcePlatform)
+        assertEquals("stage-9-test", hotelsApi?.appVersion)
     }
 
     @Test
@@ -69,36 +75,32 @@ class HotelProviderConfigTest {
     }
 
     @Test
-    fun `real environment rejects every missing required value`() {
-        val requiredKeys = listOf(
-            HotelsApiConfig.BASE_URL_KEY,
-            HotelsApiConfig.TOKEN_URL_KEY,
-            HotelsApiConfig.CLIENT_ID_KEY,
-            HotelsApiConfig.CLIENT_SECRET_KEY,
-            HotelsApiConfig.SCOPE_KEY,
-            HotelsApiConfig.CONNECT_TIMEOUT_KEY,
-            HotelsApiConfig.REQUEST_TIMEOUT_KEY,
+    fun `real environment rejects missing private key`() {
+        val error = assertFailsWith<HotelProviderConfigurationException> {
+            HotelProviderConfig.fromEnvironment(mapOf("HOTEL_PROVIDER_MODE" to "REAL"))
+        }
+
+        assertEquals(HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY, error.configurationKey)
+    }
+
+    @Test
+    fun `old OAuth environment keys are not required`() {
+        val config = HotelProviderConfig.fromEnvironment(
+            mapOf(
+                "HOTEL_PROVIDER_MODE" to "REAL",
+                HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY to "synthetic-private-key",
+            ),
         )
 
-        requiredKeys.forEach { missingKey ->
-            val environment = completeRealEnvironment().toMutableMap().apply {
-                remove(missingKey)
-            }
-
-            val error = assertFailsWith<HotelProviderConfigurationException> {
-                HotelProviderConfig.fromEnvironment(environment)
-            }
-
-            assertEquals(missingKey, error.configurationKey)
-        }
+        assertEquals(HotelProviderMode.REAL, config.mode)
     }
 
     @Test
-    fun `invalid Hotels API URLs are rejected`() {
+    fun `invalid target URLs are rejected`() {
         listOf(
-            HotelsApiConfig.BASE_URL_KEY to "relative/path",
-            HotelsApiConfig.BASE_URL_KEY to "ftp://hotels-api.test",
-            HotelsApiConfig.TOKEN_URL_KEY to "https://identity.test/token?secret=value",
+            HotelsApiTargetConfig.PUBLIC_BASE_URL_KEY to "relative/path",
+            HotelsApiTargetConfig.PUBLIC_BASE_URL_KEY to "ftp://public-hotels.test",
+            HotelsApiTargetConfig.PRIVATE_BASE_URI_KEY to "https://private-hotels.test/path?secret=value",
         ).forEach { (configurationKey, invalidValue) ->
             val environment = completeRealEnvironment().toMutableMap().apply {
                 this[configurationKey] = invalidValue
@@ -113,10 +115,10 @@ class HotelProviderConfigTest {
     }
 
     @Test
-    fun `invalid Hotels API timeouts are rejected`() {
+    fun `invalid target timeouts are rejected`() {
         listOf(
-            HotelsApiConfig.CONNECT_TIMEOUT_KEY to "0",
-            HotelsApiConfig.REQUEST_TIMEOUT_KEY to "not-a-number",
+            HotelsApiTargetConfig.PUBLIC_TIMEOUT_KEY to "0",
+            HotelsApiTargetConfig.PRIVATE_TIMEOUT_KEY to "not-a-number",
         ).forEach { (configurationKey, invalidValue) ->
             val environment = completeRealEnvironment().toMutableMap().apply {
                 this[configurationKey] = invalidValue
@@ -131,12 +133,28 @@ class HotelProviderConfigTest {
     }
 
     @Test
-    fun `blank explicit client secret is rejected`() {
+    fun `blank explicit issuer and audience are rejected`() {
+        listOf(
+            HotelsApiJwtAuthConfig.ISSUER_KEY to { completeHotelsApiConfig().copy(
+                jwtAuth = completeJwtAuth().copy(issuer = " "),
+            ) },
+            HotelsApiJwtAuthConfig.AUDIENCE_KEY to { completeHotelsApiConfig().copy(
+                jwtAuth = completeJwtAuth().copy(audience = " "),
+            ) },
+        ).forEach { (configurationKey, createConfig) ->
+            val error = assertFailsWith<HotelProviderConfigurationException> { createConfig() }
+
+            assertEquals(configurationKey, error.configurationKey)
+        }
+    }
+
+    @Test
+    fun `blank private key is rejected`() {
         val error = assertFailsWith<HotelProviderConfigurationException> {
-            RedactedSecret.of("   ")
+            RedactedSecret.of("   ", HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY)
         }
 
-        assertEquals(HotelsApiConfig.CLIENT_SECRET_KEY, error.configurationKey)
+        assertEquals(HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY, error.configurationKey)
     }
 
     @Test
@@ -148,60 +166,64 @@ class HotelProviderConfigTest {
         )
 
         invalidConfigs.forEach { (configurationKey, createConfig) ->
-            val error = assertFailsWith<HotelProviderConfigurationException> {
-                createConfig()
-            }
+            val error = assertFailsWith<HotelProviderConfigurationException> { createConfig() }
 
             assertEquals(configurationKey, error.configurationKey)
         }
     }
 
     @Test
-    fun `client secret is redacted from config and error text`() {
-        val secretValue = "synthetic-secret-value"
+    fun `private key is redacted from config and error text`() {
+        val secretValue = "synthetic-private-key-value"
         val environment = completeRealEnvironment().toMutableMap().apply {
-            this[HotelsApiConfig.CLIENT_SECRET_KEY] = secretValue
+            this[HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY] = secretValue
         }
         val config = HotelProviderConfig.fromEnvironment(environment)
 
-        assertEquals("[REDACTED]", config.hotelsApi?.clientSecret.toString())
+        assertEquals("[REDACTED]", config.hotelsApi?.jwtAuth?.privateKey.toString())
         assertFalse(config.toString().contains(secretValue))
 
         val invalidEnvironment = environment.toMutableMap().apply {
-            this[HotelsApiConfig.BASE_URL_KEY] = "invalid-url"
+            this[HotelsApiTargetConfig.PUBLIC_BASE_URL_KEY] = "invalid-url"
         }
         val error = assertFailsWith<HotelProviderConfigurationException> {
             HotelProviderConfig.fromEnvironment(invalidEnvironment)
         }
 
         assertFalse(error.message.orEmpty().contains(secretValue))
-        assertTrue(error.message.orEmpty().contains(HotelsApiConfig.BASE_URL_KEY))
+        assertTrue(error.message.orEmpty().contains(HotelsApiTargetConfig.PUBLIC_BASE_URL_KEY))
     }
 
     private fun completeHotelsApiConfig(): HotelsApiConfig =
         HotelsApiConfig(
-            baseUrl = "https://hotels-api.test",
-            tokenUrl = "https://identity.test/oauth/token",
-            clientId = "hotels-client",
-            clientSecret = RedactedSecret.of("synthetic-secret"),
-            scope = "hotels.search",
-            connectTimeoutMillis = 2_000,
-            requestTimeoutMillis = 5_000,
+            publicTarget = HotelsApiTargetConfig.public("https://public-hotels.test/", 12_000),
+            privateTarget = HotelsApiTargetConfig.private("https://private-hotels.test/", 3_000),
+            jwtAuth = completeJwtAuth(),
             userLanguage = "ru",
             sourcePlatform = "travel-assistant",
             appVersion = "stage-9-test",
         )
 
+    private fun completeJwtAuth(): HotelsApiJwtAuthConfig =
+        HotelsApiJwtAuthConfig(
+            issuer = "TEST-ISSUER",
+            audience = "TEST-AUDIENCE",
+            privateKey = RedactedSecret.of(
+                "synthetic-private-key",
+                HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY,
+            ),
+        )
+
     private fun completeRealEnvironment(): Map<String, String> =
         mapOf(
             "HOTEL_PROVIDER_MODE" to "REAL",
-            HotelsApiConfig.BASE_URL_KEY to "https://hotels-api.test",
-            HotelsApiConfig.TOKEN_URL_KEY to "https://identity.test/oauth/token",
-            HotelsApiConfig.CLIENT_ID_KEY to "hotels-client",
-            HotelsApiConfig.CLIENT_SECRET_KEY to "synthetic-secret",
-            HotelsApiConfig.SCOPE_KEY to "hotels.search",
-            HotelsApiConfig.CONNECT_TIMEOUT_KEY to "2000",
-            HotelsApiConfig.REQUEST_TIMEOUT_KEY to "5000",
+            HotelsApiTargetConfig.PUBLIC_BASE_URL_KEY to "https://public-hotels.test/",
+            HotelsApiTargetConfig.PUBLIC_TIMEOUT_KEY to "12000",
+            HotelsApiTargetConfig.PRIVATE_BASE_URI_KEY to "https://private-hotels.test/",
+            HotelsApiTargetConfig.PRIVATE_TIMEOUT_KEY to "3000",
+            HotelsApiJwtAuthConfig.ISSUER_KEY to "TEST-ISSUER",
+            HotelsApiJwtAuthConfig.AUDIENCE_KEY to "TEST-AUDIENCE",
+            HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY to "synthetic-private-key",
             HotelsApiConfig.USER_LANGUAGE_KEY to "ru",
             HotelsApiConfig.SOURCE_PLATFORM_KEY to "travel-assistant",
             HotelsApiConfig.APP_VERSION_KEY to "stage-9-test",

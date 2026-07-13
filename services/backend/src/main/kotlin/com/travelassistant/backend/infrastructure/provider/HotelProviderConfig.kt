@@ -29,18 +29,29 @@ data class HotelProviderConfig(
             return HotelProviderConfig(
                 mode = HotelProviderMode.REAL,
                 hotelsApi = HotelsApiConfig(
-                    baseUrl = environment.required(HotelsApiConfig.BASE_URL_KEY),
-                    tokenUrl = environment.required(HotelsApiConfig.TOKEN_URL_KEY),
-                    clientId = environment.required(HotelsApiConfig.CLIENT_ID_KEY),
-                    clientSecret = RedactedSecret.of(
-                        environment.required(HotelsApiConfig.CLIENT_SECRET_KEY),
+                    publicTarget = HotelsApiTargetConfig.public(
+                        baseUrl = environment.optional(HotelsApiTargetConfig.PUBLIC_BASE_URL_KEY)
+                            ?: HotelsApiTargetConfig.DEFAULT_PUBLIC_BASE_URL,
+                        timeoutMillis = environment.optionalPositiveLong(
+                            HotelsApiTargetConfig.PUBLIC_TIMEOUT_KEY,
+                        ) ?: HotelsApiTargetConfig.DEFAULT_PUBLIC_TIMEOUT_MILLIS,
                     ),
-                    scope = environment.required(HotelsApiConfig.SCOPE_KEY),
-                    connectTimeoutMillis = environment.requiredPositiveLong(
-                        HotelsApiConfig.CONNECT_TIMEOUT_KEY,
+                    privateTarget = HotelsApiTargetConfig.private(
+                        baseUri = environment.optional(HotelsApiTargetConfig.PRIVATE_BASE_URI_KEY)
+                            ?: HotelsApiTargetConfig.DEFAULT_PRIVATE_BASE_URI,
+                        timeoutMillis = environment.optionalPositiveLong(
+                            HotelsApiTargetConfig.PRIVATE_TIMEOUT_KEY,
+                        ) ?: HotelsApiTargetConfig.DEFAULT_PRIVATE_TIMEOUT_MILLIS,
                     ),
-                    requestTimeoutMillis = environment.requiredPositiveLong(
-                        HotelsApiConfig.REQUEST_TIMEOUT_KEY,
+                    jwtAuth = HotelsApiJwtAuthConfig(
+                        issuer = environment.optional(HotelsApiJwtAuthConfig.ISSUER_KEY)
+                            ?: HotelsApiJwtAuthConfig.DEFAULT_ISSUER,
+                        audience = environment.optional(HotelsApiJwtAuthConfig.AUDIENCE_KEY)
+                            ?: HotelsApiJwtAuthConfig.DEFAULT_AUDIENCE,
+                        privateKey = RedactedSecret.of(
+                            value = environment.required(HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY),
+                            configurationKey = HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY,
+                        ),
                     ),
                     userLanguage = environment.optional(HotelsApiConfig.USER_LANGUAGE_KEY),
                     sourcePlatform = environment.optional(HotelsApiConfig.SOURCE_PLATFORM_KEY),
@@ -58,8 +69,8 @@ data class HotelProviderConfig(
                     reason = "is required when HOTEL_PROVIDER_MODE=REAL",
                 )
 
-        private fun Map<String, String>.requiredPositiveLong(configurationKey: String): Long {
-            val raw = required(configurationKey)
+        private fun Map<String, String>.optionalPositiveLong(configurationKey: String): Long? {
+            val raw = optional(configurationKey) ?: return null
             return raw.toLongOrNull()
                 ?: throw HotelProviderConfigurationException(
                     configurationKey = configurationKey,

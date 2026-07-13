@@ -438,6 +438,7 @@
 139. `docs/reviews/stage-9-6-real-provider-selection-and-configuration-design.md`
 140. `docs/reviews/stage-9-7-selected-hotels-api-contract-reconciliation-and-implementation-plan.md`
 141. `docs/reviews/stage-9-8-hotels-api-configuration-skeleton.md`
+142. `docs/reviews/stage-9-8a-hotels-api-authentication-configuration-reconciliation.md`
 
 ## Historical / superseded документы
 
