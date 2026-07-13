@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9 auth configuration reconciliation завершен; Hotels API transport/runtime integration еще не начата |
-| Последний завершенный этап | Stage 9.8a — Hotels API authentication configuration reconciliation |
-| Следующий планируемый шаг | Stage 9.9 — mock-only HTTP/JWT transport boundary после owner auth input |
+| Текущий этап | Граница HTTP-транспорта публичного Hotels API без авторизации завершена; интеграция adapter/runtime еще не начата |
+| Последний завершенный этап | Stage 9.9 — HTTP-транспорт публичного Hotels API без авторизации |
+| Следующий планируемый шаг | Получение контракта autocomplete и семантики поиска перед Stage 9.10–9.11 |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.8a скорректировал configuration boundary под public/private targets и private JWT settings. FAKE остается default; HTTP transport/runtime integration еще не начата.
+**Статус:** Stage 9.9 добавил проверенный через `MockEngine` HTTP-транспорт публичного Hotels API без сетевого движка и подключения к runtime. `FAKE` остается provider по умолчанию; интеграция real adapter еще не начата.
 
 **Planning:**
 
@@ -554,7 +554,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.7 | Selected Hotels API contract reconciliation и implementation plan | Завершен |
 | Stage 9.8 | Hotels API configuration skeleton без HTTP | Завершен |
 | Stage 9.8a | Hotels API authentication configuration reconciliation без HTTP/JWT signing | Завершен |
-| Stage 9.9 | HTTP transport и JWT boundary с mock transport | Следующий шаг; требует endpoint auth matrix и signing contract |
+| Stage 9.9 | HTTP-транспорт публичного Hotels API без авторизации, проверяемый через `MockEngine` | Завершен; расхождение с auth в Swagger остается риском sandbox |
 | Stage 9.10 | Autocomplete/location resolution | Заблокирован до получения autocomplete contract |
 | Stage 9.11 | Search DTO и domain mapping reconciliation | Запланирован; требует occupancy/review decisions |
 | Stage 9.12 | Real adapter orchestration без runtime wiring | Запланирован |
@@ -567,7 +567,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Границы:** selected contract — внутренний HotelsApi OpenAPI 1.0/2.0/3.0. Для MVP выбран `POST /api/v1/hotels/search`; autocomplete contract отсутствует. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.9 — mock-only HTTP/JWT transport boundary без live calls и runtime wiring. До JWT header injection нужно подтвердить search host, endpoint auth matrix, signing algorithm/key format/TTL/clock skew/`kid` и sanitized request headers; Stage 9.10-9.12 дополнительно требуют autocomplete и occupancy semantics.
+**Следующий шаг:** Stage 9.10 остается заблокирован до получения контракта autocomplete/location. Для Stage 9.11 также нужны правила размещения гостей и возраста детей, rating, состав `shownPrice` и семантика примера ответа. До их получения допустима только отдельная review-only проверка входных данных; реальные вызовы и подключение к runtime не активированы.
 
 ### Stage 10 — Cross-platform Expansion
 
