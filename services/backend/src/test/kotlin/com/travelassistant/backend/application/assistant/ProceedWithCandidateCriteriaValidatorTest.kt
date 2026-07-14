@@ -21,6 +21,7 @@ class ProceedWithCandidateCriteriaValidatorTest {
         assertEquals(LocalDate.parse("2026-07-04"), accepted.criteria.checkOutDate)
         assertEquals(2, accepted.criteria.guests.adults)
         assertEquals(1, accepted.criteria.guests.children)
+        assertEquals(listOf(7), accepted.criteria.guests.childrenAges)
         assertEquals(1, accepted.criteria.rooms)
     }
 
@@ -58,6 +59,58 @@ class ProceedWithCandidateCriteriaValidatorTest {
         )
 
         assertRejectedWith(result, ProceedWithCandidateValidationIssue.INVALID_CHILDREN)
+    }
+
+    @Test
+    fun acceptsChildAgeBoundariesAndPreservesOrder() {
+        val result = validateWithConstraints(
+            "children" to "2",
+            "children-ages" to "17,0",
+        )
+
+        val accepted = assertIs<ProceedWithCandidateValidationResult.Accepted>(result)
+        assertEquals(listOf(17, 0), accepted.criteria.guests.childrenAges)
+    }
+
+    @Test
+    fun rejectsChildrenWithoutCompleteAges() {
+        val result = validator(
+            proceedWithCandidate(
+                completeCandidate(
+                    constraints = completeConstraints() - "children-ages",
+                ),
+            ),
+        )
+
+        assertRejectedWith(result, ProceedWithCandidateValidationIssue.MISSING_CHILDREN_AGES)
+    }
+
+    @Test
+    fun rejectsOutOfRangeOrInvalidChildAges() {
+        val outOfRange = validateWithConstraints(
+            "children" to "2",
+            "children-ages" to "-1,18",
+        )
+        val invalid = validateWithConstraints(
+            "children" to "2",
+            "children-ages" to "7,unknown",
+        )
+
+        assertRejectedWith(outOfRange, ProceedWithCandidateValidationIssue.INVALID_CHILDREN_AGES)
+        assertRejectedWith(invalid, ProceedWithCandidateValidationIssue.INVALID_CHILDREN_AGES)
+    }
+
+    @Test
+    fun rejectsChildCountAndAgesMismatch() {
+        val result = validateWithConstraints(
+            "children" to "2",
+            "children-ages" to "7",
+        )
+
+        assertRejectedWith(
+            result,
+            ProceedWithCandidateValidationIssue.CHILDREN_AGES_COUNT_MISMATCH,
+        )
     }
 
     @Test
@@ -243,6 +296,7 @@ class ProceedWithCandidateCriteriaValidatorTest {
             "check-out" to "2026-07-04",
             "adults" to "2",
             "children" to "1",
+            "children-ages" to "7",
             "rooms" to "1",
         )
 

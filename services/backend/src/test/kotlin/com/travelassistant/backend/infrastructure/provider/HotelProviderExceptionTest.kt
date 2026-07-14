@@ -80,7 +80,7 @@ class HotelProviderExceptionTest {
                         destination = "Rome",
                         checkInDate = LocalDate.parse("2026-07-01"),
                         checkOutDate = LocalDate.parse("2026-07-04"),
-                        guests = HotelSearchCriteria.Guests(adults = 2, children = 0),
+                        guests = HotelSearchCriteria.Guests(adults = 2),
                         rooms = 1,
                     ),
                 ),

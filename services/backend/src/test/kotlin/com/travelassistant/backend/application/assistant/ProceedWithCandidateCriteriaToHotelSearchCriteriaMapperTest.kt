@@ -21,7 +21,7 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
                 checkOutDate = LocalDate.parse("2026-07-04"),
                 guests = HotelSearchCriteria.Guests(
                     adults = 2,
-                    children = 1,
+                    childrenAges = listOf(7),
                 ),
                 rooms = 1,
             ),
@@ -48,7 +48,7 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
             completeCriteria(
                 guests = ProceedWithCandidateCriteria.Guests(
                     adults = 3,
-                    children = 0,
+                    childrenAges = emptyList(),
                 ),
                 rooms = 2,
             ),
@@ -56,6 +56,7 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
 
         assertEquals(3, result.guests.adults)
         assertEquals(0, result.guests.children)
+        assertEquals(emptyList(), result.guests.childrenAges)
         assertEquals(2, result.rooms)
     }
 
@@ -106,7 +107,7 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: ProceedWithCandidateCriteria.Guests = ProceedWithCandidateCriteria.Guests(
             adults = 2,
-            children = 1,
+            childrenAges = listOf(7),
         ),
         rooms: Int = 1,
     ): ProceedWithCandidateCriteria =

@@ -35,6 +35,12 @@ class MinimalHotelSearchMessageParser {
             null -> 0
             else -> rawChildren.toIntOrNull()?.takeIf { it >= 0 } ?: return Result.Incomplete
         }
+        val childrenAges = fields["children-ages"]
+            ?.toChildrenAgesOrNull()
+            ?: if (children == 0 && "children-ages" !in fields) emptyList() else return Result.Incomplete
+        if (childrenAges.size != children) {
+            return Result.Incomplete
+        }
         val rooms = fields["rooms"]?.toIntOrNull()?.takeIf { it >= 1 }
             ?: return Result.Incomplete
 
@@ -49,7 +55,7 @@ class MinimalHotelSearchMessageParser {
                 checkOutDate = checkOutDate,
                 guests = HotelSearchCriteria.Guests(
                     adults = adults,
-                    children = children,
+                    childrenAges = childrenAges,
                 ),
                 rooms = rooms,
             ),
@@ -85,6 +91,17 @@ class MinimalHotelSearchMessageParser {
             runCatching { LocalDate.parse(value) }.getOrNull()
         }
 
+    private fun String.toChildrenAgesOrNull(): List<Int>? {
+        if (isBlank()) {
+            return null
+        }
+
+        val ages = split(',').map { value ->
+            value.trim().toIntOrNull() ?: return null
+        }
+        return ages.takeIf { values -> values.all { it in MIN_CHILD_AGE..MAX_CHILD_AGE } }
+    }
+
     private companion object {
         const val PREFIX = "hotel-search;"
         val SUPPORTED_FIELDS = setOf(
@@ -93,7 +110,10 @@ class MinimalHotelSearchMessageParser {
             "check-out",
             "adults",
             "children",
+            "children-ages",
             "rooms",
         )
+        const val MIN_CHILD_AGE = 0
+        const val MAX_CHILD_AGE = 17
     }
 }

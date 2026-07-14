@@ -11,6 +11,9 @@ data class ProceedWithCandidateCriteria(
 ) {
     data class Guests(
         val adults: Int,
-        val children: Int,
-    )
+        val childrenAges: List<Int> = emptyList(),
+    ) {
+        val children: Int
+            get() = childrenAges.size
+    }
 }

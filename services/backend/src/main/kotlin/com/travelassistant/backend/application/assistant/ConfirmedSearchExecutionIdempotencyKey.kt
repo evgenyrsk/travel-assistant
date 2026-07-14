@@ -22,6 +22,7 @@ value class ConfirmedSearchExecutionIdempotencyKey(val value: String) {
                 criteria.checkOutDate.toString(),
                 criteria.guests.adults.toString(),
                 criteria.guests.children.toString(),
+                criteria.guests.childrenAges.sorted().joinToString(separator = ","),
                 criteria.rooms?.toString().orEmpty(),
             ).joinToString(separator = "|")
 

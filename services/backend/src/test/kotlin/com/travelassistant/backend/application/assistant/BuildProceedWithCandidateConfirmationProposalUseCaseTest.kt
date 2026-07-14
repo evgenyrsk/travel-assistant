@@ -15,7 +15,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
 
         assertEquals(
             "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 1; номера: 1.",
+                "выезд: 2026-07-04; взрослые: 2; дети: 1; возраст детей: 7; номера: 1.",
             proposal.summary,
         )
         assertEquals("Проверить отели по этим параметрам?", proposal.confirmationQuestion)
@@ -26,6 +26,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                 ProceedWithCandidateConfirmationField("check-out", "выезд", "2026-07-04"),
                 ProceedWithCandidateConfirmationField("adults", "взрослые", "2"),
                 ProceedWithCandidateConfirmationField("children", "дети", "1"),
+                ProceedWithCandidateConfirmationField("children-ages", "возраст детей", "7"),
                 ProceedWithCandidateConfirmationField("rooms", "номера", "1"),
             ),
             proposal.displayFields,
@@ -48,7 +49,15 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
 
         val keys = proposal.displayFields.map { it.key }
         assertEquals(
-            listOf("destination", "check-in", "check-out", "adults", "children", "rooms"),
+            listOf(
+                "destination",
+                "check-in",
+                "check-out",
+                "adults",
+                "children",
+                "children-ages",
+                "rooms",
+            ),
             keys,
         )
         assertEquals(true, proposal.summary.contains("Rome"))
@@ -56,6 +65,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
         assertEquals(true, proposal.summary.contains("2026-07-04"))
         assertEquals(true, proposal.summary.contains("взрослые: 2"))
         assertEquals(true, proposal.summary.contains("дети: 1"))
+        assertEquals(true, proposal.summary.contains("возраст детей: 7"))
         assertEquals(true, proposal.summary.contains("номера: 1"))
     }
 
@@ -65,7 +75,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
             acceptedCriteria(
                 guests = ProceedWithCandidateCriteria.Guests(
                     adults = 2,
-                    children = 0,
+                    childrenAges = emptyList(),
                 ),
             ),
         )
@@ -121,7 +131,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
         destination: String = "Rome",
         guests: ProceedWithCandidateCriteria.Guests = ProceedWithCandidateCriteria.Guests(
             adults = 2,
-            children = 1,
+            childrenAges = listOf(7),
         ),
     ): ProceedWithCandidateValidationResult.Accepted =
         ProceedWithCandidateValidationResult.Accepted(

@@ -21,7 +21,7 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
         assertEquals(1, confirmation.criteria.rooms)
         assertEquals(
             "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 1; номера: 1.",
+                "выезд: 2026-07-04; взрослые: 2; дети: 1; возраст детей: 7; номера: 1.",
             confirmation.proposal.summary,
         )
         assertEquals(
@@ -57,6 +57,23 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
             proceedWithCandidate(
                 completeCandidate(
                     constraints = completeConstraints() + ("check-out" to "2026-06-30"),
+                ),
+            ),
+        )
+
+        val clarification = assertIs<ProceedWithCandidateConfirmationPlan.ClarificationRequired>(plan)
+        assertEquals(
+            ProceedWithCandidateConfirmationPlan.ClarificationReason.MISSING_OR_INVALID_CRITERIA,
+            clarification.reason,
+        )
+    }
+
+    @Test
+    fun asksForChildAgesBeforeConfirmation() {
+        val plan = useCase(
+            proceedWithCandidate(
+                completeCandidate(
+                    constraints = completeConstraints() - "children-ages",
                 ),
             ),
         )
@@ -238,6 +255,7 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
             "check-out" to "2026-07-04",
             "adults" to "2",
             "children" to "1",
+            "children-ages" to "7",
             "rooms" to "1",
         )
 }

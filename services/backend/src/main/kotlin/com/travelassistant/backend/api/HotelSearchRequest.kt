@@ -4,10 +4,15 @@ import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import java.time.LocalDate
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+
+private const val MIN_CHILD_AGE = 0
+private const val MAX_CHILD_AGE = 17
 
 @Serializable
 data class HotelSearchRequest(
@@ -30,10 +35,14 @@ data class HotelSearchRequest(
         val unknowns: List<JsonElement> = emptyList(),
     )
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Serializable
     data class Guests(
         val adults: Int? = null,
-        val children: Int = 0,
+        @EncodeDefault(EncodeDefault.Mode.NEVER)
+        val children: Int? = null,
+        @EncodeDefault(EncodeDefault.Mode.NEVER)
+        val childrenAges: List<Int>? = null,
     )
 
     sealed interface ValidationResult {
@@ -94,10 +103,30 @@ data class HotelSearchRequest(
                 message = "At least one adult is required.",
             )
         }
-        if (guests.children < 0) {
+        val children = guests.children ?: guests.childrenAges?.size ?: 0
+        if (children < 0) {
             return ValidationResult.Invalid(
                 field = "criteria.guests.children",
                 message = "Children count must not be negative.",
+            )
+        }
+        val childrenAges = guests.childrenAges
+        if (children > 0 && childrenAges == null) {
+            return ValidationResult.Invalid(
+                field = "criteria.guests.childrenAges",
+                message = "An age is required for every child.",
+            )
+        }
+        if (childrenAges != null && childrenAges.any { it !in MIN_CHILD_AGE..MAX_CHILD_AGE }) {
+            return ValidationResult.Invalid(
+                field = "criteria.guests.childrenAges",
+                message = "Each child age must be between 0 and 17.",
+            )
+        }
+        if (guests.children != null && childrenAges != null && childrenAges.size != children) {
+            return ValidationResult.Invalid(
+                field = "criteria.guests.childrenAges",
+                message = "Children count must match the number of child ages.",
             )
         }
         if (validCriteria.rooms != null && validCriteria.rooms < 1) {
@@ -125,7 +154,7 @@ data class HotelSearchRequest(
                     checkOutDate = checkOutDate,
                     guests = HotelSearchCriteria.Guests(
                         adults = adults,
-                        children = guests.children,
+                        childrenAges = childrenAges.orEmpty(),
                     ),
                     rooms = validCriteria.rooms,
                 ),

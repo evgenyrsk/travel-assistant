@@ -21,38 +21,49 @@ class BuildProceedWithCandidateConfirmationProposalUseCase {
     }
 
     private fun ProceedWithCandidateCriteria.confirmationFields(): List<ProceedWithCandidateConfirmationField> =
-        listOfNotNull(
+        buildList {
             destination.trim().takeIf(String::isNotBlank)?.let { value ->
-                ProceedWithCandidateConfirmationField(
-                    key = "destination",
-                    label = "направление",
-                    value = value,
+                add(
+                    ProceedWithCandidateConfirmationField(
+                        key = "destination",
+                        label = "направление",
+                        value = value,
+                    ),
                 )
-            },
-            ProceedWithCandidateConfirmationField(
+            }
+            add(ProceedWithCandidateConfirmationField(
                 key = "check-in",
                 label = "заезд",
                 value = checkInDate.toString(),
-            ),
-            ProceedWithCandidateConfirmationField(
+            ))
+            add(ProceedWithCandidateConfirmationField(
                 key = "check-out",
                 label = "выезд",
                 value = checkOutDate.toString(),
-            ),
-            ProceedWithCandidateConfirmationField(
+            ))
+            add(ProceedWithCandidateConfirmationField(
                 key = "adults",
                 label = "взрослые",
                 value = guests.adults.toString(),
-            ),
-            ProceedWithCandidateConfirmationField(
+            ))
+            add(ProceedWithCandidateConfirmationField(
                 key = "children",
                 label = "дети",
                 value = guests.children.toString(),
-            ),
-            ProceedWithCandidateConfirmationField(
+            ))
+            if (guests.childrenAges.isNotEmpty()) {
+                add(
+                    ProceedWithCandidateConfirmationField(
+                        key = "children-ages",
+                        label = "возраст детей",
+                        value = guests.childrenAges.joinToString(separator = ", "),
+                    ),
+                )
+            }
+            add(ProceedWithCandidateConfirmationField(
                 key = "rooms",
                 label = "номера",
                 value = rooms.toString(),
-            ),
-        )
+            ))
+        }
 }

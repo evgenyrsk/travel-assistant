@@ -15,7 +15,7 @@ class RealHotelOfferProviderAdapterTest {
             destination = "Rome",
             checkInDate = LocalDate.parse("2026-07-01"),
             checkOutDate = LocalDate.parse("2026-07-04"),
-            guests = HotelSearchCriteria.Guests(adults = 2, children = 0),
+            guests = HotelSearchCriteria.Guests(adults = 2),
             rooms = 1,
         )
 
@@ -31,7 +31,7 @@ class RealHotelOfferProviderAdapterTest {
             destination = "Paris",
             checkInDate = LocalDate.parse("2026-08-01"),
             checkOutDate = LocalDate.parse("2026-08-05"),
-            guests = HotelSearchCriteria.Guests(adults = 1, children = 1),
+            guests = HotelSearchCriteria.Guests(adults = 1, childrenAges = listOf(7)),
             rooms = 1,
         )
 

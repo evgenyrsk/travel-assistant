@@ -155,7 +155,7 @@ class PlanConfirmedSearchExecutionUseCaseTest {
                     checkOutDate = LocalDate.parse("2026-07-04"),
                     guests = HotelSearchCriteria.Guests(
                         adults = 2,
-                        children = 1,
+                        childrenAges = listOf(7),
                     ),
                     rooms = 1,
                 ),

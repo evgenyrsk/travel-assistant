@@ -42,7 +42,11 @@ class HotelSearchRoutesTest {
         val createSearchBody = Json.parseToJsonElement(createSearchResponse.bodyAsText()).jsonObject
         val searchId = createSearchBody["searchId"]?.jsonPrimitive?.content.orEmpty()
 
-        assertEquals(HttpStatusCode.Accepted, createSearchResponse.status)
+        assertEquals(
+            HttpStatusCode.Accepted,
+            createSearchResponse.status,
+            createSearchResponse.bodyAsText(),
+        )
         assertEquals("hotel-search-local-000001", searchId)
         assertEquals(sessionId, createSearchBody["sessionId"]?.jsonPrimitive?.content)
         assertEquals("completed_with_offers", createSearchBody["status"]?.jsonPrimitive?.content)

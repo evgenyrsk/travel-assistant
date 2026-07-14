@@ -34,7 +34,7 @@ class BuildConfirmedSearchCreationCommandUseCaseTest {
             checkOutDate = LocalDate.parse("2027-01-03"),
             guests = HotelSearchCriteria.Guests(
                 adults = 3,
-                children = 0,
+                childrenAges = emptyList(),
             ),
             rooms = 2,
         )
@@ -139,7 +139,7 @@ class BuildConfirmedSearchCreationCommandUseCaseTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: HotelSearchCriteria.Guests = HotelSearchCriteria.Guests(
             adults = 2,
-            children = 1,
+            childrenAges = listOf(7),
         ),
         rooms: Int = 1,
     ): HotelSearchCriteria =

@@ -450,6 +450,7 @@
 147. `docs/reviews/stage-9-11b-provider-target-and-mapping-policy-readiness-gate.md`
 148. `docs/reviews/stage-9-11b1-public-base-url-configuration-reconciliation.md`
 149. `docs/reviews/stage-9-11c-search-domain-mapping-readiness-reconciliation.md`
+150. `docs/reviews/stage-9-11b2-guest-occupancy-contract.md`
 
 ## Historical / superseded документы
 

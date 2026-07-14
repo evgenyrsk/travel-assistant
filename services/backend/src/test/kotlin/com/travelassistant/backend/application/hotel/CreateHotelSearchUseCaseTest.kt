@@ -36,7 +36,7 @@ class CreateHotelSearchUseCaseTest {
                     checkOutDate = LocalDate.parse("2026-07-04"),
                     guests = HotelSearchCriteria.Guests(
                         adults = 2,
-                        children = 0,
+                        childrenAges = emptyList(),
                     ),
                     rooms = 1,
                 ),

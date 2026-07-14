@@ -231,7 +231,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
                     checkOutDate = criteria.checkOutDate,
                     guests = HotelSearchCriteria.Guests(
                         adults = criteria.guests.adults,
-                        children = criteria.guests.children,
+                        childrenAges = criteria.guests.childrenAges,
                     ),
                     rooms = criteria.rooms,
                 ),
@@ -335,7 +335,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: ProceedWithCandidateCriteria.Guests = ProceedWithCandidateCriteria.Guests(
             adults = 2,
-            children = 0,
+            childrenAges = emptyList(),
         ),
         rooms: Int = 1,
     ): ProceedWithCandidateCriteria =

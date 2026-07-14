@@ -276,7 +276,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
                 destination = "Rome",
                 checkInDate = LocalDate.parse("2026-07-01"),
                 checkOutDate = LocalDate.parse("2026-07-04"),
-                guests = HotelSearchCriteria.Guests(adults = 2, children = 0),
+                guests = HotelSearchCriteria.Guests(adults = 2),
                 rooms = 1,
             ),
             status = HotelSearch.Status.COMPLETED_WITH_OFFERS,
@@ -391,7 +391,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: ProceedWithCandidateCriteria.Guests = ProceedWithCandidateCriteria.Guests(
             adults = 2,
-            children = 0,
+            childrenAges = emptyList(),
         ),
         rooms: Int = 1,
     ): ProceedWithCandidateCriteria =
@@ -409,7 +409,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: HotelSearchCriteria.Guests = HotelSearchCriteria.Guests(
             adults = 2,
-            children = 0,
+            childrenAges = emptyList(),
         ),
         rooms: Int = 1,
     ): HotelSearchCriteria =
