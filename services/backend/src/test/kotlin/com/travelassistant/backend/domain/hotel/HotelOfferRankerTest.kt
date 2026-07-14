@@ -62,10 +62,39 @@ class HotelOfferRankerTest {
         )
     }
 
+    @Test
+    fun ranksKnownRatingBeforeUnknownRatingWithinSameAvailability() {
+        val ranked = HotelOfferRanker().rank(
+            listOf(
+                offer(
+                    id = "unknown-cheaper",
+                    availability = HotelOffer.Availability.AVAILABLE,
+                    rating = null,
+                    totalPrice = 100.0,
+                ),
+                offer(
+                    id = "known-expensive",
+                    availability = HotelOffer.Availability.AVAILABLE,
+                    rating = 7.5,
+                    totalPrice = 200.0,
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf("known-expensive", "unknown-cheaper"),
+            ranked.map { it.offer.id },
+        )
+        assertEquals(
+            "Available; rating unavailable, ranked by total stay price, then offer ID.",
+            ranked.last().matchSummary,
+        )
+    }
+
     private fun offer(
         id: String,
         availability: HotelOffer.Availability,
-        rating: Double,
+        rating: Double?,
         totalPrice: Double,
     ): HotelOffer =
         HotelOffer(

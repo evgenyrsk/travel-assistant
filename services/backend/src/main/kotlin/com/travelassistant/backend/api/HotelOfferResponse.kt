@@ -1,8 +1,11 @@
 package com.travelassistant.backend.api
 
 import com.travelassistant.backend.domain.hotel.RankedHotelOffer
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class HotelOfferResponse(
     val offerId: String,
@@ -10,8 +13,10 @@ data class HotelOfferResponse(
     val hotelName: String,
     val location: Location,
     val price: Price,
-    val rating: Rating,
-    val amenities: List<Amenity>,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val rating: Rating? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val amenities: List<Amenity>? = null,
     val availability: String,
     val source: String,
     val freshness: String,
@@ -74,13 +79,17 @@ data class HotelOfferResponse(
                     includesTaxesAndFees = "unknown",
                     providerFreshness = offer.freshness.apiValue,
                 ),
-                rating = Rating(
-                    value = offer.rating,
-                    scale = 10.0,
-                    reviewCount = offer.reviewCount,
-                    source = offer.source,
-                ),
-                amenities = offer.amenities.map {
+                rating = offer.rating?.let { rating ->
+                    offer.reviewCount?.let { reviewCount ->
+                        Rating(
+                            value = rating,
+                            scale = 10.0,
+                            reviewCount = reviewCount,
+                            source = offer.source,
+                        )
+                    }
+                },
+                amenities = offer.amenities?.map {
                     Amenity(
                         name = it,
                         source = "provider_fact",

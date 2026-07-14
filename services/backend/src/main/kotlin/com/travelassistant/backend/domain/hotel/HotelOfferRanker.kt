@@ -6,14 +6,15 @@ class HotelOfferRanker {
         offers
             .sortedWith(
                 compareBy<HotelOffer> { availabilityPriority(it.availability) }
-                    .thenByDescending { it.rating }
+                    .thenBy { if (it.rating == null) 1 else 0 }
+                    .thenByDescending { it.rating ?: Double.NEGATIVE_INFINITY }
                     .thenBy { it.totalPrice }
                     .thenBy { it.id },
             )
             .map { offer ->
                 RankedHotelOffer(
                     offer = offer,
-                    matchSummary = rankingReason(offer.availability),
+                    matchSummary = rankingReason(offer),
                 )
             }
 
@@ -24,15 +25,27 @@ class HotelOfferRanker {
             HotelOffer.Availability.UNKNOWN -> 2
         }
 
-    private fun rankingReason(availability: HotelOffer.Availability): String =
-        when (availability) {
+    private fun rankingReason(offer: HotelOffer): String =
+        when (offer.availability) {
             HotelOffer.Availability.AVAILABLE ->
-                "Available; ranked by rating, total stay price, then offer ID."
+                if (offer.rating == null) {
+                    "Available; rating unavailable, ranked by total stay price, then offer ID."
+                } else {
+                    "Available; ranked by rating, total stay price, then offer ID."
+                }
 
             HotelOffer.Availability.LIMITED ->
-                "Limited availability; ranked after available offers, then by rating and total stay price."
+                if (offer.rating == null) {
+                    "Limited availability; rating unavailable, ranked after available offers, then by total stay price."
+                } else {
+                    "Limited availability; ranked after available offers, then by rating and total stay price."
+                }
 
             HotelOffer.Availability.UNKNOWN ->
-                "Availability unknown; ranked after confirmed offers, then by rating and total stay price."
+                if (offer.rating == null) {
+                    "Availability unknown; rating unavailable, ranked after confirmed offers, then by total stay price."
+                } else {
+                    "Availability unknown; ranked after confirmed offers, then by rating and total stay price."
+                }
         }
 }
