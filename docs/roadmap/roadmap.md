@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Default public base URL Hotels API приведен к подтвержденному `https://hotels.tbank.ru/` без runtime integration |
-| Последний завершенный этап | Stage 9.11b1 — public base URL configuration reconciliation |
-| Следующий планируемый шаг | Данные по guests/rooms, dates, review/rating и price перед Stage 9.11c mapping implementation |
+| Текущий этап | Readiness reconciliation Stage 9.11c завершена; принятые contract policies требуют отдельных Stage 9.11b2–9.11b4 |
+| Последний завершенный этап | Stage 9.11c — search domain mapping readiness reconciliation (docs-only) |
+| Следующий планируемый шаг | Stage 9.11b2 — guest occupancy contract с каноническим `childrenAges` |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -559,7 +559,10 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.11a | DTO поиска по Swagger без преобразования доменных моделей | Завершен; использован синтетический fixture |
 | Stage 9.11b | Provider target and mapping policy readiness gate | Завершен; внутренний API и `https://hotels.tbank.ru/` подтверждены, public web orchestration не активирована |
 | Stage 9.11b1 | Configuration-only public base URL reconciliation | Завершен; default URL изменен на `https://hotels.tbank.ru/` без transport/runtime wiring |
-| Stage 9.11c | Преобразование search DTO выбранного API в доменные модели | Заблокирован до данных владельца по guests/rooms, dates, review/rating и price |
+| Stage 9.11b2 | Guest occupancy contract | Запланирован: канонический `childrenAges`, совместимость с `children`, clarification и idempotency rules |
+| Stage 9.11b3 | Partial `HotelOffer` facts contract | Запланирован: nullable rating/review/amenities и ranking без выдуманных provider facts |
+| Stage 9.11b4 | Public contract alignment | Запланирован: OpenAPI `childrenAges`, optional facts и frontend regression test |
+| Stage 9.11c | Преобразование search DTO выбранного API в доменные модели | Заблокирован до завершения Stage 9.11b2–9.11b4; затем mapper-only без transport/runtime wiring |
 | Stage 9.12 | Real adapter orchestration без runtime wiring | Запланирован |
 | Stage 9.13 | Bounded pagination | Запланирован |
 | Stage 9.14 | Sanitized fixture contract verification | Запланирован |
@@ -568,9 +571,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.17 | Opt-in REAL runtime wiring с FAKE default | Запланирован |
 | Stage 9.18 | Integration closure | Запланирован |
 
-**Границы:** selected search contract — внутренний HotelsApi OpenAPI 1.0/2.0/3.0 на `https://hotels.tbank.ru/`. Для MVP выбран `POST /api/v1/hotels/search`; его anonymous вызов подтвержден. Autocomplete технически проверен через отдельный `/search-api/search/autocomplete`, но не объединяется с внутренними DTO и не подключен к transport/runtime. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
+**Границы:** выбранный контракт поиска — внутренний HotelsApi OpenAPI 1.0/2.0/3.0 на `https://hotels.tbank.ru/`. Для MVP выбран `POST /api/v1/hotels/search`; его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. Autocomplete технически проверен через отдельный `/search-api/search/autocomplete`, но не объединяется с внутренними DTO и не подключен к transport/runtime. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.11c остается заблокирован до решений по размещению гостей, возрасту детей, timezone, nullable review/rating и составу `shownPrice`. Дополнительные реальные вызовы и подключение к runtime не активированы.
+**Следующий шаг:** Stage 9.11b2 добавляет канонический `childrenAges` и правила уточнения без provider call. Затем отдельные Stage 9.11b3 и Stage 9.11b4 должны выразить unknown offer facts и выровнять публичный контракт. Stage 9.11c остается mapper-only и не начинается до завершения этих этапов. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками. Дополнительные реальные вызовы и подключение к runtime не активированы.
 
 ### Stage 10 — Cross-platform Expansion
 
