@@ -453,6 +453,7 @@
 150. `docs/reviews/stage-9-11b2-guest-occupancy-contract.md`
 151. `docs/reviews/stage-9-11b3-partial-hotel-offer-facts-contract.md`
 152. `docs/reviews/stage-9-11b4-public-contract-alignment.md`
+153. `docs/reviews/stage-9-11c-hotels-api-search-domain-mapping.md`
 
 ## Historical / superseded документы
 
