@@ -286,10 +286,19 @@
 | `stage-9-6-real-provider-selection-and-configuration-design.md` | Завершенный provider selection / configuration design report | Background comparison 7 provider candidates; configuration/secrets/sandbox design; verdict: shortlist selected — owner input required; next stage: 9.7 contract intake. |
 | `stage-9-7-selected-hotels-api-contract-reconciliation-and-implementation-plan.md` | Завершенный selected Hotels API contract reconciliation / implementation plan | Анализирует OpenAPI 1.0/2.0/3.0 внутреннего HotelsApi, выбирает v1 search для MVP, фиксирует autocomplete/occupancy/auth gaps и разрешает только Stage 9.8 configuration skeleton. |
 | `stage-9-8-hotels-api-configuration-skeleton.md` | Завершенный Hotels API configuration skeleton report | Добавляет typed REAL config, fail-closed validation и secret redaction при сохранении FAKE default; HTTP/client/network/runtime adapter wiring отсутствуют. |
+| `stage-9-8a-hotels-api-authentication-configuration-reconciliation.md` | Завершенный configuration reconciliation report | Заменяет неподтвержденную OAuth-модель на public/private targets и private JWT config без signing, transport или network calls. |
+| `stage-9-9-public-anonymous-hotels-api-http-transport.md` | Завершенный internal transport report | Добавляет public JSON transport, проверенный через `MockEngine`, без default network engine, auth и runtime wiring. |
+| `stage-9-10-autocomplete-location-resolution-contract-boundary.md` | Завершенный location contract implementation report | Добавляет internal autocomplete DTO, resolver boundary и location-only mapper без transport/runtime wiring и автоматического выбора candidate. |
+| `stage-9-11a-hotels-api-search-dto-without-domain-mapping.md` | Завершенный provider DTO implementation report | Добавляет DTO v1 search и tolerant internal JSON codec без domain mapping, transport call или runtime wiring. |
 | `stage-9-tbank-web-hotel-search-contract-observation.md` | Contract observation / audit artifact | Фиксирует методы, endpoint-ы и request shapes публичной web-формы Т-Банка на 13 июля 2026 года; не заменяет выбранный внутренний HotelsApi contract и не активирует runtime integration. |
 | `stage-9-11b-provider-target-and-mapping-policy-readiness-gate.md` | Завершенный review/design-only readiness gate | Подтверждает внутренний Hotels API на `hotels.tbank.ru`, изолирует публичный web-сценарий и разрешает отдельный configuration-only Stage 9.11b1 перед заблокированным mapper Stage 9.11c. |
 | `stage-9-11b1-public-base-url-configuration-reconciliation.md` | Завершенный configuration-only implementation report | Меняет default `HOTELS_API_PUBLIC_BASE_URL` на подтвержденный `https://hotels.tbank.ru/` без transport/runtime wiring и сохраняет `FAKE` по умолчанию. |
 | `stage-9-11c-search-domain-mapping-readiness-reconciliation.md` | Завершенный review/readiness artifact | Фиксирует подтвержденные provider facts, принятые nullable/occupancy policies и последовательность Stage 9.11b2–9.11b4 перед mapper-only Stage 9.11c. |
+| `stage-9-11b2-guest-occupancy-contract.md` | Завершенный backend contract report | Фиксирует канонический `childrenAges`, переходный `children`, clarification и idempotency rules без provider/runtime wiring. |
+| `stage-9-11b3-partial-hotel-offer-facts-contract.md` | Завершенный backend contract report | Делает rating/review count/amenities nullable, исключает фиктивные provider facts и уточняет ranking. |
+| `stage-9-11b4-public-contract-alignment.md` | Завершенный public contract report | Синхронизирует OpenAPI с `childrenAges`/optional facts и добавляет frontend regression для отсутствующего rating. |
+| `stage-9-11c-hotels-api-search-domain-mapping.md` | Завершенный mapper implementation report | Добавляет request/response mapper-ы Hotels API и typed errors без transport, pagination или runtime wiring. |
+| `stage-9-12-hotels-api-search-orchestration-without-runtime-wiring.md` | Завершенный internal orchestration report | Композирует resolver, один search call с проверкой через `MockEngine` и mapper-ы без REAL adapter/runtime wiring. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -454,6 +463,7 @@
 151. `docs/reviews/stage-9-11b3-partial-hotel-offer-facts-contract.md`
 152. `docs/reviews/stage-9-11b4-public-contract-alignment.md`
 153. `docs/reviews/stage-9-11c-hotels-api-search-domain-mapping.md`
+154. `docs/reviews/stage-9-12-hotels-api-search-orchestration-without-runtime-wiring.md`
 
 ## Historical / superseded документы
 

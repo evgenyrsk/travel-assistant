@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.11c завершен как mapper-only implementation без transport/runtime wiring |
-| Последний завершенный этап | Stage 9.11c — Hotels API search domain mapping |
-| Следующий планируемый шаг | Stage 9.12 — real adapter orchestration без runtime wiring, только по отдельной задаче |
+| Текущий этап | Stage 9.12 завершен как internal orchestration одного Hotels API search call без runtime wiring |
+| Последний завершенный этап | Stage 9.12 — resolver → один search call → mapper orchestration |
+| Следующий планируемый шаг | Stage 9.13 — bounded pagination без runtime wiring, только по отдельной задаче |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.11c добавил изолированные request/response mapper-ы Hotels API с typed errors, date-only форматом, explicit location candidate и unknown partial facts. Transport/runtime wiring не изменены, `FAKE` остается provider по умолчанию.
+**Статус:** Stage 9.12 добавил internal orchestration resolver → один public search call → mapper, проверенную только через `MockEngine`. `RealHotelOfferProviderAdapter` и runtime wiring не изменены, `FAKE` остается provider по умолчанию.
 
 **Planning:**
 
@@ -563,7 +563,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.11b3 | Partial `HotelOffer` facts contract | Завершен: nullable rating/review/amenities и ranking без выдуманных provider facts |
 | Stage 9.11b4 | Public contract alignment | Завершен: OpenAPI `childrenAges`, optional facts и frontend regression test |
 | Stage 9.11c | Преобразование search DTO выбранного API в доменные модели | Завершен как mapper-only implementation без transport/runtime wiring |
-| Stage 9.12 | Real adapter orchestration без runtime wiring | Запланирован |
+| Stage 9.12 | Internal orchestration resolver → один search call → mapper без runtime wiring | Завершен; только `MockEngine`, REAL adapter не подключен |
 | Stage 9.13 | Bounded pagination | Запланирован |
 | Stage 9.14 | Sanitized fixture contract verification | Запланирован |
 | Stage 9.15 | Sandbox readiness gate | Запланирован |
@@ -573,7 +573,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 **Границы:** выбранный контракт поиска — внутренний HotelsApi OpenAPI 1.0/2.0/3.0 на `https://hotels.tbank.ru/`. Для MVP выбран `POST /api/v1/hotels/search`; его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. Autocomplete технически проверен через отдельный `/search-api/search/autocomplete`, но не объединяется с внутренними DTO и не подключен к transport/runtime. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.12 может добавить orchestration location resolver → search transport → mapper без runtime wiring, но только по отдельной явной задаче. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками. Pagination, дополнительные реальные вызовы и подключение к runtime не активированы.
+**Следующий шаг:** Stage 9.13 может добавить bounded pagination поверх internal orchestration без runtime wiring, но только по отдельной явной задаче. Sync/suspend seam для `RealHotelOfferProviderAdapter` остается открытым до runtime stage. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками. Дополнительные реальные вызовы и подключение к runtime не активированы.
 
 ### Stage 10 — Cross-platform Expansion
 
