@@ -299,6 +299,7 @@
 | `stage-9-11b4-public-contract-alignment.md` | Завершенный public contract report | Синхронизирует OpenAPI с `childrenAges`/optional facts и добавляет frontend regression для отсутствующего rating. |
 | `stage-9-11c-hotels-api-search-domain-mapping.md` | Завершенный mapper implementation report | Добавляет request/response mapper-ы Hotels API и typed errors без transport, pagination или runtime wiring. |
 | `stage-9-12-hotels-api-search-orchestration-without-runtime-wiring.md` | Завершенный internal orchestration report | Композирует resolver, один search call с проверкой через `MockEngine` и mapper-ы без REAL adapter/runtime wiring. |
+| `stage-9-13-single-page-hotel-candidate-window.md` | Завершенный provider orchestration policy report | Фиксирует один search call, `offset=0`, `limit=20`, максимум 20 уникальных кандидатов и перенос pagination за границы текущего MVP flow. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -464,6 +465,7 @@
 152. `docs/reviews/stage-9-11b4-public-contract-alignment.md`
 153. `docs/reviews/stage-9-11c-hotels-api-search-domain-mapping.md`
 154. `docs/reviews/stage-9-12-hotels-api-search-orchestration-without-runtime-wiring.md`
+155. `docs/reviews/stage-9-13-single-page-hotel-candidate-window.md`
 
 ## Historical / superseded документы
 

@@ -36,7 +36,10 @@ internal class HotelsApiSearchOrchestrator(
                 criteria = request.criteria,
             )
         ) {
-            is HotelsApiSearchRequestMapper.Result.Mapped -> mapping.request
+            is HotelsApiSearchRequestMapper.Result.Mapped -> mapping.request.copy(
+                offset = FIRST_PAGE_OFFSET,
+                limit = MAX_CANDIDATES,
+            )
             is HotelsApiSearchRequestMapper.Result.Rejected ->
                 return Result.RequestRejected(error = mapping.error)
         }
@@ -52,7 +55,7 @@ internal class HotelsApiSearchOrchestrator(
             is HotelsApiSearchResponseMapper.Result.Mapped ->
                 Result.Success(
                     location = location,
-                    offers = mapping.offers,
+                    offers = mapping.offers.take(MAX_CANDIDATES),
                 )
 
             is HotelsApiSearchResponseMapper.Result.Rejected ->
@@ -98,5 +101,7 @@ internal class HotelsApiSearchOrchestrator(
 
     private companion object {
         const val SEARCH_PATH = "/api/v1/hotels/search"
+        const val FIRST_PAGE_OFFSET = 0
+        const val MAX_CANDIDATES = 20
     }
 }
