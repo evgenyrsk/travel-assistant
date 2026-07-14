@@ -452,6 +452,7 @@
 149. `docs/reviews/stage-9-11c-search-domain-mapping-readiness-reconciliation.md`
 150. `docs/reviews/stage-9-11b2-guest-occupancy-contract.md`
 151. `docs/reviews/stage-9-11b3-partial-hotel-offer-facts-contract.md`
+152. `docs/reviews/stage-9-11b4-public-contract-alignment.md`
 
 ## Historical / superseded документы
 

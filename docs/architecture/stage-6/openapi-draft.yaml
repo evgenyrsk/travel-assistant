@@ -632,6 +632,18 @@ components:
               type: integer
               minimum: 0
               default: 0
+              description: >
+                Transitional child count. When positive, childrenAges must
+                contain one age for every child.
+            childrenAges:
+              type: array
+              description: >
+                Ages of all children. Every explicitly declared child requires
+                an age; order is preserved.
+              items:
+                type: integer
+                minimum: 0
+                maximum: 17
           additionalProperties: false
         rooms:
           type: integer
@@ -774,8 +786,10 @@ components:
           $ref: "#/components/schemas/HotelPrice"
         rating:
           $ref: "#/components/schemas/HotelRating"
+          description: Omitted when guest review data is unknown.
         amenities:
           type: array
+          description: Omitted when the list response does not provide amenity facts.
           items:
             $ref: "#/components/schemas/HotelAmenity"
         cancellationPolicy:

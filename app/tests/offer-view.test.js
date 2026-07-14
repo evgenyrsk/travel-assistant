@@ -58,6 +58,30 @@ test("renders a hotel offer with its matchSummary", () => {
   assert.match(markup, /Available; ranked by rating, total stay price, then offer ID\./);
 });
 
+test("renders an offer without rating as an unknown rating", () => {
+  const offer = {
+    offerId: "provider-offer-without-review",
+    hotelName: "Hotel Without Review",
+    location: {
+      city: "Kazan",
+      country: "Russia",
+    },
+    price: {
+      amount: 12000,
+      currency: "RUB",
+    },
+    availability: "available",
+    matchSummary: "Available; rating unavailable, ranked by total stay price, then offer ID.",
+  };
+
+  const view = toOfferViewModel(offer);
+  const markup = renderOfferCardMarkup(offer);
+
+  assert.equal(view.rating, "Нет рейтинга");
+  assert.match(markup, /Нет рейтинга/);
+  assert.doesNotMatch(markup, /0\.0 \/ 10/);
+});
+
 test("provides a visible error-state message", () => {
   assert.equal(
     toErrorMessage(new Error("Assistant session was not found.")),
