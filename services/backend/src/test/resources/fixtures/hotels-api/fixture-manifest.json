@@ -1,0 +1,48 @@
+{
+  "observedAt": "2026-07-14",
+  "sanitized": true,
+  "fixtures": [
+    {
+      "file": "autocomplete-success.json",
+      "method": "POST",
+      "path": "/search-api/search/autocomplete",
+      "status": 200,
+      "contentType": "application/json",
+      "payloadType": "object",
+      "replacedCategories": [
+        "location identifiers",
+        "hotel identifiers",
+        "location names",
+        "hotel names",
+        "signatures"
+      ]
+    },
+    {
+      "file": "search-success.json",
+      "method": "POST",
+      "path": "/api/v1/hotels/search",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "payloadType": "object",
+      "replacedCategories": [
+        "destination identifiers",
+        "hotel identifiers",
+        "hotel names",
+        "hotel chains",
+        "location names",
+        "addresses",
+        "coordinates",
+        "image URLs"
+      ]
+    },
+    {
+      "file": "search-invalid-rooms.json",
+      "method": "POST",
+      "path": "/api/v1/hotels/search",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8",
+      "payloadType": "error object",
+      "replacedCategories": []
+    }
+  ]
+}

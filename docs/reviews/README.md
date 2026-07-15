@@ -466,6 +466,7 @@
 153. `docs/reviews/stage-9-11c-hotels-api-search-domain-mapping.md`
 154. `docs/reviews/stage-9-12-hotels-api-search-orchestration-without-runtime-wiring.md`
 155. `docs/reviews/stage-9-13-single-page-hotel-candidate-window.md`
+156. `docs/reviews/stage-9-14-sanitized-provider-fixture-contract-verification.md`
 
 ## Historical / superseded документы
 

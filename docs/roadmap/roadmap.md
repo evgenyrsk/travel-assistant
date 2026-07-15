@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.13 завершен как single-page candidate window без pagination и runtime wiring |
-| Последний завершенный этап | Stage 9.13 — один Hotels API search call, до 20 уникальных кандидатов |
-| Следующий планируемый шаг | Stage 9.14 — sanitized fixture contract verification, только по отдельной задаче |
+| Текущий этап | Stage 9.14 завершен как sanitized provider fixture contract verification |
+| Последний завершенный этап | Stage 9.14 — autocomplete/search DTO и mapper policy проверены на обезличенных provider-derived fixtures |
+| Следующий планируемый шаг | Stage 9.15 — sandbox readiness gate, только по отдельной задаче |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.13 ограничил internal Hotels API search одним запросом с `offset=0`, `limit=20` и максимум 20 уникальными кандидатами. Автоматическая pagination отложена до появления подтвержденного сценария «показать еще» или каталожного просмотра. `RealHotelOfferProviderAdapter` и runtime wiring не изменены, `FAKE` остается provider по умолчанию.
+**Статус:** Stage 9.14 подтвердил совместимость autocomplete/search response DTO и search mapper policy с обезличенными provider-derived fixtures. `RealHotelOfferProviderAdapter` и runtime wiring не изменены, `FAKE` остается provider по умолчанию.
 
 **Planning:**
 
@@ -555,7 +555,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.8 | Hotels API configuration skeleton без HTTP | Завершен |
 | Stage 9.8a | Hotels API authentication configuration reconciliation без HTTP/JWT signing | Завершен |
 | Stage 9.9 | HTTP-транспорт публичного Hotels API без авторизации, проверяемый через `MockEngine` | Завершен; расхождение с auth в Swagger остается риском sandbox |
-| Stage 9.10 | Autocomplete/location contract boundary, provider DTO и location mapper | Завершен без transport/runtime wiring; требуется fixture verification |
+| Stage 9.10 | Autocomplete/location contract boundary, provider DTO и location mapper | Завершен без transport/runtime wiring; response fixture проверен в Stage 9.14 |
 | Stage 9.11a | DTO поиска по Swagger без преобразования доменных моделей | Завершен; использован синтетический fixture |
 | Stage 9.11b | Provider target and mapping policy readiness gate | Завершен; внутренний API и `https://hotels.tbank.ru/` подтверждены, public web orchestration не активирована |
 | Stage 9.11b1 | Configuration-only public base URL reconciliation | Завершен; default URL изменен на `https://hotels.tbank.ru/` без transport/runtime wiring |
@@ -565,15 +565,15 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.11c | Преобразование search DTO выбранного API в доменные модели | Завершен как mapper-only implementation без transport/runtime wiring |
 | Stage 9.12 | Internal orchestration resolver → один search call → mapper без runtime wiring | Завершен; только `MockEngine`, REAL adapter не подключен |
 | Stage 9.13 | Single-page candidate window без pagination | Завершен; один запрос, до 20 уникальных кандидатов, только `MockEngine` |
-| Stage 9.14 | Sanitized fixture contract verification | Запланирован |
+| Stage 9.14 | Sanitized fixture contract verification | Завершен; provider-derived responses совместимы с текущими response DTO и mapper policy |
 | Stage 9.15 | Sandbox readiness gate | Запланирован |
-| Stage 9.16 | First controlled QA call | Запланирован; только по отдельному разрешению |
+| Stage 9.16 | Первый контролируемый QA call через проектный transport | Запланирован; только по отдельному разрешению |
 | Stage 9.17 | Opt-in REAL runtime wiring с FAKE default | Запланирован |
 | Stage 9.18 | Integration closure | Запланирован |
 
 **Границы:** выбранный контракт поиска — внутренний HotelsApi OpenAPI 1.0/2.0/3.0 на `https://hotels.tbank.ru/`. Для MVP выбран `POST /api/v1/hotels/search`; его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. Autocomplete технически проверен через отдельный `/search-api/search/autocomplete`, но не объединяется с внутренними DTO и не подключен к transport/runtime. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.14 может проверить DTO и mapper-ы на обезличенных provider fixtures, но только по отдельной явной задаче и без runtime wiring. Pagination возвращается в roadmap только после отдельного продуктового решения. Sync/suspend seam для `RealHotelOfferProviderAdapter` остается открытым до runtime stage. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками. Дополнительные реальные вызовы и подключение к runtime не активированы.
+**Следующий шаг:** Stage 9.15 может выполнить sandbox readiness gate для проектного transport/adapter flow, но только по отдельной явной задаче и без автоматического `REAL` runtime wiring. Pagination возвращается в roadmap только после отдельного продуктового решения. Sync/suspend seam для `RealHotelOfferProviderAdapter` остается открытым до runtime stage. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками. Дополнительные реальные вызовы и подключение к runtime не активированы.
 
 ### Stage 10 — Cross-platform Expansion
 
