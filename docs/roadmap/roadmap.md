@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.14 завершен как sanitized provider fixture contract verification |
-| Последний завершенный этап | Stage 9.14 — autocomplete/search DTO и mapper policy проверены на обезличенных provider-derived fixtures |
-| Следующий планируемый шаг | Stage 9.15 — sandbox readiness gate, только по отдельной задаче |
+| Текущий этап | Stage 9.15 завершен как sandbox readiness gate с verdict `READY_AFTER_STAGE_9_15A` |
+| Последний завершенный этап | Stage 9.15 — выбран direct search QA call, выявлены обязательные transport/harness preflight gaps |
+| Следующий планируемый шаг | Stage 9.15a — mock-only QA transport preflight, только по отдельной задаче |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.14 подтвердил совместимость autocomplete/search response DTO и search mapper policy с обезличенными provider-derived fixtures. `RealHotelOfferProviderAdapter` и runtime wiring не изменены, `FAKE` остается provider по умолчанию.
+**Статус:** Stage 9.15 завершил sandbox readiness gate с verdict `READY_AFTER_STAGE_9_15A`. Для одного direct search QA call сначала нужны test-scoped network engine, explicit no-redirect policy, safe response media-type metadata и opt-in harness. Live call, `RealHotelOfferProviderAdapter` и runtime wiring не добавлены, `FAKE` остается provider по умолчанию.
 
 **Planning:**
 
@@ -566,14 +566,15 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.12 | Internal orchestration resolver → один search call → mapper без runtime wiring | Завершен; только `MockEngine`, REAL adapter не подключен |
 | Stage 9.13 | Single-page candidate window без pagination | Завершен; один запрос, до 20 уникальных кандидатов, только `MockEngine` |
 | Stage 9.14 | Sanitized fixture contract verification | Завершен; provider-derived responses совместимы с текущими response DTO и mapper policy |
-| Stage 9.15 | Sandbox readiness gate | Запланирован |
+| Stage 9.15 | Sandbox readiness gate | Завершен; выбран direct search call, обязательный preflight вынесен в Stage 9.15a |
+| Stage 9.15a | Mock-only QA transport preflight | Запланирован; network engine/harness без live call и runtime wiring |
 | Stage 9.16 | Первый контролируемый QA call через проектный transport | Запланирован; только по отдельному разрешению |
 | Stage 9.17 | Opt-in REAL runtime wiring с FAKE default | Запланирован |
 | Stage 9.18 | Integration closure | Запланирован |
 
 **Границы:** выбранный контракт поиска — внутренний HotelsApi OpenAPI 1.0/2.0/3.0 на `https://hotels.tbank.ru/`. Для MVP выбран `POST /api/v1/hotels/search`; его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. Autocomplete технически проверен через отдельный `/search-api/search/autocomplete`, но не объединяется с внутренними DTO и не подключен к transport/runtime. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.15 может выполнить sandbox readiness gate для проектного transport/adapter flow, но только по отдельной явной задаче и без автоматического `REAL` runtime wiring. Pagination возвращается в roadmap только после отдельного продуктового решения. Sync/suspend seam для `RealHotelOfferProviderAdapter` остается открытым до runtime stage. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками. Дополнительные реальные вызовы и подключение к runtime не активированы.
+**Следующий шаг:** Stage 9.15a может подготовить mock-only QA transport preflight: test-scoped network engine, explicit no-redirect policy, safe media-type metadata и opt-in harness без live call, adapter или runtime wiring. Только после успешного Stage 9.15a и отдельного разрешения может начаться Stage 9.16 с одним direct search request. Pagination возвращается в roadmap только после отдельного продуктового решения. Sync/suspend seam для `RealHotelOfferProviderAdapter` остается открытым до runtime stage. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками.
 
 ### Stage 10 — Cross-platform Expansion
 
