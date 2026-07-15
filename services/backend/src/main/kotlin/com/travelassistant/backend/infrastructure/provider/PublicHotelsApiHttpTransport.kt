@@ -11,6 +11,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import java.io.IOException
 import java.net.URI
@@ -63,6 +64,7 @@ internal class PublicHotelsApiHttpTransport(
 
         return HotelsApiHttpResponse(
             statusCode = response.status.value,
+            contentType = response.contentType()?.toString(),
             body = response.body(),
         )
     }

@@ -468,6 +468,7 @@
 155. `docs/reviews/stage-9-13-single-page-hotel-candidate-window.md`
 156. `docs/reviews/stage-9-14-sanitized-provider-fixture-contract-verification.md`
 157. `docs/reviews/stage-9-15-sandbox-readiness-gate.md`
+158. `docs/reviews/stage-9-15a-mock-only-qa-transport-preflight.md`
 
 ## Historical / superseded документы
 

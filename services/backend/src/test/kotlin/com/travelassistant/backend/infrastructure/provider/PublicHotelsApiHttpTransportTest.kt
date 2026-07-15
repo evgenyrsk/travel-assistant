@@ -48,6 +48,7 @@ class PublicHotelsApiHttpTransportTest {
         )
 
         assertEquals(200, response.statusCode)
+        assertEquals(ContentType.Application.Json.toString(), response.contentType)
         assertEquals("""{"status":"ok"}""", response.body)
         assertEquals("https://public-hotels.test/api/v1/hotels/search", capturedRequest?.url.toString())
         assertEquals(ContentType.Application.Json.toString(), capturedRequest?.headers?.get(HttpHeaders.Accept))
@@ -57,6 +58,18 @@ class PublicHotelsApiHttpTransportTest {
         assertEquals(ContentType.Application.Json, content.contentType)
         assertEquals(requestBody, content.text)
 
+        client.close()
+    }
+
+    @Test
+    fun `keeps absent response content type as null`() = runBlocking {
+        val client = HttpClient(MockEngine { respondOk() }) {
+            install(HttpTimeout)
+        }
+
+        val response = transport(client).postJson("/api/v1/hotels/search", "{}")
+
+        assertNull(response.contentType)
         client.close()
     }
 
