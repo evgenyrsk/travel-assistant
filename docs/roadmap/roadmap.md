@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.17a1 завершен как backend-only async/result contract migration |
-| Последний завершенный этап | Stage 9.17a1 — provider/search/assistant цепочка переведена на `suspend` и typed results без REAL runtime wiring |
-| Следующий планируемый шаг | Stage 9.17b — autocomplete resolver transport adapter через `MockEngine` без runtime wiring |
+| Текущий этап | Stage 9.17b завершен как autocomplete resolver transport adapter через `MockEngine` |
+| Последний завершенный этап | Stage 9.17b — public autocomplete подключен к application resolver boundary без runtime wiring |
+| Следующий планируемый шаг | Stage 9.17c — public-only configuration, production `HttpClient` lifecycle и opt-in `REAL` runtime wiring |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.17a1 завершил backend-only миграцию существующей provider/search/assistant I/O-цепочки на `suspend` и application-owned typed results с verdict `READY_FOR_STAGE_9_17B_NOT_READY_FOR_REAL_RUNTIME_WIRING`. Search state создается только для фактически выполненного поиска. Runtime wiring не добавлено, `FAKE` остается provider по умолчанию.
+**Статус:** Stage 9.17b завершил transport-backed autocomplete resolver с отдельным public request DTO `input` и проверками через `MockEngine`. Все location candidates сохраняются без автоматического выбора, hotel identifiers не становятся `destinationId`. Runtime wiring не добавлено, `FAKE` остается provider по умолчанию.
 
 **Planning:**
 
@@ -572,13 +572,13 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.17 | REAL runtime wiring readiness gate | Завершен; фактическое подключение заблокировано границами async/result/resolver/configuration |
 | Stage 9.17a | Async provider/result contract reconciliation | Завершен как review/design-only этап; согласованы `suspend`, typed outcomes и state creation policy |
 | Stage 9.17a1 | Backend-only async/result contract migration | Завершен; `suspend`, typed outcomes и state creation policy реализованы без REAL runtime wiring |
-| Stage 9.17b | Autocomplete resolver transport adapter | Следующий этап; `MockEngine`, без runtime wiring |
-| Stage 9.17c | Opt-in REAL runtime wiring с FAKE default | Заблокирован до завершения Stage 9.17b |
+| Stage 9.17b | Autocomplete resolver transport adapter | Завершен; отдельный `input` DTO, `MockEngine`, без runtime wiring |
+| Stage 9.17c | Opt-in REAL runtime wiring с FAKE default | Следующий этап; public-only configuration и production `HttpClient` lifecycle |
 | Stage 9.18 | Integration closure | Запланирован |
 
-**Границы:** выбранный контракт поиска — внутренний HotelsApi OpenAPI 1.0/2.0/3.0 на `https://hotels.tbank.ru/`. Для MVP выбран `POST /api/v1/hotels/search`; его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. Autocomplete технически проверен через отдельный `/search-api/search/autocomplete`, но не объединяется с внутренними DTO и не подключен к transport/runtime. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
+**Границы:** выбранный контракт поиска — внутренний HotelsApi OpenAPI 1.0/2.0/3.0 на `https://hotels.tbank.ru/`. Для MVP выбран `POST /api/v1/hotels/search`; его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. Autocomplete использует отдельный public request DTO `input` и внутренний transport adapter для `/search-api/search/autocomplete`, но не подключен к runtime composition. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.17b должен добавить transport-backed autocomplete resolver с отдельным `input` request DTO и тестами на `MockEngine`, без live calls и runtime wiring. Автоматический выбор первого location candidate запрещен; application result должен сохранять безопасное различие между ненайденным и неоднозначным направлением. Фактическое opt-in `REAL` runtime wiring остается Stage 9.17c; `FAKE` должен остаться default. Pagination возвращается в roadmap только после отдельного продуктового решения. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками.
+**Следующий шаг:** Stage 9.17c должен отдельно добавить public-only configuration для активируемого flow, production `HttpClient` lifecycle и opt-in composition resolver → search orchestrator → `RealHotelOfferProviderAdapter`. `FAKE` должен остаться default, а отсутствие полной REAL-конфигурации должно блокировать активацию fail closed. Public API, OpenAPI и frontend не расширяются без отдельного этапа. Pagination возвращается в roadmap только после отдельного продуктового решения. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками.
 
 ### Stage 10 — Cross-platform Expansion
 
