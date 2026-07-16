@@ -1,6 +1,8 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
+import com.travelassistant.backend.application.hotel.HotelLocationSuggestion
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchId
@@ -120,6 +122,49 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
     }
 
     @Test
+    fun notCreatedOutcomesMapToSafeClarificationWithoutSearchId() {
+        val cases = listOf(
+            HotelOfferProviderResult.LocationNotFound to TransitionMessageKind.LOCATION_NOT_FOUND,
+            HotelOfferProviderResult.LocationSelectionRequired(
+                suggestions = listOf(
+                    HotelLocationSuggestion(
+                        name = "Rome",
+                        signature = "City, Italy",
+                        typeCode = "city",
+                        typeName = "City",
+                    ),
+                ),
+            ) to TransitionMessageKind.LOCATION_SELECTION_REQUIRED,
+            HotelOfferProviderResult.RequestRejected(
+                HotelOfferProviderResult.RequestRejectionReason.INVALID_DESTINATION,
+            ) to TransitionMessageKind.SEARCH_REQUEST_REJECTED,
+            HotelOfferProviderResult.ResponseRejected(
+                HotelOfferProviderResult.ResponseRejectionReason.INVALID_PAYLOAD,
+            ) to TransitionMessageKind.TEMPORARY_FAILURE,
+            HotelOfferProviderResult.ProviderUnavailable(
+                HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+            ) to TransitionMessageKind.TEMPORARY_FAILURE,
+        )
+
+        cases.forEach { (outcome, expectedMessageKind) ->
+            val result = ExecuteConfirmedSearchTransitionResult.SearchNotCreated(
+                attempt = attempt(status = ConfirmedSearchExecutionAttemptStatus.FAILED),
+                outcome = outcome,
+                lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+                executionPolicy = ConfirmedSearchExecutionPolicy(),
+            )
+
+            val directive = mapper(result)
+
+            assertEquals(InternalTransitionNextAction.ASK_CLARIFICATION, directive.nextAction)
+            assertEquals(expectedMessageKind, directive.messageKind)
+            assertNull(directive.hotelSearchId)
+            assertFalse(directive.mayShowHotelResults)
+            assertFalse(directive.shouldConsumePendingConfirmation)
+        }
+    }
+
+    @Test
     fun noMapperOutputContainsRawShowHotelResults() {
         val results = listOf(
             ExecuteConfirmedSearchTransitionResult.Transitioned(
@@ -152,6 +197,14 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
             ),
             ExecuteConfirmedSearchTransitionResult.StoreRejected(
                 reason = ConfirmedSearchExecutionAttemptStoreResult.RejectionReason.ATTEMPT_NOT_FOUND,
+                lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+                executionPolicy = ConfirmedSearchExecutionPolicy(),
+            ),
+            ExecuteConfirmedSearchTransitionResult.SearchNotCreated(
+                attempt = attempt(status = ConfirmedSearchExecutionAttemptStatus.FAILED),
+                outcome = HotelOfferProviderResult.ProviderUnavailable(
+                    HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+                ),
                 lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
                 executionPolicy = ConfirmedSearchExecutionPolicy(),
             ),

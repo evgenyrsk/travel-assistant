@@ -1,15 +1,17 @@
 package com.travelassistant.backend.infrastructure.provider
 
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import java.time.LocalDate
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.assertIs
 
 class RealHotelOfferProviderAdapterTest {
 
     @Test
-    fun returnsEmptyListWithoutExternalCalls() {
+    fun returnsTypedUnavailableWithoutExternalCalls() = runBlocking {
         val adapter = RealHotelOfferProviderAdapter()
         val criteria = HotelSearchCriteria(
             destination = "Rome",
@@ -21,11 +23,15 @@ class RealHotelOfferProviderAdapterTest {
 
         val result = adapter.search(criteria)
 
-        assertTrue(result.isEmpty())
+        val unavailable = assertIs<HotelOfferProviderResult.ProviderUnavailable>(result)
+        assertEquals(
+            HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+            unavailable.reason,
+        )
     }
 
     @Test
-    fun returnsEmptyListForAnyDestination() {
+    fun returnsSameTypedUnavailableForAnyDestination() = runBlocking {
         val adapter = RealHotelOfferProviderAdapter()
         val criteria = HotelSearchCriteria(
             destination = "Paris",
@@ -35,6 +41,11 @@ class RealHotelOfferProviderAdapterTest {
             rooms = 1,
         )
 
-        assertEquals(emptyList(), adapter.search(criteria))
+        assertEquals(
+            HotelOfferProviderResult.ProviderUnavailable(
+                HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+            ),
+            adapter.search(criteria),
+        )
     }
 }

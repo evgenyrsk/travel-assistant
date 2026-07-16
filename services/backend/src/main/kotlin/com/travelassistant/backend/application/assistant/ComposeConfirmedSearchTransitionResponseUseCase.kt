@@ -6,7 +6,7 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
         MapConfirmedSearchTransitionResultToResponseDirectiveUseCase(),
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         request: ComposeConfirmedSearchTransitionResponseRequest,
     ): ComposeConfirmedSearchTransitionResponseResult {
         val transitionResult = executeTransition(
@@ -49,6 +49,15 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
             TransitionMessageKind.CONFIRMATION_REJECTED ->
                 CONFIRMATION_REJECTED_MESSAGE
 
+            TransitionMessageKind.LOCATION_NOT_FOUND ->
+                LOCATION_NOT_FOUND_MESSAGE
+
+            TransitionMessageKind.LOCATION_SELECTION_REQUIRED ->
+                LOCATION_SELECTION_REQUIRED_MESSAGE
+
+            TransitionMessageKind.SEARCH_REQUEST_REJECTED ->
+                SEARCH_REQUEST_REJECTED_MESSAGE
+
             TransitionMessageKind.TEMPORARY_FAILURE ->
                 TEMPORARY_FAILURE_MESSAGE
 
@@ -66,8 +75,17 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
         const val CONFIRMATION_REJECTED_MESSAGE =
             "I could not proceed with the current confirmation state."
 
+        const val LOCATION_NOT_FOUND_MESSAGE =
+            "I could not match that destination. Please provide a more specific city or location."
+
+        const val LOCATION_SELECTION_REQUIRED_MESSAGE =
+            "I found several matching destinations. Please provide a more specific city or location."
+
+        const val SEARCH_REQUEST_REJECTED_MESSAGE =
+            "I could not safely prepare that hotel search. Please check destination, dates, guests, and rooms."
+
         const val TEMPORARY_FAILURE_MESSAGE =
-            "I could not record the search transition. Please try again."
+            "I could not complete the hotel search right now. Please try again."
 
         const val RESULTS_READY_MESSAGE =
             "The search is ready. Hotel results are available."

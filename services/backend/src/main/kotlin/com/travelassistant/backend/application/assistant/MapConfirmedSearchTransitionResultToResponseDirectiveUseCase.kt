@@ -1,5 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
+
 class MapConfirmedSearchTransitionResultToResponseDirectiveUseCase {
 
     operator fun invoke(
@@ -11,6 +13,9 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCase {
 
             is ExecuteConfirmedSearchTransitionResult.DuplicateDetected ->
                 mapDuplicate(result)
+
+            is ExecuteConfirmedSearchTransitionResult.SearchNotCreated ->
+                mapSearchNotCreated(result)
 
             is ExecuteConfirmedSearchTransitionResult.GuardRejected ->
                 ConfirmedSearchTransitionResponseDirective(
@@ -24,6 +29,28 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCase {
                     messageKind = TransitionMessageKind.TEMPORARY_FAILURE,
                 )
         }
+
+    private fun mapSearchNotCreated(
+        result: ExecuteConfirmedSearchTransitionResult.SearchNotCreated,
+    ): ConfirmedSearchTransitionResponseDirective =
+        ConfirmedSearchTransitionResponseDirective(
+            nextAction = InternalTransitionNextAction.ASK_CLARIFICATION,
+            messageKind = when (result.outcome) {
+                HotelOfferProviderResult.LocationNotFound ->
+                    TransitionMessageKind.LOCATION_NOT_FOUND
+
+                is HotelOfferProviderResult.LocationSelectionRequired ->
+                    TransitionMessageKind.LOCATION_SELECTION_REQUIRED
+
+                is HotelOfferProviderResult.RequestRejected ->
+                    TransitionMessageKind.SEARCH_REQUEST_REJECTED
+
+                is HotelOfferProviderResult.ResponseRejected,
+                is HotelOfferProviderResult.ProviderUnavailable,
+                ->
+                    TransitionMessageKind.TEMPORARY_FAILURE
+            },
+        )
 
     private fun mapTransitioned(
         result: ExecuteConfirmedSearchTransitionResult.Transitioned,

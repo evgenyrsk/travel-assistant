@@ -1,6 +1,8 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
+import com.travelassistant.backend.application.hotel.CreateHotelSearchResult
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.application.hotel.HotelSearchBoundary
 import com.travelassistant.backend.domain.assistant.AssistantSession
 
@@ -13,7 +15,7 @@ class AssistantHotelSearchHandoffUseCase(
     override fun createSession(): AssistantSession =
         assistantSessionBoundary.createSession()
 
-    override fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
+    override suspend fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
         val acceptedMessage = assistantSessionBoundary.acceptUserMessage(command)
 
         return when (val parseResult = messageParser.parse(command.message)) {
@@ -30,27 +32,69 @@ class AssistantHotelSearchHandoffUseCase(
                 )
 
             is MinimalHotelSearchMessageParser.Result.Complete -> {
-                val search = hotelSearchBoundary.createSearch(
+                when (val searchResult = hotelSearchBoundary.createSearch(
                     CreateHotelSearchCommand(
                         sessionId = acceptedMessage.sessionId,
                         criteria = parseResult.criteria,
                     ),
-                )
+                )) {
+                    is CreateHotelSearchResult.Created ->
+                        acceptedMessage.copy(
+                            assistantReply = AssistantReply(
+                                type = AssistantReplyType.HOTEL_SEARCH_RESULTS,
+                                message = "Hotel search created. Ranked offers are ready.",
+                            ),
+                            nextAction = AssistantNextAction.SHOW_HOTEL_RESULTS,
+                            hotelSearchId = searchResult.search.id,
+                        )
 
-                acceptedMessage.copy(
-                    assistantReply = AssistantReply(
-                        type = AssistantReplyType.HOTEL_SEARCH_RESULTS,
-                        message = "Hotel search created. Ranked offers are ready.",
-                    ),
-                    nextAction = AssistantNextAction.SHOW_HOTEL_RESULTS,
-                    hotelSearchId = search.id,
-                )
+                    is CreateHotelSearchResult.NotCreated ->
+                        acceptedMessage.copy(
+                            assistantReply = AssistantReply(
+                                type = AssistantReplyType.CLARIFICATION,
+                                message = safeClarificationFor(searchResult.outcome),
+                            ),
+                            nextAction = AssistantNextAction.ASK_CLARIFICATION,
+                            hotelSearchId = null,
+                        )
+                }
             }
         }
     }
 
+    private fun safeClarificationFor(
+        outcome: HotelOfferProviderResult.NotCompleted,
+    ): String =
+        when (outcome) {
+            HotelOfferProviderResult.LocationNotFound ->
+                LOCATION_NOT_FOUND_MESSAGE
+
+            is HotelOfferProviderResult.LocationSelectionRequired ->
+                LOCATION_SELECTION_REQUIRED_MESSAGE
+
+            is HotelOfferProviderResult.RequestRejected ->
+                SEARCH_REQUEST_REJECTED_MESSAGE
+
+            is HotelOfferProviderResult.ResponseRejected,
+            is HotelOfferProviderResult.ProviderUnavailable,
+            ->
+                SEARCH_TEMPORARILY_UNAVAILABLE_MESSAGE
+        }
+
     private companion object {
         const val INCOMPLETE_SEARCH_MESSAGE =
             "I need a complete hotel-search request with destination, check-in, check-out, adults, and rooms."
+
+        const val LOCATION_NOT_FOUND_MESSAGE =
+            "I could not match that destination. Please provide a more specific city or location."
+
+        const val LOCATION_SELECTION_REQUIRED_MESSAGE =
+            "I found several matching destinations. Please provide a more specific city or location."
+
+        const val SEARCH_REQUEST_REJECTED_MESSAGE =
+            "I could not safely prepare that hotel search. Please check destination, dates, guests, and rooms."
+
+        const val SEARCH_TEMPORARILY_UNAVAILABLE_MESSAGE =
+            "I could not complete the hotel search right now. Please try again."
     }
 }

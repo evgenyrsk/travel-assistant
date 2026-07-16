@@ -1,5 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
+
 sealed interface ExecuteConfirmedSearchTransitionResult {
     val lifecyclePolicy: ConfirmedSearchCreationLifecyclePolicy
     val executionPolicy: ConfirmedSearchExecutionPolicy
@@ -16,6 +18,15 @@ sealed interface ExecuteConfirmedSearchTransitionResult {
         val existingAttempt: ConfirmedSearchExecutionAttempt,
         val duplicateReason: ConfirmedSearchExecutionAttemptResult.DuplicateReason,
         val pendingConsumptionDecision: PendingConsumptionDecision,
+        override val lifecyclePolicy: ConfirmedSearchCreationLifecyclePolicy,
+        override val executionPolicy: ConfirmedSearchExecutionPolicy,
+    ) : ExecuteConfirmedSearchTransitionResult
+
+    data class SearchNotCreated(
+        val attempt: ConfirmedSearchExecutionAttempt,
+        val outcome: HotelOfferProviderResult.NotCompleted,
+        val pendingConsumptionDecision: PendingConsumptionDecision =
+            PendingConsumptionDecision.DO_NOT_CONSUME,
         override val lifecyclePolicy: ConfirmedSearchCreationLifecyclePolicy,
         override val executionPolicy: ConfirmedSearchExecutionPolicy,
     ) : ExecuteConfirmedSearchTransitionResult

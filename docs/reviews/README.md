@@ -472,6 +472,7 @@
 159. `docs/reviews/stage-9-16-first-controlled-hotels-api-qa-call.md`
 160. `docs/reviews/stage-9-17-real-runtime-wiring-readiness-gate.md`
 161. `docs/reviews/stage-9-17a-async-provider-result-contract-reconciliation.md`
+162. `docs/reviews/stage-9-17a1-backend-async-result-contract-migration.md`
 
 ## Historical / superseded документы
 

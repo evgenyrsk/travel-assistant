@@ -4,7 +4,7 @@ import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 
 interface HotelSearchBoundary {
-    fun createSearch(command: CreateHotelSearchCommand): HotelSearch
+    suspend fun createSearch(command: CreateHotelSearchCommand): CreateHotelSearchResult
 
     fun getSearch(searchId: HotelSearchId): HotelSearch
 }

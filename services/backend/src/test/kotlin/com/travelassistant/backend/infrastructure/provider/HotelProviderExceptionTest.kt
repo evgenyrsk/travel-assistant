@@ -1,16 +1,7 @@
 package com.travelassistant.backend.infrastructure.provider
 
-import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
-import com.travelassistant.backend.application.assistant.InMemoryAssistantSessionStateStore
-import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
-import com.travelassistant.backend.application.hotel.CreateHotelSearchUseCase
-import com.travelassistant.backend.application.hotel.InMemoryHotelSearchStateStore
-import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
-import com.travelassistant.backend.domain.provider.HotelOfferProviderBoundary
-import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertSame
@@ -51,44 +42,6 @@ class HotelProviderExceptionTest {
         )
 
         assertIs<RuntimeException>(exception)
-    }
-
-    @Test
-    fun providerExceptionPropagatesThroughCreateHotelSearchUseCase() {
-        val sessionStore = InMemoryAssistantSessionStateStore()
-        val session = CreateAssistantSessionUseCase(
-            sessionStateStore = sessionStore,
-        ).createSession()
-        val providerException = HotelProviderException(
-            category = HotelProviderErrorCategory.RATE_LIMITED,
-            message = "Rate limit exceeded",
-        )
-        val throwingProvider = HotelOfferProviderBoundary {
-            throw providerException
-        }
-        val useCase = CreateHotelSearchUseCase(
-            assistantSessionStateStore = sessionStore,
-            hotelOfferProvider = throwingProvider,
-            hotelSearchStateStore = InMemoryHotelSearchStateStore(),
-        )
-
-        val thrown = assertFailsWith<HotelProviderException> {
-            useCase.createSearch(
-                CreateHotelSearchCommand(
-                    sessionId = session.id,
-                    criteria = HotelSearchCriteria(
-                        destination = "Rome",
-                        checkInDate = LocalDate.parse("2026-07-01"),
-                        checkOutDate = LocalDate.parse("2026-07-04"),
-                        guests = HotelSearchCriteria.Guests(adults = 2),
-                        rooms = 1,
-                    ),
-                ),
-            )
-        }
-
-        assertEquals(HotelProviderErrorCategory.RATE_LIMITED, thrown.category)
-        assertEquals("Rate limit exceeded", thrown.message)
     }
 
     @Test

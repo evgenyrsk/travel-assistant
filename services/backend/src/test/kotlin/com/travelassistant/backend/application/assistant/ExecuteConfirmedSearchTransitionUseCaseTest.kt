@@ -1,6 +1,8 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
+import com.travelassistant.backend.application.hotel.CreateHotelSearchResult
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.application.hotel.HotelSearchBoundary
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearch
@@ -8,8 +10,11 @@ import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import java.time.Instant
 import java.time.LocalDate
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -20,7 +25,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     private val now = Instant.parse("2026-06-25T10:00:00Z")
 
     @Test
-    fun successfulTransitionCreatesSearchAndRecordsSucceeded() {
+    fun successfulTransitionCreatesSearchAndRecordsSucceeded() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val fakeSearch = fakeHotelSearch("hotel-search-local-test-001")
         val boundary = StubHotelSearchBoundary(fakeSearch)
@@ -42,7 +47,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     }
 
     @Test
-    fun duplicateAfterSuccessDoesNotCreateSecondSearch() {
+    fun duplicateAfterSuccessDoesNotCreateSecondSearch() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val fakeSearch = fakeHotelSearch("hotel-search-local-test-001")
         val boundary = StubHotelSearchBoundary(fakeSearch)
@@ -69,7 +74,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     }
 
     @Test
-    fun duplicateAfterSuccessReusesExistingHotelSearchId() {
+    fun duplicateAfterSuccessReusesExistingHotelSearchId() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val fakeSearch = fakeHotelSearch("hotel-search-local-reuse-001")
         val boundary = StubHotelSearchBoundary(fakeSearch)
@@ -92,7 +97,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     }
 
     @Test
-    fun failedSearchCreationRecordsFailedWithSearchCreationFailedReason() {
+    fun failedSearchCreationRecordsFailedWithSearchCreationFailedReason() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val boundary = FailingHotelSearchBoundary()
         val useCase = ExecuteConfirmedSearchTransitionUseCase(
@@ -100,7 +105,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
             hotelSearchBoundary = boundary,
         )
 
-        val result = assertIs<ExecuteConfirmedSearchTransitionResult.StoreRejected>(
+        assertIs<ExecuteConfirmedSearchTransitionResult.StoreRejected>(
             useCase(transitionRequest()),
         )
 
@@ -119,7 +124,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     }
 
     @Test
-    fun failedSearchCreationDoesNotConsumePendingConfirmation() {
+    fun failedSearchCreationDoesNotConsumePendingConfirmation() = runBlocking {
         val pendingStore = InMemoryPendingConfirmationStore()
         val pendingConfirmation = pendingStore.save(pendingConfirmation())
         val attemptStore = InMemoryConfirmedSearchExecutionAttemptStore()
@@ -146,7 +151,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     }
 
     @Test
-    fun guardRejectedReturnsGuardRejectedWithoutCallingSearchCreation() {
+    fun guardRejectedReturnsGuardRejectedWithoutCallingSearchCreation() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val boundary = StubHotelSearchBoundary(fakeHotelSearch("hotel-search-local-guard-001"))
         val useCase = ExecuteConfirmedSearchTransitionUseCase(
@@ -166,7 +171,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     }
 
     @Test
-    fun retryAfterStaleInProgressCreatesNewSearch() {
+    fun retryAfterStaleInProgressCreatesNewSearch() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val retrySearch = fakeHotelSearch("hotel-search-local-retry-001")
         val boundary = SequenceHotelSearchBoundary(listOf(retrySearch))
@@ -203,7 +208,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     }
 
     @Test
-    fun retryBlockedAfterExecutionStateUnknown() {
+    fun retryBlockedAfterExecutionStateUnknown() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val boundary = StubHotelSearchBoundary(fakeHotelSearch("hotel-search-local-blocked-001"))
         val useCase = ExecuteConfirmedSearchTransitionUseCase(
@@ -242,7 +247,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
     }
 
     @Test
-    fun doesNotMutatePendingConfirmationStore() {
+    fun doesNotMutatePendingConfirmationStore() = runBlocking {
         val pendingStore = InMemoryPendingConfirmationStore()
         val pendingConfirmation = pendingStore.save(pendingConfirmation())
         val attemptStore = InMemoryConfirmedSearchExecutionAttemptStore()
@@ -268,6 +273,59 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
         )
     }
 
+    @Test
+    fun typedSearchFailureIsPreservedAndDoesNotConsumePendingConfirmation() = runBlocking {
+        val pendingStore = InMemoryPendingConfirmationStore()
+        val pendingConfirmation = pendingStore.save(pendingConfirmation())
+        val attemptStore = InMemoryConfirmedSearchExecutionAttemptStore()
+        val outcome = HotelOfferProviderResult.ProviderUnavailable(
+            HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+        )
+        val useCase = ExecuteConfirmedSearchTransitionUseCase(
+            attemptStore = attemptStore,
+            hotelSearchBoundary = NotCreatedHotelSearchBoundary(outcome),
+        )
+
+        val result = assertIs<ExecuteConfirmedSearchTransitionResult.SearchNotCreated>(
+            useCase(
+                transitionRequest(
+                    sessionId = pendingConfirmation.sessionId,
+                    pendingConfirmation = pendingConfirmation,
+                ),
+            ),
+        )
+
+        assertEquals(outcome, result.outcome)
+        assertEquals(ConfirmedSearchExecutionAttemptStatus.FAILED, result.attempt.status)
+        assertEquals(
+            ConfirmedSearchExecutionAttemptFailureReason.SEARCH_CREATION_FAILED,
+            result.attempt.failureReason,
+        )
+        assertEquals(
+            ExecuteConfirmedSearchTransitionResult.PendingConsumptionDecision.DO_NOT_CONSUME,
+            result.pendingConsumptionDecision,
+        )
+        assertEquals(
+            pendingConfirmation,
+            pendingStore.findActiveBySession(
+                sessionId = pendingConfirmation.sessionId,
+                now = now.plusSeconds(1),
+            ),
+        )
+    }
+
+    @Test
+    fun cancellationFromSearchCreationIsPropagated() = runBlocking {
+        val useCase = ExecuteConfirmedSearchTransitionUseCase(
+            attemptStore = InMemoryConfirmedSearchExecutionAttemptStore(),
+            hotelSearchBoundary = CancellingHotelSearchBoundary(),
+        )
+
+        assertFailsWith<CancellationException> {
+            useCase(transitionRequest())
+        }
+    }
+
     private fun fakeHotelSearch(id: String): HotelSearch =
         HotelSearch(
             id = HotelSearchId(id),
@@ -289,9 +347,9 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
         var createSearchCallCount = 0
             private set
 
-        override fun createSearch(command: CreateHotelSearchCommand): HotelSearch {
+        override suspend fun createSearch(command: CreateHotelSearchCommand): CreateHotelSearchResult {
             createSearchCallCount++
-            return search
+            return CreateHotelSearchResult.Created(search)
         }
 
         override fun getSearch(searchId: HotelSearchId): HotelSearch = search
@@ -301,7 +359,7 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
         var createSearchCallCount = 0
             private set
 
-        override fun createSearch(command: CreateHotelSearchCommand): HotelSearch {
+        override suspend fun createSearch(command: CreateHotelSearchCommand): CreateHotelSearchResult {
             createSearchCallCount++
             throw RuntimeException("Simulated search creation failure")
         }
@@ -316,14 +374,36 @@ class ExecuteConfirmedSearchTransitionUseCaseTest {
         var createSearchCallCount = 0
             private set
 
-        override fun createSearch(command: CreateHotelSearchCommand): HotelSearch {
+        override suspend fun createSearch(command: CreateHotelSearchCommand): CreateHotelSearchResult {
             val index = createSearchCallCount
             createSearchCallCount++
-            return searches[index]
+            return CreateHotelSearchResult.Created(searches[index])
         }
 
         override fun getSearch(searchId: HotelSearchId): HotelSearch =
             searches.first { it.id == searchId }
+    }
+
+    private class NotCreatedHotelSearchBoundary(
+        private val outcome: HotelOfferProviderResult.NotCompleted,
+    ) : HotelSearchBoundary {
+        override suspend fun createSearch(
+            command: CreateHotelSearchCommand,
+        ): CreateHotelSearchResult =
+            CreateHotelSearchResult.NotCreated(outcome)
+
+        override fun getSearch(searchId: HotelSearchId): HotelSearch =
+            throw RuntimeException("Not expected in tests")
+    }
+
+    private class CancellingHotelSearchBoundary : HotelSearchBoundary {
+        override suspend fun createSearch(
+            command: CreateHotelSearchCommand,
+        ): CreateHotelSearchResult =
+            throw CancellationException("Simulated cancellation")
+
+        override fun getSearch(searchId: HotelSearchId): HotelSearch =
+            throw RuntimeException("Not expected in tests")
     }
 
     private fun transitionRequest(

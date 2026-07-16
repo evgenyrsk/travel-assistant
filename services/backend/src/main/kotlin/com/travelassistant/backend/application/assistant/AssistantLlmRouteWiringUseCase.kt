@@ -24,7 +24,7 @@ class AssistantLlmRouteWiringUseCase(
     override fun createSession(): AssistantSession =
         assistantSessionBoundary.createSession()
 
-    override fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
+    override suspend fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
         val acceptedMessage = assistantSessionBoundary.acceptUserMessage(command)
 
         val explicitHotelSearchMessage = explicitHotelSearchMessageParser.parse(command.message)
@@ -112,7 +112,7 @@ class AssistantLlmRouteWiringUseCase(
                 withSafeBoundaryMessage()
         }
 
-    private fun AcceptedAssistantMessage.withPostConfirmationDecision(
+    private suspend fun AcceptedAssistantMessage.withPostConfirmationDecision(
         decision: PostConfirmationDecision,
         decidedAt: Instant,
         activePendingConfirmation: PendingProceedWithCandidateConfirmation? = null,

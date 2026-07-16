@@ -1,10 +1,13 @@
 package com.travelassistant.backend.infrastructure.provider
 
-import com.travelassistant.backend.domain.hotel.HotelOffer
+import com.travelassistant.backend.application.hotel.HotelOfferProviderBoundary
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
-import com.travelassistant.backend.domain.provider.HotelOfferProviderBoundary
 
 class RealHotelOfferProviderAdapter : HotelOfferProviderBoundary {
 
-    override fun search(criteria: HotelSearchCriteria): List<HotelOffer> = emptyList()
+    override suspend fun search(criteria: HotelSearchCriteria): HotelOfferProviderResult =
+        HotelOfferProviderResult.ProviderUnavailable(
+            HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+        )
 }

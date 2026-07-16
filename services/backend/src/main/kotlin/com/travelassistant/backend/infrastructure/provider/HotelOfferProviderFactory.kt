@@ -1,6 +1,6 @@
 package com.travelassistant.backend.infrastructure.provider
 
-import com.travelassistant.backend.domain.provider.HotelOfferProviderBoundary
+import com.travelassistant.backend.application.hotel.HotelOfferProviderBoundary
 
 object HotelOfferProviderFactory {
 

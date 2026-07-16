@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger
 interface AssistantSessionBoundary {
     fun createSession(): AssistantSession
 
-    fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage
+    suspend fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage
 }
 
 data class AcceptAssistantMessageCommand(
@@ -100,7 +100,7 @@ class CreateAssistantSessionUseCase(
         )
     }
 
-    override fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
+    override suspend fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
         val session = sessionStateStore.findById(command.sessionId)
             ?: throw AssistantSessionNotFoundException(command.sessionId)
         val receivedAt = clock.instant()

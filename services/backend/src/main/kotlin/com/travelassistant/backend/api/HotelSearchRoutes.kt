@@ -1,5 +1,7 @@
 package com.travelassistant.backend.api
 
+import com.travelassistant.backend.application.hotel.CreateHotelSearchResult
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.application.hotel.HotelSearchBoundary
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import io.ktor.http.HttpStatusCode
@@ -35,11 +37,16 @@ fun Route.hotelSearchRoutes(hotelSearchBoundary: HotelSearchBoundary) {
                 }
 
                 is HotelSearchRequest.ValidationResult.Valid -> {
-                    val search = hotelSearchBoundary.createSearch(validation.command)
-                    call.respond(
-                        HttpStatusCode.Accepted,
-                        HotelSearchResponse.from(search),
-                    )
+                    when (val result = hotelSearchBoundary.createSearch(validation.command)) {
+                        is CreateHotelSearchResult.Created ->
+                            call.respond(
+                                HttpStatusCode.Accepted,
+                                HotelSearchResponse.from(result.search),
+                            )
+
+                        is CreateHotelSearchResult.NotCreated ->
+                            call.respondNotCreated(result.outcome)
+                    }
                 }
             }
         }
@@ -51,6 +58,46 @@ fun Route.hotelSearchRoutes(hotelSearchBoundary: HotelSearchBoundary) {
             call.respond(
                 HttpStatusCode.OK,
                 HotelOffersResponse.from(search),
+            )
+        }
+    }
+}
+
+private suspend fun io.ktor.server.application.ApplicationCall.respondNotCreated(
+    outcome: HotelOfferProviderResult.NotCompleted,
+) {
+    when (outcome) {
+        HotelOfferProviderResult.LocationNotFound -> {
+            respondValidationError(
+                field = "criteria.destination",
+                message = "Destination could not be matched.",
+            )
+        }
+
+        is HotelOfferProviderResult.LocationSelectionRequired -> {
+            respondValidationError(
+                field = "criteria.destination",
+                message = "Destination is ambiguous. Please provide a more specific location.",
+            )
+        }
+
+        is HotelOfferProviderResult.RequestRejected -> {
+            respondValidationError(
+                field = "criteria",
+                message = "Hotel search criteria could not be accepted.",
+            )
+        }
+
+        is HotelOfferProviderResult.ResponseRejected,
+        is HotelOfferProviderResult.ProviderUnavailable,
+        -> {
+            respond(
+                HttpStatusCode.InternalServerError,
+                ErrorResponse(
+                    code = ErrorCode.INTERNAL_ERROR,
+                    message = "Hotel search could not be completed.",
+                    requestId = requestIdOrNull(),
+                ),
             )
         }
     }

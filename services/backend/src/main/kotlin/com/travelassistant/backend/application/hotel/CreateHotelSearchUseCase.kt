@@ -5,7 +5,6 @@ import com.travelassistant.backend.application.assistant.AssistantSessionStateSt
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import com.travelassistant.backend.domain.hotel.HotelOfferRanker
-import com.travelassistant.backend.domain.provider.HotelOfferProviderBoundary
 
 class CreateHotelSearchUseCase(
     private val assistantSessionStateStore: AssistantSessionStateStore,
@@ -15,25 +14,39 @@ class CreateHotelSearchUseCase(
     private val idGenerator: HotelSearchIdGenerator = LocalHotelSearchIdGenerator(),
 ) : HotelSearchBoundary {
 
-    override fun createSearch(command: CreateHotelSearchCommand): HotelSearch {
+    override suspend fun createSearch(command: CreateHotelSearchCommand): CreateHotelSearchResult {
         assistantSessionStateStore.findById(command.sessionId)
             ?: throw AssistantSessionNotFoundException(command.sessionId)
 
-        val providerOffers = hotelOfferProvider.search(command.criteria)
-        val rankedOffers = hotelOfferRanker.rank(providerOffers)
+        return when (val providerResult = hotelOfferProvider.search(command.criteria)) {
+            is HotelOfferProviderResult.SearchCompleted ->
+                createAndSaveSearch(command, providerResult)
+
+            is HotelOfferProviderResult.NotCompleted ->
+                CreateHotelSearchResult.NotCreated(providerResult)
+        }
+    }
+
+    private fun createAndSaveSearch(
+        command: CreateHotelSearchCommand,
+        providerResult: HotelOfferProviderResult.SearchCompleted,
+    ): CreateHotelSearchResult.Created {
+        val rankedOffers = hotelOfferRanker.rank(providerResult.offers)
         val status = if (rankedOffers.isEmpty()) {
             HotelSearch.Status.COMPLETED_NO_OFFERS
         } else {
             HotelSearch.Status.COMPLETED_WITH_OFFERS
         }
 
-        return hotelSearchStateStore.save(
-            HotelSearch(
-                id = idGenerator.nextId(),
-                sessionId = command.sessionId,
-                criteria = command.criteria,
-                status = status,
-                offers = rankedOffers,
+        return CreateHotelSearchResult.Created(
+            hotelSearchStateStore.save(
+                HotelSearch(
+                    id = idGenerator.nextId(),
+                    sessionId = command.sessionId,
+                    criteria = command.criteria,
+                    status = status,
+                    offers = rankedOffers,
+                ),
             ),
         )
     }

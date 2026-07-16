@@ -1,5 +1,12 @@
 package com.travelassistant.backend.api
 
+import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
+import com.travelassistant.backend.application.hotel.CreateHotelSearchResult
+import com.travelassistant.backend.application.hotel.HotelLocationSuggestion
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
+import com.travelassistant.backend.application.hotel.HotelSearchBoundary
+import com.travelassistant.backend.domain.hotel.HotelSearch
+import com.travelassistant.backend.domain.hotel.HotelSearchId
 import com.travelassistant.backend.module
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -10,6 +17,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -203,6 +212,95 @@ class HotelSearchRoutesTest {
         )
     }
 
+    @Test
+    fun mapsTypedNotCreatedOutcomesToExistingSafeSchemas() = testApplication {
+        val boundary = ConfigurableHotelSearchBoundary()
+        application {
+            configureSerialization()
+            configureErrorHandling()
+            routing {
+                route("/api/v1") {
+                    hotelSearchRoutes(boundary)
+                }
+            }
+        }
+
+        val locationOutcomes = listOf(
+            HotelOfferProviderResult.LocationNotFound,
+            HotelOfferProviderResult.LocationSelectionRequired(
+                suggestions = listOf(
+                    HotelLocationSuggestion(
+                        name = "Rome",
+                        signature = "City, Italy",
+                        typeCode = "city",
+                        typeName = "City",
+                    ),
+                ),
+            ),
+        )
+        locationOutcomes.forEach { outcome ->
+            boundary.nextResult = CreateHotelSearchResult.NotCreated(outcome)
+
+            val response = client.post("/api/v1/hotel-searches") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody(validSearchBody("assistant-session-local-test"))
+            }
+            val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("VALIDATION_ERROR", body["code"]?.jsonPrimitive?.content)
+            assertEquals(
+                "criteria.destination",
+                body["fields"]?.jsonArray?.first()?.jsonObject?.get("field")?.jsonPrimitive?.content,
+            )
+            assertEquals(false, body.containsKey("searchId"))
+            assertEquals(false, body.toString().contains("City, Italy"))
+        }
+
+        boundary.nextResult = CreateHotelSearchResult.NotCreated(
+            HotelOfferProviderResult.RequestRejected(
+                HotelOfferProviderResult.RequestRejectionReason.INVALID_OCCUPANCY,
+            ),
+        )
+        val rejectedResponse = client.post("/api/v1/hotel-searches") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(validSearchBody("assistant-session-local-test"))
+        }
+        val rejectedBody = Json.parseToJsonElement(rejectedResponse.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.BadRequest, rejectedResponse.status)
+        assertEquals("VALIDATION_ERROR", rejectedBody["code"]?.jsonPrimitive?.content)
+        assertEquals(
+            "criteria",
+            rejectedBody["fields"]?.jsonArray?.first()?.jsonObject?.get("field")?.jsonPrimitive?.content,
+        )
+        assertEquals(false, rejectedBody.toString().contains("INVALID_OCCUPANCY"))
+
+        listOf(
+            HotelOfferProviderResult.ResponseRejected(
+                HotelOfferProviderResult.ResponseRejectionReason.INVALID_PAYLOAD,
+            ),
+            HotelOfferProviderResult.ProviderUnavailable(
+                HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+            ),
+        ).forEach { outcome ->
+            boundary.nextResult = CreateHotelSearchResult.NotCreated(outcome)
+
+            val response = client.post("/api/v1/hotel-searches") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody(validSearchBody("assistant-session-local-test"))
+            }
+            val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertEquals("INTERNAL_ERROR", body["code"]?.jsonPrimitive?.content)
+            assertEquals("Hotel search could not be completed.", body["message"]?.jsonPrimitive?.content)
+            assertEquals(false, body.containsKey("searchId"))
+            assertEquals(false, body.toString().contains("INVALID_PAYLOAD"))
+            assertEquals(false, body.toString().contains("UNAVAILABLE"))
+        }
+    }
+
     private fun validSearchBody(sessionId: String): String =
         """
         {
@@ -219,4 +317,17 @@ class HotelSearchRoutesTest {
           }
         }
         """.trimIndent()
+
+    private class ConfigurableHotelSearchBoundary : HotelSearchBoundary {
+        var nextResult: CreateHotelSearchResult =
+            CreateHotelSearchResult.NotCreated(HotelOfferProviderResult.LocationNotFound)
+
+        override suspend fun createSearch(
+            command: CreateHotelSearchCommand,
+        ): CreateHotelSearchResult =
+            nextResult
+
+        override fun getSearch(searchId: HotelSearchId): HotelSearch =
+            throw RuntimeException("Not expected in tests")
+    }
 }

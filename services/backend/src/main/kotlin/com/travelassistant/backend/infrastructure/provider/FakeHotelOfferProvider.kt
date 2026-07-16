@@ -1,8 +1,9 @@
 package com.travelassistant.backend.infrastructure.provider
 
+import com.travelassistant.backend.application.hotel.HotelOfferProviderBoundary
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.domain.hotel.HotelOffer
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
-import com.travelassistant.backend.domain.provider.HotelOfferProviderBoundary
 
 /**
  * Deterministic local provider for Stage 7 development and tests.
@@ -12,7 +13,7 @@ import com.travelassistant.backend.domain.provider.HotelOfferProviderBoundary
  */
 class FakeHotelOfferProvider : HotelOfferProviderBoundary {
 
-    override fun search(criteria: HotelSearchCriteria): List<HotelOffer> {
+    override suspend fun search(criteria: HotelSearchCriteria): HotelOfferProviderResult {
         val destination = criteria.destination.trim()
         val slug = destination
             .lowercase()
@@ -20,36 +21,38 @@ class FakeHotelOfferProvider : HotelOfferProviderBoundary {
             .trim('-')
             .ifBlank { "destination" }
 
-        return listOf(
-            HotelOffer(
-                id = "fake-offer-$slug-002",
-                providerReference = "local-fake-$slug-002",
-                hotelName = "$destination Riverside Stay",
-                city = destination,
-                country = countryFor(destination),
-                totalPrice = 510.0,
-                currency = "EUR",
-                rating = 9.0,
-                reviewCount = 860,
-                amenities = listOf("Wi-Fi", "Gym"),
-                availability = HotelOffer.Availability.LIMITED,
-                source = SOURCE,
-                freshness = HotelOffer.Freshness.FRESH,
-            ),
-            HotelOffer(
-                id = "fake-offer-$slug-001",
-                providerReference = "local-fake-$slug-001",
-                hotelName = "$destination Central Hotel",
-                city = destination,
-                country = countryFor(destination),
-                totalPrice = 420.0,
-                currency = "EUR",
-                rating = 8.6,
-                reviewCount = 1240,
-                amenities = listOf("Wi-Fi", "Breakfast"),
-                availability = HotelOffer.Availability.AVAILABLE,
-                source = SOURCE,
-                freshness = HotelOffer.Freshness.FRESH,
+        return HotelOfferProviderResult.SearchCompleted(
+            listOf(
+                HotelOffer(
+                    id = "fake-offer-$slug-002",
+                    providerReference = "local-fake-$slug-002",
+                    hotelName = "$destination Riverside Stay",
+                    city = destination,
+                    country = countryFor(destination),
+                    totalPrice = 510.0,
+                    currency = "EUR",
+                    rating = 9.0,
+                    reviewCount = 860,
+                    amenities = listOf("Wi-Fi", "Gym"),
+                    availability = HotelOffer.Availability.LIMITED,
+                    source = SOURCE,
+                    freshness = HotelOffer.Freshness.FRESH,
+                ),
+                HotelOffer(
+                    id = "fake-offer-$slug-001",
+                    providerReference = "local-fake-$slug-001",
+                    hotelName = "$destination Central Hotel",
+                    city = destination,
+                    country = countryFor(destination),
+                    totalPrice = 420.0,
+                    currency = "EUR",
+                    rating = 8.6,
+                    reviewCount = 1240,
+                    amenities = listOf("Wi-Fi", "Breakfast"),
+                    availability = HotelOffer.Availability.AVAILABLE,
+                    source = SOURCE,
+                    freshness = HotelOffer.Freshness.FRESH,
+                ),
             ),
         )
     }

@@ -1,9 +1,11 @@
 package com.travelassistant.backend
 
 import com.travelassistant.backend.application.assistant.InMemoryPendingConfirmationStore
+import com.travelassistant.backend.application.assistant.PendingConfirmationStatus
 import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmClient
 import com.travelassistant.backend.application.llm.LlmClientResponse
+import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
 import com.travelassistant.backend.infrastructure.provider.HotelProviderMode
@@ -28,7 +30,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 
 class ProviderSeamIntegrationTest {
 
@@ -49,7 +52,7 @@ class ProviderSeamIntegrationTest {
         )
 
     @Test
-    fun realProviderModeReturnsCompletedNoOffersThroughHotelSearchRoute() = testApplication {
+    fun realProviderModeReturnsSafeInternalErrorWithoutCreatingSearch() = testApplication {
         application {
             moduleWithAssistantLlm(
                 llmClient = FakeLlmClient(
@@ -95,23 +98,25 @@ class ProviderSeamIntegrationTest {
         }
         val searchBody = Json.parseToJsonElement(searchResponse.bodyAsText()).jsonObject
 
-        assertEquals(HttpStatusCode.Accepted, searchResponse.status)
-        assertEquals("completed_no_offers", searchBody["status"]?.jsonPrimitive?.content)
+        assertEquals(HttpStatusCode.InternalServerError, searchResponse.status)
+        assertEquals("INTERNAL_ERROR", searchBody["code"]?.jsonPrimitive?.content)
+        assertEquals(
+            "Hotel search could not be completed.",
+            searchBody["message"]?.jsonPrimitive?.content,
+        )
+        assertFalse(searchBody.containsKey("searchId"))
+        assertFalse(searchBody.containsKey("hotelSearchId"))
+        assertFalse(searchBody.containsKey("status"))
+        assertFalse(searchBody.toString().contains("UNAVAILABLE"))
 
-        val searchId = searchBody["searchId"]?.jsonPrimitive?.content.orEmpty()
-        assertTrue(searchId.isNotBlank())
-
-        val offersResponse = client.get("/api/v1/hotel-searches/$searchId/offers")
-        val offersBody = Json.parseToJsonElement(offersResponse.bodyAsText()).jsonObject
-        val offers = offersBody["offers"]?.jsonArray.orEmpty()
-
-        assertEquals(HttpStatusCode.OK, offersResponse.status)
-        assertEquals("completed_no_offers", offersBody["status"]?.jsonPrimitive?.content)
-        assertEquals(0, offers.size)
+        val offersResponse = client.get(
+            "/api/v1/hotel-searches/hotel-search-local-000001/offers",
+        )
+        assertEquals(HttpStatusCode.NotFound, offersResponse.status)
     }
 
     @Test
-    fun realProviderModeConfirmationCycleCreatesSearchWithNoOffers() = testApplication {
+    fun realProviderModeConfirmationCycleReturnsClarificationWithoutConsumingPending() = testApplication {
         val pendingConfirmationStore = InMemoryPendingConfirmationStore()
         var llmResponse: LlmClientResponse =
             LlmClientResponse.Candidate(interpretedHotelSearchCandidate())
@@ -142,19 +147,27 @@ class ProviderSeamIntegrationTest {
             setBody("""{"message":"да"}""")
         }
         val confirmBody = Json.parseToJsonElement(confirmResponse.bodyAsText()).jsonObject
-        val hotelSearchId = confirmBody["hotelSearchId"]?.jsonPrimitive?.content.orEmpty()
 
         assertEquals(HttpStatusCode.OK, confirmResponse.status)
-        assertEquals("show_hotel_results", confirmBody["nextAction"]?.jsonPrimitive?.content)
-        assertTrue(hotelSearchId.isNotBlank())
+        assertEquals("ask_clarification", confirmBody["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "I could not complete the hotel search right now. Please try again.",
+            confirmBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
+        assertFalse(confirmBody.containsKey("hotelSearchId"))
+        assertFalse(confirmBody.toString().contains("UNAVAILABLE"))
 
-        val offersResponse = client.get("/api/v1/hotel-searches/$hotelSearchId/offers")
-        val offersBody = Json.parseToJsonElement(offersResponse.bodyAsText()).jsonObject
-        val offers = offersBody["offers"]?.jsonArray.orEmpty()
+        val pendingConfirmation = pendingConfirmationStore.findActiveBySession(
+            sessionId = AssistantSessionId(sessionId),
+            now = routeNow.plusSeconds(1),
+        )
+        assertNotNull(pendingConfirmation)
+        assertEquals(PendingConfirmationStatus.PENDING, pendingConfirmation.status)
 
-        assertEquals(HttpStatusCode.OK, offersResponse.status)
-        assertEquals("completed_no_offers", offersBody["status"]?.jsonPrimitive?.content)
-        assertEquals(0, offers.size)
+        val offersResponse = client.get(
+            "/api/v1/hotel-searches/hotel-search-local-000001/offers",
+        )
+        assertEquals(HttpStatusCode.NotFound, offersResponse.status)
     }
 
     @Test
