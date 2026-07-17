@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.17b завершен как autocomplete resolver transport adapter через `MockEngine` |
-| Последний завершенный этап | Stage 9.17b — public autocomplete подключен к application resolver boundary без runtime wiring |
-| Следующий планируемый шаг | Stage 9.17c — public-only configuration, production `HttpClient` lifecycle и opt-in `REAL` runtime wiring |
+| Текущий этап | Stage 9.17c завершен как opt-in `REAL` Hotels API runtime wiring |
+| Последний завершенный этап | Stage 9.17c — public autocomplete/search composition подключена к runtime с `FAKE` по умолчанию |
+| Следующий планируемый шаг | Stage 9.18 — regression, controlled runtime smoke и закрытие Hotels API integration |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -59,7 +59,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
 | Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Целевой chat-first flow и LLM orchestration не завершены. |
 | Stage 8 | Завершен | Backend confirmation lifecycle: LLM orchestration boundary, confirmation flow, local search execution, consume-after-success. Закрыт с carryover (InMemory stores, fake LLM/provider). |
-| Stage 9 | В работе | Внутренний HotelsApi выбран и проанализирован; Hotels API transport/runtime integration еще не начата. |
+| Stage 9 | В работе | Public Hotels API transport и opt-in `REAL` runtime composition реализованы; integration closure и chat-first MVP остаются впереди. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
 
 ## 2. Правила управления roadmap
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.17b завершил transport-backed autocomplete resolver с отдельным public request DTO `input` и проверками через `MockEngine`. Все location candidates сохраняются без автоматического выбора, hotel identifiers не становятся `destinationId`. Runtime wiring не добавлено, `FAKE` остается provider по умолчанию.
+**Статус:** Stage 9.17c подключил public autocomplete/search composition к runtime в явно выбранном режиме `REAL`. Production `HttpClient` принадлежит lifecycle Ktor application, private JWT не требуется активному public flow, а `FAKE` остается provider по умолчанию.
 
 **Planning:**
 
@@ -573,12 +573,12 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.17a | Async provider/result contract reconciliation | Завершен как review/design-only этап; согласованы `suspend`, typed outcomes и state creation policy |
 | Stage 9.17a1 | Backend-only async/result contract migration | Завершен; `suspend`, typed outcomes и state creation policy реализованы без REAL runtime wiring |
 | Stage 9.17b | Autocomplete resolver transport adapter | Завершен; отдельный `input` DTO, `MockEngine`, без runtime wiring |
-| Stage 9.17c | Opt-in REAL runtime wiring с FAKE default | Следующий этап; public-only configuration и production `HttpClient` lifecycle |
-| Stage 9.18 | Integration closure | Запланирован |
+| Stage 9.17c | Opt-in REAL runtime wiring с FAKE default | Завершен; public-only config, production client lifecycle и typed adapter composition |
+| Stage 9.18 | Integration closure | Следующий этап; regression, controlled smoke и failure verification |
 
-**Границы:** выбранный контракт поиска — внутренний HotelsApi OpenAPI 1.0/2.0/3.0 на `https://hotels.tbank.ru/`. Для MVP выбран `POST /api/v1/hotels/search`; его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. Autocomplete использует отдельный public request DTO `input` и внутренний transport adapter для `/search-api/search/autocomplete`, но не подключен к runtime composition. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
+**Границы:** выбранный public flow использует `/search-api/search/autocomplete` и `POST /api/v1/hotels/search` на `https://hotels.tbank.ru/`. Его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. `REAL` включается только явно, `FAKE` остается default. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.17c должен отдельно добавить public-only configuration для активируемого flow, production `HttpClient` lifecycle и opt-in composition resolver → search orchestrator → `RealHotelOfferProviderAdapter`. `FAKE` должен остаться default, а отсутствие полной REAL-конфигурации должно блокировать активацию fail closed. Public API, OpenAPI и frontend не расширяются без отдельного этапа. Pagination возвращается в roadmap только после отдельного продуктового решения. Включение taxes/fees и threshold для `LIMITED` остаются неизвестными и не должны заполняться догадками.
+**Следующий шаг:** Stage 9.18 должен проверить полный backend regression, route outcomes для success/location/failure случаев, выполнить один отдельно разрешенный opt-in runtime smoke и проверить существующую diagnostic frontend форму. Public API/OpenAPI не расширяются. Pagination возвращается только после отдельного продуктового решения; taxes/fees и threshold для `LIMITED` остаются неизвестными.
 
 ### Stage 10 — Cross-platform Expansion
 

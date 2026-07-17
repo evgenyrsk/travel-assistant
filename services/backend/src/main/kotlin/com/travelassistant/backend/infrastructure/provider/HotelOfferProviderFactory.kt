@@ -1,12 +1,46 @@
 package com.travelassistant.backend.infrastructure.provider
 
-import com.travelassistant.backend.application.hotel.HotelOfferProviderBoundary
+import com.travelassistant.backend.application.hotel.HotelLocationResolutionRequest
+import io.ktor.client.HttpClient
 
 object HotelOfferProviderFactory {
 
-    fun create(config: HotelProviderConfig): HotelOfferProviderBoundary =
+    internal fun create(
+        config: HotelProviderConfig,
+        realHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
+    ): HotelOfferProviderRuntime =
         when (config.mode) {
-            HotelProviderMode.FAKE -> FakeHotelOfferProvider()
-            HotelProviderMode.REAL -> RealHotelOfferProviderAdapter()
+            HotelProviderMode.FAKE -> HotelOfferProviderRuntime(
+                provider = FakeHotelOfferProvider(),
+            )
+
+            HotelProviderMode.REAL -> createRealRuntime(
+                config = requireNotNull(config.hotelsApi),
+                httpClientFactory = realHttpClientFactory,
+            )
         }
+
+    private fun createRealRuntime(
+        config: HotelsApiConfig,
+        httpClientFactory: () -> HttpClient,
+    ): HotelOfferProviderRuntime {
+        val httpClient = httpClientFactory()
+        val transport = PublicHotelsApiHttpTransport(
+            httpClient = httpClient,
+            publicTarget = config.publicTarget,
+        )
+        val orchestrator = HotelsApiSearchOrchestrator(
+            locationResolver = PublicHotelsApiLocationResolverAdapter(transport),
+            transport = transport,
+        )
+        val language = config.userLanguage?.let(HotelLocationResolutionRequest.Language::valueOf)
+
+        return HotelOfferProviderRuntime(
+            provider = RealHotelOfferProviderAdapter(
+                search = orchestrator::search,
+                language = language,
+            ),
+            closeAction = httpClient::close,
+        )
+    }
 }

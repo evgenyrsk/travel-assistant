@@ -10,8 +10,11 @@ import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
 import com.travelassistant.backend.infrastructure.provider.HotelProviderMode
 import com.travelassistant.backend.infrastructure.provider.HotelsApiConfig
-import com.travelassistant.backend.infrastructure.provider.HotelsApiJwtAuthConfig
-import com.travelassistant.backend.infrastructure.provider.RedactedSecret
+import com.travelassistant.backend.infrastructure.provider.HotelsApiTargetConfig
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -20,6 +23,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import io.ktor.server.testing.testApplication
 import java.time.Clock
 import java.time.Instant
@@ -42,12 +46,11 @@ class ProviderSeamIntegrationTest {
         HotelProviderConfig(
             mode = HotelProviderMode.REAL,
             hotelsApi = HotelsApiConfig(
-                jwtAuth = HotelsApiJwtAuthConfig(
-                    privateKey = RedactedSecret.of(
-                        "synthetic-private-key",
-                        HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY,
-                    ),
+                publicTarget = HotelsApiTargetConfig.public(
+                    baseUrl = "https://hotels.test/",
+                    timeoutMillis = 5_000,
                 ),
+                userLanguage = "RU",
             ),
         )
 
@@ -67,6 +70,7 @@ class ProviderSeamIntegrationTest {
                 ),
                 providerConfig = completeRealProviderConfig(),
                 clock = routeClock,
+                realHotelHttpClientFactory = ::unavailableHttpClient,
             )
         }
 
@@ -128,6 +132,7 @@ class ProviderSeamIntegrationTest {
                 providerConfig = completeRealProviderConfig(),
                 pendingConfirmationStore = pendingConfirmationStore,
                 clock = routeClock,
+                realHotelHttpClientFactory = ::unavailableHttpClient,
             )
         }
 
@@ -168,6 +173,74 @@ class ProviderSeamIntegrationTest {
             "/api/v1/hotel-searches/hotel-search-local-000001/offers",
         )
         assertEquals(HttpStatusCode.NotFound, offersResponse.status)
+    }
+
+    @Test
+    fun realProviderModeUsesPublicAutocompleteAndSearchComposition() = testApplication {
+        val requestedPaths = mutableListOf<String>()
+
+        application {
+            moduleWithAssistantLlm(
+                llmClient = FakeLlmClient(LlmClientResponse.Empty),
+                providerConfig = completeRealProviderConfig(),
+                clock = routeClock,
+                realHotelHttpClientFactory = { successfulHttpClient(requestedPaths) },
+            )
+        }
+
+        val sessionResponse = client.post("/api/v1/assistant/sessions")
+        val sessionBody = Json.parseToJsonElement(sessionResponse.bodyAsText()).jsonObject
+        val sessionId = sessionBody["session"]
+            ?.jsonObject
+            ?.get("sessionId")
+            ?.jsonPrimitive
+            ?.content
+            .orEmpty()
+
+        val searchResponse = client.post("/api/v1/hotel-searches") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """
+                {
+                  "sessionId": "$sessionId",
+                  "criteria": {
+                    "destination": "Казань",
+                    "checkInDate": "2026-07-18",
+                    "checkOutDate": "2026-07-19",
+                    "guests": {"adults": 2, "children": 0},
+                    "rooms": 1
+                  }
+                }
+                """.trimIndent(),
+            )
+        }
+        val searchBody = Json.parseToJsonElement(searchResponse.bodyAsText()).jsonObject
+        val searchId = searchBody["searchId"]?.jsonPrimitive?.content.orEmpty()
+
+        assertEquals(HttpStatusCode.Accepted, searchResponse.status)
+        assertEquals("completed_with_offers", searchBody["status"]?.jsonPrimitive?.content)
+        assertEquals(
+            listOf(
+                "/search-api/search/autocomplete",
+                "/api/v1/hotels/search",
+            ),
+            requestedPaths,
+        )
+
+        val offersResponse = client.get("/api/v1/hotel-searches/$searchId/offers")
+        val offersBody = Json.parseToJsonElement(offersResponse.bodyAsText()).jsonObject
+        val offers = offersBody["offers"]?.jsonArray.orEmpty()
+
+        assertEquals(HttpStatusCode.OK, offersResponse.status)
+        assertEquals(1, offers.size)
+        assertEquals(
+            "hotel-runtime-1",
+            offers.single().jsonObject["providerOfferRef"]?.jsonPrimitive?.content,
+        )
+        assertEquals(
+            "tbank_hotels_api",
+            offers.single().jsonObject["source"]?.jsonPrimitive?.content,
+        )
     }
 
     @Test
@@ -227,6 +300,94 @@ class ProviderSeamIntegrationTest {
         assertEquals(2, offers.size)
         assertEquals("local_fake_provider", offers.first().jsonObject["source"]?.jsonPrimitive?.content)
     }
+
+    private fun unavailableHttpClient(): HttpClient =
+        HttpClient(
+            MockEngine {
+                respond(
+                    content = "provider-sensitive-unavailable-body",
+                    status = HttpStatusCode.ServiceUnavailable,
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString(),
+                    ),
+                )
+            },
+        ) {
+            install(HttpTimeout)
+        }
+
+    private fun successfulHttpClient(requestedPaths: MutableList<String>): HttpClient =
+        HttpClient(
+            MockEngine { request ->
+                val path = request.url.encodedPath
+                requestedPaths += path
+                val responseBody = when (path) {
+                    "/search-api/search/autocomplete" -> autocompleteResponse()
+                    "/api/v1/hotels/search" -> searchResponse()
+                    else -> error("Unexpected provider path: $path")
+                }
+                respond(
+                    content = responseBody,
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString(),
+                    ),
+                )
+            },
+        ) {
+            install(HttpTimeout)
+        }
+
+    private fun autocompleteResponse(): String =
+        """
+        {
+          "payload": {
+            "locations": [
+              {
+                "id": 1001,
+                "name": "Казань",
+                "signature": "Казань, Россия",
+                "type": {"name": "Город", "code": "city"}
+              }
+            ],
+            "hotels": []
+          }
+        }
+        """.trimIndent()
+
+    private fun searchResponse(): String =
+        """
+        {
+          "payload": {
+            "filteredHotelsCount": 1,
+            "hotelsTotalCount": 1,
+            "isLoadingCompleted": true,
+            "hotels": [
+              {
+                "hotelId": "hotel-runtime-1",
+                "hotelName": "Тестовый отель",
+                "starRating": 4,
+                "areaLocation": {
+                  "countryName": "Россия",
+                  "destinationId": 1001,
+                  "destinationName": "Казань",
+                  "signature": "Казань, Россия"
+                },
+                "hotelLocation": {"address": "Тестовая улица"},
+                "rateForHotelsFeed": {
+                  "availableRoomsCount": 1,
+                  "isCreditCardDataRequired": false,
+                  "paymentPlace": "online",
+                  "shownPrice": {"amount": 12000.0, "currency": "RUB"}
+                },
+                "review": {"rating": 8.7, "ratingsCount": 42}
+              }
+            ]
+          }
+        }
+        """.trimIndent()
 
     private fun interpretedHotelSearchCandidate(): LlmCandidate =
         LlmCandidate(

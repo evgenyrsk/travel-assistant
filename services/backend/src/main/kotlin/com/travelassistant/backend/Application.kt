@@ -22,7 +22,10 @@ import com.travelassistant.backend.application.llm.LlmClientResponse
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.infrastructure.provider.HotelOfferProviderFactory
 import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
+import com.travelassistant.backend.infrastructure.provider.createProductionHotelsApiHttpClient
+import io.ktor.client.HttpClient
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import java.time.Clock
@@ -48,11 +51,19 @@ internal fun Application.moduleWithAssistantLlm(
     providerConfig: HotelProviderConfig = HotelProviderConfig(),
     pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
     clock: Clock = Clock.systemUTC(),
+    realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
 ) {
     val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
+    val hotelProviderRuntime = HotelOfferProviderFactory.create(
+        config = providerConfig,
+        realHttpClientFactory = realHotelHttpClientFactory,
+    )
+    environment.monitor.subscribe(ApplicationStopped) {
+        hotelProviderRuntime.close()
+    }
     val hotelSearchBoundary = CreateHotelSearchUseCase(
         assistantSessionStateStore = assistantSessionStateStore,
-        hotelOfferProvider = HotelOfferProviderFactory.create(providerConfig),
+        hotelOfferProvider = hotelProviderRuntime.provider,
         hotelSearchStateStore = InMemoryHotelSearchStateStore(),
     )
     val assistantHotelSearchHandoffBoundary = AssistantHotelSearchHandoffUseCase(

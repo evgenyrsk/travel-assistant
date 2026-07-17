@@ -474,6 +474,7 @@
 161. `docs/reviews/stage-9-17a-async-provider-result-contract-reconciliation.md`
 162. `docs/reviews/stage-9-17a1-backend-async-result-contract-migration.md`
 163. `docs/reviews/stage-9-17b-autocomplete-resolver-transport-adapter.md`
+164. `docs/reviews/stage-9-17c-real-hotels-api-runtime-wiring.md`
 
 ## Historical / superseded документы
 

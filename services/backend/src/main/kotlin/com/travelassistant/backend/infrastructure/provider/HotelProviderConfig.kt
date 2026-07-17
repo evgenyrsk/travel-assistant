@@ -19,8 +19,17 @@ data class HotelProviderConfig(
 
         fun fromEnvironment(environment: Map<String, String> = System.getenv()): HotelProviderConfig {
             val raw = environment[MODE_KEY]?.trim().orEmpty()
-            val mode = runCatching { HotelProviderMode.valueOf(raw.uppercase()) }
-                .getOrDefault(HotelProviderMode.FAKE)
+            val mode = if (raw.isEmpty()) {
+                HotelProviderMode.FAKE
+            } else {
+                runCatching { HotelProviderMode.valueOf(raw.uppercase()) }
+                    .getOrElse {
+                        throw HotelProviderConfigurationException(
+                            configurationKey = MODE_KEY,
+                            reason = "must be FAKE or REAL",
+                        )
+                    }
+            }
 
             if (mode == HotelProviderMode.FAKE) {
                 return HotelProviderConfig()
@@ -36,38 +45,11 @@ data class HotelProviderConfig(
                             HotelsApiTargetConfig.PUBLIC_TIMEOUT_KEY,
                         ) ?: HotelsApiTargetConfig.DEFAULT_PUBLIC_TIMEOUT_MILLIS,
                     ),
-                    privateTarget = HotelsApiTargetConfig.private(
-                        baseUri = environment.optional(HotelsApiTargetConfig.PRIVATE_BASE_URI_KEY)
-                            ?: HotelsApiTargetConfig.DEFAULT_PRIVATE_BASE_URI,
-                        timeoutMillis = environment.optionalPositiveLong(
-                            HotelsApiTargetConfig.PRIVATE_TIMEOUT_KEY,
-                        ) ?: HotelsApiTargetConfig.DEFAULT_PRIVATE_TIMEOUT_MILLIS,
-                    ),
-                    jwtAuth = HotelsApiJwtAuthConfig(
-                        issuer = environment.optional(HotelsApiJwtAuthConfig.ISSUER_KEY)
-                            ?: HotelsApiJwtAuthConfig.DEFAULT_ISSUER,
-                        audience = environment.optional(HotelsApiJwtAuthConfig.AUDIENCE_KEY)
-                            ?: HotelsApiJwtAuthConfig.DEFAULT_AUDIENCE,
-                        privateKey = RedactedSecret.of(
-                            value = environment.required(HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY),
-                            configurationKey = HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY,
-                        ),
-                    ),
-                    userLanguage = environment.optional(HotelsApiConfig.USER_LANGUAGE_KEY),
-                    sourcePlatform = environment.optional(HotelsApiConfig.SOURCE_PLATFORM_KEY),
-                    appVersion = environment.optional(HotelsApiConfig.APP_VERSION_KEY),
+                    userLanguage = environment.optional(HotelsApiConfig.USER_LANGUAGE_KEY)
+                        ?.uppercase(),
                 ),
             )
         }
-
-        private fun Map<String, String>.required(configurationKey: String): String =
-            this[configurationKey]
-                ?.trim()
-                ?.takeIf(String::isNotEmpty)
-                ?: throw HotelProviderConfigurationException(
-                    configurationKey = configurationKey,
-                    reason = "is required when HOTEL_PROVIDER_MODE=REAL",
-                )
 
         private fun Map<String, String>.optionalPositiveLong(configurationKey: String): Long? {
             val raw = optional(configurationKey) ?: return null

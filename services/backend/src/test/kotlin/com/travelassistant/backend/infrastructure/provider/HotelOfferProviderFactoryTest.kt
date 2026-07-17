@@ -1,5 +1,9 @@
 package com.travelassistant.backend.infrastructure.provider
 
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respondOk
+import io.ktor.client.plugins.HttpTimeout
 import kotlin.test.Test
 import kotlin.test.assertIs
 
@@ -9,39 +13,43 @@ class HotelOfferProviderFactoryTest {
     fun fakeModeCreatesFakeHotelOfferProvider() {
         val config = HotelProviderConfig(mode = HotelProviderMode.FAKE)
 
-        val provider = HotelOfferProviderFactory.create(config)
+        val runtime = HotelOfferProviderFactory.create(config)
 
-        assertIs<FakeHotelOfferProvider>(provider)
+        assertIs<FakeHotelOfferProvider>(runtime.provider)
+        runtime.close()
     }
 
     @Test
     fun realModeCreatesRealHotelOfferProviderAdapter() {
         val config = completeRealConfig()
 
-        val provider = HotelOfferProviderFactory.create(config)
+        val runtime = HotelOfferProviderFactory.create(
+            config = config,
+            realHttpClientFactory = ::mockHttpClient,
+        )
 
-        assertIs<RealHotelOfferProviderAdapter>(provider)
+        assertIs<RealHotelOfferProviderAdapter>(runtime.provider)
+        runtime.close()
     }
 
     @Test
     fun defaultConfigCreatesFakeHotelOfferProvider() {
         val config = HotelProviderConfig()
 
-        val provider = HotelOfferProviderFactory.create(config)
+        val runtime = HotelOfferProviderFactory.create(config)
 
-        assertIs<FakeHotelOfferProvider>(provider)
+        assertIs<FakeHotelOfferProvider>(runtime.provider)
+        runtime.close()
     }
 
     private fun completeRealConfig(): HotelProviderConfig =
         HotelProviderConfig(
             mode = HotelProviderMode.REAL,
-            hotelsApi = HotelsApiConfig(
-                jwtAuth = HotelsApiJwtAuthConfig(
-                    privateKey = RedactedSecret.of(
-                        "synthetic-private-key",
-                        HotelsApiJwtAuthConfig.PRIVATE_KEY_KEY,
-                    ),
-                ),
-            ),
+            hotelsApi = HotelsApiConfig(),
         )
+
+    private fun mockHttpClient(): HttpClient =
+        HttpClient(MockEngine { respondOk() }) {
+            install(HttpTimeout)
+        }
 }
