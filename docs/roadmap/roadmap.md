@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.18 проверен, но Hotels API integration не закрыта из-за location-selection blocker |
-| Последний завершенный этап | Stage 9.17c — public autocomplete/search composition подключена к runtime с `FAKE` по умолчанию |
-| Следующий планируемый шаг | Stage 9.18a — согласование и проверка детерминированного location selection без выбора первого candidate |
+| Текущий этап | Stage 9.18 и Stage 9.18a завершены; opt-in `REAL` Hotels API flow создает search с предложениями |
+| Последний завершенный этап | Stage 9.18a — deterministic exact-match location selection и повторный runtime smoke |
+| Следующий планируемый шаг | Stage 9.19a — process-local накопление канонического контекста hotel constraints по assistant session |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.18 подтвердил backend/frontend regression и безопасные failure outcomes. Один opt-in runtime smoke дошел до `400 VALIDATION_ERROR`: реальный search не создан, потому что текущий flow не умеет безопасно выбрать location, когда autocomplete не возвращает ровно один candidate. Интеграция не считается закрытой.
+**Статус:** Stage 9.18 и Stage 9.18a завершены. Backend/frontend regression и безопасные failure outcomes подтверждены. Детерминированная exact-match policy устранила location-selection blocker; один повторный opt-in runtime smoke создал search в состоянии `completed_with_offers` и вернул предложения. `FAKE` остается default.
 
 **Planning:**
 
@@ -574,12 +574,13 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.17a1 | Backend-only async/result contract migration | Завершен; `suspend`, typed outcomes и state creation policy реализованы без REAL runtime wiring |
 | Stage 9.17b | Autocomplete resolver transport adapter | Завершен; отдельный `input` DTO, `MockEngine`, без runtime wiring |
 | Stage 9.17c | Opt-in REAL runtime wiring с FAKE default | Завершен; public-only config, production client lifecycle и typed adapter composition |
-| Stage 9.18 | Integration closure verification | Regression и failure matrix пройдены; runtime smoke выявил location-selection blocker, closure не достигнут |
-| Stage 9.18a | Location-selection reconciliation | Следующий этап; точный deterministic match или явный selection boundary без first-result fallback |
+| Stage 9.18 | Integration closure verification | Завершен после Stage 9.18a: regression/failure matrix и повторный runtime smoke пройдены |
+| Stage 9.18a | Deterministic location candidate selection | Завершен; exact match по нормализованным `name`/`signature`, без first-result fallback |
+| Stage 9.19a | Накопление контекста диалога | Следующий этап; process-local canonical hotel constraints по assistant session |
 
 **Границы:** выбранный public flow использует `/search-api/search/autocomplete` и `POST /api/v1/hotels/search` на `https://hotels.tbank.ru/`. Его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. `REAL` включается только явно, `FAKE` остается default. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.18a должен отдельно согласовать location-selection policy. Автоматический выбор первого autocomplete candidate запрещен. После реализации и `MockEngine` verification потребуется отдельное разрешение на один повторный runtime smoke. Stage 9.19 не начинается до закрытия этого blocker. Public API/OpenAPI не расширяются без отдельного решения; pagination, taxes/fees и `LIMITED` policy остаются вне текущего шага.
+**Следующий шаг:** Stage 9.19a — process-local накопление канонического контекста hotel constraints по `AssistantSessionId`. Новое валидное значение заменяет прежнее, отсутствующее сохраняется; поиск не запускается до полного набора полей и явного подтверждения. Public API/OpenAPI не расширяются без отдельного решения; pagination, taxes/fees и `LIMITED` policy остаются отложенными.
 
 ### Stage 10 — Cross-platform Expansion
 

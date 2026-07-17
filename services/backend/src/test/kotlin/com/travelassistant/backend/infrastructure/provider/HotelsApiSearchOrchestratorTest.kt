@@ -1,5 +1,6 @@
 package com.travelassistant.backend.infrastructure.provider
 
+import com.travelassistant.backend.application.hotel.ExactMatchHotelLocationCandidateSelectionPolicy
 import com.travelassistant.backend.application.hotel.HotelLocationResolution
 import com.travelassistant.backend.application.hotel.HotelLocationResolutionRequest
 import com.travelassistant.backend.application.hotel.HotelLocationResolverBoundary
@@ -80,6 +81,42 @@ class HotelsApiSearchOrchestratorTest {
         assertEquals(77, result.location.destinationId)
         assertEquals(listOf("hotel-1"), result.offers.map { it.providerReference })
 
+        client.close()
+    }
+
+    @Test
+    fun `selects one exact location among multiple and performs one search`() = runBlocking {
+        var capturedRequest: HttpRequestData? = null
+        var requestCount = 0
+        val client = client { request ->
+            requestCount += 1
+            capturedRequest = request
+            searchResponse()
+        }
+        val orchestrator = orchestrator(
+            client = client,
+            resolver = HotelLocationResolverBoundary {
+                HotelLocationResolution(
+                    candidates = listOf(
+                        location(destinationId = 1, name = "Казань, аэропорт"),
+                        location(destinationId = 77, name = "Казань"),
+                    ),
+                )
+            },
+        )
+
+        val result = assertIs<HotelsApiSearchOrchestrator.Result.Success>(
+            orchestrator.search(
+                HotelsApiSearchOrchestrator.Request(criteria = criteria()),
+            ),
+        )
+
+        val body = HotelsApiJson.codec.parseToJsonElement(
+            assertIs<TextContent>(capturedRequest?.body).text,
+        ).jsonObject
+        assertEquals(1, requestCount)
+        assertEquals(77, body.getValue("destinationId").jsonPrimitive.content.toInt())
+        assertEquals(77, result.location.destinationId)
         client.close()
     }
 
@@ -231,6 +268,7 @@ class HotelsApiSearchOrchestratorTest {
     ): HotelsApiSearchOrchestrator =
         HotelsApiSearchOrchestrator(
             locationResolver = resolver,
+            locationSelectionPolicy = ExactMatchHotelLocationCandidateSelectionPolicy(),
             transport = PublicHotelsApiHttpTransport(
                 httpClient = client,
                 publicTarget = HotelsApiTargetConfig.public(
@@ -256,11 +294,14 @@ class HotelsApiSearchOrchestratorTest {
             install(HttpTimeout)
         }
 
-    private fun location(destinationId: Int): HotelLocationResolution.Candidate =
+    private fun location(
+        destinationId: Int,
+        name: String = "Казань",
+    ): HotelLocationResolution.Candidate =
         HotelLocationResolution.Candidate(
             destinationId = destinationId,
-            name = "Казань",
-            signature = "Казань, Россия",
+            name = name,
+            signature = "$name, Россия",
             type = HotelLocationResolution.Type(code = "city", name = "Город"),
         )
 

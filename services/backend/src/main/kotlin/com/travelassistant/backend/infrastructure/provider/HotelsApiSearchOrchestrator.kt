@@ -1,5 +1,7 @@
 package com.travelassistant.backend.infrastructure.provider
 
+import com.travelassistant.backend.application.hotel.HotelLocationCandidateSelectionPolicy
+import com.travelassistant.backend.application.hotel.HotelLocationCandidateSelectionResult
 import com.travelassistant.backend.application.hotel.HotelLocationResolution
 import com.travelassistant.backend.application.hotel.HotelLocationResolutionRequest
 import com.travelassistant.backend.application.hotel.HotelLocationResolverBoundary
@@ -11,6 +13,7 @@ import kotlinx.serialization.encodeToString
 
 internal class HotelsApiSearchOrchestrator(
     private val locationResolver: HotelLocationResolverBoundary,
+    private val locationSelectionPolicy: HotelLocationCandidateSelectionPolicy,
     private val transport: PublicHotelsApiHttpTransport,
 ) {
 
@@ -22,12 +25,16 @@ internal class HotelsApiSearchOrchestrator(
             ),
         )
 
-        val location = when (resolution.candidates.size) {
-            0 -> return Result.LocationNotFound
-            1 -> resolution.candidates.single()
-            else -> return Result.LocationSelectionRequired(
+        val location = when (
+            val selection = locationSelectionPolicy.select(
+                query = request.criteria.destination,
                 candidates = resolution.candidates,
             )
+        ) {
+            is HotelLocationCandidateSelectionResult.Selected -> selection.candidate
+            HotelLocationCandidateSelectionResult.NotFound -> return Result.LocationNotFound
+            is HotelLocationCandidateSelectionResult.SelectionRequired ->
+                return Result.LocationSelectionRequired(candidates = selection.candidates)
         }
 
         val mappedRequest = when (

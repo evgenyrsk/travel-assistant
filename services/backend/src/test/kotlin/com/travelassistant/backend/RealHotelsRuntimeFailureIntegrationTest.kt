@@ -43,7 +43,7 @@ class RealHotelsRuntimeFailureIntegrationTest {
                 autocompleteClient(
                     locations = listOf(
                         locationJson(1001, "Казань"),
-                        locationJson(1002, "Казань, аэропорт"),
+                        locationJson(1002, "Казань"),
                     ),
                 )
             },

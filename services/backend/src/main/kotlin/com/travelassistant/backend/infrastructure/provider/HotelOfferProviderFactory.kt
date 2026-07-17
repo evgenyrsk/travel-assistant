@@ -1,5 +1,6 @@
 package com.travelassistant.backend.infrastructure.provider
 
+import com.travelassistant.backend.application.hotel.ExactMatchHotelLocationCandidateSelectionPolicy
 import com.travelassistant.backend.application.hotel.HotelLocationResolutionRequest
 import io.ktor.client.HttpClient
 
@@ -31,6 +32,7 @@ object HotelOfferProviderFactory {
         )
         val orchestrator = HotelsApiSearchOrchestrator(
             locationResolver = PublicHotelsApiLocationResolverAdapter(transport),
+            locationSelectionPolicy = ExactMatchHotelLocationCandidateSelectionPolicy(),
             transport = transport,
         )
         val language = config.userLanguage?.let(HotelLocationResolutionRequest.Language::valueOf)

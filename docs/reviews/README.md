@@ -476,6 +476,7 @@
 163. `docs/reviews/stage-9-17b-autocomplete-resolver-transport-adapter.md`
 164. `docs/reviews/stage-9-17c-real-hotels-api-runtime-wiring.md`
 165. `docs/reviews/stage-9-18-hotels-api-integration-verification.md`
+166. `docs/reviews/stage-9-18a-deterministic-location-candidate-selection.md`
 
 ## Historical / superseded документы
 
