@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.17c завершен как opt-in `REAL` Hotels API runtime wiring |
+| Текущий этап | Stage 9.18 проверен, но Hotels API integration не закрыта из-за location-selection blocker |
 | Последний завершенный этап | Stage 9.17c — public autocomplete/search composition подключена к runtime с `FAKE` по умолчанию |
-| Следующий планируемый шаг | Stage 9.18 — regression, controlled runtime smoke и закрытие Hotels API integration |
+| Следующий планируемый шаг | Stage 9.18a — согласование и проверка детерминированного location selection без выбора первого candidate |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.17c подключил public autocomplete/search composition к runtime в явно выбранном режиме `REAL`. Production `HttpClient` принадлежит lifecycle Ktor application, private JWT не требуется активному public flow, а `FAKE` остается provider по умолчанию.
+**Статус:** Stage 9.18 подтвердил backend/frontend regression и безопасные failure outcomes. Один opt-in runtime smoke дошел до `400 VALIDATION_ERROR`: реальный search не создан, потому что текущий flow не умеет безопасно выбрать location, когда autocomplete не возвращает ровно один candidate. Интеграция не считается закрытой.
 
 **Planning:**
 
@@ -574,11 +574,12 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.17a1 | Backend-only async/result contract migration | Завершен; `suspend`, typed outcomes и state creation policy реализованы без REAL runtime wiring |
 | Stage 9.17b | Autocomplete resolver transport adapter | Завершен; отдельный `input` DTO, `MockEngine`, без runtime wiring |
 | Stage 9.17c | Opt-in REAL runtime wiring с FAKE default | Завершен; public-only config, production client lifecycle и typed adapter composition |
-| Stage 9.18 | Integration closure | Следующий этап; regression, controlled smoke и failure verification |
+| Stage 9.18 | Integration closure verification | Regression и failure matrix пройдены; runtime smoke выявил location-selection blocker, closure не достигнут |
+| Stage 9.18a | Location-selection reconciliation | Следующий этап; точный deterministic match или явный selection boundary без first-result fallback |
 
 **Границы:** выбранный public flow использует `/search-api/search/autocomplete` и `POST /api/v1/hotels/search` на `https://hotels.tbank.ru/`. Его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. `REAL` включается только явно, `FAKE` остается default. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.18 должен проверить полный backend regression, route outcomes для success/location/failure случаев, выполнить один отдельно разрешенный opt-in runtime smoke и проверить существующую diagnostic frontend форму. Public API/OpenAPI не расширяются. Pagination возвращается только после отдельного продуктового решения; taxes/fees и threshold для `LIMITED` остаются неизвестными.
+**Следующий шаг:** Stage 9.18a должен отдельно согласовать location-selection policy. Автоматический выбор первого autocomplete candidate запрещен. После реализации и `MockEngine` verification потребуется отдельное разрешение на один повторный runtime smoke. Stage 9.19 не начинается до закрытия этого blocker. Public API/OpenAPI не расширяются без отдельного решения; pagination, taxes/fees и `LIMITED` policy остаются вне текущего шага.
 
 ### Stage 10 — Cross-platform Expansion
 
