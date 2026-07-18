@@ -10,6 +10,7 @@ sealed interface AssistantCandidateDecision {
 
     data class AskClarification(
         val question: String,
+        val candidate: LlmCandidate? = null,
     ) : AssistantCandidateDecision
 
     data class Fallback(

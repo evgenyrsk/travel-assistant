@@ -38,7 +38,10 @@ class PlanAssistantLlmDecisionUseCaseTest {
         val decision = pipeline(safeRequest())
 
         assertEquals(
-            AssistantCandidateDecision.AskClarification("What are your stay dates?"),
+            AssistantCandidateDecision.AskClarification(
+                question = "What are your stay dates?",
+                candidate = candidate,
+            ),
             decision,
         )
     }

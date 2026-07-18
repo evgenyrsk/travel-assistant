@@ -1,7 +1,9 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.domain.assistant.AssistantSession
+import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -12,6 +14,8 @@ class AssistantLlmRouteWiringUseCase(
     private val planProceedWithCandidateConfirmationUseCase: PlanProceedWithCandidateConfirmationUseCase =
         PlanProceedWithCandidateConfirmationUseCase(),
     private val pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
+    private val hotelConstraintsStore: AssistantHotelConstraintsStore =
+        InMemoryAssistantHotelConstraintsStore(),
     private val planPostConfirmationDecisionUseCase: PlanPostConfirmationDecisionUseCase =
         PlanPostConfirmationDecisionUseCase(pendingConfirmationStore),
     private val composeTransitionResponse: ComposeConfirmedSearchTransitionResponseUseCase,
@@ -20,6 +24,8 @@ class AssistantLlmRouteWiringUseCase(
     private val explicitHotelSearchMessageParser: MinimalHotelSearchMessageParser =
         MinimalHotelSearchMessageParser(),
 ) : AssistantSessionBoundary {
+    private val accumulateHotelConstraints =
+        AccumulateAssistantHotelConstraintsUseCase(hotelConstraintsStore)
 
     override fun createSession(): AssistantSession =
         assistantSessionBoundary.createSession()
@@ -38,43 +44,109 @@ class AssistantLlmRouteWiringUseCase(
             now = now,
         )
         if (activePendingConfirmation != null) {
-            return acceptedMessage.withPostConfirmationDecision(
-                planPostConfirmationDecisionUseCase(
-                    PlanPostConfirmationDecisionRequest(
-                        sessionId = command.sessionId,
-                        replyText = command.message,
-                        now = now,
-                    ),
+            val postConfirmationDecision = planPostConfirmationDecisionUseCase(
+                PlanPostConfirmationDecisionRequest(
+                    sessionId = command.sessionId,
+                    replyText = command.message,
+                    now = now,
                 ),
-                decidedAt = now,
-                activePendingConfirmation = activePendingConfirmation,
             )
-        }
-
-        return when (val decision = planAssistantLlmDecisionUseCase(requestFor(command, acceptedMessage))) {
-            is AssistantCandidateDecision.AskClarification ->
-                acceptedMessage.withClarification(decision.question)
-
-            is AssistantCandidateDecision.Fallback ->
-                acceptedMessage.withSafeBoundaryMessage()
-
-            is AssistantCandidateDecision.ProceedWithCandidate ->
-                acceptedMessage.withConfirmationPlan(
-                    planProceedWithCandidateConfirmationUseCase(decision),
+            if (postConfirmationDecision != PostConfirmationDecision.NeedsReplanning) {
+                return acceptedMessage.withPostConfirmationDecision(
+                    decision = postConfirmationDecision,
+                    decidedAt = now,
+                    activePendingConfirmation = activePendingConfirmation,
                 )
+            }
+
+            acceptedMessage.consumePendingConfirmation(now)
         }
+
+        return acceptedMessage.withLlmDecision(command)
     }
 
-    private fun requestFor(
+    private fun AcceptedAssistantMessage.withLlmDecision(
         command: AcceptAssistantMessageCommand,
-        acceptedMessage: AcceptedAssistantMessage,
-    ): LlmCandidateRequest =
-        LlmCandidateRequest(
+    ): AcceptedAssistantMessage =
+        when (val decision = planAssistantLlmDecisionUseCase(requestFor(command))) {
+            is AssistantCandidateDecision.AskClarification -> {
+                decision.candidate
+                    ?.takeIf { candidate -> candidate.isSafeForContextAccumulation() }
+                    ?.let { candidate -> accumulateConstraints(sessionId, candidate) }
+                withClarification(decision.question)
+            }
+
+            is AssistantCandidateDecision.Fallback ->
+                withSafeBoundaryMessage()
+
+            is AssistantCandidateDecision.ProceedWithCandidate ->
+                withConfirmationPlan(
+                    planProceedWithCandidateConfirmationUseCase(
+                        decision.withAccumulatedConstraints(sessionId),
+                    ),
+                )
+        }
+
+    private fun requestFor(command: AcceptAssistantMessageCommand): LlmCandidateRequest {
+        val constraints = hotelConstraintsStore.findBySession(command.sessionId)
+            ?: AssistantHotelConstraints()
+
+        return LlmCandidateRequest(
             userMessage = command.message,
-            missingRequiredFields = acceptedMessage.hotelRequirementsCoveragePlan
-                .missingRequiredSlotKeys
-                .map { it.value },
+            confirmedConstraints = constraints.toConfirmedConstraints(),
+            missingRequiredFields = constraints.missingRequiredFields(),
         )
+    }
+
+    private fun AssistantCandidateDecision.ProceedWithCandidate.withAccumulatedConstraints(
+        sessionId: AssistantSessionId,
+    ): AssistantCandidateDecision.ProceedWithCandidate {
+        if (!candidate.isSafeForContextAccumulation()) {
+            return this
+        }
+
+        val accumulation = accumulateConstraints(sessionId, candidate)
+        val missingFields = (
+            accumulation.constraints.missingRequiredFields() +
+                accumulation.issues.map { issue -> issue.field.key }
+            ).distinct()
+
+        return AssistantCandidateDecision.ProceedWithCandidate(
+            candidate.copy(
+                extractedConstraints = accumulation.constraints.toConfirmedConstraints(),
+                missingRequiredFields = missingFields,
+                clarificationQuestion = when {
+                    AssistantHotelConstraintField.CHILDREN.key in missingFields ->
+                        CHILDREN_COUNT_CLARIFICATION_MESSAGE
+
+                    AssistantHotelConstraintField.CHILDREN_AGES.key in missingFields ->
+                        CHILDREN_AGES_CLARIFICATION_MESSAGE
+
+                    else -> candidate.clarificationQuestion
+                },
+            ),
+        )
+    }
+
+    private fun accumulateConstraints(
+        sessionId: AssistantSessionId,
+        candidate: LlmCandidate,
+    ): AssistantHotelConstraintsAccumulationResult =
+        accumulateHotelConstraints(
+            AccumulateAssistantHotelConstraintsCommand(
+                sessionId = sessionId,
+                extractedConstraints = candidate.extractedConstraints,
+            ),
+        )
+
+    private fun LlmCandidate.isSafeForContextAccumulation(): Boolean =
+        intent == LlmCandidate.Intent.HOTEL_SEARCH &&
+            outcome in setOf(
+                LlmCandidate.Outcome.INTERPRETED,
+                LlmCandidate.Outcome.NEEDS_CLARIFICATION,
+            ) &&
+            conflicts.isEmpty() &&
+            warnings.isEmpty()
 
     private fun AcceptedAssistantMessage.withClarification(question: String): AcceptedAssistantMessage =
         copy(
@@ -217,5 +289,11 @@ class AssistantLlmRouteWiringUseCase(
 
         const val CONFIRMATION_UNKNOWN_REPLY_MESSAGE =
             "I could not match that reply to the pending confirmation. Please confirm, cancel, or share corrected criteria."
+
+        const val CHILDREN_COUNT_CLARIFICATION_MESSAGE =
+            "Укажите количество детей."
+
+        const val CHILDREN_AGES_CLARIFICATION_MESSAGE =
+            "Укажите возраст каждого ребёнка (от 0 до 17 лет)."
     }
 }

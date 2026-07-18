@@ -477,6 +477,7 @@
 164. `docs/reviews/stage-9-17c-real-hotels-api-runtime-wiring.md`
 165. `docs/reviews/stage-9-18-hotels-api-integration-verification.md`
 166. `docs/reviews/stage-9-18a-deterministic-location-candidate-selection.md`
+167. `docs/reviews/stage-9-19a-assistant-hotel-constraints-context.md`
 
 ## Historical / superseded документы
 

@@ -679,7 +679,7 @@ class AssistantSessionRoutesTest {
     }
 
     @Test
-    fun correctionConfirmationReplyConsumesPendingStateWithoutCreatingHotelSearch() = testApplication {
+    fun correctionConfirmationReplyReplacesPendingStateWithoutCreatingHotelSearch() = testApplication {
         val pendingConfirmationStore = InMemoryPendingConfirmationStore()
         var llmResponse: LlmClientResponse =
             LlmClientResponse.Candidate(interpretedHotelSearchCandidate())
@@ -701,7 +701,11 @@ class AssistantSessionRoutesTest {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             setBody("""{"message":"Find a hotel in Rome for two adults"}""")
         }
-        llmResponse = LlmClientResponse.Empty
+        llmResponse = LlmClientResponse.Candidate(
+            interpretedHotelSearchCandidate().copy(
+                extractedConstraints = mapOf("destination" to "Paris"),
+            ),
+        )
 
         val replyResponse = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
@@ -716,12 +720,14 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Please share the corrected destination, dates, guests, and rooms before I continue.",
+            "Параметры hotel search: направление: Paris; заезд: 2026-07-01; " +
+                "выезд: 2026-07-04; взрослые: 2; дети: 0; номера: 1. " +
+                "Проверить отели по этим параметрам?",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))
         replyBody.assertNoRawLlmFields()
-        assertEquals(null, activePendingAfterReply)
+        assertEquals("Paris", activePendingAfterReply?.criteria?.destination)
 
         val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
         assertEquals(HttpStatusCode.NotFound, offersResponse.status)

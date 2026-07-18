@@ -3,11 +3,13 @@ package com.travelassistant.backend
 import com.travelassistant.backend.api.configureApiRoutes
 import com.travelassistant.backend.api.configureErrorHandling
 import com.travelassistant.backend.api.configureSerialization
+import com.travelassistant.backend.application.assistant.AssistantHotelConstraintsStore
 import com.travelassistant.backend.application.assistant.AssistantHotelSearchHandoffUseCase
 import com.travelassistant.backend.application.assistant.AssistantLlmRouteWiringUseCase
 import com.travelassistant.backend.application.assistant.ComposeConfirmedSearchTransitionResponseUseCase
 import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
 import com.travelassistant.backend.application.assistant.ExecuteConfirmedSearchTransitionUseCase
+import com.travelassistant.backend.application.assistant.InMemoryAssistantHotelConstraintsStore
 import com.travelassistant.backend.application.assistant.InMemoryAssistantSessionStateStore
 import com.travelassistant.backend.application.assistant.InMemoryConfirmedSearchExecutionAttemptStore
 import com.travelassistant.backend.application.assistant.InMemoryPendingConfirmationStore
@@ -50,6 +52,7 @@ internal fun Application.moduleWithAssistantLlm(
     llmClient: LlmClient,
     providerConfig: HotelProviderConfig = HotelProviderConfig(),
     pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
+    hotelConstraintsStore: AssistantHotelConstraintsStore = InMemoryAssistantHotelConstraintsStore(),
     clock: Clock = Clock.systemUTC(),
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
 ) {
@@ -81,6 +84,7 @@ internal fun Application.moduleWithAssistantLlm(
             ),
         ),
         pendingConfirmationStore = pendingConfirmationStore,
+        hotelConstraintsStore = hotelConstraintsStore,
         composeTransitionResponse = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
                 attemptStore = InMemoryConfirmedSearchExecutionAttemptStore(),
