@@ -1,14 +1,17 @@
 package com.travelassistant.backend.application.llm
 
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 class GenerateLlmCandidateUseCaseTest {
 
     @Test
-    fun acceptsValidLlmCandidate() {
+    fun acceptsValidLlmCandidate() = runBlocking {
         val candidate = hotelSearchCandidate()
         val useCase = GenerateLlmCandidateUseCase(
             llmClient = FakeLlmClient(LlmClientResponse.Candidate(candidate)),
@@ -23,7 +26,7 @@ class GenerateLlmCandidateUseCaseTest {
     }
 
     @Test
-    fun returnsSafeFallbackForInvalidCandidate() {
+    fun returnsSafeFallbackForInvalidCandidate() = runBlocking {
         val invalidCandidate = LlmCandidate(
             outcome = LlmCandidate.Outcome.INTERPRETED,
             intent = LlmCandidate.Intent.HOTEL_SEARCH,
@@ -45,7 +48,7 @@ class GenerateLlmCandidateUseCaseTest {
     }
 
     @Test
-    fun returnsSafeFallbackForEmptyCandidateResponse() {
+    fun returnsSafeFallbackForEmptyCandidateResponse() = runBlocking {
         val useCase = GenerateLlmCandidateUseCase(
             llmClient = FakeLlmClient(LlmClientResponse.Empty),
         )
@@ -62,7 +65,7 @@ class GenerateLlmCandidateUseCaseTest {
     }
 
     @Test
-    fun acceptsAmbiguousCandidateWithClarificationQuestion() {
+    fun acceptsAmbiguousCandidateWithClarificationQuestion() = runBlocking {
         val candidate = LlmCandidate(
             outcome = LlmCandidate.Outcome.AMBIGUOUS,
             intent = LlmCandidate.Intent.UNKNOWN,
@@ -82,7 +85,7 @@ class GenerateLlmCandidateUseCaseTest {
     }
 
     @Test
-    fun returnsSafeFallbackForClientFailureResponse() {
+    fun returnsSafeFallbackForClientFailureResponse() = runBlocking {
         val useCase = GenerateLlmCandidateUseCase(
             llmClient = FakeLlmClient(LlmClientResponse.Failure),
         )
@@ -99,7 +102,7 @@ class GenerateLlmCandidateUseCaseTest {
     }
 
     @Test
-    fun convertsUnexpectedClientExceptionToSafeFallback() {
+    fun convertsUnexpectedClientExceptionToSafeFallback() = runBlocking {
         val useCase = GenerateLlmCandidateUseCase(
             llmClient = LlmClient {
                 throw IllegalStateException("LLM candidate generation failed")
@@ -118,7 +121,20 @@ class GenerateLlmCandidateUseCaseTest {
     }
 
     @Test
-    fun remainsDeterministicWithFakeLlmClient() {
+    fun cancellationFromClientIsPropagated() = runBlocking {
+        val useCase = GenerateLlmCandidateUseCase(
+            llmClient = LlmClient {
+                throw CancellationException("LLM candidate generation cancelled")
+            },
+        )
+
+        assertFailsWith<CancellationException> {
+            useCase(safeRequest())
+        }
+    }
+
+    @Test
+    fun remainsDeterministicWithFakeLlmClient() = runBlocking {
         val candidate = hotelSearchCandidate()
         val useCase = GenerateLlmCandidateUseCase(
             llmClient = FakeLlmClient(LlmClientResponse.Candidate(candidate)),

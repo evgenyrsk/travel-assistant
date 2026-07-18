@@ -3,13 +3,14 @@ package com.travelassistant.backend.infrastructure.llm
 import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmClientResponse
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class FakeLlmClientTest {
 
     @Test
-    fun returnsConfiguredCandidateDeterministically() {
+    fun returnsConfiguredCandidateDeterministically() = runBlocking {
         val response = LlmClientResponse.Candidate(
             LlmCandidate(
                 outcome = LlmCandidate.Outcome.INTERPRETED,
@@ -28,7 +29,7 @@ class FakeLlmClientTest {
     }
 
     @Test
-    fun returnsConfiguredEmptyResponseDeterministically() {
+    fun returnsConfiguredEmptyResponseDeterministically() = runBlocking {
         val client = FakeLlmClient(LlmClientResponse.Empty)
         val request = LlmCandidateRequest(
             userMessage = "Find a hotel",
@@ -40,7 +41,7 @@ class FakeLlmClientTest {
     }
 
     @Test
-    fun returnsConfiguredAmbiguousCandidateDeterministically() {
+    fun returnsConfiguredAmbiguousCandidateDeterministically() = runBlocking {
         val response = LlmClientResponse.Candidate(
             LlmCandidate(
                 outcome = LlmCandidate.Outcome.AMBIGUOUS,

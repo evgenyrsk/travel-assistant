@@ -478,6 +478,7 @@
 165. `docs/reviews/stage-9-18-hotels-api-integration-verification.md`
 166. `docs/reviews/stage-9-18a-deterministic-location-candidate-selection.md`
 167. `docs/reviews/stage-9-19a-assistant-hotel-constraints-context.md`
+168. `docs/reviews/stage-9-19b-async-llm-boundary-migration.md`
 
 ## Historical / superseded документы
 

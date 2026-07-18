@@ -65,7 +65,7 @@ class AssistantLlmRouteWiringUseCase(
         return acceptedMessage.withLlmDecision(command)
     }
 
-    private fun AcceptedAssistantMessage.withLlmDecision(
+    private suspend fun AcceptedAssistantMessage.withLlmDecision(
         command: AcceptAssistantMessageCommand,
     ): AcceptedAssistantMessage =
         when (val decision = planAssistantLlmDecisionUseCase(requestFor(command))) {

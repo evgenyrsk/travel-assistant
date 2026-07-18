@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.19a завершен; assistant session накапливает process-local канонический контекст hotel constraints |
-| Последний завершенный этап | Stage 9.19a — накопление, correction и сохранение hotel constraints между сообщениями |
-| Следующий планируемый шаг | Stage 9.19b — асинхронная LLM-граница с сохранением поведения `FakeLlmClient` |
+| Текущий этап | Stage 9.19b завершен; внутренняя LLM-цепочка работает через `suspend` с явным пробросом cancellation |
+| Последний завершенный этап | Stage 9.19b — асинхронная provider-independent LLM-граница с сохранением поведения `FakeLlmClient` |
+| Следующий планируемый шаг | Stage 9.20 — OpenRouter adapter с `MockEngine`, без runtime wiring и live calls |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.19a завершен. Backend/frontend regression и безопасные failure outcomes Hotels API подтверждены; assistant session накапливает канонические hotel constraints между уточнениями, а поиск по-прежнему требует полного набора полей и явного confirmation. `FAKE` остается default.
+**Статус:** Stage 9.19b завершен. Backend/frontend regression и безопасные failure outcomes Hotels API подтверждены; assistant session накапливает канонические hotel constraints, а provider-independent LLM-цепочка переведена на `suspend` с пробросом cancellation. `FAKE` остается default.
 
 **Planning:**
 
@@ -577,11 +577,12 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.18 | Integration closure verification | Завершен после Stage 9.18a: regression/failure matrix и повторный runtime smoke пройдены |
 | Stage 9.18a | Deterministic location candidate selection | Завершен; exact match по нормализованным `name`/`signature`, без first-result fallback |
 | Stage 9.19a | Накопление контекста диалога | Завершен; process-local canonical hotel constraints, correction и child-age clarification по assistant session |
-| Stage 9.19b | Асинхронная LLM-граница | Следующий этап; `suspend` migration без реального LLM provider и без изменения public API |
+| Stage 9.19b | Асинхронная LLM-граница | Завершен; сквозной `suspend`, безопасный fallback и проброс cancellation без изменения public API |
+| Stage 9.20 | OpenRouter adapter без runtime wiring | Следующий этап; только `MockEngine`, без live calls и активации внешнего LLM |
 
 **Границы:** выбранный public flow использует `/search-api/search/autocomplete` и `POST /api/v1/hotels/search` на `https://hotels.tbank.ru/`. Его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. `REAL` включается только явно, `FAKE` остается default. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.19b — перевести `LlmClient.generateCandidate()` и вызывающую application-цепочку на `suspend`, сохранив поведение `FakeLlmClient`, проброс coroutine cancellation и запрет `runBlocking` в production. Реальный LLM provider, public API/OpenAPI, pagination, taxes/fees и `LIMITED` policy остаются вне этого этапа.
+**Следующий шаг:** Stage 9.20 — добавить изолированный OpenRouter adapter для существующего `LlmClient` и проверить его через `MockEngine` без runtime wiring, live calls и изменения public API. Активация реального LLM, API keys, frontend, pagination, taxes/fees и `LIMITED` policy остаются вне этого этапа.
 
 ### Stage 10 — Cross-platform Expansion
 
