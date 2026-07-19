@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Диагностическая форма Travel Assistant для прямой проверки hotel-search API.">
+    <title>Travel Assistant — диагностика</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <div>
+          <p class="eyebrow">Диагностическая страница</p>
+          <h1>Travel Assistant</h1>
+        </div>
+      </div>
+      <nav class="header-actions" aria-label="Навигация">
+        <span class="environment-label">Прямой сценарий API</span>
+        <a class="header-link" href="/">Вернуться в чат <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main class="workspace">
+      <section class="request-panel" aria-labelledby="request-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Поиск отелей</p>
+            <h2 id="request-title">Параметры поиска</h2>
+          </div>
+          <span class="step-label">1</span>
+        </div>
+
+        <form id="search-form">
+          <label for="destination">Направление</label>
+          <input id="destination" name="destination" value="Rome" required>
+
+          <div class="field-grid">
+            <label>
+              Заезд
+              <input id="check-in-date" name="checkInDate" type="date" value="2026-07-01" required>
+            </label>
+            <label>
+              Выезд
+              <input id="check-out-date" name="checkOutDate" type="date" value="2026-07-04" required>
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <label>
+              Взрослые
+              <input id="adults" name="adults" type="number" min="1" value="2" required>
+            </label>
+            <label>
+              Комнаты
+              <input id="rooms" name="rooms" type="number" min="1" value="1" required>
+            </label>
+          </div>
+
+          <button id="submit-search" type="submit">Найти отели</button>
+        </form>
+
+        <p id="error-message" class="error-message" role="alert" hidden></p>
+        <p id="status" class="status-line" data-tone="idle" aria-live="polite">
+          Backend должен быть доступен локально.
+        </p>
+      </section>
+
+      <section class="results-panel" aria-labelledby="results-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Ранжированные предложения</p>
+            <h2 id="results-title">Предложения</h2>
+          </div>
+          <span class="step-label">2</span>
+        </div>
+
+        <div id="empty-state" class="empty-state">
+          <span class="empty-state__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 21s6-5.5 6-11a6 6 0 1 0-12 0c0 5.5 6 11 6 11Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="10" r="2.2" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+          </span>
+          <h3>Результаты появятся здесь</h3>
+          <p>После поиска покажем название, цену, рейтинг, доступность и причину ранжирования.</p>
+        </div>
+        <div id="results" class="results-list" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer>
+      Диагностическая форма вызывает hotel-search route напрямую и не заменяет основной диалоговый сценарий.
+    </footer>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

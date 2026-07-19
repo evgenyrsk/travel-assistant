@@ -3,10 +3,35 @@ export function createApiClient({
   baseUrl = "/api/v1",
 } = {}) {
   return {
-    createAssistantSession() {
-      return requestJson(fetchImpl, `${baseUrl}/assistant/sessions`, {
+    createAssistantSession(initialMessage) {
+      const options = {
         method: "POST",
-      });
+      };
+
+      if (typeof initialMessage === "string") {
+        options.headers = {
+          "content-type": "application/json",
+        };
+        options.body = JSON.stringify({
+          message: initialMessage,
+        });
+      }
+
+      return requestJson(fetchImpl, `${baseUrl}/assistant/sessions`, options);
+    },
+
+    sendAssistantMessage(sessionId, message) {
+      return requestJson(
+        fetchImpl,
+        `${baseUrl}/assistant/sessions/${encodeURIComponent(sessionId)}/messages`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ message }),
+        },
+      );
     },
 
     createHotelSearch(sessionId, criteria) {

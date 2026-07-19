@@ -483,6 +483,7 @@
 170. `docs/reviews/stage-9-21a-openrouter-safe-failure-diagnostics.md`
 171. `docs/reviews/stage-9-21-opt-in-openrouter-runtime-and-qa.md`
 172. `docs/reviews/stage-9-21c-bounded-openrouter-retry-policy.md`
+173. `docs/reviews/stage-9-22-chat-first-frontend.md`
 
 ## Historical / superseded документы
 

@@ -19,7 +19,7 @@ README является входной картой проекта: он пом�
 ├── .env.example         # Пример локальных переменных окружения
 ├── .gitignore           # Правила исключения локальных и сгенерированных файлов
 ├── .github/             # Шаблоны GitHub issues и pull requests
-├── app/                 # Временная техническая оболочка Stage 7.51 для проверки поиска отелей
+├── app/                 # Диалоговый frontend и отдельная диагностическая страница API
 ├── services/            # Backend-модули; services/backend содержит основу на Kotlin + Ktor
 ├── docs/                # Продуктовая, архитектурная и инженерная документация, а также roadmap
 ├── tests/               # Будущие тесты, fixtures и E2E-сценарии
@@ -57,7 +57,7 @@ README является входной картой проекта: он пом�
 - `docs/development/roadmap.md` — компактный справочник по будущим направлениям разработки; не источник статусов и не активный список задач.
 - `docs/development/implementation-strategy.md` — справочная стратегия реализации и правила декомпозиции задач; не основной roadmap и не активный список реализации.
 - `services/backend/README.md` — инструкция по запуску backend на Kotlin + Ktor и описание текущих локальных endpoints.
-- `app/README.md` — запуск временной frontend-оболочки Stage 7.51; целевое направление продукта остается chat-first.
+- `app/README.md` — запуск текущего диалогового frontend и отдельной диагностической страницы.
 - `docs/prompts/README.md` — индекс Codex prompt templates.
 - `docs/prompts/codex-task-template.md` — практический шаблон Codex для задач реализации и сопровождения.
 - `docs/prompts/codex-review-template.md` — практический шаблон Codex для задач только на проверку.

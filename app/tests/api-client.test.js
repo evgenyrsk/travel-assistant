@@ -79,6 +79,47 @@ test("surfaces backend error messages", async () => {
   );
 });
 
+test("sends initial and subsequent chat messages through assistant routes", async () => {
+  const calls = [];
+  const api = createApiClient({
+    fetchImpl: async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        session: {
+          sessionId: "assistant-session-local-000001",
+        },
+        assistantMessage: {
+          role: "assistant",
+          content: "Уточните даты.",
+        },
+        nextAction: "ask_clarification",
+      });
+    },
+  });
+
+  await api.createAssistantSession("Найди отель в Казани");
+  await api.sendAssistantMessage(
+    "assistant-session-local-000001",
+    "С 10 по 14 августа",
+  );
+
+  assert.deepEqual(
+    calls.map(({ url }) => url),
+    [
+      "/api/v1/assistant/sessions",
+      "/api/v1/assistant/sessions/assistant-session-local-000001/messages",
+    ],
+  );
+  assert.equal(
+    JSON.parse(calls[0].options.body).message,
+    "Найди отель в Казани",
+  );
+  assert.equal(
+    JSON.parse(calls[1].options.body).message,
+    "С 10 по 14 августа",
+  );
+});
+
 function jsonResponse(body, overrides = {}) {
   return {
     ok: overrides.ok ?? true,

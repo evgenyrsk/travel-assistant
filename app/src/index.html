@@ -3,84 +3,97 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Минимальный frontend-сценарий Travel Assistant для локального поиска отелей.">
+    <meta name="description" content="Chat-first интерфейс Travel Assistant для поиска отелей.">
     <title>Travel Assistant</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
     <header class="app-header">
-      <div>
-        <p class="eyebrow">Hotel-only MVP</p>
-        <h1>Travel Assistant</h1>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <div>
+          <p class="eyebrow">MVP поиска отелей</p>
+          <h1>Travel Assistant</h1>
+        </div>
       </div>
-      <span class="environment-label">Local fake provider</span>
+      <nav class="header-actions" aria-label="Навигация">
+        <span class="environment-label">Локальный MVP</span>
+        <a class="header-link" href="/diagnostic.html">Диагностика API <span aria-hidden="true">↗</span></a>
+      </nav>
     </header>
 
-    <main class="workspace">
-      <section class="request-panel" aria-labelledby="request-title">
+    <main class="workspace chat-workspace">
+      <section class="chat-panel" aria-labelledby="chat-title">
         <div class="section-heading">
           <div>
-            <p class="section-kicker">Hotel search</p>
-            <h2 id="request-title">Параметры поиска</h2>
+            <p class="section-kicker">Диалог с ассистентом</p>
+            <h2 id="chat-title">Куда отправимся?</h2>
           </div>
-          <span class="step-label">1</span>
+          <span class="panel-status"><span aria-hidden="true"></span>Готов к диалогу</span>
         </div>
 
-        <form id="search-form">
-          <label for="destination">Направление</label>
-          <input id="destination" name="destination" value="Rome" required>
+        <div id="transcript" class="chat-transcript" role="log" aria-live="polite" aria-relevant="additions">
+          <article class="chat-message chat-message--assistant">
+            <p class="chat-message__author">Ассистент</p>
+            <p class="chat-message__content">
+              Расскажите, куда и когда планируете поездку и кто едет с вами. Я уточню недостающие детали и помогу выбрать отель.
+            </p>
+          </article>
+        </div>
 
-          <div class="field-grid">
-            <label>
-              Заезд
-              <input id="check-in-date" name="checkInDate" type="date" value="2026-07-01" required>
-            </label>
-            <label>
-              Выезд
-              <input id="check-out-date" name="checkOutDate" type="date" value="2026-07-04" required>
-            </label>
+        <form id="chat-form" class="chat-form">
+          <label class="visually-hidden" for="chat-input">Сообщение ассистенту</label>
+          <textarea
+            id="chat-input"
+            name="message"
+            rows="3"
+            maxlength="2000"
+            placeholder="Например: Казань, 10–14 августа, двое взрослых"
+            required
+          ></textarea>
+          <div class="chat-form__actions">
+            <p class="input-hint">Можно отвечать обычным сообщением</p>
+            <button id="send-message" type="submit">
+              <span id="send-message-label">Отправить</span>
+              <span class="button-icon" aria-hidden="true">↑</span>
+            </button>
           </div>
-
-          <div class="field-grid">
-            <label>
-              Взрослые
-              <input id="adults" name="adults" type="number" min="1" value="2" required>
-            </label>
-            <label>
-              Комнаты
-              <input id="rooms" name="rooms" type="number" min="1" value="1" required>
-            </label>
-          </div>
-
-          <button id="submit-search" type="submit">Найти отели</button>
         </form>
 
-        <p id="error-message" class="error-message" role="alert" hidden></p>
-        <p id="status" class="status-line" data-tone="idle" aria-live="polite">
-          Backend должен быть доступен локально.
+        <p id="chat-error" class="error-message" role="alert" hidden></p>
+        <p id="chat-status" class="status-line" data-tone="idle" aria-live="polite">
+          Сессия создастся после первого сообщения.
         </p>
       </section>
 
       <section class="results-panel" aria-labelledby="results-title">
         <div class="section-heading">
           <div>
-            <p class="section-kicker">Ranked offers</p>
-            <h2 id="results-title">Предложения</h2>
+            <p class="section-kicker">Персональная подборка</p>
+            <h2 id="results-title">Подходящие варианты</h2>
           </div>
-          <span class="step-label">2</span>
+          <span id="results-count" class="results-count" aria-label="Количество предложений">0</span>
         </div>
 
-        <p id="empty-state" class="empty-state">
-          После успешного поиска здесь появятся название, цена, рейтинг, доступность и причина ранжирования.
-        </p>
+        <p id="results-summary" class="results-summary" hidden></p>
+        <div id="empty-state" class="empty-state">
+          <span class="empty-state__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 21s6-5.5 6-11a6 6 0 1 0-12 0c0 5.5 6 11 6 11Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="10" r="2.2" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+          </span>
+          <h3>Здесь появится ваша подборка</h3>
+          <p>После уточнения параметров и подтверждения покажем до пяти лучших вариантов.</p>
+        </div>
         <div id="results" class="results-list" aria-live="polite"></div>
       </section>
     </main>
 
     <footer>
-      Process-local demo. Без booking, real provider и generated clients.
+      История диалога хранится только до перезагрузки страницы · Бронирование и оплата пока недоступны
     </footer>
 
-    <script type="module" src="/app.js"></script>
+    <script type="module" src="/chat-app.js"></script>
   </body>
 </html>
