@@ -484,6 +484,7 @@
 171. `docs/reviews/stage-9-21-opt-in-openrouter-runtime-and-qa.md`
 172. `docs/reviews/stage-9-21c-bounded-openrouter-retry-policy.md`
 173. `docs/reviews/stage-9-22-chat-first-frontend.md`
+174. `docs/reviews/stage-9-23a-openrouter-semantic-candidate-hardening.md`
 
 ## Historical / superseded документы
 

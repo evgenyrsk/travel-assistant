@@ -267,13 +267,31 @@ internal class OpenRouterLlmClient(
             put(
                 "properties",
                 buildJsonObject {
-                    put("outcome", enumSchema(LlmCandidate.Outcome.entries.map(Enum<*>::name)))
-                    put("intent", enumSchema(LlmCandidate.Intent.entries.map(Enum<*>::name)))
+                    put(
+                        "outcome",
+                        enumSchema(
+                            values = LlmCandidate.Outcome.entries.map(Enum<*>::name),
+                            description = OUTCOME_DESCRIPTION,
+                        ),
+                    )
+                    put(
+                        "intent",
+                        enumSchema(
+                            values = LlmCandidate.Intent.entries.map(Enum<*>::name),
+                            description = INTENT_DESCRIPTION,
+                        ),
+                    )
                     put("extractedConstraints", extractedConstraintsSchema())
-                    put("missingRequiredFields", stringArraySchema())
-                    put("conflicts", stringArraySchema())
-                    put("clarificationQuestion", nullableStringSchema())
-                    put("warnings", stringArraySchema())
+                    put(
+                        "missingRequiredFields",
+                        stringArraySchema(MISSING_REQUIRED_FIELDS_DESCRIPTION),
+                    )
+                    put("conflicts", stringArraySchema(CONFLICTS_DESCRIPTION))
+                    put(
+                        "clarificationQuestion",
+                        nullableStringSchema(CLARIFICATION_QUESTION_DESCRIPTION),
+                    )
+                    put("warnings", stringArraySchema(WARNINGS_DESCRIPTION))
                 },
             )
             put(
@@ -298,7 +316,10 @@ internal class OpenRouterLlmClient(
                 "properties",
                 buildJsonObject {
                     CANONICAL_CONSTRAINT_KEYS.forEach { key ->
-                        put(key, nullableStringSchema())
+                        put(
+                            key,
+                            nullableStringSchema(CONSTRAINT_DESCRIPTIONS.getValue(key)),
+                        )
                     }
                 },
             )
@@ -306,9 +327,13 @@ internal class OpenRouterLlmClient(
             put("additionalProperties", false)
         }
 
-    private fun enumSchema(values: List<String>): JsonObject =
+    private fun enumSchema(
+        values: List<String>,
+        description: String,
+    ): JsonObject =
         buildJsonObject {
             put("type", "string")
+            put("description", description)
             put(
                 "enum",
                 buildJsonArray {
@@ -317,14 +342,16 @@ internal class OpenRouterLlmClient(
             )
         }
 
-    private fun nullableStringSchema(): JsonObject =
+    private fun nullableStringSchema(description: String): JsonObject =
         buildJsonObject {
             put("type", stringArray("string", "null"))
+            put("description", description)
         }
 
-    private fun stringArraySchema(): JsonObject =
+    private fun stringArraySchema(description: String): JsonObject =
         buildJsonObject {
             put("type", "array")
+            put("description", description)
             put(
                 "items",
                 buildJsonObject {
@@ -353,11 +380,44 @@ internal class OpenRouterLlmClient(
             "rooms",
         )
 
+        val CONSTRAINT_DESCRIPTIONS = mapOf(
+            "destination" to "Destination name from the user, or null when absent.",
+            "check-in" to "Check-in date as YYYY-MM-DD, or null when absent.",
+            "check-out" to "Check-out date as YYYY-MM-DD, or null when absent.",
+            "adults" to "Adult count as a decimal string, or null when absent.",
+            "children" to "Child count as a decimal string, or null when absent.",
+            "children-ages" to
+                "Comma-separated child ages in user order; null when no children or ages are absent.",
+            "rooms" to "Room count as a decimal string, or null when absent.",
+        )
+
+        const val OUTCOME_DESCRIPTION =
+            "INTERPRETED only for a complete consistent hotel request; " +
+                "NEEDS_CLARIFICATION when required values are absent; " +
+                "AMBIGUOUS for conflicting meanings; UNSUPPORTED for non-hotel requests."
+        const val INTENT_DESCRIPTION =
+            "HOTEL_SEARCH for supported hotel requests, UNSUPPORTED for non-hotel requests."
+        const val MISSING_REQUIRED_FIELDS_DESCRIPTION =
+            "Canonical constraint keys still required from the user; empty for INTERPRETED."
+        const val CONFLICTS_DESCRIPTION =
+            "Short conflict markers; empty when the request is consistent."
+        const val CLARIFICATION_QUESTION_DESCRIPTION =
+            "A non-empty user-facing question only when clarification is required; otherwise null."
+        const val WARNINGS_DESCRIPTION =
+            "Blocking safety warnings; empty for a safe complete hotel request."
+
         const val SYSTEM_PROMPT =
             "You extract hotel-only travel constraints for Travel Assistant. " +
                 "Return only JSON matching the required schema. " +
-                "Use confirmed constraints as context, never invent missing values, " +
-                "and use only the canonical constraint keys supplied by the schema. " +
+                "Use confirmed constraints as context and never invent missing values. " +
+                "Use null, never an empty string, for absent constraint values and for an absent " +
+                "clarification question. Dates use YYYY-MM-DD. Counts use decimal strings. " +
+                "Use children-ages as comma-separated ages only when children is greater than zero. " +
+                "For a complete consistent hotel request return INTERPRETED and HOTEL_SEARCH, " +
+                "with empty missingRequiredFields, conflicts, and warnings, and null " +
+                "clarificationQuestion. For an incomplete request return NEEDS_CLARIFICATION, " +
+                "list only missing canonical keys, and ask one non-empty clarification question. " +
+                "Use only the canonical constraint keys supplied by the schema. " +
                 "For unsupported non-hotel requests, return UNSUPPORTED intent and outcome."
     }
 }
@@ -424,12 +484,15 @@ private data class OpenRouterExtractedConstraintsDto(
 ) {
     fun toDomainMap(): Map<String, String> =
         listOfNotNull(
-            destination?.let { "destination" to it },
-            checkIn?.let { "check-in" to it },
-            checkOut?.let { "check-out" to it },
-            adults?.let { "adults" to it },
-            children?.let { "children" to it },
-            childrenAges?.let { "children-ages" to it },
-            rooms?.let { "rooms" to it },
+            destination.toConstraint("destination"),
+            checkIn.toConstraint("check-in"),
+            checkOut.toConstraint("check-out"),
+            adults.toConstraint("adults"),
+            children.toConstraint("children"),
+            childrenAges.toConstraint("children-ages"),
+            rooms.toConstraint("rooms"),
         ).toMap()
+
+    private fun String?.toConstraint(key: String): Pair<String, String>? =
+        this?.takeUnless(String::isBlank)?.let { value -> key to value }
 }

@@ -1,7 +1,9 @@
 package com.travelassistant.backend.infrastructure.llm
 
+import com.travelassistant.backend.application.llm.GenerateLlmCandidateUseCase
 import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
+import com.travelassistant.backend.application.llm.LlmCandidateValidationResult
 import com.travelassistant.backend.application.llm.LlmClientResponse
 import com.travelassistant.backend.application.llm.LlmClientRetryableFailureReason
 import io.ktor.client.HttpClient
@@ -107,6 +109,9 @@ class OpenRouterLlmClientTest {
         assertEquals(listOf("system", "user"), messages.map { message ->
             message.jsonObject.getValue("role").jsonPrimitive.content
         })
+        val systemPrompt = messages[0].jsonObject.getValue("content").jsonPrimitive.content
+        assertTrue(systemPrompt.contains("Use null, never an empty string"))
+        assertTrue(systemPrompt.contains("For a complete consistent hotel request"))
         val promptPayload = Json.parseToJsonElement(
             messages[1].jsonObject.getValue("content").jsonPrimitive.content,
         ).jsonObject
@@ -128,8 +133,10 @@ class OpenRouterLlmClientTest {
         assertTrue(jsonSchema.getValue("strict").jsonPrimitive.boolean)
         val schema = jsonSchema.getValue("schema").jsonObject
         assertFalse(schema.getValue("additionalProperties").jsonPrimitive.boolean)
-        val extractedConstraints = schema.getValue("properties").jsonObject
+        val properties = schema.getValue("properties").jsonObject
+        val extractedConstraints = properties
             .getValue("extractedConstraints").jsonObject
+        val constraintProperties = extractedConstraints.getValue("properties").jsonObject
         assertEquals(
             setOf(
                 "destination",
@@ -140,9 +147,47 @@ class OpenRouterLlmClientTest {
                 "children-ages",
                 "rooms",
             ),
-            extractedConstraints.getValue("properties").jsonObject.keys,
+            constraintProperties.keys,
+        )
+        assertTrue(constraintProperties.values.all { property ->
+            property.jsonObject.getValue("description").jsonPrimitive.content.isNotBlank()
+        })
+        assertTrue(
+            properties.getValue("outcome").jsonObject
+                .getValue("description").jsonPrimitive.content.isNotBlank(),
+        )
+        assertTrue(
+            properties.getValue("clarificationQuestion").jsonObject
+                .getValue("description").jsonPrimitive.content.isNotBlank(),
         )
 
+        httpClient.close()
+    }
+
+    @Test
+    fun `maps blank nullable wire constraint as absent`() = runBlocking {
+        val httpClient = mockClient {
+            successfulResponse(candidateContent(childrenAges = "   "))
+        }
+
+        val response = assertIs<LlmClientResponse.Candidate>(
+            client(httpClient).generateCandidate(safeRequest()),
+        )
+
+        assertFalse(response.value.extractedConstraints.containsKey("children-ages"))
+        httpClient.close()
+    }
+
+    @Test
+    fun `accepts complete candidate with blank optional child ages`() = runBlocking {
+        val httpClient = mockClient {
+            successfulResponse(completeCandidateContent(childrenAges = "   "))
+        }
+
+        val result = GenerateLlmCandidateUseCase(client(httpClient))(safeRequest())
+        val accepted = assertIs<LlmCandidateValidationResult.Accepted>(result)
+
+        assertFalse(accepted.candidate.extractedConstraints.containsKey("children-ages"))
         httpClient.close()
     }
 
@@ -495,6 +540,7 @@ class OpenRouterLlmClientTest {
 
     private fun candidateContent(
         outcome: String = "NEEDS_CLARIFICATION",
+        childrenAges: String? = null,
     ): String =
         buildJsonObject {
             put("outcome", outcome)
@@ -507,7 +553,11 @@ class OpenRouterLlmClientTest {
                     put("check-out", JsonNull)
                     put("adults", "2")
                     put("children", JsonNull)
-                    put("children-ages", JsonNull)
+                    if (childrenAges == null) {
+                        put("children-ages", JsonNull)
+                    } else {
+                        put("children-ages", childrenAges)
+                    }
                     put("rooms", JsonNull)
                 },
             )
@@ -521,6 +571,32 @@ class OpenRouterLlmClientTest {
             )
             put("conflicts", buildJsonArray {})
             put("clarificationQuestion", "Укажите даты и количество номеров.")
+            put("warnings", buildJsonArray {})
+        }.toString()
+
+    private fun completeCandidateContent(childrenAges: String?): String =
+        buildJsonObject {
+            put("outcome", "INTERPRETED")
+            put("intent", "HOTEL_SEARCH")
+            put(
+                "extractedConstraints",
+                buildJsonObject {
+                    put("destination", "Казань")
+                    put("check-in", "2026-08-10")
+                    put("check-out", "2026-08-14")
+                    put("adults", "2")
+                    put("children", "0")
+                    if (childrenAges == null) {
+                        put("children-ages", JsonNull)
+                    } else {
+                        put("children-ages", childrenAges)
+                    }
+                    put("rooms", "1")
+                },
+            )
+            put("missingRequiredFields", buildJsonArray {})
+            put("conflicts", buildJsonArray {})
+            put("clarificationQuestion", JsonNull)
             put("warnings", buildJsonArray {})
         }.toString()
 
