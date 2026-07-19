@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.23 в работе; первый ход chat-first пилота безопасно остановлен до подтверждения и вызова Hotels API |
-| Последний завершенный этап | Stage 9.23a — усилен семантический контракт OpenRouter candidate без повторного live QA |
-| Следующий планируемый шаг | Stage 9.23 — один отдельно разрешенный повтор полного успешного chat-first сценария после Stage 9.23a |
+| Текущий этап | Stage 9.23 в работе; сквозной happy path подтвержден, осталась ограниченная pilot-матрица |
+| Последний завершенный этап | Stage 9.23b — confirmation → REAL Hotels → 5 карточек проверены через chat-first UI |
+| Следующий планируемый шаг | Stage 9.23c — проверить оставшиеся clarification, отказные и data-integrity сценарии |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -45,7 +45,7 @@ Roadmap не является трекером задач, продуктово�
 | Готовность generated clients/OpenAPI | Не заявлена |
 | Generated-client-ready subset / generated clients | Создан manifest-кандидат без заявления готовности; готовый subset и generated clients не созданы |
 | Full conformance gate | Не реализован |
-| Hotel search / broader implementation | Opt-in Hotels API и OpenRouter runtime, confirmation lifecycle и chat-first frontend реализованы; Stage 9.23 начат, первый turn безопасно остановлен до search, `FAKE` остается default, stores process-local |
+| Hotel search / broader implementation | Opt-in Hotels API и OpenRouter runtime, confirmation lifecycle и chat-first frontend реализованы; сквозной happy path Stage 9.23 подтвержден, `FAKE` остается default, stores process-local |
 
 | Этап | Статус | Краткое описание |
 |---|---|---|
@@ -59,7 +59,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
 | Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Chat-first flow и LLM orchestration были вне Stage 7 и реализованы позднее в Stage 8-9. |
 | Stage 8 | Завершен | Backend confirmation lifecycle: LLM orchestration boundary, confirmation flow, local search execution, consume-after-success. Закрыт с carryover (InMemory stores, fake LLM/provider). |
-| Stage 9 | В работе | Opt-in Hotels API и OpenRouter runtime, integration closure и chat-first frontend реализованы; внутренний MVP-пилот начат и требует повторной проверки после усиления семантического контракта. |
+| Stage 9 | В работе | Opt-in Hotels API и OpenRouter runtime, integration closure и chat-first frontend реализованы; happy path внутреннего MVP-пилота подтвержден, оставшаяся pilot-матрица еще не закрыта. |
 | Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
 
 ## 2. Правила управления roadmap
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.23 в работе. Первый chat-first pilot turn безопасно остановлен после отклонения LLM candidate, без confirmation и Hotels API call. Stage 9.23a усилил semantic contract; повторный live QA еще не выполнялся. `FAKE` остается режимом по умолчанию для обоих providers.
+**Статус:** Stage 9.23 в работе. После Stage 9.23a один контролируемый chat-first happy path прошел цепочку OpenRouter → confirmation → REAL Hotels → 5 карточек из пула 20 предложений. Оставшиеся clarification, отказные и data-integrity сценарии еще не закрыты. `FAKE` остается режимом по умолчанию для обоих providers.
 
 **Planning:**
 
@@ -584,12 +584,13 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.21b | Диагностический QA-повтор | Завершен; один вызов вернул `200`, `ask_clarification`, confirmation prompt и `CANDIDATE_DECODED` без `hotelSearchId` |
 | Stage 9.21c | Ограниченная политика повторов OpenRouter | Завершен; максимум две одинаковые попытки только для временных, пустых или некорректных результатов, без смены модели и live QA |
 | Stage 9.22 | Chat-first frontend | Завершен; одна Assistant session, clarification/boundary в transcript, до пяти уже ранжированных offers и отдельная diagnostic page |
-| Stage 9.23 | Внутренний пилот chat-first MVP | В работе; первый turn вернул безопасный boundary без confirmation, `hotelSearchId` и Hotels API call |
+| Stage 9.23 | Внутренний пилот chat-first MVP | В работе; happy path подтвержден, оставшаяся pilot-матрица не завершена |
 | Stage 9.23a | Усиление семантического контракта OpenRouter candidate | Завершен; descriptions полей схемы, правила outcome и нормализация пустых nullable-значений без повторного live QA |
+| Stage 9.23b | Сквозная проверка успешного chat-first сценария | Завершен; confirmation, явное «Да», REAL Hotels и 5 карточек из пула 20 предложений подтверждены |
 
 **Границы:** выбранный public flow использует `/search-api/search/autocomplete` и `POST /api/v1/hotels/search` на `https://hotels.tbank.ru/`. Его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. `REAL` включается только явно, `FAKE` остается default. Повтор OpenRouter не применяется при ошибках аутентификации, недостатке средств, `429`, некорректном request и неизвестных отказах; задержка, `Retry-After` и смена модели отсутствуют. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.23 — после отдельного разрешения один раз повторить полный успешный chat-first сценарий: confirmation от OpenRouter → явное подтверждение → REAL Hotels → карточки. При повторном отклонении candidate остановиться без смены модели и выделить отдельную задачу безопасной диагностики или выбора модели. Booking, payment, pagination, durable storage и production readiness в пилот не входят.
+**Следующий шаг:** Stage 9.23c — ограниченно проверить оставшуюся pilot-матрицу: clarification и сохранение контекста, возраст ребенка, неоднозначную location, отказ от confirmation, unsupported request, безопасные provider failures и целостность отображаемых facts. Отказные ветки проверять через существующие детерминированные test seams; новые live-вызовы выполнять только при отдельной необходимости и разрешении. Booking, payment, pagination, durable storage и production readiness в пилот не входят.
 
 ### Stage 10 — Cross-platform Expansion
 

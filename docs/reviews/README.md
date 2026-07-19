@@ -485,6 +485,7 @@
 172. `docs/reviews/stage-9-21c-bounded-openrouter-retry-policy.md`
 173. `docs/reviews/stage-9-22-chat-first-frontend.md`
 174. `docs/reviews/stage-9-23a-openrouter-semantic-candidate-hardening.md`
+175. `docs/reviews/stage-9-23b-chat-first-happy-path-pilot.md`
 
 ## Historical / superseded документы
 
