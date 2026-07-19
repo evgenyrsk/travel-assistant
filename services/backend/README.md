@@ -17,6 +17,25 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 
 Команду нужно запускать из директории `services/backend`.
 
+### Режим LLM provider
+
+Без конфигурации backend использует детерминированный `FakeLlmClient`.
+OpenRouter включается только явно через локальные переменные окружения:
+
+```text
+LLM_PROVIDER_MODE=OPENROUTER
+OPENROUTER_API_KEY=<local-secret>
+OPENROUTER_MODEL=deepseek/deepseek-v4-flash
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_TIMEOUT_MS=30000
+```
+
+Модель в примере не является default в коде. `OPENROUTER_API_KEY` нельзя
+добавлять в Git, документацию или пользовательские ошибки. При неполной или
+некорректной конфигурации режим `OPENROUTER` блокирует запуск. Отдельный
+OpenRouter `HttpClient` создается без сетевого вызова при запуске; обращение к
+LLM происходит только при обработке подходящего assistant message.
+
 ## Проверка
 
 ```bash
@@ -167,7 +186,7 @@ Stage 7.14 strategy для generated-client readiness:
 - provider-specific DTO/contracts;
 - DB migrations, entities, repositories и storage model;
 - Redis/cache;
-- LLM integration и orchestration;
+- промышленная LLM integration, streaming, tool calling и наблюдаемость provider;
 - промышленная интеграция frontend и generated clients;
 - generated-client-ready subset для placeholder endpoints;
 - OpenAPI/runtime conformance gate;

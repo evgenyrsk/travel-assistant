@@ -5,8 +5,22 @@ class LlmCandidateValidator {
     fun validate(response: LlmClientResponse): LlmCandidateValidationResult =
         when (response) {
             is LlmClientResponse.Candidate -> validateCandidate(response.value)
+            is LlmClientResponse.RetryableFailure -> rejected(response.reason.toValidationReason())
             LlmClientResponse.Empty -> rejected(LlmCandidateValidationResult.Reason.EMPTY_RESPONSE)
             LlmClientResponse.Failure -> rejected(LlmCandidateValidationResult.Reason.CLIENT_FAILURE)
+        }
+
+    private fun LlmClientRetryableFailureReason.toValidationReason():
+        LlmCandidateValidationResult.Reason =
+        when (this) {
+            LlmClientRetryableFailureReason.EMPTY_RESPONSE ->
+                LlmCandidateValidationResult.Reason.EMPTY_RESPONSE
+
+            LlmClientRetryableFailureReason.CLIENT_FAILURE ->
+                LlmCandidateValidationResult.Reason.CLIENT_FAILURE
+
+            LlmClientRetryableFailureReason.INVALID_CANDIDATE ->
+                LlmCandidateValidationResult.Reason.INVALID_CANDIDATE
         }
 
     private fun validateCandidate(candidate: LlmCandidate): LlmCandidateValidationResult {

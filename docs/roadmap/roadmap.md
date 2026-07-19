@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9.20 завершен; OpenRouter adapter и fail-closed typed configuration проверены только через `MockEngine` |
-| Последний завершенный этап | Stage 9.20 — OpenRouter `LlmClient` adapter без runtime wiring и live calls |
-| Следующий планируемый шаг | Stage 9.21 — opt-in OpenRouter runtime composition и один отдельно разрешенный QA call |
+| Текущий этап | Stage 9.21c завершен; OpenRouter runtime допускает не более одного дополнительного вызова только для ограниченных временных отказов |
+| Последний завершенный этап | Stage 9.21c — внутренняя политика повторов ограничивает обработку одного сообщения двумя одинаковыми LLM-запросами |
+| Следующий планируемый шаг | Stage 9.22 — chat-first frontend поверх существующих assistant и hotel-search routes |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -538,7 +538,7 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Stage 9.20 завершен. OpenRouter adapter, strict structured output и fail-closed typed configuration проверены через `MockEngine`, но runtime по-прежнему использует `FakeLlmClient`. Live LLM calls отсутствуют; `FAKE` остается default.
+**Статус:** Stage 9.21c завершен. Runtime-композиция OpenRouter с явным включением реализована, `FAKE` остается режимом по умолчанию. Для ограниченных временных отказов разрешен один дополнительный запрос; общий лимит одного message flow — две попытки без смены модели.
 
 **Planning:**
 
@@ -579,11 +579,15 @@ Provider/API data является source of truth для travel facts. LLM мо
 | Stage 9.19a | Накопление контекста диалога | Завершен; process-local canonical hotel constraints, correction и child-age clarification по assistant session |
 | Stage 9.19b | Асинхронная LLM-граница | Завершен; сквозной `suspend`, безопасный fallback и проброс cancellation без изменения public API |
 | Stage 9.20 | OpenRouter adapter без runtime wiring | Завершен; typed config, strict JSON Schema и safe response mapping проверены только через `MockEngine` |
-| Stage 9.21 | Opt-in OpenRouter runtime и QA | Следующий этап; отдельный `HttpClient`, fail-closed wiring и один явно разрешенный QA call |
+| Stage 9.21 | Opt-in OpenRouter runtime и QA | Завершен; отдельный `HttpClient`, fail-closed wiring и контролируемый confirmation QA подтверждены, `FAKE` остается default |
+| Stage 9.21a | Безопасная диагностика результатов OpenRouter | Завершен; ограниченные внутренние категории и runtime observer проверены через `MockEngine`, повторный live-вызов отсутствует |
+| Stage 9.21b | Диагностический QA-повтор | Завершен; один вызов вернул `200`, `ask_clarification`, confirmation prompt и `CANDIDATE_DECODED` без `hotelSearchId` |
+| Stage 9.21c | Ограниченная политика повторов OpenRouter | Завершен; максимум две одинаковые попытки только для временных, пустых или некорректных результатов, без смены модели и live QA |
+| Stage 9.22 | Chat-first frontend | Следующий этап; browser вызывает только Travel Assistant backend и показывает до пяти ранжированных предложений |
 
-**Границы:** выбранный public flow использует `/search-api/search/autocomplete` и `POST /api/v1/hotels/search` на `https://hotels.tbank.ru/`. Его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. `REAL` включается только явно, `FAKE` остается default. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
+**Границы:** выбранный public flow использует `/search-api/search/autocomplete` и `POST /api/v1/hotels/search` на `https://hotels.tbank.ru/`. Его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. `REAL` включается только явно, `FAKE` остается default. Повтор OpenRouter не применяется при ошибках аутентификации, недостатке средств, `429`, некорректном request и неизвестных отказах; задержка, `Retry-After` и смена модели отсутствуют. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
 
-**Следующий шаг:** Stage 9.21 — подключить OpenRouter только при явном `LLM_PROVIDER_MODE=OPENROUTER`, выделить отдельный application-owned `HttpClient`, проверить fail-closed configuration и выполнить один отдельно разрешенный QA call после проверки model support. Public API/OpenAPI, frontend, streaming, plugins, pagination, taxes/fees и `LIMITED` policy остаются вне этого этапа.
+**Следующий шаг:** Stage 9.22 — сделать chat основным frontend-сценарием, сохранить текущую structured форму как diagnostic page и использовать только существующие assistant/hotel-search routes. OpenRouter и Hotels API не вызываются из браузера. Новые public API fields, streaming, plugins, pagination, booking и durable storage не входят в этап.
 
 ### Stage 10 — Cross-platform Expansion
 

@@ -4,8 +4,10 @@ import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmClient
 import com.travelassistant.backend.application.llm.LlmClientResponse
+import com.travelassistant.backend.application.llm.LlmClientRetryableFailureReason
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.accept
@@ -16,20 +18,26 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import java.io.IOException
 import java.net.URI
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.put
 
 internal class OpenRouterLlmClient(
     private val httpClient: HttpClient,
     private val config: OpenRouterConfig,
+    private val diagnosticObserver: OpenRouterDiagnosticObserver = OpenRouterDiagnosticObserver.NONE,
 ) : LlmClient {
 
     override suspend fun generateCandidate(request: LlmCandidateRequest): LlmClientResponse =
@@ -37,8 +45,14 @@ internal class OpenRouterLlmClient(
             execute(request)
         } catch (error: CancellationException) {
             throw error
+        } catch (_: HttpRequestTimeoutException) {
+            failure(OpenRouterDiagnosticEvent.TIMEOUT)
+        } catch (_: IOException) {
+            failure(OpenRouterDiagnosticEvent.NETWORK_FAILURE)
+        } catch (_: SerializationException) {
+            failure(OpenRouterDiagnosticEvent.MALFORMED_RESPONSE)
         } catch (_: Exception) {
-            LlmClientResponse.Failure
+            failure(OpenRouterDiagnosticEvent.UNKNOWN_FAILURE)
         }
 
     private suspend fun execute(request: LlmCandidateRequest): LlmClientResponse {
@@ -53,29 +67,126 @@ internal class OpenRouterLlmClient(
             setBody(requestBody(request))
         }
 
-        if (!response.status.isSuccess() ||
-            response.contentType()?.match(ContentType.Application.Json) != true
-        ) {
-            return LlmClientResponse.Failure
+        if (!response.status.isSuccess()) {
+            return failure(eventForStatus(response.status.value))
+        }
+        if (response.contentType()?.match(ContentType.Application.Json) != true) {
+            return failure(OpenRouterDiagnosticEvent.NON_JSON_RESPONSE)
         }
 
         val completion = OpenRouterJson.wireCodec.decodeFromString<OpenRouterCompletionResponseDto>(
             response.body(),
         )
-        val choice = completion.choices.firstOrNull() ?: return LlmClientResponse.Empty
+        completion.error?.let { error ->
+            return failure(eventForProviderError(error))
+        }
+
+        val choices = completion.choices
+            ?: return failure(OpenRouterDiagnosticEvent.MALFORMED_RESPONSE)
+        val choice = choices.firstOrNull()
+            ?: return empty(OpenRouterDiagnosticEvent.EMPTY_CHOICES)
         if (choice.finishReason == ERROR_FINISH_REASON || choice.error != null) {
-            return LlmClientResponse.Failure
+            return failure(
+                choice.error?.let(::eventForProviderError)
+                    ?: OpenRouterDiagnosticEvent.IN_BAND_PROVIDER_ERROR,
+            )
         }
 
         val content = choice.message?.content?.takeIf(String::isNotBlank)
-            ?: return LlmClientResponse.Empty
-        val candidate = OpenRouterJson.candidateCodec
-            .decodeFromString<OpenRouterCandidateDto>(content)
+            ?: return empty(OpenRouterDiagnosticEvent.EMPTY_CONTENT)
+        val candidate = try {
+            OpenRouterJson.candidateCodec.decodeFromString<OpenRouterCandidateDto>(content)
+        } catch (_: SerializationException) {
+            return failure(OpenRouterDiagnosticEvent.INVALID_CANDIDATE)
+        }
+        val domainCandidate = candidate
             .toDomainCandidate()
-            ?: return LlmClientResponse.Failure
+            ?: return failure(OpenRouterDiagnosticEvent.INVALID_CANDIDATE)
 
-        return LlmClientResponse.Candidate(candidate)
+        report(OpenRouterDiagnosticEvent.CANDIDATE_DECODED)
+        return LlmClientResponse.Candidate(domainCandidate)
     }
+
+    private fun failure(event: OpenRouterDiagnosticEvent): LlmClientResponse {
+        report(event)
+        return event.toRetryableFailure() ?: LlmClientResponse.Failure
+    }
+
+    private fun empty(event: OpenRouterDiagnosticEvent): LlmClientResponse {
+        report(event)
+        return LlmClientResponse.RetryableFailure(
+            LlmClientRetryableFailureReason.EMPTY_RESPONSE,
+        )
+    }
+
+    private fun OpenRouterDiagnosticEvent.toRetryableFailure():
+        LlmClientResponse.RetryableFailure? =
+        when (this) {
+            OpenRouterDiagnosticEvent.TIMEOUT,
+            OpenRouterDiagnosticEvent.PROVIDER_UNAVAILABLE,
+            OpenRouterDiagnosticEvent.IN_BAND_PROVIDER_ERROR,
+            OpenRouterDiagnosticEvent.MALFORMED_RESPONSE,
+            OpenRouterDiagnosticEvent.NETWORK_FAILURE,
+            -> retryableFailure(LlmClientRetryableFailureReason.CLIENT_FAILURE)
+
+            OpenRouterDiagnosticEvent.INVALID_CANDIDATE ->
+                retryableFailure(LlmClientRetryableFailureReason.INVALID_CANDIDATE)
+
+            OpenRouterDiagnosticEvent.CANDIDATE_DECODED,
+            OpenRouterDiagnosticEvent.REQUEST_REJECTED,
+            OpenRouterDiagnosticEvent.AUTHENTICATION_FAILED,
+            OpenRouterDiagnosticEvent.INSUFFICIENT_CREDITS,
+            OpenRouterDiagnosticEvent.RATE_LIMITED,
+            OpenRouterDiagnosticEvent.HTTP_FAILURE,
+            OpenRouterDiagnosticEvent.NON_JSON_RESPONSE,
+            OpenRouterDiagnosticEvent.EMPTY_CHOICES,
+            OpenRouterDiagnosticEvent.EMPTY_CONTENT,
+            OpenRouterDiagnosticEvent.UNKNOWN_FAILURE,
+            -> null
+        }
+
+    private fun retryableFailure(
+        reason: LlmClientRetryableFailureReason,
+    ): LlmClientResponse.RetryableFailure =
+        LlmClientResponse.RetryableFailure(reason)
+
+    private fun report(event: OpenRouterDiagnosticEvent) {
+        runCatching { diagnosticObserver.record(event) }
+    }
+
+    private fun eventForProviderError(error: JsonObject): OpenRouterDiagnosticEvent {
+        val errorType = (error["metadata"] as? JsonObject)
+            ?.get("error_type")
+            ?.let { value -> value as? JsonPrimitive }
+            ?.contentOrNull
+
+        return when (errorType) {
+            "authentication" -> OpenRouterDiagnosticEvent.AUTHENTICATION_FAILED
+            "rate_limit_exceeded" -> OpenRouterDiagnosticEvent.RATE_LIMITED
+            "timeout" -> OpenRouterDiagnosticEvent.TIMEOUT
+            "provider_overloaded", "provider_unavailable", "server" ->
+                OpenRouterDiagnosticEvent.PROVIDER_UNAVAILABLE
+
+            "invalid_request", "invalid_prompt", "context_length_exceeded" ->
+                OpenRouterDiagnosticEvent.REQUEST_REJECTED
+
+            else -> (error["code"] as? JsonPrimitive)
+                ?.intOrNull
+                ?.let(::eventForStatus)
+                ?: OpenRouterDiagnosticEvent.IN_BAND_PROVIDER_ERROR
+        }
+    }
+
+    private fun eventForStatus(statusCode: Int): OpenRouterDiagnosticEvent =
+        when (statusCode) {
+            400 -> OpenRouterDiagnosticEvent.REQUEST_REJECTED
+            401, 403 -> OpenRouterDiagnosticEvent.AUTHENTICATION_FAILED
+            402 -> OpenRouterDiagnosticEvent.INSUFFICIENT_CREDITS
+            408 -> OpenRouterDiagnosticEvent.TIMEOUT
+            429 -> OpenRouterDiagnosticEvent.RATE_LIMITED
+            in 500..599 -> OpenRouterDiagnosticEvent.PROVIDER_UNAVAILABLE
+            else -> OpenRouterDiagnosticEvent.HTTP_FAILURE
+        }
 
     private fun chatCompletionsUrl(): String {
         val normalizedBaseUrl = if (config.baseUrl.endsWith('/')) {
@@ -253,7 +364,8 @@ internal class OpenRouterLlmClient(
 
 @Serializable
 private data class OpenRouterCompletionResponseDto(
-    val choices: List<OpenRouterChoiceDto>,
+    val choices: List<OpenRouterChoiceDto>? = null,
+    val error: JsonObject? = null,
 )
 
 @Serializable

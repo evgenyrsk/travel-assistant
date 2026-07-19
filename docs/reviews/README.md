@@ -480,6 +480,9 @@
 167. `docs/reviews/stage-9-19a-assistant-hotel-constraints-context.md`
 168. `docs/reviews/stage-9-19b-async-llm-boundary-migration.md`
 169. `docs/reviews/stage-9-20-openrouter-llm-adapter-without-runtime-wiring.md`
+170. `docs/reviews/stage-9-21a-openrouter-safe-failure-diagnostics.md`
+171. `docs/reviews/stage-9-21-opt-in-openrouter-runtime-and-qa.md`
+172. `docs/reviews/stage-9-21c-bounded-openrouter-retry-policy.md`
 
 ## Historical / superseded документы
 

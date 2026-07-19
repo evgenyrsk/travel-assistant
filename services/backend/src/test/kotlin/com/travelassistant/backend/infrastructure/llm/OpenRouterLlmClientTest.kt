@@ -3,6 +3,7 @@ package com.travelassistant.backend.infrastructure.llm
 import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmClientResponse
+import com.travelassistant.backend.application.llm.LlmClientRetryableFailureReason
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -48,7 +49,12 @@ class OpenRouterLlmClientTest {
             capturedRequest = request
             successfulResponse(candidateContent())
         }
-        val client = client(httpClient, apiKey = apiKey)
+        val diagnosticEvents = mutableListOf<OpenRouterDiagnosticEvent>()
+        val client = client(
+            httpClient = httpClient,
+            apiKey = apiKey,
+            diagnosticObserver = OpenRouterDiagnosticObserver(diagnosticEvents::add),
+        )
         val request = LlmCandidateRequest(
             userMessage = "Найди отель в Казани",
             confirmedConstraints = mapOf("adults" to "2", "destination" to "Казань"),
@@ -72,6 +78,7 @@ class OpenRouterLlmClientTest {
             ),
             result,
         )
+        assertEquals(listOf(OpenRouterDiagnosticEvent.CANDIDATE_DECODED), diagnosticEvents)
         assertEquals(
             "https://openrouter.test/api/v1/chat/completions",
             capturedRequest?.url.toString(),
@@ -151,7 +158,7 @@ class OpenRouterLlmClientTest {
             val httpClient = mockClient { successfulResponseBody(responseBody) }
 
             assertEquals(
-                LlmClientResponse.Empty,
+                retryableFailure(LlmClientRetryableFailureReason.EMPTY_RESPONSE),
                 client(httpClient).generateCandidate(safeRequest()),
             )
             httpClient.close()
@@ -161,19 +168,23 @@ class OpenRouterLlmClientTest {
     @Test
     fun `maps malformed or provider-error responses to safe failure`() = runBlocking {
         val invalidCandidate = candidateContent(outcome = "NOT_A_REAL_OUTCOME")
-        val responseBodies = listOf(
-            "{}",
-            completionResponse(content = "not-json"),
-            completionResponse(content = invalidCandidate),
-            """{"choices":[{"finish_reason":"error","message":{"content":null}}]}""",
-            """{"choices":[{"error":{"code":500},"message":{"content":null}}]}""",
+        val cases = listOf(
+            "{}" to retryableFailure(LlmClientRetryableFailureReason.CLIENT_FAILURE),
+            completionResponse(content = "not-json") to
+                retryableFailure(LlmClientRetryableFailureReason.INVALID_CANDIDATE),
+            completionResponse(content = invalidCandidate) to
+                retryableFailure(LlmClientRetryableFailureReason.INVALID_CANDIDATE),
+            """{"choices":[{"finish_reason":"error","message":{"content":null}}]}""" to
+                retryableFailure(LlmClientRetryableFailureReason.CLIENT_FAILURE),
+            """{"choices":[{"error":{"code":500},"message":{"content":null}}]}""" to
+                retryableFailure(LlmClientRetryableFailureReason.CLIENT_FAILURE),
         )
 
-        responseBodies.forEach { responseBody ->
+        cases.forEach { (responseBody, expectedResponse) ->
             val httpClient = mockClient { successfulResponseBody(responseBody) }
 
             assertEquals(
-                LlmClientResponse.Failure,
+                expectedResponse,
                 client(httpClient).generateCandidate(safeRequest()),
             )
             httpClient.close()
@@ -181,16 +192,172 @@ class OpenRouterLlmClientTest {
     }
 
     @Test
-    fun `maps unsuccessful status and non-JSON success to safe failure`() = runBlocking {
+    fun `reports only safe diagnostic categories for unsuccessful outcomes`() = runBlocking {
         val cases = listOf(
-            HttpStatusCode.BadRequest to ContentType.Application.Json,
-            HttpStatusCode.Unauthorized to ContentType.Application.Json,
-            HttpStatusCode.TooManyRequests to ContentType.Application.Json,
-            HttpStatusCode.InternalServerError to ContentType.Application.Json,
-            HttpStatusCode.OK to ContentType.Text.Plain,
+            DiagnosticCase(
+                responseBody = "sensitive-invalid-request",
+                status = HttpStatusCode.BadRequest,
+                expectedEvent = OpenRouterDiagnosticEvent.REQUEST_REJECTED,
+            ),
+            DiagnosticCase(
+                responseBody = "sensitive-authentication-error",
+                status = HttpStatusCode.Unauthorized,
+                expectedEvent = OpenRouterDiagnosticEvent.AUTHENTICATION_FAILED,
+            ),
+            DiagnosticCase(
+                responseBody = "sensitive-credit-error",
+                status = HttpStatusCode.PaymentRequired,
+                expectedEvent = OpenRouterDiagnosticEvent.INSUFFICIENT_CREDITS,
+            ),
+            DiagnosticCase(
+                responseBody = "sensitive-rate-limit-error",
+                status = HttpStatusCode.TooManyRequests,
+                expectedEvent = OpenRouterDiagnosticEvent.RATE_LIMITED,
+            ),
+            DiagnosticCase(
+                responseBody = "sensitive-unavailable-error",
+                status = HttpStatusCode.ServiceUnavailable,
+                expectedEvent = OpenRouterDiagnosticEvent.PROVIDER_UNAVAILABLE,
+                expectedResponse = retryableFailure(
+                    LlmClientRetryableFailureReason.CLIENT_FAILURE,
+                ),
+            ),
+            DiagnosticCase(
+                responseBody =
+                    """{"error":{"code":504,"message":"sensitive-timeout","metadata":{"error_type":"timeout"}}}""",
+                expectedEvent = OpenRouterDiagnosticEvent.TIMEOUT,
+                expectedResponse = retryableFailure(
+                    LlmClientRetryableFailureReason.CLIENT_FAILURE,
+                ),
+            ),
+            DiagnosticCase(
+                responseBody = "sensitive-non-json-body",
+                contentType = ContentType.Text.Plain,
+                expectedEvent = OpenRouterDiagnosticEvent.NON_JSON_RESPONSE,
+            ),
+            DiagnosticCase(
+                responseBody = "not-json",
+                expectedEvent = OpenRouterDiagnosticEvent.MALFORMED_RESPONSE,
+                expectedResponse = retryableFailure(
+                    LlmClientRetryableFailureReason.CLIENT_FAILURE,
+                ),
+            ),
+            DiagnosticCase(
+                responseBody = """{"choices":[]}""",
+                expectedEvent = OpenRouterDiagnosticEvent.EMPTY_CHOICES,
+                expectedResponse = retryableFailure(
+                    LlmClientRetryableFailureReason.EMPTY_RESPONSE,
+                ),
+            ),
+            DiagnosticCase(
+                responseBody = completionResponse(content = null),
+                expectedEvent = OpenRouterDiagnosticEvent.EMPTY_CONTENT,
+                expectedResponse = retryableFailure(
+                    LlmClientRetryableFailureReason.EMPTY_RESPONSE,
+                ),
+            ),
+            DiagnosticCase(
+                responseBody = completionResponse(content = "not-candidate-json"),
+                expectedEvent = OpenRouterDiagnosticEvent.INVALID_CANDIDATE,
+                expectedResponse = retryableFailure(
+                    LlmClientRetryableFailureReason.INVALID_CANDIDATE,
+                ),
+            ),
         )
 
-        cases.forEach { (status, contentType) ->
+        cases.forEach { case ->
+            val events = mutableListOf<OpenRouterDiagnosticEvent>()
+            val httpClient = mockClient {
+                respond(
+                    content = case.responseBody,
+                    status = case.status,
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        case.contentType.toString(),
+                    ),
+                )
+            }
+
+            val response = client(
+                httpClient = httpClient,
+                diagnosticObserver = OpenRouterDiagnosticObserver(events::add),
+            ).generateCandidate(safeRequest())
+
+            assertEquals(case.expectedResponse, response)
+            assertEquals(listOf(case.expectedEvent), events)
+            httpClient.close()
+        }
+    }
+
+    @Test
+    fun `reports network failure without exposing exception details`() = runBlocking {
+        val events = mutableListOf<OpenRouterDiagnosticEvent>()
+        val httpClient = mockClient {
+            throw IOException("sensitive-network-details")
+        }
+
+        assertEquals(
+            retryableFailure(LlmClientRetryableFailureReason.CLIENT_FAILURE),
+            client(
+                httpClient = httpClient,
+                diagnosticObserver = OpenRouterDiagnosticObserver(events::add),
+            ).generateCandidate(safeRequest()),
+        )
+        assertEquals(listOf(OpenRouterDiagnosticEvent.NETWORK_FAILURE), events)
+        httpClient.close()
+    }
+
+    @Test
+    fun `diagnostic observer failure does not change candidate result`() = runBlocking {
+        val httpClient = mockClient { successfulResponse(candidateContent()) }
+
+        val response = client(
+            httpClient = httpClient,
+            diagnosticObserver = OpenRouterDiagnosticObserver {
+                error("sensitive-observer-error")
+            },
+        ).generateCandidate(safeRequest())
+
+        assertIs<LlmClientResponse.Candidate>(response)
+        httpClient.close()
+    }
+
+    @Test
+    fun `maps unsuccessful status and non-JSON success to safe failure`() = runBlocking {
+        val cases = listOf(
+            Triple(
+                HttpStatusCode.BadRequest,
+                ContentType.Application.Json,
+                LlmClientResponse.Failure,
+            ),
+            Triple(
+                HttpStatusCode.Unauthorized,
+                ContentType.Application.Json,
+                LlmClientResponse.Failure,
+            ),
+            Triple(
+                HttpStatusCode.TooManyRequests,
+                ContentType.Application.Json,
+                LlmClientResponse.Failure,
+            ),
+            Triple(
+                HttpStatusCode.InternalServerError,
+                ContentType.Application.Json,
+                retryableFailure(LlmClientRetryableFailureReason.CLIENT_FAILURE),
+            ),
+            Triple(
+                HttpStatusCode.Conflict,
+                ContentType.Application.Json,
+                LlmClientResponse.Failure,
+            ),
+            Triple(
+                HttpStatusCode.OK,
+                ContentType.Text.Plain,
+                LlmClientResponse.Failure,
+            ),
+        )
+
+        cases.forEach { (status, contentType, expectedResponse) ->
             val httpClient = mockClient {
                 respond(
                     content = "sensitive-provider-error-body",
@@ -200,7 +367,7 @@ class OpenRouterLlmClientTest {
             }
 
             assertEquals(
-                LlmClientResponse.Failure,
+                expectedResponse,
                 client(httpClient).generateCandidate(safeRequest()),
             )
             httpClient.close()
@@ -218,11 +385,11 @@ class OpenRouterLlmClientTest {
         }
 
         assertEquals(
-            LlmClientResponse.Failure,
+            retryableFailure(LlmClientRetryableFailureReason.CLIENT_FAILURE),
             client(timeoutClient, timeoutMillis = 10).generateCandidate(safeRequest()),
         )
         assertEquals(
-            LlmClientResponse.Failure,
+            retryableFailure(LlmClientRetryableFailureReason.CLIENT_FAILURE),
             client(networkClient).generateCandidate(safeRequest()),
         )
         timeoutClient.close()
@@ -261,6 +428,7 @@ class OpenRouterLlmClientTest {
         httpClient: HttpClient,
         apiKey: String = "synthetic-api-key",
         timeoutMillis: Long = 5_000,
+        diagnosticObserver: OpenRouterDiagnosticObserver = OpenRouterDiagnosticObserver.NONE,
     ): OpenRouterLlmClient =
         OpenRouterLlmClient(
             httpClient = httpClient,
@@ -270,6 +438,7 @@ class OpenRouterLlmClientTest {
                 baseUrl = "https://openrouter.test/api/v1",
                 timeoutMillis = timeoutMillis,
             ),
+            diagnosticObserver = diagnosticObserver,
         )
 
     private fun safeRequest(): LlmCandidateRequest =
@@ -354,4 +523,17 @@ class OpenRouterLlmClientTest {
             put("clarificationQuestion", "Укажите даты и количество номеров.")
             put("warnings", buildJsonArray {})
         }.toString()
+
+    private data class DiagnosticCase(
+        val responseBody: String,
+        val status: HttpStatusCode = HttpStatusCode.OK,
+        val contentType: ContentType = ContentType.Application.Json,
+        val expectedEvent: OpenRouterDiagnosticEvent,
+        val expectedResponse: LlmClientResponse = LlmClientResponse.Failure,
+    )
+
+    private fun retryableFailure(
+        reason: LlmClientRetryableFailureReason,
+    ): LlmClientResponse.RetryableFailure =
+        LlmClientResponse.RetryableFailure(reason)
 }

@@ -86,4 +86,24 @@ class LlmCandidateValidatorTest {
             rejected.fallbackAction,
         )
     }
+
+    @Test
+    fun mapsRetryableFailuresToExistingSafeReasons() {
+        val cases = listOf(
+            LlmClientRetryableFailureReason.EMPTY_RESPONSE to
+                LlmCandidateValidationResult.Reason.EMPTY_RESPONSE,
+            LlmClientRetryableFailureReason.CLIENT_FAILURE to
+                LlmCandidateValidationResult.Reason.CLIENT_FAILURE,
+            LlmClientRetryableFailureReason.INVALID_CANDIDATE to
+                LlmCandidateValidationResult.Reason.INVALID_CANDIDATE,
+        )
+
+        cases.forEach { (clientReason, validationReason) ->
+            val rejected = assertIs<LlmCandidateValidationResult.Rejected>(
+                validator.validate(LlmClientResponse.RetryableFailure(clientReason)),
+            )
+
+            assertEquals(validationReason, rejected.reason)
+        }
+    }
 }
