@@ -67,27 +67,27 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
 
     private companion object {
         const val PROCESSING_MESSAGE =
-            "I am preparing that search, but results are not available yet."
+            "Поиск уже выполняется, результаты пока не готовы."
 
         const val ALREADY_PROCESSING_MESSAGE =
-            "That search is already being prepared."
+            "Этот поиск уже выполняется."
 
         const val CONFIRMATION_REJECTED_MESSAGE =
-            "I could not proceed with the current confirmation state."
+            "Не удалось продолжить поиск с текущим подтверждением."
 
         const val LOCATION_NOT_FOUND_MESSAGE =
-            "I could not match that destination. Please provide a more specific city or location."
+            "Не удалось определить направление. Уточните город или место."
 
         const val LOCATION_SELECTION_REQUIRED_MESSAGE =
-            "I found several matching destinations. Please provide a more specific city or location."
+            "Найдено несколько подходящих направлений. Уточните город или место."
 
         const val SEARCH_REQUEST_REJECTED_MESSAGE =
-            "I could not safely prepare that hotel search. Please check destination, dates, guests, and rooms."
+            "Не удалось безопасно подготовить поиск. Проверьте направление, даты, состав гостей и количество номеров."
 
         const val TEMPORARY_FAILURE_MESSAGE =
-            "I could not complete the hotel search right now. Please try again."
+            "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз."
 
         const val RESULTS_READY_MESSAGE =
-            "The search is ready. Hotel results are available."
+            "Поиск завершён. Подходящие варианты готовы."
     }
 }

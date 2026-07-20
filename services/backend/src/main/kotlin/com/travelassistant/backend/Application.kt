@@ -158,4 +158,4 @@ private fun defaultAssistantLlmClient(): LlmClient =
     )
 
 private const val DEFAULT_LLM_CLARIFICATION_MESSAGE =
-    "I received your hotel request. Please share destination, dates, guests, and budget so I can continue."
+    "Расскажите, куда и когда планируете поездку, кто едет и сколько номеров нужно."

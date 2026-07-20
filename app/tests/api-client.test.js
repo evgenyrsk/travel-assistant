@@ -18,7 +18,7 @@ test("creates a hotel search and loads hotel offers", async () => {
         {
           offerId: "fake-offer-rome-001",
           hotelName: "Rome Central Hotel",
-          matchSummary: "Available; ranked by rating, total stay price, then offer ID.",
+          matchSummary: "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
         },
       ],
     }),
@@ -46,7 +46,10 @@ test("creates a hotel search and loads hotel offers", async () => {
   );
   const offers = await api.getHotelOffers(search.searchId);
 
-  assert.equal(offers.offers[0].matchSummary, "Available; ranked by rating, total stay price, then offer ID.");
+  assert.equal(
+    offers.offers[0].matchSummary,
+    "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
+  );
   assert.deepEqual(
     calls.map(({ url }) => url),
     [

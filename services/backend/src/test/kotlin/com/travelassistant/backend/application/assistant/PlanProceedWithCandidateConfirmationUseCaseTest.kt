@@ -46,7 +46,7 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
             clarification.reason,
         )
         assertEquals(
-            "Please confirm the destination, dates, guests, and rooms before I prepare a hotel search confirmation.",
+            "Уточните направление, даты, состав гостей и количество номеров, чтобы я подготовил подтверждение поиска.",
             clarification.question,
         )
     }

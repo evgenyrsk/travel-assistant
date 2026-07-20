@@ -116,6 +116,7 @@ class OpenRouterRuntimeIntegrationTest {
             val sensitiveBody = "raw-provider-error synthetic-openrouter-api-key test/model"
             val diagnosticEvents = mutableListOf<OpenRouterDiagnosticEvent>()
             var requestCount = 0
+            var hotelRequestCount = 0
             val openRouterClient = openRouterClient {
                 requestCount += 1
                 respond(
@@ -128,7 +129,14 @@ class OpenRouterRuntimeIntegrationTest {
             application {
                 moduleWithProviderConfigs(
                     llmProviderConfig = openRouterProviderConfig(),
+                    providerConfig = realHotelProviderConfig(),
                     openRouterHttpClientFactory = { openRouterClient },
+                    realHotelHttpClientFactory = {
+                        openRouterClient {
+                            hotelRequestCount += 1
+                            error("Hotels API must not be called after an OpenRouter failure")
+                        }
+                    },
                     openRouterDiagnosticObserver =
                         OpenRouterDiagnosticObserver(diagnosticEvents::add),
                 )
@@ -146,6 +154,7 @@ class OpenRouterRuntimeIntegrationTest {
             assertFalse(responseText.contains("synthetic-openrouter-api-key"))
             assertFalse(responseText.contains("test/model"))
             assertEquals(1, requestCount)
+            assertEquals(0, hotelRequestCount)
             assertEquals(listOf(OpenRouterDiagnosticEvent.RATE_LIMITED), diagnosticEvents)
         }
 

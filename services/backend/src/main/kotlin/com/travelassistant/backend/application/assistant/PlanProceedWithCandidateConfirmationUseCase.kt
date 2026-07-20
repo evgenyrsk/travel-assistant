@@ -78,6 +78,6 @@ class PlanProceedWithCandidateConfirmationUseCase private constructor(
 
     private companion object {
         const val DEFAULT_CLARIFICATION_QUESTION =
-            "Please confirm the destination, dates, guests, and rooms before I prepare a hotel search confirmation."
+            "Уточните направление, даты, состав гостей и количество номеров, чтобы я подготовил подтверждение поиска."
     }
 }

@@ -42,7 +42,7 @@ class AssistantHotelSearchHandoffUseCase(
                         acceptedMessage.copy(
                             assistantReply = AssistantReply(
                                 type = AssistantReplyType.HOTEL_SEARCH_RESULTS,
-                                message = "Hotel search created. Ranked offers are ready.",
+                                message = "Поиск завершён. Подходящие варианты готовы.",
                             ),
                             nextAction = AssistantNextAction.SHOW_HOTEL_RESULTS,
                             hotelSearchId = searchResult.search.id,
@@ -83,18 +83,18 @@ class AssistantHotelSearchHandoffUseCase(
 
     private companion object {
         const val INCOMPLETE_SEARCH_MESSAGE =
-            "I need a complete hotel-search request with destination, check-in, check-out, adults, and rooms."
+            "Укажите направление, даты заезда и выезда, количество взрослых и номеров."
 
         const val LOCATION_NOT_FOUND_MESSAGE =
-            "I could not match that destination. Please provide a more specific city or location."
+            "Не удалось определить направление. Уточните город или место."
 
         const val LOCATION_SELECTION_REQUIRED_MESSAGE =
-            "I found several matching destinations. Please provide a more specific city or location."
+            "Найдено несколько подходящих направлений. Уточните город или место."
 
         const val SEARCH_REQUEST_REJECTED_MESSAGE =
-            "I could not safely prepare that hotel search. Please check destination, dates, guests, and rooms."
+            "Не удалось безопасно подготовить поиск. Проверьте направление, даты, состав гостей и количество номеров."
 
         const val SEARCH_TEMPORARILY_UNAVAILABLE_MESSAGE =
-            "I could not complete the hotel search right now. Please try again."
+            "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз."
     }
 }

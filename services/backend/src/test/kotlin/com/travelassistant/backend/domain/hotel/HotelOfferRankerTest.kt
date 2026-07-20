@@ -53,11 +53,11 @@ class HotelOfferRankerTest {
             ranked.map { it.offer.id },
         )
         assertEquals(
-            "Available; ranked by rating, total stay price, then offer ID.",
+            "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
             ranked.first().matchSummary,
         )
         assertEquals(
-            "Limited availability; ranked after available offers, then by rating and total stay price.",
+            "Мало мест; вариант расположен после доступных предложений, затем учтены рейтинг и общая цена за проживание.",
             ranked.last().matchSummary,
         )
     }
@@ -86,7 +86,7 @@ class HotelOfferRankerTest {
             ranked.map { it.offer.id },
         )
         assertEquals(
-            "Available; rating unavailable, ranked by total stay price, then offer ID.",
+            "Доступно; рейтинг неизвестен, поэтому место определено по общей цене за проживание.",
             ranked.last().matchSummary,
         )
     }

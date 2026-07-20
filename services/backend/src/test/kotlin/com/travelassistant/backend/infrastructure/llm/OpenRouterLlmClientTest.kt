@@ -112,6 +112,7 @@ class OpenRouterLlmClientTest {
         val systemPrompt = messages[0].jsonObject.getValue("content").jsonPrimitive.content
         assertTrue(systemPrompt.contains("Use null, never an empty string"))
         assertTrue(systemPrompt.contains("For a complete consistent hotel request"))
+        assertTrue(systemPrompt.contains("clarification question in Russian"))
         val promptPayload = Json.parseToJsonElement(
             messages[1].jsonObject.getValue("content").jsonPrimitive.content,
         ).jsonObject
@@ -158,7 +159,7 @@ class OpenRouterLlmClientTest {
         )
         assertTrue(
             properties.getValue("clarificationQuestion").jsonObject
-                .getValue("description").jsonPrimitive.content.isNotBlank(),
+                .getValue("description").jsonPrimitive.content.contains("in Russian"),
         )
 
         httpClient.close()

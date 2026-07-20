@@ -80,7 +80,7 @@ class HotelSearchRoutesTest {
         assertEquals("EUR", firstOffer["price"]?.jsonObject?.get("currency")?.jsonPrimitive?.content)
         assertEquals("local_fake_provider", firstOffer["source"]?.jsonPrimitive?.content)
         assertEquals(
-            "Available; ranked by rating, total stay price, then offer ID.",
+            "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
             firstOffer["matchSummary"]?.jsonPrimitive?.content,
         )
         assertTrue(firstOffer["amenities"]?.jsonArray?.isNotEmpty() == true)

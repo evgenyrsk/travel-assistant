@@ -53,7 +53,7 @@ class AssistantSessionRoutesTest {
         assertEquals("collecting_requirements", session?.get("status")?.jsonPrimitive?.content)
         assertEquals("assistant", assistantMessage?.get("role")?.jsonPrimitive?.content)
         assertEquals(
-            "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+            "Расскажите, куда и когда планируете поездку, кто едет и сколько номеров нужно.",
             assistantMessage?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
@@ -100,7 +100,7 @@ class AssistantSessionRoutesTest {
         assertEquals("collecting_requirements", session?.get("status")?.jsonPrimitive?.content)
         assertEquals("assistant", assistantMessage?.get("role")?.jsonPrimitive?.content)
         assertEquals(
-            "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+            "Расскажите, куда и когда планируете поездку, кто едет и сколько номеров нужно.",
             assistantMessage?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
@@ -146,7 +146,7 @@ class AssistantSessionRoutesTest {
         assertEquals("show_hotel_results", assistantBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals("hotel-search-local-000001", hotelSearchId)
         assertEquals(
-            "Hotel search created. Ranked offers are ready.",
+            "Поиск завершён. Подходящие варианты готовы.",
             assistantBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
 
@@ -157,7 +157,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, offersResponse.status)
         assertEquals("fake-offer-rome-001", offers.first().jsonObject["offerId"]?.jsonPrimitive?.content)
         assertEquals(
-            "Available; ranked by rating, total stay price, then offer ID.",
+            "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
             offers.first().jsonObject["matchSummary"]?.jsonPrimitive?.content,
         )
     }
@@ -373,7 +373,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Please confirm the destination, dates, guests, and rooms before I prepare a hotel search confirmation.",
+            "Уточните направление, даты, состав гостей и количество номеров, чтобы я подготовил подтверждение поиска.",
             body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, body.containsKey("hotelSearchId"))
@@ -521,7 +521,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("show_hotel_results", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "The search is ready. Hotel results are available.",
+            "Поиск завершён. Подходящие варианты готовы.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertTrue(hotelSearchId.isNotBlank())
@@ -617,7 +617,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Please confirm clearly, cancel, or share corrected hotel search criteria.",
+            "Подтвердите параметры, отмените поиск или пришлите исправленные условия.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))
@@ -667,7 +667,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Okay, I will not start a hotel search. You can share new hotel criteria when ready.",
+            "Хорошо, поиск отелей не запущен. Когда будете готовы, сообщите новые параметры.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))
@@ -775,7 +775,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "I could not match that reply to the pending confirmation. Please confirm, cancel, or share corrected criteria.",
+            "Не удалось распознать ответ на подтверждение. Подтвердите параметры, отмените поиск или пришлите исправленные условия.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))
@@ -1005,7 +1005,7 @@ class AssistantSessionRoutesTest {
         assertEquals(false, promptBody.containsKey("hotelSearchId"))
         assertEquals("show_hotel_results", confirmBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "The search is ready. Hotel results are available.",
+            "Поиск завершён. Подходящие варианты готовы.",
             confirmBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertTrue(hotelSearchId.isNotBlank())

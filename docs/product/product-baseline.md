@@ -4,7 +4,7 @@
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальную продуктовую основу Travel Assistant после завершения Stage 0-5 и последующей документационной синхронизации. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Этот документ фиксирует актуальную продуктовую основу Travel Assistant после завершения Stage 0–9 и последующей документационной синхронизации. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
 
 Он нужен как компактная точка входа в текущее продуктовое состояние: что входит в MVP v1, что остается за его пределами, какие продуктовые границы уже подтверждены и где искать исходные stage artifacts.
 
@@ -21,8 +21,15 @@
 - Stage 5 - завершен.
 - Stage 6 - завершен как этап контрактов и проектирования.
 - Stage 7 - завершен в границах ограниченной hotel-only основы; подробности закрытия и перенесенные пункты находятся в `docs/roadmap/roadmap.md`.
+- Stage 8 - завершен как backend confirmation lifecycle.
+- Stage 9 - завершен после opt-in интеграций Hotels API и OpenRouter, chat-first frontend и ограниченного внутреннего MVP-пилота.
 
-Работа Stage 6 с контрактами завершена отдельными задачами roadmap и не создавала промышленную реализацию. Stage 7 сформировал ограниченную hotel-only основу с process-local потоком backend, fake provider, детерминированным ранжированием, строгой передачей от Assistant и минимальным frontend-сценарием. Это закрытие не означает готовность к промышленному использованию, наличие real provider, generated clients, расширенного manifest, booking, durable storage или auth. Следующий этап начинается только через отдельную явную задачу, согласованную с roadmap.
+Stage 7 сформировал process-local hotel-only основу. Stage 8 добавил явное
+подтверждение до поиска. Stage 9 добавил opt-in adapters для Hotels API и
+OpenRouter, накопление hotel constraints и chat-first frontend. Оба provider
+mode по умолчанию остаются `FAKE`, stores остаются process-local. Завершение
+внутреннего пилота не означает готовность к промышленному использованию,
+наличие generated clients, booking, durable storage или auth.
 
 После Stage 9.22 основной frontend-сценарий соответствует chat-first модели:
 пользователь начинает с естественного сообщения, Assistant извлекает известные
@@ -100,8 +107,8 @@ Assumptions и unknowns должны оставаться видимыми. Prov
 
 Stage 7 реализовал техническую основу потока. Stage 8 и Stage 9 добавили
 confirmation lifecycle, opt-in provider runtime, накопление hotel constraints и
-chat-first frontend. Внутренний MVP-пилот и production hardening остаются
-отдельными этапами roadmap.
+chat-first frontend. Ограниченный внутренний MVP-пилот завершен; production
+hardening остается отдельным будущим решением.
 
 ## 7. Продуктовые границы и guardrails
 
@@ -154,12 +161,12 @@ Stage 0-4.1 documents сохраняются как historical stage artifacts �
 
 Ключевые перенесенные темы:
 
-- какой объем provider-backed open destination discovery нужен в MVP v1, если он применим к hotel search;
-- когда и в каком виде будет предоставлен existing travel API hotel offer contract;
-- какие hotel offer fields, source/freshness markers и ranking inputs будут доступны как provider facts;
-- какой минимальный уровень session persistence нужен без account history;
-- как показывать unknown data, partial provider data и stale results в будущей реализации;
-- какие accessibility gates нужны перед frontend implementation.
+- официальный server-to-server статус, долгосрочная стабильность, SLA и rate limits публичных Hotels endpoints;
+- включение taxes/fees в `shownPrice` и правило для статуса `LIMITED`;
+- durable session/search persistence без account history;
+- дальнейшее отображение source/freshness и partial provider data;
+- расширенная accessibility-проверка перед внешним пользовательским запуском;
+- production security, observability и deployment boundaries.
 
 Перенесенные темы не являются активным списком задач. Любой следующий шаг должен быть выбран отдельной задачей и оставаться согласованным с основным roadmap.
 

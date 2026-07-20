@@ -272,23 +272,23 @@ class AssistantLlmRouteWiringUseCase(
         val DEFAULT_PENDING_CONFIRMATION_TTL: Duration = Duration.ofMinutes(15)
 
         const val SAFE_BOUNDARY_MESSAGE =
-            "I could not safely turn that message into a hotel search yet. " +
-                "Please keep the request hotel-only and share destination, dates, guests, and rooms."
+            "Пока не удалось безопасно преобразовать сообщение в запрос на поиск отелей. " +
+                "Уточните направление, даты, состав гостей и количество номеров."
 
         const val CONFIRMATION_NEEDS_CLARIFICATION_MESSAGE =
-            "Please confirm clearly, cancel, or share corrected hotel search criteria."
+            "Подтвердите параметры, отмените поиск или пришлите исправленные условия."
 
         const val CONFIRMATION_DECLINED_MESSAGE =
-            "Okay, I will not start a hotel search. You can share new hotel criteria when ready."
+            "Хорошо, поиск отелей не запущен. Когда будете готовы, сообщите новые параметры."
 
         const val CONFIRMATION_REPLANNING_MESSAGE =
-            "Please share the corrected destination, dates, guests, and rooms before I continue."
+            "Уточните исправленные направление, даты, состав гостей и количество номеров."
 
         const val NO_ACTIVE_CONFIRMATION_MESSAGE =
-            "I do not have an active hotel search confirmation to apply. Please share your hotel request again."
+            "Нет активного запроса, ожидающего подтверждения. Отправьте параметры поиска отелей ещё раз."
 
         const val CONFIRMATION_UNKNOWN_REPLY_MESSAGE =
-            "I could not match that reply to the pending confirmation. Please confirm, cancel, or share corrected criteria."
+            "Не удалось распознать ответ на подтверждение. Подтвердите параметры, отмените поиск или пришлите исправленные условия."
 
         const val CHILDREN_COUNT_CLARIFICATION_MESSAGE =
             "Укажите количество детей."

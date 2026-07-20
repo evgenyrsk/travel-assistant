@@ -486,6 +486,7 @@
 173. `docs/reviews/stage-9-22-chat-first-frontend.md`
 174. `docs/reviews/stage-9-23a-openrouter-semantic-candidate-hardening.md`
 175. `docs/reviews/stage-9-23b-chat-first-happy-path-pilot.md`
+176. `docs/reviews/stage-9-23c-pilot-matrix-and-user-facing-stabilization.md`
 
 ## Historical / superseded документы
 

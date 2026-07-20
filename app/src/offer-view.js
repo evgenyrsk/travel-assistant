@@ -33,7 +33,10 @@ export function renderOfferCardMarkup(offer) {
 }
 
 export function toErrorMessage(error) {
-  return error instanceof Error ? error.message : "Не удалось выполнить запрос.";
+  const message = error instanceof Error ? error.message.trim() : "";
+  return /[А-Яа-яЁё]/u.test(message)
+    ? message
+    : "Не удалось выполнить запрос. Попробуйте ещё раз.";
 }
 
 function formatPrice(price) {

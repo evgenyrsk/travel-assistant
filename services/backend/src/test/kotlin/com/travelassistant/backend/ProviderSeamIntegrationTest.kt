@@ -156,7 +156,7 @@ class ProviderSeamIntegrationTest {
         assertEquals(HttpStatusCode.OK, confirmResponse.status)
         assertEquals("ask_clarification", confirmBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "I could not complete the hotel search right now. Please try again.",
+            "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз.",
             confirmBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertFalse(confirmBody.containsKey("hotelSearchId"))
@@ -168,6 +168,129 @@ class ProviderSeamIntegrationTest {
         )
         assertNotNull(pendingConfirmation)
         assertEquals(PendingConfirmationStatus.PENDING, pendingConfirmation.status)
+
+        val offersResponse = client.get(
+            "/api/v1/hotel-searches/hotel-search-local-000001/offers",
+        )
+        assertEquals(HttpStatusCode.NotFound, offersResponse.status)
+    }
+
+    @Test
+    fun ambiguousRealProviderLocationDoesNotSelectFirstCandidateOrCreateSearch() = testApplication {
+        val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+        val requestedPaths = mutableListOf<String>()
+        var llmResponse: LlmClientResponse =
+            LlmClientResponse.Candidate(
+                interpretedHotelSearchCandidate().copy(
+                    extractedConstraints = interpretedHotelSearchCandidate()
+                        .extractedConstraints + ("destination" to "Казань"),
+                ),
+            )
+
+        application {
+            moduleWithAssistantLlm(
+                llmClient = LlmClient { llmResponse },
+                providerConfig = completeRealProviderConfig(),
+                pendingConfirmationStore = pendingConfirmationStore,
+                clock = routeClock,
+                realHotelHttpClientFactory = { ambiguousLocationHttpClient(requestedPaths) },
+            )
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val sessionId = Json.parseToJsonElement(createdSession.bodyAsText())
+            .jsonObject["session"]
+            ?.jsonObject
+            ?.get("sessionId")
+            ?.jsonPrimitive
+            ?.content
+            .orEmpty()
+
+        client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"Найди отель в Казани"}""")
+        }
+        llmResponse = LlmClientResponse.Empty
+
+        val confirmation = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"да"}""")
+        }
+        val confirmationBody = Json.parseToJsonElement(confirmation.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.OK, confirmation.status)
+        assertEquals("ask_clarification", confirmationBody["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "Найдено несколько подходящих направлений. Уточните город или место.",
+            confirmationBody["assistantMessage"]
+                ?.jsonObject
+                ?.get("content")
+                ?.jsonPrimitive
+                ?.content,
+        )
+        assertFalse(confirmationBody.containsKey("hotelSearchId"))
+        assertEquals(listOf("/search-api/search/autocomplete"), requestedPaths)
+        assertNotNull(
+            pendingConfirmationStore.findActiveBySession(
+                sessionId = AssistantSessionId(sessionId),
+                now = routeNow.plusSeconds(1),
+            ),
+        )
+
+        val offersResponse = client.get(
+            "/api/v1/hotel-searches/hotel-search-local-000001/offers",
+        )
+        assertEquals(HttpStatusCode.NotFound, offersResponse.status)
+    }
+
+    @Test
+    fun unsupportedAssistantRequestDoesNotCallRealHotelProvider() = testApplication {
+        var hotelRequestCount = 0
+
+        application {
+            moduleWithAssistantLlm(
+                llmClient = LlmClient {
+                    LlmClientResponse.Candidate(
+                        LlmCandidate(
+                            outcome = LlmCandidate.Outcome.UNSUPPORTED,
+                            intent = LlmCandidate.Intent.UNSUPPORTED,
+                        ),
+                    )
+                },
+                providerConfig = completeRealProviderConfig(),
+                clock = routeClock,
+                realHotelHttpClientFactory = {
+                    HttpClient(
+                        MockEngine {
+                            hotelRequestCount += 1
+                            error("Hotels API must not be called for an unsupported request")
+                        },
+                    ) {
+                        install(HttpTimeout)
+                    }
+                },
+            )
+        }
+
+        val createdSession = client.post("/api/v1/assistant/sessions")
+        val sessionId = Json.parseToJsonElement(createdSession.bodyAsText())
+            .jsonObject["session"]
+            ?.jsonObject
+            ?.get("sessionId")
+            ?.jsonPrimitive
+            ?.content
+            .orEmpty()
+
+        val response = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"Найди авиабилеты в Казань"}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("show_boundary_message", body["nextAction"]?.jsonPrimitive?.content)
+        assertFalse(body.containsKey("hotelSearchId"))
+        assertEquals(0, hotelRequestCount)
 
         val offersResponse = client.get(
             "/api/v1/hotel-searches/hotel-search-local-000001/offers",
@@ -329,6 +452,48 @@ class ProviderSeamIntegrationTest {
                 }
                 respond(
                     content = responseBody,
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString(),
+                    ),
+                )
+            },
+        ) {
+            install(HttpTimeout)
+        }
+
+    private fun ambiguousLocationHttpClient(requestedPaths: MutableList<String>): HttpClient =
+        HttpClient(
+            MockEngine { request ->
+                val path = request.url.encodedPath
+                requestedPaths += path
+                check(path == "/search-api/search/autocomplete") {
+                    "Hotel search must not run while location is ambiguous"
+                }
+                respond(
+                    content =
+                        """
+                        {
+                          "payload": {
+                            "locations": [
+                              {
+                                "id": 1001,
+                                "name": "Казань",
+                                "signature": "Казань, Россия",
+                                "type": {"name": "Город", "code": "city"}
+                              },
+                              {
+                                "id": 1002,
+                                "name": "Казань",
+                                "signature": "Казань, другой регион",
+                                "type": {"name": "Город", "code": "city"}
+                              }
+                            ],
+                            "hotels": []
+                          }
+                        }
+                        """.trimIndent(),
                     status = HttpStatusCode.OK,
                     headers = headersOf(
                         HttpHeaders.ContentType,

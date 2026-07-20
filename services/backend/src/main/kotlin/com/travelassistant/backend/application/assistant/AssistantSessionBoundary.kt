@@ -119,7 +119,7 @@ class CreateAssistantSessionUseCase(
             hotelRequirementsCoveragePlan = updatedSession.hotelRequirementsCoveragePlan,
             assistantReply = AssistantReply(
                 type = AssistantReplyType.CLARIFICATION,
-                message = "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+                message = "Расскажите, куда и когда планируете поездку, кто едет и сколько номеров нужно.",
             ),
             nextAction = AssistantResponseSemantics.nextActionFor(
                 updatedSession.hotelRequirementsCoveragePlan,

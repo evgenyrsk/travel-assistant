@@ -23,14 +23,17 @@ test("keeps matchSummary visible in the hotel offer view model", () => {
       scale: 10,
     },
     availability: "available",
-    matchSummary: "Available; ranked by rating, total stay price, then offer ID.",
+    matchSummary: "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
   });
 
   assert.equal(view.name, "Rome Central Hotel");
   assert.equal(view.location, "Rome, Italy");
   assert.match(view.price, /420/);
   assert.equal(view.availability, "Доступно");
-  assert.equal(view.matchSummary, "Available; ranked by rating, total stay price, then offer ID.");
+  assert.equal(
+    view.matchSummary,
+    "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
+  );
 });
 
 test("renders a hotel offer with its matchSummary", () => {
@@ -50,12 +53,12 @@ test("renders a hotel offer with its matchSummary", () => {
       scale: 10,
     },
     availability: "available",
-    matchSummary: "Available; ranked by rating, total stay price, then offer ID.",
+    matchSummary: "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
   });
 
   assert.match(markup, /Rome Central Hotel/);
   assert.match(markup, /Доступно/);
-  assert.match(markup, /Available; ranked by rating, total stay price, then offer ID\./);
+  assert.match(markup, /Доступно; выше размещены варианты с лучшим рейтингом/);
 });
 
 test("renders an offer without rating as an unknown rating", () => {
@@ -71,7 +74,7 @@ test("renders an offer without rating as an unknown rating", () => {
       currency: "RUB",
     },
     availability: "available",
-    matchSummary: "Available; rating unavailable, ranked by total stay price, then offer ID.",
+    matchSummary: "Доступно; рейтинг неизвестен, поэтому место определено по общей цене за проживание.",
   };
 
   const view = toOfferViewModel(offer);
@@ -82,10 +85,38 @@ test("renders an offer without rating as an unknown rating", () => {
   assert.doesNotMatch(markup, /0\.0 \/ 10/);
 });
 
+test("preserves a short provider hotel name instead of inventing a replacement", () => {
+  const offer = {
+    offerId: "provider-short-name",
+    hotelName: "МА",
+    location: {
+      city: "Казань",
+      country: "Россия",
+    },
+    price: {
+      amount: 32810,
+      currency: "RUB",
+    },
+    availability: "available",
+    matchSummary: "Доступно; рейтинг неизвестен, поэтому место определено по общей цене за проживание.",
+  };
+
+  const view = toOfferViewModel(offer);
+  const markup = renderOfferCardMarkup(offer);
+
+  assert.equal(view.name, "МА");
+  assert.match(markup, />МА<\/h3>/);
+  assert.doesNotMatch(markup, /без названия/i);
+});
+
 test("provides a visible error-state message", () => {
   assert.equal(
     toErrorMessage(new Error("Assistant session was not found.")),
-    "Assistant session was not found.",
+    "Не удалось выполнить запрос. Попробуйте ещё раз.",
   );
-  assert.equal(toErrorMessage(null), "Не удалось выполнить запрос.");
+  assert.equal(
+    toErrorMessage(new Error("Сессия ассистента не найдена.")),
+    "Сессия ассистента не найдена.",
+  );
+  assert.equal(toErrorMessage(null), "Не удалось выполнить запрос. Попробуйте ещё раз.");
 });

@@ -402,7 +402,7 @@ internal class OpenRouterLlmClient(
         const val CONFLICTS_DESCRIPTION =
             "Short conflict markers; empty when the request is consistent."
         const val CLARIFICATION_QUESTION_DESCRIPTION =
-            "A non-empty user-facing question only when clarification is required; otherwise null."
+            "A non-empty user-facing question in Russian only when clarification is required; otherwise null."
         const val WARNINGS_DESCRIPTION =
             "Blocking safety warnings; empty for a safe complete hotel request."
 
@@ -416,7 +416,7 @@ internal class OpenRouterLlmClient(
                 "For a complete consistent hotel request return INTERPRETED and HOTEL_SEARCH, " +
                 "with empty missingRequiredFields, conflicts, and warnings, and null " +
                 "clarificationQuestion. For an incomplete request return NEEDS_CLARIFICATION, " +
-                "list only missing canonical keys, and ask one non-empty clarification question. " +
+                "list only missing canonical keys, and ask one non-empty clarification question in Russian. " +
                 "Use only the canonical constraint keys supplied by the schema. " +
                 "For unsupported non-hotel requests, return UNSUPPORTED intent and outcome."
     }

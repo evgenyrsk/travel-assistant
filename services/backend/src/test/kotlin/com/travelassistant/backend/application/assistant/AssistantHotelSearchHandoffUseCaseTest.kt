@@ -43,14 +43,14 @@ class AssistantHotelSearchHandoffUseCaseTest {
         assertEquals(AssistantNextAction.SHOW_HOTEL_RESULTS, acceptedMessage.nextAction)
         assertEquals("hotel-search-local-000001", acceptedMessage.hotelSearchId?.value)
         assertEquals(
-            "Hotel search created. Ranked offers are ready.",
+            "Поиск завершён. Подходящие варианты готовы.",
             acceptedMessage.assistantReply.message,
         )
 
         val search = hotelSearchBoundary.getSearch(checkNotNull(acceptedMessage.hotelSearchId))
         assertEquals("fake-offer-rome-001", search.offers.first().offer.id)
         assertEquals(
-            "Available; ranked by rating, total stay price, then offer ID.",
+            "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
             search.offers.first().matchSummary,
         )
     }
@@ -85,7 +85,7 @@ class AssistantHotelSearchHandoffUseCaseTest {
         assertEquals(AssistantNextAction.ASK_CLARIFICATION, incompleteMessage.nextAction)
         assertNull(incompleteMessage.hotelSearchId)
         assertEquals(
-            "I need a complete hotel-search request with destination, check-in, check-out, adults, and rooms.",
+            "Укажите направление, даты заезда и выезда, количество взрослых и номеров.",
             incompleteMessage.assistantReply.message,
         )
         assertEquals("hotel-search-local-000001", completeMessage.hotelSearchId?.value)
@@ -95,15 +95,15 @@ class AssistantHotelSearchHandoffUseCaseTest {
     fun providerNotCompletedOutcomesReturnClarificationWithoutSearchId() = runBlocking {
         val cases = listOf(
             HotelOfferProviderResult.LocationNotFound to
-                "I could not match that destination. Please provide a more specific city or location.",
+                "Не удалось определить направление. Уточните город или место.",
             HotelOfferProviderResult.RequestRejected(
                 HotelOfferProviderResult.RequestRejectionReason.INVALID_OCCUPANCY,
             ) to
-                "I could not safely prepare that hotel search. Please check destination, dates, guests, and rooms.",
+                "Не удалось безопасно подготовить поиск. Проверьте направление, даты, состав гостей и количество номеров.",
             HotelOfferProviderResult.ProviderUnavailable(
                 HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
             ) to
-                "I could not complete the hotel search right now. Please try again.",
+                "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз.",
         )
 
         cases.forEach { (outcome, expectedMessage) ->

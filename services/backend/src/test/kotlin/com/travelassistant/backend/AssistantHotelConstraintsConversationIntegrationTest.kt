@@ -284,6 +284,7 @@ class AssistantHotelConstraintsConversationIntegrationTest {
         val declined = sendMessage(sessionId, "нет")
 
         assertEquals("ask_clarification", declined.nextAction())
+        assertFalse(declined.containsKey("hotelSearchId"))
         assertNull(
             pendingStore.findActiveBySession(
                 sessionId = AssistantSessionId(sessionId),
@@ -294,6 +295,11 @@ class AssistantHotelConstraintsConversationIntegrationTest {
             "Rome",
             contextStore.findBySession(AssistantSessionId(sessionId))?.destination,
         )
+
+        val offersResponse = client.get(
+            "/api/v1/hotel-searches/hotel-search-local-000001/offers",
+        )
+        assertEquals(HttpStatusCode.NotFound, offersResponse.status)
     }
 
     private fun queuedLlmClient(

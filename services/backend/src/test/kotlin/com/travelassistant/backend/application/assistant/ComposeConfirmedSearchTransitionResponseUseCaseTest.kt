@@ -37,7 +37,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
         assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, result.responseDirective.nextAction)
         assertEquals(TransitionMessageKind.RESULTS_READY, result.responseDirective.messageKind)
         assertEquals(
-            "The search is ready. Hotel results are available.",
+            "Поиск завершён. Подходящие варианты готовы.",
             result.messageText,
         )
         assertEquals(
@@ -145,7 +145,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
         assertIs<ExecuteConfirmedSearchTransitionResult.GuardRejected>(result.transitionResult)
         assertEquals(TransitionMessageKind.CONFIRMATION_REJECTED, result.responseDirective.messageKind)
         assertEquals(
-            "I could not proceed with the current confirmation state.",
+            "Не удалось продолжить поиск с текущим подтверждением.",
             result.messageText,
         )
         assertEquals(
@@ -282,7 +282,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
             result.pendingConsumeInstruction,
         )
         assertEquals(
-            "The search is ready. Hotel results are available.",
+            "Поиск завершён. Подходящие варианты готовы.",
             result.messageText,
         )
     }
@@ -307,7 +307,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
         assertEquals(InternalTransitionNextAction.ASK_CLARIFICATION, result.responseDirective.nextAction)
         assertEquals(TransitionMessageKind.TEMPORARY_FAILURE, result.responseDirective.messageKind)
         assertEquals(
-            "I could not complete the hotel search right now. Please try again.",
+            "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз.",
             result.messageText,
         )
         assertEquals(

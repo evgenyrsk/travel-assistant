@@ -59,6 +59,19 @@ class HotelsApiSearchResponseMapperTest {
     }
 
     @Test
+    fun `preserves a short non-blank provider hotel name without inventing a replacement`() {
+        val offer = assertIs<HotelsApiSearchResponseMapper.Result.Mapped>(
+            HotelsApiSearchResponseMapper.map(
+                response(
+                    hotel(hotelName = "МА"),
+                ),
+            ),
+        ).offers.single()
+
+        assertEquals("МА", offer.hotelName)
+    }
+
+    @Test
     fun `deduplicates provider references and ignores pagination fields`() {
         val first = hotel(hotelId = "hotel-1", hotelName = "First")
         val duplicate = hotel(hotelId = "hotel-1", hotelName = "Duplicate")

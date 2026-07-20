@@ -29,23 +29,23 @@ class HotelOfferRanker {
         when (offer.availability) {
             HotelOffer.Availability.AVAILABLE ->
                 if (offer.rating == null) {
-                    "Available; rating unavailable, ranked by total stay price, then offer ID."
+                    "Доступно; рейтинг неизвестен, поэтому место определено по общей цене за проживание."
                 } else {
-                    "Available; ranked by rating, total stay price, then offer ID."
+                    "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание."
                 }
 
             HotelOffer.Availability.LIMITED ->
                 if (offer.rating == null) {
-                    "Limited availability; rating unavailable, ranked after available offers, then by total stay price."
+                    "Мало мест; рейтинг неизвестен, вариант расположен после доступных предложений по общей цене за проживание."
                 } else {
-                    "Limited availability; ranked after available offers, then by rating and total stay price."
+                    "Мало мест; вариант расположен после доступных предложений, затем учтены рейтинг и общая цена за проживание."
                 }
 
             HotelOffer.Availability.UNKNOWN ->
                 if (offer.rating == null) {
-                    "Availability unknown; rating unavailable, ranked after confirmed offers, then by total stay price."
+                    "Доступность и рейтинг неизвестны; вариант расположен после предложений с подтверждённой доступностью по общей цене за проживание."
                 } else {
-                    "Availability unknown; ranked after confirmed offers, then by rating and total stay price."
+                    "Доступность неизвестна; вариант расположен после предложений с подтверждённой доступностью, затем учтены рейтинг и общая цена за проживание."
                 }
         }
 }
