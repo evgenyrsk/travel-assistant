@@ -31,6 +31,10 @@ mode по умолчанию остаются `FAKE`, stores остаются pr
 внутреннего пилота не означает готовность к промышленному использованию,
 наличие generated clients, booking, durable storage или auth.
 
+Stage 10.0 выбрал устанавливаемый responsive web/PWA как первый ограниченный
+cross-platform target. Это planning decision, а не завершенная реализация.
+Native clients и полный внешний rollout не активированы.
+
 После Stage 9.22 основной frontend-сценарий соответствует chat-first модели:
 пользователь начинает с естественного сообщения, Assistant извлекает известные
 параметры и задает уточняющие вопросы, а структурированная область результатов
@@ -121,6 +125,12 @@ hardening остается отдельным будущим решением.
 - Будущие функции не входят в текущие границы.
 - Current-session shortlist не является account history.
 - Save/shortlist не означает booking, payment, price guarantee или availability guarantee.
+- `shownPrice` отображается без перерасчета как provider total за выбранный
+  период; включение taxes/fees не утверждается без provider contract.
+- Статус `LIMITED` нельзя выводить из количества комнат или другого
+  эвристического threshold без подтвержденного provider fact.
+- Первый PWA-срез остается online-only и не обещает resume или cross-device
+  sync; transcript и provider results не становятся durable data.
 
 Подробные roadmap guardrails остаются в `docs/roadmap/roadmap.md` и `docs/guides/documentation-style-guide.md`.
 
@@ -155,20 +165,33 @@ Stage 0-4.1 documents сохраняются как historical stage artifacts �
 - `docs/product/stage-4/stage-4-summary-and-carryover.md` - итог Stage 4.
 - `docs/product/stage-4/stage-4-consistency-review.md` - Stage 4.1 consistency review.
 
-## 9. Открытые продуктовые вопросы и перенесенные пункты
+## 9. Принятые policies и внешние ограничения
 
-Актуальные открытые вопросы и перенесенные пункты уже зафиксированы в roadmap и итогах этапов. Этот раздел не добавляет новые вопросы.
+Stage 10.0 закрыл вопросы, для которых достаточно внутреннего product decision:
 
-Ключевые перенесенные темы:
+- первый cross-platform target — responsive web/PWA, а не отдельные native
+  clients;
+- `shownPrice` переносится и показывается без перерасчета как total за период,
+  при этом taxes/fees inclusion остается неизвестным;
+- `LIMITED` не производится эвристически;
+- process-local/browser-local состояние допустимо для первого PWA-среза без
+  обещаний resume, account history и cross-device sync.
+
+Внешние ограничения не заменяются предположениями. Они не блокируют локальную
+PWA foundation, но должны быть закрыты до публичного rollout:
 
 - официальный server-to-server статус, долгосрочная стабильность, SLA и rate limits публичных Hotels endpoints;
-- включение taxes/fees в `shownPrice` и правило для статуса `LIMITED`;
-- durable session/search persistence без account history;
 - дальнейшее отображение source/freshness и partial provider data;
 - расширенная accessibility-проверка перед внешним пользовательским запуском;
 - production security, observability и deployment boundaries.
 
-Перенесенные темы не являются активным списком задач. Любой следующий шаг должен быть выбран отдельной задачей и оставаться согласованным с основным roadmap.
+Hotel details, current-session shortlist и отдельный интерактивный
+explanation/comparison flow входят в MVP v1, но текущим pilot-срезом не
+реализованы. Они не блокируют PWA foundation, однако блокируют заявление о
+полной реализации MVP v1.
+
+Ограничения не являются активным списком задач. Любой следующий шаг выбирается
+отдельной задачей и остается согласованным с основным roadmap.
 
 ## 10. Связанные документы
 

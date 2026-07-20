@@ -22,6 +22,8 @@
 - Assistant, constraints, pending confirmation, execution attempt и hotel search stores остаются process-local.
 - Основной frontend является chat-first; структурированная форма Stage 7.51 сохранена отдельной диагностической страницей.
 - Public API/OpenAPI boundary сохранена; generated clients, durable storage, auth и промышленная инфраструктура не созданы.
+- Stage 10.0 выбрал responsive web/PWA как первый cross-platform target без
+  изменения backend/domain boundaries; implementation Stage 10.1 еще не начат.
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 
@@ -77,6 +79,11 @@ Stage 8 определил границу `LlmClient`, разрешенные д
 добавил opt-in OpenRouter adapter и Hotels API adapter через отдельные runtime
 factories. Выбор конкретной модели остается configuration-only, секреты не
 передаются frontend, а provider DTO не выходят за infrastructure layer.
+
+Первый Stage 10 client target переиспользует текущий легковесный frontend как
+online-only PWA. Клиент обращается только к Travel Assistant `/api/v1/**` и не
+кэширует transcript, API responses или provider facts. Native clients,
+cross-device sync и offline hotel search требуют отдельных решений.
 
 ## 6. Основные архитектурные границы
 

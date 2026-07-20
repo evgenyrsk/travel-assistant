@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 9 завершен; Stage 10 не начат |
-| Последний завершенный этап | Stage 9.23c — pilot-матрица закрыта, пользовательский текст стабилизирован |
-| Следующий планируемый шаг | Отдельная planning/readiness задача перед активацией Stage 10 |
+| Текущий этап | Stage 10 активирован на уровне planning; implementation не начат |
+| Последний завершенный этап | Stage 10.0 — выбран первый ограниченный PWA-срез и сверены открытые вопросы |
+| Следующий планируемый шаг | Stage 10.1 — bounded PWA foundation для текущего chat-first hotel flow |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -60,7 +60,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Chat-first flow и LLM orchestration были вне Stage 7 и реализованы позднее в Stage 8-9. |
 | Stage 8 | Завершен | Backend confirmation lifecycle: LLM orchestration boundary, confirmation flow, local search execution, consume-after-success. Закрыт с carryover (InMemory stores, fake LLM/provider). |
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
-| Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
+| Stage 10 | В работе (planning) | Stage 10.0 выбрал responsive web/PWA как первый ограниченный target; implementation начнется только отдельной задачей Stage 10.1. |
 
 ## 2. Правила управления roadmap
 
@@ -105,15 +105,28 @@ MVP v1 остается hotel-only:
 
 Provider/API data является source of truth для travel facts. LLM может интерпретировать, объяснять, ранжировать, резюмировать и уточнять, но не должна выдумывать цены, доступность, рейтинги, amenities или другие provider facts.
 
-## 5. Открытые решения и перенесенные пункты
+## 5. Принятые решения и перенесенные ограничения
 
-Эти пункты перенесены как входные данные для будущих решений и не являются активным списком задач:
+Stage 10.0 закрыл внутренние решения, необходимые для следующего шага:
 
-- Provider-backed open destination discovery для hotel search, если это потребуется для MVP v1.
-- Сроки и формат предоставления existing travel API contract.
-- Deferred technical decisions: adapter design, provider error taxonomy, reliability и production-hardening.
-- Session persistence, resume behaviour, long-term history, authorization и account-level storage.
-- Следующий implementation step или remaining cleanup task должны быть выбраны отдельной явной задачей.
+- первый cross-platform target — responsive web/PWA;
+- `shownPrice` отображается как provider total за выбранный период без
+  перерасчета и без заявления о включенных taxes/fees;
+- `LIMITED` не определяется эвристически;
+- первый PWA-срез не обещает resume, account history или cross-device sync и не
+  требует durable storage/auth.
+
+До публичного rollout остаются внешние gates: официальный server-to-server
+статус, долгосрочная стабильность, SLA и rate limits Hotels API, а также
+production security, observability и deployment boundaries. Неизвестные
+provider source/freshness facts нельзя заполнять предположениями.
+
+Hotel details, current-session shortlist и отдельный интерактивный
+explanation/comparison flow пока не реализованы. Они не блокируют Stage 10.1,
+но блокируют заявление о полной реализации MVP v1 и закрытие Stage 10.
+
+Перенесенные ограничения не являются активным списком задач. Следующий шаг
+активируется только отдельной явной roadmap-aligned задачей.
 
 ## 6. Завершенные этапы
 
@@ -595,9 +608,33 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 10 — Cross-platform Expansion
 
-**Статус:** Запланирован.
+**Статус:** активирован на уровне planning. Stage 10.0 завершен; implementation
+не начат.
 
 **Границы:** расширение за пределы первой платформы без переписывания product и domain logic.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 10.0 | Cross-platform readiness и сверка открытых вопросов | Завершен; первым target выбран устанавливаемый responsive web/PWA |
+| Stage 10.1 | Bounded PWA foundation для проверенного chat-first hotel flow | Следующий разрешенный шаг; не начат |
+
+**Принятые решения Stage 10.0:** первый клиентский срез остается online-only и
+обращается только к Travel Assistant API. Он не кэширует API responses,
+transcript или provider facts. Native iOS/Android clients, auth, durable storage
+и cross-device sync не входят в Stage 10.1. Неизвестные SLA, rate limits и
+официальный server-to-server статус Hotels API не блокируют локальную PWA
+foundation, но остаются обязательными внешними gates перед публичным rollout.
+
+`shownPrice` отображается как provider total за выбранный период без
+перерасчета и без утверждения о включенных taxes/fees. `LIMITED` не выводится
+эвристически. Hotel details, current-session shortlist и отдельный
+explanation/comparison flow пока не реализованы: это не блокирует PWA
+foundation, но блокирует заявление о полном закрытии MVP v1 или Stage 10.
+
+**Следующий шаг:** отдельная Stage 10.1 implementation-задача для manifest,
+локальных installability assets, safe-area/mobile layout, явной cache boundary,
+frontend tests и browser QA. Native clients, runtime/API changes и offline
+hotel search запрещены в этом срезе.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 
