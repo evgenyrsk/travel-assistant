@@ -13,6 +13,8 @@ const contentTypes = new Map([
   [".html", "text/html; charset=utf-8"],
   [".js", "text/javascript; charset=utf-8"],
   [".json", "application/json; charset=utf-8"],
+  [".png", "image/png"],
+  [".webmanifest", "application/manifest+json; charset=utf-8"],
   [".svg", "image/svg+xml"],
 ]);
 
@@ -58,6 +60,7 @@ async function proxyToBackend(request, response) {
   if (contentType) {
     responseHeaders["content-type"] = contentType;
   }
+  responseHeaders["cache-control"] = "no-store";
 
   response.writeHead(backendResponse.status, responseHeaders);
   response.end(responseBody);
@@ -78,6 +81,7 @@ async function serveFrontend(request, response) {
     const content = await readFile(filePath);
     response.writeHead(200, {
       "content-type": contentTypes.get(extname(filePath)) ?? "application/octet-stream",
+      "cache-control": "no-store",
     });
     response.end(content);
   } catch {

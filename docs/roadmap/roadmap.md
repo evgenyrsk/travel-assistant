@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 10 активирован на уровне planning; implementation не начат |
-| Последний завершенный этап | Stage 10.0 — выбран первый ограниченный PWA-срез и сверены открытые вопросы |
-| Следующий планируемый шаг | Stage 10.1 — bounded PWA foundation для текущего chat-first hotel flow |
+| Текущий этап | Stage 10 в работе; bounded PWA foundation реализована |
+| Последний завершенный этап | Stage 10.1 — online-only manifest/icons/mobile foundation и cache boundary |
+| Следующий планируемый шаг | Stage 10.2 — mobile/accessibility verification без расширения product flow |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -60,7 +60,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Chat-first flow и LLM orchestration были вне Stage 7 и реализованы позднее в Stage 8-9. |
 | Stage 8 | Завершен | Backend confirmation lifecycle: LLM orchestration boundary, confirmation flow, local search execution, consume-after-success. Закрыт с carryover (InMemory stores, fake LLM/provider). |
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
-| Stage 10 | В работе (planning) | Stage 10.0 выбрал responsive web/PWA как первый ограниченный target; implementation начнется только отдельной задачей Stage 10.1. |
+| Stage 10 | В работе | Stage 10.0 выбрал responsive web/PWA; Stage 10.1 реализовал online-only PWA foundation без native clients и API/runtime changes. |
 
 ## 2. Правила управления roadmap
 
@@ -608,15 +608,16 @@ explanation/comparison flow пока не реализованы. Они не б
 
 ### Stage 10 — Cross-platform Expansion
 
-**Статус:** активирован на уровне planning. Stage 10.0 завершен; implementation
-не начат.
+**Статус:** в работе. Stage 10.0–10.1 завершены; следующий разрешенный шаг —
+Stage 10.2.
 
 **Границы:** расширение за пределы первой платформы без переписывания product и domain logic.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
 | Stage 10.0 | Cross-platform readiness и сверка открытых вопросов | Завершен; первым target выбран устанавливаемый responsive web/PWA |
-| Stage 10.1 | Bounded PWA foundation для проверенного chat-first hotel flow | Следующий разрешенный шаг; не начат |
+| Stage 10.1 | Bounded PWA foundation для проверенного chat-first hotel flow | Завершен; manifest, локальные icons, standalone/mobile metadata, safe-area и `no-store` boundary |
+| Stage 10.2 | Mobile/accessibility verification без расширения product flow | Следующий разрешенный шаг; не начат |
 
 **Принятые решения Stage 10.0:** первый клиентский срез остается online-only и
 обращается только к Travel Assistant API. Он не кэширует API responses,
@@ -631,10 +632,10 @@ foundation, но остаются обязательными внешними ga
 explanation/comparison flow пока не реализованы: это не блокирует PWA
 foundation, но блокирует заявление о полном закрытии MVP v1 или Stage 10.
 
-**Следующий шаг:** отдельная Stage 10.1 implementation-задача для manifest,
-локальных installability assets, safe-area/mobile layout, явной cache boundary,
-frontend tests и browser QA. Native clients, runtime/API changes и offline
-hotel search запрещены в этом срезе.
+**Следующий шаг:** отдельная Stage 10.2 verification-задача для desktop/mobile
+browser matrix, standalone/safe-area visual check, keyboard order, labels, live
+regions, touch targets и overflow. Native clients, новый product flow и
+backend/API changes запрещены в этом срезе.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

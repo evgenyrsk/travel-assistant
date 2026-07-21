@@ -22,8 +22,9 @@
 - Assistant, constraints, pending confirmation, execution attempt и hotel search stores остаются process-local.
 - Основной frontend является chat-first; структурированная форма Stage 7.51 сохранена отдельной диагностической страницей.
 - Public API/OpenAPI boundary сохранена; generated clients, durable storage, auth и промышленная инфраструктура не созданы.
-- Stage 10.0 выбрал responsive web/PWA как первый cross-platform target без
-  изменения backend/domain boundaries; implementation Stage 10.1 еще не начат.
+- Stage 10.0 выбрал responsive web/PWA как первый cross-platform target, а
+  Stage 10.1 добавил online-only manifest/icons/mobile foundation без изменения
+  backend/domain boundaries.
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 

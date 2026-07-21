@@ -20,6 +20,12 @@ backend через `/api/v1/**`.
 учитывает `prefers-reduced-motion`. Внешние web fonts, изображения и frontend
 dependencies не используются.
 
+Stage 10.1 добавляет ограниченную PWA foundation: web app manifest, локальные
+installability icons, standalone/mobile metadata и safe-area layout. Клиент
+остается online-only: service worker отсутствует, а frontend server возвращает
+`Cache-Control: no-store` для локальных assets и проксируемых `/api/v1/**`
+responses. Transcript, hotel offers и provider data не кэшируются.
+
 Прежняя структурированная форма сохранена как диагностическая страница:
 
 ```text

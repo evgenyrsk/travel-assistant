@@ -32,7 +32,8 @@ mode по умолчанию остаются `FAKE`, stores остаются pr
 наличие generated clients, booking, durable storage или auth.
 
 Stage 10.0 выбрал устанавливаемый responsive web/PWA как первый ограниченный
-cross-platform target. Это planning decision, а не завершенная реализация.
+cross-platform target. Stage 10.1 добавил online-only manifest, локальные icons
+и mobile/standalone foundation без кэширования API или пользовательских данных.
 Native clients и полный внешний rollout не активированы.
 
 После Stage 9.22 основной frontend-сценарий соответствует chat-first модели:
