@@ -1,0 +1,35 @@
+{
+  "observedAt": "2026-07-21",
+  "sanitized": true,
+  "stoppedOnContractDrift": true,
+  "fixtures": [
+    {
+      "file": "search-filters-catalog.json",
+      "method": "GET",
+      "path": "/api/v2/hotels/search-filters",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "payloadType": "object",
+      "replacedCategories": [],
+      "excludedCategories": [
+        "response headers",
+        "cookies",
+        "session metadata",
+        "device metadata",
+        "tracing metadata"
+      ]
+    }
+  ],
+  "skippedCalls": [
+    {
+      "method": "POST",
+      "path": "/api/v1/hotels/search-filters-availability",
+      "reason": "contract drift detected in review_rating catalog shape"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/hotels/search",
+      "reason": "contract drift detected before filtered search"
+    }
+  ]
+}
