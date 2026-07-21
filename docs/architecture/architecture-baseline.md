@@ -25,6 +25,9 @@
 - Stage 10.0 выбрал responsive web/PWA как первый cross-platform target, а
   Stage 10.1 добавил online-only manifest/icons/mobile foundation без изменения
   backend/domain boundaries.
+- Stage 10.2 подтвердил same-origin web/PWA и platform-neutral JSON/HTTP
+  boundary; native/desktop остаются архитектурно совместимыми без готового SDK,
+  а cross-origin web требует отдельной CORS policy.
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 
@@ -95,6 +98,9 @@ cross-device sync и offline hotel search требуют отдельных ре
 - LLM boundary: LLM не создает provider facts и не заменяет provider data.
 - Data boundary: current-session shortlist не является account history, persistent saved trips или cross-device sync.
 - Integration boundary: provider abstractions являются conceptual boundaries, а не API contracts.
+- Client boundary: любой platform client использует Travel Assistant
+  `/api/v1/**`; provider/LLM orchestration, secrets, business validation и
+  ranking не дублируются на web, iOS, Android или desktop.
 - Stack boundary: backend implementation использует Kotlin + Ktor, если только будущий ADR явно не меняет это решение.
 - Implementation boundary: Stage 7–9 завершили process-local MVP и opt-in real integrations; durable infrastructure и production hardening не активированы.
 

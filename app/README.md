@@ -38,7 +38,8 @@ http://127.0.0.1:4173/diagnostic.html
 ## Запуск
 
 Backend должен быть доступен локально на `http://127.0.0.1:8080`. Frontend
-server проксирует `/api/v1/**`, поэтому изменение CORS не требуется.
+server проксирует `/api/v1/**`, поэтому для текущего same-origin web/PWA flow
+изменение CORS не требуется.
 
 ```bash
 cd app
@@ -47,6 +48,19 @@ npm run dev
 
 По умолчанию frontend доступен на `http://127.0.0.1:4173`. Другой backend можно
 указать через `BACKEND_URL`, другой frontend port — через `PORT`.
+
+## Кроссплатформенная граница
+
+Frontend использует platform-neutral JSON/HTTP API Travel Assistant. API client
+поддерживает внедрение абсолютного `baseUrl` и не зависит от DOM, cookies,
+browser storage или provider contracts. Это позволяет отдельным web, iOS,
+Android и desktop clients переиспользовать `/api/v1/**`, не дублируя
+provider/LLM orchestration и business rules.
+
+Текущий server обслуживает same-origin web/PWA через proxy. Для отдельного
+cross-origin web deployment понадобится будущая configurable CORS allowlist;
+native clients не ограничиваются browser CORS. Native SDK, generated clients,
+auth, durable session resume и cross-device sync пока не реализованы.
 
 ## Проверки
 

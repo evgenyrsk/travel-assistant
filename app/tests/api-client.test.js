@@ -123,6 +123,46 @@ test("sends initial and subsequent chat messages through assistant routes", asyn
   );
 });
 
+test("supports an absolute API base URL without browser credentials", async () => {
+  const calls = [];
+  const api = createApiClient({
+    baseUrl: "https://api.example.test/api/v1",
+    fetchImpl: async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        session: {
+          sessionId: "assistant-session-portable-000001",
+        },
+        assistantMessage: {
+          role: "assistant",
+          content: "Уточните параметры поездки.",
+        },
+        nextAction: "ask_clarification",
+        offers: [],
+      });
+    },
+  });
+
+  await api.createAssistantSession("Найди отель");
+  await api.sendAssistantMessage("session/mobile client", "Казань");
+  await api.getHotelOffers("search/native client");
+
+  assert.deepEqual(
+    calls.map(({ url }) => url),
+    [
+      "https://api.example.test/api/v1/assistant/sessions",
+      "https://api.example.test/api/v1/assistant/sessions/session%2Fmobile%20client/messages",
+      "https://api.example.test/api/v1/hotel-searches/search%2Fnative%20client/offers",
+    ],
+  );
+
+  for (const { options } of calls) {
+    assert.equal("credentials" in options, false);
+    assert.equal("cookie" in (options.headers ?? {}), false);
+    assert.equal("authorization" in (options.headers ?? {}), false);
+  }
+});
+
 function jsonResponse(body, overrides = {}) {
   return {
     ok: overrides.ok ?? true,

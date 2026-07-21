@@ -89,3 +89,44 @@ test("frontend remains online-only without service worker or cache storage", asy
   assert.match(server, /responseHeaders\["cache-control"\] = "no-store"/);
   assert.match(server, /"cache-control": "no-store"/);
 });
+
+test("API client remains independent from browser state and provider contracts", async () => {
+  const apiClient = await readFile(new URL("api-client.js", sourceUrl), "utf8");
+  const scriptNames = ["api-client.js", "app.js", "chat-app.js", "chat-flow.js", "offer-view.js"];
+  const frontendSources = await Promise.all(
+    scriptNames.map((name) => readFile(new URL(name, sourceUrl), "utf8")),
+  );
+
+  assert.doesNotMatch(
+    apiClient,
+    /\b(?:document|window|navigator|localStorage|sessionStorage|indexedDB)\b|document\.cookie/,
+  );
+
+  for (const source of frontendSources) {
+    assert.doesNotMatch(
+      source,
+      /openrouter\.ai|hotels\.tbank\.ru|OPENROUTER_API_KEY|HOTELS_API_|LlmCandidate|HotelsApi|bookHash|shownPrice/,
+    );
+  }
+
+  assert.doesNotMatch(apiClient, /MAX_PRESENTED_OFFERS|slice\(0,\s*5\)/);
+});
+
+test("chat page exposes bounded accessibility semantics", async () => {
+  const [chatPage, styles] = await Promise.all([
+    readFile(new URL("index.html", sourceUrl), "utf8"),
+    readFile(new URL("styles.css", sourceUrl), "utf8"),
+  ]);
+
+  assert.match(chatPage, /<html lang="ru">/);
+  assert.match(chatPage, /<label[^>]*for="chat-input"[^>]*>Сообщение ассистенту<\/label>/);
+  assert.match(chatPage, /id="transcript"[^>]*role="log"[^>]*aria-live="polite"/);
+  assert.match(chatPage, /id="chat-error"[^>]*role="alert"/);
+  assert.match(chatPage, /id="chat-status"[^>]*aria-live="polite"/);
+  assert.match(chatPage, /id="results"[^>]*aria-live="polite"/);
+  assert.doesNotMatch(chatPage, /tabindex="[1-9]/);
+
+  assert.match(styles, /button:focus-visible,[\s\S]*outline:\s*3px solid var\(--focus\)/);
+  assert.match(styles, /button\s*\{[\s\S]*?min-height:\s*48px/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
+});
