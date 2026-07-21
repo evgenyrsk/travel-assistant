@@ -493,6 +493,7 @@
 180. `docs/reviews/stage-10-3-platform-neutral-api-contract-hardening.md`
 181. `docs/reviews/stage-10-4-service-integration-boundary-and-client-ownership-decision.md`
 182. `docs/reviews/stage-11-0-local-real-mvp-demo-readiness.md`
+183. `docs/reviews/stage-12-0-iterative-hotel-search-refinement-reconciliation.md`
 
 ## Historical / superseded документы
 

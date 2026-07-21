@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 11 завершен в границах воспроизводимой локальной REAL-демонстрации MVP |
-| Последний завершенный этап | Stage 11.0 — local REAL MVP demo readiness |
-| Следующий планируемый шаг | Не выбран; требуется отдельное roadmap-решение по итогам демонстрации |
+| Текущий этап | Stage 12 активирован для итеративного уточнения hotel search; Stage 12.0 завершен |
+| Последний завершенный этап | Stage 12.0 — MVP и roadmap reconciliation |
+| Следующий планируемый шаг | Stage 12.1 — filter contract verification; live-вызовы требуют отдельного разрешения |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -62,6 +62,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
+| Stage 12 | Активирован | Stage 12.0 пересогласовал MVP вокруг повторного provider search после уточнения фильтров; Stage 12.1 должен проверить транспортные контракты фильтров до реализации. |
 
 ## 2. Правила управления roadmap
 
@@ -88,10 +89,14 @@ Roadmap не является трекером задач, продуктово�
 
 MVP v1 остается hotel-only:
 
-- AI-assisted hotel search and selection;
-- hotel request на естественном языке и уточнение запроса;
-- hotel results, ranking, comparison и explanation;
-- только current-session shortlist;
+- AI-assisted hotel search по естественному запросу;
+- уточнение обязательных критериев и явное подтверждение до provider search;
+- первичная provider-backed выдача без обязательных дополнительных фильтров;
+- итеративное изменение необязательных предпочтений в чате с новым
+  подтверждением и новым provider search;
+- максимальная общая стоимость, звезды, минимальный гостевой рейтинг,
+  обязательная бесплатная отмена и сортировка в пределах подтвержденного
+  Hotels API contract;
 - явное разделение provider facts, assistant assumptions и unknowns.
 
 Явно вне MVP v1:
@@ -125,8 +130,9 @@ production security, observability и deployment boundaries. Неизвестн�
 provider source/freshness facts нельзя заполнять предположениями.
 
 Hotel details, current-session shortlist и отдельный интерактивный
-explanation/comparison flow пока не реализованы. Они не блокируют Stage 10.1,
-но блокируют заявление о полной реализации MVP v1 и закрытие Stage 10.
+explanation/comparison flow остаются направлениями hotel-only расширения. Они
+не являются обязательными для текущего демонстрационного MVP и не блокируют
+итеративное уточнение поиска Stage 12.
 
 Перенесенные ограничения не являются активным списком задач. Следующий шаг
 активируется только отдельной явной roadmap-aligned задачей.
@@ -666,7 +672,7 @@ default-deny, auth, durable storage, resume и cross-device sync — вне те
 
 ### Stage 11 — Local MVP Demonstration Readiness
 
-**Статус:** завершен Stage 11.0. Следующий этап не активирован.
+**Статус:** завершен Stage 11.0. Следующим активирован Stage 12.
 
 **Границы:** воспроизводимая локальная демонстрация уже реализованного
 chat-first hotel flow. Stage не создает product web/mobile clients, deployment,
@@ -687,9 +693,55 @@ shell и завершает их совместно. Контролируемы�
 confirmation до поиска, отсутствие карточек до «Да», получение 20 REAL offers
 и отображение первых 5. Raw provider/LLM data и secrets не публиковались.
 
-**Следующий шаг:** не выбран. Deployment, product clients, integration handoff,
-MVP scope expansion и production hardening требуют отдельных roadmap-решений и
-не следуют автоматически из успешной локальной демонстрации.
+**Следующий шаг:** Stage 12.0 пересогласовал функциональный MVP вокруг
+итеративного уточнения hotel search. Deployment, product clients и production
+hardening по-прежнему требуют отдельных roadmap-решений.
+
+### Stage 12 — Итеративное уточнение hotel search
+
+**Статус:** активирован; Stage 12.0 завершен, следующий шаг — Stage 12.1.
+
+**Цель:** позволить пользователю получить первичные предложения, уточнить
+необязательные предпочтения в чате, подтвердить полный обновленный набор
+критериев и выполнить новый ограниченный provider search.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 12.0 | MVP и roadmap reconciliation | Завершен; итеративное уточнение принято как текущий функциональный MVP, shortlist/details/comparison перенесены в расширение |
+| Stage 12.1 | Filter contract verification | Следующий; проверить Swagger и после отдельного разрешения выполнить не более одного контролируемого вызова для catalog, availability и поиска с фильтрами |
+| Stage 12.2 | Provider-neutral preference model | Запланирован после успешной Stage 12.1 |
+| Stage 12.3 | LLM extraction для уточнений | Запланирован после Stage 12.2 |
+| Stage 12.4 | Hotels API filter mapping | Запланирован после Stage 12.3 и подтверждения wire values |
+| Stage 12.5 | Refinement runtime flow | Запланирован после Stage 12.4 |
+| Stage 12.6 | Platform-neutral response alignment | Запланирован после стабильного backend behavior |
+| Stage 12.7 | No-results refinement | Запланирован без автоматического подключения filter availability |
+| Stage 12.8 | MVP verification | Запланирован как regression и один отдельно разрешенный REAL smoke |
+
+Принятые продуктовые правила Stage 12.0:
+
+- необязательные фильтры не задерживают первый поиск;
+- бюджет без валюты трактуется как RUB, автоматическая конвертация не
+  выполняется;
+- цена означает provider total за весь период;
+- каждое изменение provider request требует нового подтверждения;
+- фильтры применяются новым provider search, а не только к сохраненному
+  пулу из 20 предложений;
+- успешное уточнение создает новый `hotelSearchId`, предыдущий process-local
+  search остается доступен;
+- pagination, filter panel, auth, durable storage, booking и payment не входят
+  в Stage 12.
+
+Контрактная основа для проверки Stage 12.1:
+
+- `POST /search-api/search/autocomplete` — разрешение destination;
+- `POST /api/v1/hotels/search` — основной поиск с `filters` и `sort`;
+- `GET /api/v2/hotels/search-filters` — каталог значений фильтров provider;
+- `POST /api/v1/hotels/search-filters-availability` — возможное будущее
+  объяснение доступных или ослабляемых фильтров.
+
+Live-вызовы Stage 12.1 не разрешены самим фактом активации Stage 12. Для них
+нужно отдельное явное разрешение; retries запрещены, а результаты могут быть
+сохранены только как обезличенные fixtures.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

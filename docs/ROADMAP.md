@@ -98,3 +98,15 @@
 - Обеспечить воспроизводимый локальный запуск demo shell и backend.
 - Проверить явные `FAKE` и `REAL` профили без изменения безопасных defaults.
 - Подтвердить полный chat-first hotel flow одним контролируемым REAL smoke.
+
+## Этап 12 — итеративное уточнение hotel search
+
+- Получать первичные hotel offers без требования заранее задать необязательные
+  фильтры.
+- Принимать уточнения фильтров и сортировки через platform-neutral chat API.
+- Повторно показывать полный набор критериев и запрашивать подтверждение перед
+  каждым новым provider search.
+- Сохранять provider-neutral preferences и изолировать wire-контракты Hotels
+  API в infrastructure layer.
+- Оставить details, shortlist, comparison, booking и payment отдельными
+  направлениями расширения.

@@ -4,7 +4,7 @@
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальную архитектурную основу Travel Assistant после завершения Stage 0–11, исправления стека backend и последующей синхронизации документации. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Этот документ фиксирует актуальную архитектурную основу Travel Assistant после завершения Stage 0–11 и пересогласования функционального MVP в Stage 12.0. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
 
 Он нужен как компактная точка входа в текущее архитектурное состояние: какие границы подтверждены, где находится conceptual architecture baseline и какие Stage 5 artifacts являются исходными источниками.
 
@@ -14,7 +14,9 @@
 
 ## 2. Текущий статус архитектуры
 
-- Stage 0–11 завершены; подробные статусы и перенесенные пункты находятся в `docs/roadmap/roadmap.md`.
+- Stage 0–11 завершены; Stage 12.0 пересогласовал следующий hotel-only
+  функциональный срез, а подробные статусы находятся в
+  `docs/roadmap/roadmap.md`.
 - Backend использует Kotlin + Ktor и сохраняет разделение domain, application, infrastructure и API слоев.
 - `LlmClient` и `HotelOfferProviderBoundary` реализованы как application-owned асинхронные границы.
 - OpenRouter и публичный Hotels API имеют opt-in adapters и отдельные `HttpClient`; оба режима по умолчанию остаются `FAKE`.
@@ -38,6 +40,10 @@
 - Stage 11.0 добавил только локальный launcher/runbook и подтвердил полный REAL
   demo flow. Backend layers, public API, provider boundaries и runtime defaults
   при этом не изменились.
+- Stage 12.0 закрепил итеративное уточнение как направление application
+  orchestration: provider-neutral preferences накапливаются в session context,
+  каждое изменение provider request требует нового подтверждения, а применение
+  hard filters должно выполнять новый provider search.
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 
@@ -79,7 +85,10 @@ Java/Spring Boot не является принятым backend stack для Tra
 
 Пользователь взаимодействует с AI-assisted travel assistant через chat-first, not chat-only experience.
 
-MVP v1 ориентирован на hotel-only flow: пользователь уточняет запрос, получает hotel options, объяснения, сравнение и current-session shortlist.
+Текущий демонстрационный MVP ориентирован на hotel-only flow: пользователь
+уточняет обязательные критерии, подтверждает поиск, получает hotel options и
+может следующей репликой изменить необязательные фильтры или сортировку для
+нового подтвержденного provider search.
 
 External provider layer отвечает за hotel facts: цены, availability, location, amenities, policies, ratings, source/freshness and related data, если эти данные доступны из provider/source.
 
@@ -106,7 +115,9 @@ transcript, API responses или provider facts. Будущие продукто
 - Product boundary: MVP v1 остается hotel-only.
 - Provider boundary: provider layer является источником hotel facts.
 - LLM boundary: LLM не создает provider facts и не заменяет provider data.
-- Data boundary: current-session shortlist не является account history, persistent saved trips или cross-device sync.
+- Data boundary: session context и предыдущие search results остаются
+  process-local и не являются account history, persistent saved trips или
+  cross-device sync.
 - Integration boundary: provider abstractions являются conceptual boundaries, а не API contracts.
 - Client boundary: любой platform client использует Travel Assistant
   `/api/v1/**`; provider/LLM orchestration, secrets, business validation и
@@ -138,9 +149,16 @@ Application orchestration на conceptual level отвечает за управ
 - задать уточняющий вопрос, когда данных недостаточно;
 - сформировать или обновить Search Intent Summary;
 - подготовить hotel search intent для provider layer;
+- накопить необязательные preferences в provider-neutral модели отдельно от
+  provider DTO;
+- применить одно сообщение как явное изменение одного или нескольких
+  preferences, сохранив неизмененные значения;
+- повторно запросить подтверждение полного search intent после каждого
+  изменения provider request;
 - получить и сохранить разделение provider facts, user-provided constraints, assistant assumptions и unknown data;
-- передать данные в LLM для объяснения, сравнения, ранжирования и резюмирования;
-- координировать assistant conversation, results view и current-session shortlist.
+- передать данные в LLM для интерпретации уточнения, объяснения, ранжирования и
+  резюмирования;
+- координировать assistant conversation, новый provider search и results view.
 
 Это не code design, не state machine specification, не endpoint design и не implementation plan.
 
@@ -164,6 +182,11 @@ Stage 7–9 реализовали ограниченные application/domain �
 hotel search и hotel offer. Более широкий Search Intent Summary,
 current-session shortlist и comparison остаются продуктовыми понятиями, а не
 разрешением создавать database schema или новые public contracts.
+
+Для Stage 12 зафиксирована граница: предпочтения представлены через
+provider-neutral domain/application model. Идентификаторы и polymorphic filter
+values Hotels API остаются в infrastructure mapping. Повторный поиск создает
+новый `hotelSearchId`, а предыдущий process-local search не мутируется.
 
 Storage boundaries остаются conceptual. Stage 5 не создает DB schema, ERD, migrations, tables, fields, indexes, retention policy или storage technology choice.
 
@@ -239,7 +262,8 @@ Roadmap остается source of truth по статусам и progression.
 - сохранить provider-agnostic hotel boundary;
 - сохранить chat-first, not chat-only UX;
 - сохранить Search Intent Summary как UX/domain bridge;
-- не превращать current-session shortlist в account history;
+- не превращать session context, предыдущие search results или будущий
+  shortlist в account history;
 - не возвращать flight, combined itinerary, booking или payment в MVP v1;
 - сохранить source/freshness uncertainty as visible concept;
 - подтверждать изменения Hotels API contract и официальный server-to-server статус отдельно от наблюдаемого публичного web-flow;
