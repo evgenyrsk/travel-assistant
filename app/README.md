@@ -51,6 +51,14 @@ npm run dev
 По умолчанию frontend доступен на `http://127.0.0.1:4173`. Другой backend можно
 указать через `BACKEND_URL`, другой frontend port — через `PORT`.
 
+Для совместного запуска backend и demo shell используйте корневой launcher и
+runbook [`docs/guides/local-mvp-demo.md`](../docs/guides/local-mvp-demo.md):
+
+```bash
+node scripts/local-demo.mjs --fake
+node scripts/local-demo.mjs --real
+```
+
 ## Кроссплатформенная граница
 
 Demo shell использует platform-neutral JSON/HTTP API Travel Assistant. API client

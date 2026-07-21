@@ -44,6 +44,7 @@ README является входной картой проекта: он пом�
 - `docs/roadmap/roadmap.md` — основной roadmap и единственный источник текущих статусов этапов, перенесенных пунктов и следующего разрешенного шага.
 - `docs/ROADMAP.md` — краткая навигационная карта этапов без текущих статусов; не конкурирует с основным roadmap.
 - `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, ограничений и безопасного рефакторинга документации.
+- `docs/guides/local-mvp-demo.md` — воспроизводимый локальный запуск demo shell и backend в явных `FAKE`/`REAL` профилях.
 - `docs/reviews/README.md` — индекс отчетов о проверках и правила чтения исторических и текущих отчетов.
 - `docs/reviews/*.md` — исторический журнал проверок и чисток; читать через `docs/reviews/README.md`.
 - `docs/decisions/README.md` — индекс принятых ADR и правила ведения архитектурных решений.
@@ -58,6 +59,7 @@ README является входной картой проекта: он пом�
 - `docs/development/implementation-strategy.md` — справочная стратегия реализации и правила декомпозиции задач; не основной roadmap и не активный список реализации.
 - `services/backend/README.md` — инструкция по запуску backend на Kotlin + Ktor и описание текущих локальных endpoints.
 - `app/README.md` — запуск локальной demo shell и отдельной диагностической страницы.
+- `scripts/local-demo.mjs` — единый launcher локальной демонстрации MVP.
 - `docs/prompts/README.md` — индекс Codex prompt templates.
 - `docs/prompts/codex-task-template.md` — практический шаблон Codex для задач реализации и сопровождения.
 - `docs/prompts/codex-review-template.md` — практический шаблон Codex для задач только на проверку.

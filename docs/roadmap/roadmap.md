@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 10 завершен; локальная демонстрационная оболочка отделена от будущих продуктовых клиентов |
-| Последний завершенный этап | Stage 10.4 — service integration boundary и client ownership |
-| Следующий планируемый шаг | Stage 11.0 — local REAL MVP demo readiness |
+| Текущий этап | Stage 11 завершен в границах воспроизводимой локальной REAL-демонстрации MVP |
+| Последний завершенный этап | Stage 11.0 — local REAL MVP demo readiness |
+| Следующий планируемый шаг | Не выбран; требуется отдельное roadmap-решение по итогам демонстрации |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -61,7 +61,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 8 | Завершен | Backend confirmation lifecycle: LLM orchestration boundary, confirmation flow, local search execution, consume-after-success. Закрыт с carryover (InMemory stores, fake LLM/provider). |
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
-| Stage 11 | Не начат | Локальная демонстрационная готовность MVP с явными REAL/FAKE профилями без production-readiness claim. |
+| Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
 
 ## 2. Правила управления roadmap
 
@@ -666,7 +666,7 @@ default-deny, auth, durable storage, resume и cross-device sync — вне те
 
 ### Stage 11 — Local MVP Demonstration Readiness
 
-**Статус:** не начат. Следующий разрешенный шаг — Stage 11.0.
+**Статус:** завершен Stage 11.0. Следующий этап не активирован.
 
 **Границы:** воспроизводимая локальная демонстрация уже реализованного
 chat-first hotel flow. Stage не создает product web/mobile clients, deployment,
@@ -674,12 +674,22 @@ auth, durable storage, booking или новые продуктовые сцен
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
-| Stage 11.0 | Local REAL MVP demo readiness | Следующий разрешенный шаг; launcher, runbook, deterministic preflight и один контролируемый REAL browser smoke |
+| Stage 11.0 | Local REAL MVP demo readiness | Завершен; launcher, runbook, deterministic FAKE preflight и один контролируемый REAL browser smoke с 5 карточками из provider pool 20 |
 
 Основной демонстрационный профиль использует opt-in `OPENROUTER` и `REAL`
 Hotels API. `FAKE` сохраняется как default production configuration и как
 детерминированный preflight/fallback. Успех локального демо не означает
 production readiness или готовность к внешнему rollout.
+
+Stage 11.0 добавил безопасный launcher, который читает игнорируемый `.env` как
+данные, проверяет Java 17/Node.js/configuration/ports, запускает backend и demo
+shell и завершает их совместно. Контролируемый REAL browser smoke подтвердил
+confirmation до поиска, отсутствие карточек до «Да», получение 20 REAL offers
+и отображение первых 5. Raw provider/LLM data и secrets не публиковались.
+
+**Следующий шаг:** не выбран. Deployment, product clients, integration handoff,
+MVP scope expansion и production hardening требуют отдельных roadmap-решений и
+не следуют автоматически из успешной локальной демонстрации.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

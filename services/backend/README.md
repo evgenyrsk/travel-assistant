@@ -9,7 +9,10 @@ runtime; весь OpenAPI и generated clients по-прежнему имеют 
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
-Форма из `../../app/` напрямую вызывает текущие session/search endpoints только как техническая проверка Stage 7. Она обходит будущий chat-first Assistant UI и не является финальной frontend/backend интеграцией или доказательством готовности LLM orchestration.
+Локальная demo shell из `../../app/` использует chat-first Assistant routes;
+отдельная `diagnostic.html` вызывает hotel-search endpoint напрямую. Demo shell
+не является будущим продуктовым web-клиентом и не доказывает production
+readiness.
 
 ## Запуск
 
@@ -19,6 +22,16 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 ```
 
 Команду нужно запускать из директории `services/backend`.
+
+Для совместного локального запуска backend и demo shell используйте
+[`docs/guides/local-mvp-demo.md`](../../docs/guides/local-mvp-demo.md):
+
+```bash
+node scripts/local-demo.mjs --fake
+node scripts/local-demo.mjs --real
+```
+
+Эти команды запускаются из корня репозитория.
 
 ### Режим LLM provider
 
