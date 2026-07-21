@@ -491,6 +491,7 @@
 178. `docs/reviews/stage-10-1-bounded-pwa-foundation.md`
 179. `docs/reviews/stage-10-2-cross-platform-client-contract-and-accessibility-verification.md`
 180. `docs/reviews/stage-10-3-platform-neutral-api-contract-hardening.md`
+181. `docs/reviews/stage-10-4-service-integration-boundary-and-client-ownership-decision.md`
 
 ## Historical / superseded документы
 

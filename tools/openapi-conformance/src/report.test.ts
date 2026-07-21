@@ -15,7 +15,7 @@ import type {
   RuntimeRoute,
 } from "./types.js";
 
-describe("Stage 10.3 platform-client conformance", () => {
+describe("Platform-client conformance", () => {
   it("classifies the repository endpoint inventory without readiness promotion", () => {
     const report = repositoryReport();
 
@@ -30,6 +30,14 @@ describe("Stage 10.3 platform-client conformance", () => {
       unclassified: 0,
     });
     assert.deepEqual(report.blockingFindings, []);
+    assert.ok(
+      report.futureOnlyChecks.some(
+        (check) =>
+          check.name === "generated_client_compile" &&
+          check.status === "not_run" &&
+          check.summary === "Generated-client compile proof has not run.",
+      ),
+    );
   });
 
   it("validates the exact bounded platform-client schema shape", () => {

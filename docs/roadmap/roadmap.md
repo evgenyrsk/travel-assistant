@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 10 в работе; ограниченный платформонезависимый API-контракт укреплён |
-| Последний завершенный этап | Stage 10.3 — platform-neutral API contract hardening |
-| Следующий планируемый шаг | Stage 10.4 — выбор второй платформы и стратегии потребления API/SDK |
+| Текущий этап | Stage 10 завершен; локальная демонстрационная оболочка отделена от будущих продуктовых клиентов |
+| Последний завершенный этап | Stage 10.4 — service integration boundary и client ownership |
+| Следующий планируемый шаг | Stage 11.0 — local REAL MVP demo readiness |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -60,7 +60,8 @@ Roadmap не является трекером задач, продуктово�
 | Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Chat-first flow и LLM orchestration были вне Stage 7 и реализованы позднее в Stage 8-9. |
 | Stage 8 | Завершен | Backend confirmation lifecycle: LLM orchestration boundary, confirmation flow, local search execution, consume-after-success. Закрыт с carryover (InMemory stores, fake LLM/provider). |
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
-| Stage 10 | В работе | Stage 10.0–10.3 выбрали responsive web/PWA, добавили online-only foundation и укрепили ограниченный platform-neutral API subset; SDK/OpenAPI readiness еще не заявлена. |
+| Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
+| Stage 11 | Не начат | Локальная демонстрационная готовность MVP с явными REAL/FAKE профилями без production-readiness claim. |
 
 ## 2. Правила управления roadmap
 
@@ -107,13 +108,15 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ## 5. Принятые решения и перенесенные ограничения
 
-Stage 10.0 закрыл внутренние решения, необходимые для следующего шага:
+Stage 10.0 первоначально закрыл внутренние решения для PWA-среза, а Stage 10.4
+уточнил его роль:
 
-- первый cross-platform target — responsive web/PWA;
+- responsive web/PWA используется как локальная demo shell, а не как будущий
+  продуктовый клиент;
 - `shownPrice` отображается как provider total за выбранный период без
   перерасчета и без заявления о включенных taxes/fees;
 - `LIMITED` не определяется эвристически;
-- первый PWA-срез не обещает resume, account history или cross-device sync и не
+- demo shell не обещает resume, account history или cross-device sync и не
   требует durable storage/auth.
 
 До публичного rollout остаются внешние gates: официальный server-to-server
@@ -608,10 +611,12 @@ explanation/comparison flow пока не реализованы. Они не б
 
 ### Stage 10 — Cross-platform Expansion
 
-**Статус:** в работе. Stage 10.0–10.3 завершены; следующий разрешенный шаг —
-Stage 10.4.
+**Статус:** завершен. Stage 10.0–10.4 подтвердили платформонезависимую границу
+сервиса и отделили локальную demo shell от будущих продуктовых клиентов.
 
-**Границы:** расширение за пределы первой платформы без переписывания product и domain logic.
+**Границы:** подтверждение платформонезависимой сервисной границы без
+реализации будущих продуктовых клиентов и без переноса business logic из
+backend.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
@@ -619,7 +624,7 @@ Stage 10.4.
 | Stage 10.1 | Bounded PWA foundation для проверенного chat-first hotel flow | Завершен; manifest, локальные icons, standalone/mobile metadata, safe-area и `no-store` boundary |
 | Stage 10.2 | Cross-platform client contract и accessibility verification | Завершен; same-origin web/PWA проверен, native/desktop API-совместимы архитектурно, OpenAPI остается `not_ready` |
 | Stage 10.3 | Platform-neutral API contract hardening | Завершен; три chat-first endpoint согласованы с runtime, строгая message validation и manifest reference checks добавлены, весь OpenAPI остается `not_ready` |
-| Stage 10.4 | Выбор второй платформы и стратегии потребления API/SDK | Следующий разрешенный шаг; без реализации native UI |
+| Stage 10.4 | Service integration boundary и client ownership | Завершен; web/PWA остается локальной demo shell, product UI/SDK принадлежат будущим интеграционным командам |
 
 **Принятые решения Stage 10.0:** первый клиентский срез остается online-only и
 обращается только к Travel Assistant API. Он не кэширует API responses,
@@ -632,7 +637,7 @@ foundation, но остаются обязательными внешними ga
 перерасчета и без утверждения о включенных taxes/fees. `LIMITED` не выводится
 эвристически. Hotel details, current-session shortlist и отдельный
 explanation/comparison flow пока не реализованы: это не блокирует PWA
-foundation, но блокирует заявление о полном закрытии MVP v1 или Stage 10.
+  foundation, но блокирует заявление о полной реализации MVP v1.
 
 Stage 10.2 подтвердил desktop/mobile browser matrix, keyboard/focus semantics,
 live regions, touch targets и отсутствие horizontal overflow. Любой клиент
@@ -650,9 +655,31 @@ default-deny: wildcard и credentials не разрешены; будущая al
 содержать только точные origin со scheme/host/port. OpenAPI в целом и generated
 clients остаются `not_ready`.
 
-**Следующий шаг:** Stage 10.4 — выбрать первую дополнительную платформу и стратегию
-потребления контракта/SDK без реализации native UI. Auth, durable storage,
-cross-device sync и новый product flow в этот срез не входят.
+Stage 10.4 закрепил backend как самостоятельный сервис и web/PWA как локальную
+demo shell MVP. Product web, Android, iOS и другие UI будут создаваться позже
+отдельными командами и задачами. Сервис предоставляет три chat-first endpoint и
+OpenAPI, но не выбирает заранее platform SDK, toolchain или UI architecture.
+Backend/domain logic, provider DTO и secrets не передаются клиентам. Решение
+зафиксировано в `ADR-0001`; OpenAPI/SDK readiness не заявлена. CORS остается
+default-deny, auth, durable storage, resume и cross-device sync — вне текущего
+среза.
+
+### Stage 11 — Local MVP Demonstration Readiness
+
+**Статус:** не начат. Следующий разрешенный шаг — Stage 11.0.
+
+**Границы:** воспроизводимая локальная демонстрация уже реализованного
+chat-first hotel flow. Stage не создает product web/mobile clients, deployment,
+auth, durable storage, booking или новые продуктовые сценарии.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 11.0 | Local REAL MVP demo readiness | Следующий разрешенный шаг; launcher, runbook, deterministic preflight и один контролируемый REAL browser smoke |
+
+Основной демонстрационный профиль использует opt-in `OPENROUTER` и `REAL`
+Hotels API. `FAKE` сохраняется как default production configuration и как
+детерминированный preflight/fallback. Успех локального демо не означает
+production readiness или готовность к внешнему rollout.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

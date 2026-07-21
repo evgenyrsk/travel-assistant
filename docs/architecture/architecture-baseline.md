@@ -20,21 +20,25 @@
 - OpenRouter и публичный Hotels API имеют opt-in adapters и отдельные `HttpClient`; оба режима по умолчанию остаются `FAKE`.
 - Confirmation lifecycle не запускает hotel search до явного подтверждения и не создает `hotelSearchId` при отказе provider flow.
 - Assistant, constraints, pending confirmation, execution attempt и hotel search stores остаются process-local.
-- Основной frontend является chat-first; структурированная форма Stage 7.51 сохранена отдельной диагностической страницей.
+- Локальная demo shell является chat-first; структурированная форма Stage 7.51 сохранена отдельной диагностической страницей.
 - Public API/OpenAPI boundary сохранена; generated clients, durable storage, auth и промышленная инфраструктура не созданы.
-- Stage 10.0 выбрал responsive web/PWA как первый cross-platform target, а
-  Stage 10.1 добавил online-only manifest/icons/mobile foundation без изменения
-  backend/domain boundaries.
+- Stage 10.0 первоначально выбрал responsive web/PWA как первый
+  cross-platform срез, а Stage 10.1 добавил online-only
+  manifest/icons/mobile foundation без изменения backend/domain boundaries.
 - Stage 10.2 подтвердил same-origin web/PWA и platform-neutral JSON/HTTP
   boundary; native/desktop остаются архитектурно совместимыми без готового SDK,
   а cross-origin web требует отдельной CORS policy.
 - Stage 10.3 закрепил ограниченный chat-first API subset: создание Assistant
   session, продолжение диалога и чтение offers по opaque `searchId`. Весь
   OpenAPI и generated clients по-прежнему имеют статус `not_ready`.
+- Stage 10.4 закрепил Travel Assistant как самостоятельный backend-сервис, а
+  текущий web/PWA — как локальную demo shell, не являющуюся будущим продуктовым
+  клиентом. Web, Android, iOS и другие platform UI/SDK принадлежат отдельным
+  интеграционным командам.
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 
-Chat-first frontend использует Assistant routes и загружает результаты только по
+Chat-first demo shell использует Assistant routes и загружает результаты только по
 полученному `hotelSearchId`. Диагностическая форма Stage 7.51 вызывает
 hotel-search API напрямую и не является основным продуктовым сценарием.
 Backend/application сохраняет orchestration boundary: LLM интерпретирует запрос
@@ -87,10 +91,10 @@ Stage 8 определил границу `LlmClient`, разрешенные д
 factories. Выбор конкретной модели остается configuration-only, секреты не
 передаются frontend, а provider DTO не выходят за infrastructure layer.
 
-Первый Stage 10 client target переиспользует текущий легковесный frontend как
-online-only PWA. Клиент обращается только к Travel Assistant `/api/v1/**` и не
-кэширует transcript, API responses или provider facts. Native clients,
-cross-device sync и offline hotel search требуют отдельных решений.
+Текущий легковесный frontend используется как локальная online-only PWA demo
+shell. Она обращается только к Travel Assistant `/api/v1/**` и не кэширует
+transcript, API responses или provider facts. Будущие продуктовые web/native
+клиенты, cross-device sync и offline hotel search требуют отдельных решений.
 
 ## 6. Основные архитектурные границы
 
@@ -111,6 +115,12 @@ cross-device sync и offline hotel search требуют отдельных ре
 - Cross-origin boundary: CORS по умолчанию не включён. Будущая web allowlist
   должна содержать точные origin со scheme/host/port, без wildcard и
   credentials, и требует отдельного этапа активации.
+- External client boundary: web, Android, iOS и другие продуктовые клиенты
+  создаются только отдельными командами и задачами. Текущий `app/` остается
+  локальной demo shell. Сервис предоставляет versioned HTTP API, OpenAPI и
+  integration guidance, но не выбирает UI/SDK/toolchain и не передает
+  backend/domain modules. Решение зафиксировано в
+  [`ADR-0001`](../decisions/adr-0001-service-core-and-client-integration-boundary.md).
 - Stack boundary: backend implementation использует Kotlin + Ktor, если только будущий ADR явно не меняет это решение.
 - Implementation boundary: Stage 7–9 завершили process-local MVP и opt-in real integrations; durable infrastructure и production hardening не активированы.
 

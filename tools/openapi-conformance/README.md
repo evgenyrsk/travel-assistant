@@ -114,7 +114,8 @@ docs/architecture/stage-7/generated-client-ready-subset.yaml
 - может перечислять endpoints только как `readiness: "not_ready"` candidates;
 - candidate endpoint не считается ready endpoint и не является частью approval list;
 - не является approval list для generated clients;
-- не включает generated-client target;
+- может фиксировать планируемый generated-client target, но не считает его
+  проверенным или готовым;
 - не запускает generated-client generation, compile checks или runtime HTTP contract tests.
 
 Ограничители readiness:

@@ -23,6 +23,7 @@
 - Stage 7 - завершен в границах ограниченной hotel-only основы; подробности закрытия и перенесенные пункты находятся в `docs/roadmap/roadmap.md`.
 - Stage 8 - завершен как backend confirmation lifecycle.
 - Stage 9 - завершен после opt-in интеграций Hotels API и OpenRouter, chat-first frontend и ограниченного внутреннего MVP-пилота.
+- Stage 10 - завершен после подтверждения платформонезависимого HTTP-контракта и границы между backend-сервисом, локальной demo shell и будущими продуктовыми клиентами.
 
 Stage 7 сформировал process-local hotel-only основу. Stage 8 добавил явное
 подтверждение до поиска. Stage 9 добавил opt-in adapters для Hotels API и
@@ -31,10 +32,11 @@ mode по умолчанию остаются `FAKE`, stores остаются pr
 внутреннего пилота не означает готовность к промышленному использованию,
 наличие generated clients, booking, durable storage или auth.
 
-Stage 10.0 выбрал устанавливаемый responsive web/PWA как первый ограниченный
-cross-platform target. Stage 10.1 добавил online-only manifest, локальные icons
-и mobile/standalone foundation без кэширования API или пользовательских данных.
-Native clients и полный внешний rollout не активированы.
+Stage 10.0 первоначально выбрал устанавливаемый responsive web/PWA как первый
+ограниченный cross-platform срез. Stage 10.4 уточнил роль реализации: текущий
+web/PWA является только локальной demo shell MVP, а не будущим продуктовым
+клиентом. Web, Android, iOS и другие продуктовые интерфейсы будут создаваться
+отдельными командами и интегрироваться с Travel Assistant через HTTP API.
 
 После Stage 9.22 основной frontend-сценарий соответствует chat-first модели:
 пользователь начинает с естественного сообщения, Assistant извлекает известные
@@ -130,8 +132,8 @@ hardening остается отдельным будущим решением.
   период; включение taxes/fees не утверждается без provider contract.
 - Статус `LIMITED` нельзя выводить из количества комнат или другого
   эвристического threshold без подтвержденного provider fact.
-- Первый PWA-срез остается online-only и не обещает resume или cross-device
-  sync; transcript и provider results не становятся durable data.
+- Локальная demo shell остается online-only и не обещает resume или
+  cross-device sync; transcript и provider results не становятся durable data.
 
 Подробные roadmap guardrails остаются в `docs/roadmap/roadmap.md` и `docs/guides/documentation-style-guide.md`.
 
@@ -168,18 +170,20 @@ Stage 0-4.1 documents сохраняются как historical stage artifacts �
 
 ## 9. Принятые policies и внешние ограничения
 
-Stage 10.0 закрыл вопросы, для которых достаточно внутреннего product decision:
+Stage 10.0–10.4 закрыли вопросы, для которых достаточно внутреннего product
+decision:
 
-- первый cross-platform target — responsive web/PWA, а не отдельные native
-  clients;
+- текущий responsive web/PWA используется только как локальная demo shell;
+- будущие web, Android, iOS и другие продуктовые клиенты принадлежат отдельным
+  командам и используют общий HTTP API сервиса;
 - `shownPrice` переносится и показывается без перерасчета как total за период,
   при этом taxes/fees inclusion остается неизвестным;
 - `LIMITED` не производится эвристически;
-- process-local/browser-local состояние допустимо для первого PWA-среза без
+- process-local/browser-local состояние допустимо для локального demo-среза без
   обещаний resume, account history и cross-device sync.
 
 Внешние ограничения не заменяются предположениями. Они не блокируют локальную
-PWA foundation, но должны быть закрыты до публичного rollout:
+демонстрацию MVP, но должны быть закрыты до публичного rollout:
 
 - официальный server-to-server статус, долгосрочная стабильность, SLA и rate limits публичных Hotels endpoints;
 - дальнейшее отображение source/freshness и partial provider data;
@@ -188,7 +192,7 @@ PWA foundation, но должны быть закрыты до публично�
 
 Hotel details, current-session shortlist и отдельный интерактивный
 explanation/comparison flow входят в MVP v1, но текущим pilot-срезом не
-реализованы. Они не блокируют PWA foundation, однако блокируют заявление о
+реализованы. Они не блокируют локальную демонстрацию, однако блокируют заявление о
 полной реализации MVP v1.
 
 Ограничения не являются активным списком задач. Любой следующий шаг выбирается

@@ -1,7 +1,9 @@
-# Travel Assistant Frontend
+# Локальная demo shell Travel Assistant
 
-Легковесный chat-first frontend hotel-only MVP без внешних зависимостей и
-сгенерированных клиентов.
+Легковесная chat-first оболочка для локальной демонстрации hotel-only MVP без
+внешних зависимостей и сгенерированных клиентов. Это не будущий продуктовый
+web-клиент: его UI, SDK и lifecycle будет определять отдельная интеграционная
+команда.
 
 Главная страница начинает пользовательский сценарий с естественного сообщения:
 
@@ -13,14 +15,14 @@
 6. область результатов показывает первые пять предложений в порядке backend-ранжирования.
 
 История диалога хранится только в памяти текущей страницы. OpenRouter и Hotels API
-не вызываются из браузера: frontend обращается только к Travel Assistant
+не вызываются из браузера: demo shell обращается только к Travel Assistant
 backend через `/api/v1/**`.
 
 Интерфейс адаптируется к desktop и mobile, сохраняет заметный keyboard focus и
 учитывает `prefers-reduced-motion`. Внешние web fonts, изображения и frontend
 dependencies не используются.
 
-Stage 10.1 добавляет ограниченную PWA foundation: web app manifest, локальные
+Stage 10.1 добавил ограниченную PWA foundation: web app manifest, локальные
 installability icons, standalone/mobile metadata и safe-area layout. Клиент
 остается online-only: service worker отсутствует, а frontend server возвращает
 `Cache-Control: no-store` для локальных assets и проксируемых `/api/v1/**`
@@ -32,8 +34,8 @@ responses. Transcript, hotel offers и provider data не кэшируются.
 http://127.0.0.1:4173/diagnostic.html
 ```
 
-Она вызывает hotel-search route напрямую и не является основным продуктовым
-сценарием.
+Она вызывает hotel-search route напрямую и не является основным
+демонстрационным сценарием.
 
 ## Запуск
 
@@ -51,7 +53,7 @@ npm run dev
 
 ## Кроссплатформенная граница
 
-Frontend использует platform-neutral JSON/HTTP API Travel Assistant. API client
+Demo shell использует platform-neutral JSON/HTTP API Travel Assistant. API client
 поддерживает внедрение абсолютного `baseUrl` и не зависит от DOM, cookies,
 browser storage или provider contracts. Это позволяет отдельным web, iOS,
 Android и desktop clients переиспользовать `/api/v1/**`, не дублируя
@@ -69,10 +71,11 @@ unknown fields отклоняются безопасным `VALIDATION_ERROR`. �
 `POST /api/v1/hotel-searches` остается endpoint диагностической страницы и не
 входит в основной клиентский контракт.
 
-Текущий server обслуживает same-origin web/PWA через proxy. Для отдельного
-cross-origin web deployment понадобится будущая configurable CORS allowlist;
-native clients не ограничиваются browser CORS. Native SDK, generated clients,
-auth, durable session resume и cross-device sync пока не реализованы.
+Текущий server обслуживает локальную same-origin demo shell через proxy. Для
+будущего cross-origin продуктового web-клиента понадобится configurable CORS
+allowlist; native clients не ограничиваются browser CORS. Product UI, native
+SDK, generated clients, auth, durable session resume и cross-device sync в этом
+репозитории не реализуются без отдельной задачи.
 CORS остается выключенным по умолчанию; wildcard и credentialed origins не
 разрешены.
 

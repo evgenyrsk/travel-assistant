@@ -10,7 +10,7 @@ validationStatus:
   endpointReferenceValidation: "passed"
   generatedClientCompile: "not_run"
   runtimeContractValidation: "covered_by_backend_test"
-  lastValidatedBy: "Stage 10.3 local quality gates"
+  lastValidatedBy: "Stage 10.4 client ownership quality gates"
   lastValidatedAt: "2026-07-21"
 includedEndpoints:
   - method: "POST"
@@ -23,7 +23,7 @@ includedEndpoints:
       - "openapi_runtime_reference_match"
       - "platform_client_contract_test"
     unresolvedBlockers:
-      - "generated_client_target_not_selected"
+      - "external_client_handoff_not_verified"
       - "whole_openapi_not_finalized"
   - method: "POST"
     path: "/api/v1/assistant/sessions/{sessionId}/messages"
@@ -35,7 +35,7 @@ includedEndpoints:
       - "openapi_runtime_reference_match"
       - "platform_client_contract_test"
     unresolvedBlockers:
-      - "generated_client_target_not_selected"
+      - "external_client_handoff_not_verified"
       - "whole_openapi_not_finalized"
   - method: "GET"
     path: "/api/v1/hotel-searches/{searchId}/offers"
@@ -47,7 +47,7 @@ includedEndpoints:
       - "openapi_runtime_reference_match"
       - "platform_client_contract_test"
     unresolvedBlockers:
-      - "generated_client_target_not_selected"
+      - "external_client_handoff_not_verified"
       - "whole_openapi_not_finalized"
 excludedEndpoints:
   - method: "GET"
@@ -106,7 +106,7 @@ classificationPolicy:
   unclassifiedEndpoints: "block_readiness"
 readinessCriteria:
   wholeOpenApiFinalized: false
-  generatedClientTargetDeclared: false
+  externalClientHandoffValidated: false
   generatedClientGenerationConfigured: false
   generatedClientCompilePassed: false
   crossOriginPolicyActivated: false
@@ -115,9 +115,9 @@ knownLimitations:
     severity: "blocking_before_readiness"
     description: "Only the bounded chat-first subset is aligned with runtime."
     blocksReadiness: true
-  - code: "generated_client_target_not_declared"
+  - code: "external_client_handoff_not_verified"
     severity: "blocking_before_readiness"
-    description: "No generated-client target or SDK strategy has been selected."
+    description: "The platform-neutral external client integration handoff has not been verified."
     blocksReadiness: true
   - code: "cors_default_deny"
     severity: "informational"
@@ -127,4 +127,5 @@ generatedClientTargets: []
 notes:
   - "This manifest classifies a platform-client candidate subset; it is not a readiness certificate."
   - "OpenAPI status and readinessClaim remain not_ready/false."
-  - "SDK generation, CORS activation, auth, and durable storage are outside Stage 10.3."
+  - "Stage 10.4 intentionally leaves platform SDK selection to a future integrating team."
+  - "SDK generation, CORS activation, auth, and durable storage remain outside this manifest state."
