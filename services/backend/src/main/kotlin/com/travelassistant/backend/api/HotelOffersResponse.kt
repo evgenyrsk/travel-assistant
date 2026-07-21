@@ -31,9 +31,7 @@ data class HotelOffersResponse(
                     resultCompleteness = "complete",
                     freshness = "fresh",
                     providerState = "available",
-                    warnings = listOf(
-                        "Offers use deterministic foundation ranking; no personalization or LLM is applied.",
-                    ),
+                    warnings = emptyList(),
                 ),
                 providerFacts = offers.flatMap { it.providerFacts },
             )

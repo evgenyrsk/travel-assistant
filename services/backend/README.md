@@ -2,7 +2,10 @@
 
 Минимальная основа backend на Kotlin + Ktor, развивавшаяся с Stage 7.2 до Stage 7.50 небольшими ограниченными шагами.
 
-Backend остается основой hotel-only MVP v1. Он следует черновику OpenAPI Stage 6 в границах текущего application-слоя: Stage 7.3-7.15 формируют основу Assistant/session, Stage 7.48 добавляет минимальный process-local поиск отелей с детерминированным `FakeHotelOfferProvider`, Stage 7.49 ранжирует offers, а Stage 7.50 связывает явный формат сообщения Assistant с существующей границей поиска. Routes shortlist и explanations остаются endpoints-заглушками без бизнес-логики:
+Backend остается ядром hotel-only MVP v1: application/domain logic,
+LLM/provider orchestration и process-local state доступны клиентам через
+Kotlin + Ktor API. Stage 10.3 согласовал ограниченный platform-neutral subset с
+runtime; весь OpenAPI и generated clients по-прежнему имеют статус `not_ready`:
 
 - `../../docs/architecture/stage-6/openapi-draft.yaml`
 
@@ -54,6 +57,22 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 - `POST /assistant/sessions/{sessionId}/messages`
 - `POST /hotel-searches`
 - `GET /hotel-searches/{searchId}/offers`
+
+Основной контракт для web, iOS, Android и desktop ограничен тремя endpoint:
+
+- `POST /assistant/sessions`;
+- `POST /assistant/sessions/{sessionId}/messages`;
+- `GET /hotel-searches/{searchId}/offers`.
+
+`GET /health` является operational endpoint. Прямой `POST /hotel-searches`
+сохранён для диагностики и не входит в chat-first client flow. Shortlist и
+explanation routes остаются `501` placeholders.
+
+Assistant message принимается только как строгий JSON без неизвестных полей и
+должен содержать от 1 до 4000 Unicode code points. Отсутствующий body разрешён
+только при создании session. `hotelSearchId` возвращается только вместе с
+`nextAction=show_hotel_results`; ошибки не содержат provider DTO или внутренних
+данных. CORS не установлен: default policy — deny, без wildcard и credentials.
 
 Фактический путь проверки доступности: `GET /api/v1/health`.
 
@@ -167,7 +186,7 @@ Stage 7.14 strategy для generated-client readiness:
 - placeholder responses не должны имитировать реальные `ShortlistResponse`, `ShortlistItem` или `AssistantExplanationResponse`;
 - `NOT_IMPLEMENTED` и generic `NOT_FOUND` являются foundation-only runtime codes, а не финальной generated-client taxonomy;
 - `HOTEL_SEARCH_NOT_FOUND` используется для process-local Stage 7.48 search resource; `HOTEL_OFFER_NOT_FOUND` и `SHORTLIST_ITEM_NOT_FOUND` остаются future behavior;
-- generated clients, OpenAPI finalization и runtime/OpenAPI conformance gate остаются будущей отдельной задачей.
+- generated clients и полная OpenAPI finalization остаются будущими отдельными задачами; Stage 10.3 проверяет только ограниченный chat-first subset.
 
 ## Намеренно не реализовано
 
@@ -189,5 +208,5 @@ Stage 7.14 strategy для generated-client readiness:
 - промышленная LLM integration, streaming, tool calling и наблюдаемость provider;
 - промышленная интеграция frontend и generated clients;
 - generated-client-ready subset для placeholder endpoints;
-- OpenAPI/runtime conformance gate;
+- full OpenAPI/generated-client readiness gate;
 - booking, payment, flights, combined itinerary, account flows.

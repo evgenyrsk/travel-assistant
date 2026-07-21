@@ -28,6 +28,9 @@
 - Stage 10.2 подтвердил same-origin web/PWA и platform-neutral JSON/HTTP
   boundary; native/desktop остаются архитектурно совместимыми без готового SDK,
   а cross-origin web требует отдельной CORS policy.
+- Stage 10.3 закрепил ограниченный chat-first API subset: создание Assistant
+  session, продолжение диалога и чтение offers по opaque `searchId`. Весь
+  OpenAPI и generated clients по-прежнему имеют статус `not_ready`.
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 
@@ -101,6 +104,13 @@ cross-device sync и offline hotel search требуют отдельных ре
 - Client boundary: любой platform client использует Travel Assistant
   `/api/v1/**`; provider/LLM orchestration, secrets, business validation и
   ranking не дублируются на web, iOS, Android или desktop.
+- Platform contract boundary: продуктовые клиенты используют только
+  `POST /assistant/sessions`, `POST /assistant/sessions/{sessionId}/messages` и
+  `GET /hotel-searches/{searchId}/offers` под `/api/v1`. Health является
+  operational endpoint, прямое создание hotel search — diagnostic-only.
+- Cross-origin boundary: CORS по умолчанию не включён. Будущая web allowlist
+  должна содержать точные origin со scheme/host/port, без wildcard и
+  credentials, и требует отдельного этапа активации.
 - Stack boundary: backend implementation использует Kotlin + Ktor, если только будущий ADR явно не меняет это решение.
 - Implementation boundary: Stage 7–9 завершили process-local MVP и opt-in real integrations; durable infrastructure и production hardening не активированы.
 

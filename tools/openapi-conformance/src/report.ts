@@ -1,5 +1,9 @@
 import { TOOL_VERSION } from "./paths.js";
 import { buildEndpointReports } from "./placeholder-policy.js";
+import {
+  validateSubsetManifestEndpointReferences,
+  type SubsetManifestState,
+} from "./subset-manifest.js";
 import type {
   CheckReport,
   ConformanceReport,
@@ -10,15 +14,19 @@ import type {
   OpenApiInventory,
   RuntimeRoute,
 } from "./types.js";
-import type { SubsetManifestState } from "./subset-manifest.js";
 
 export function buildReport(
   openApiInventory: OpenApiInventory,
   runtimeRoutes: RuntimeRoute[],
-  subsetManifest: SubsetManifestState,
+  rawSubsetManifest: SubsetManifestState,
 ): ConformanceReport {
+  const subsetManifest = validateSubsetManifestEndpointReferences(
+    rawSubsetManifest,
+    openApiInventory.operations,
+    runtimeRoutes,
+  );
   const endpoints = buildEndpointReports(openApiInventory.operations, runtimeRoutes);
-  const assistantCandidateChecks = buildAssistantCandidateChecks(
+  const platformClientChecks = buildPlatformClientChecks(
     openApiInventory,
     endpoints,
   );
@@ -39,17 +47,15 @@ export function buildReport(
         "Runtime route inventory is collected by conservative static Ktor source scanning; no backend server was started.",
     },
     {
-      code: "PLACEHOLDER_ENDPOINTS_EXCLUDED",
+      code: "NON_PRODUCT_ENDPOINTS_EXCLUDED",
       severity: "advisory",
       message:
-        "Hotel search, offers, shortlist, and explanation placeholder endpoints remain excluded and are not generated-client-ready.",
+        "Health is operational, direct hotel search is diagnostic-only, and shortlist/explanation placeholders remain outside the bounded platform-client subset.",
     },
     ...buildEndpointClassificationFindings(endpointClassificationSummary),
-    ...assistantCandidateChecks.advisoryFindings,
+    ...platformClientChecks.advisoryFindings,
     ...manifestAdvisoryFindings,
   ];
-
-  const futureOnlyChecks = buildFutureOnlyChecks();
 
   return {
     tool: {
@@ -88,14 +94,14 @@ export function buildReport(
       runtimeRoutes,
       subsetManifest,
       endpointClassificationSummary,
-      assistantCandidateChecks.checks,
+      platformClientChecks.checks,
     ),
     blockingFindings: [
       ...manifestBlockingFindings,
-      ...assistantCandidateChecks.blockingFindings,
+      ...platformClientChecks.blockingFindings,
     ],
     advisoryFindings,
-    futureOnlyChecks,
+    futureOnlyChecks: buildFutureOnlyChecks(),
   };
 }
 
@@ -103,8 +109,8 @@ function buildChecks(
   openApiInventory: OpenApiInventory,
   runtimeRoutes: RuntimeRoute[],
   subsetManifest: SubsetManifestState,
-  endpointClassificationSummary: EndpointClassificationSummary,
-  assistantChecks: CheckReport[],
+  summary: EndpointClassificationSummary,
+  platformChecks: CheckReport[],
 ): CheckReport[] {
   return [
     {
@@ -129,8 +135,8 @@ function buildChecks(
       name: "subset_manifest",
       status: subsetManifest.exists ? "advisory" : "not_created",
       summary: subsetManifest.exists
-        ? "Subset manifest exists but is not enforced by the skeleton."
-        : "Subset manifest is missing/not_created and is optional for this skeleton.",
+        ? "Subset manifest exists, remains not_ready, and was validated without readiness promotion."
+        : "Subset manifest is missing/not_created and readiness remains not_ready.",
     },
     {
       name: "manifest_detection",
@@ -147,19 +153,21 @@ function buildChecks(
             : "not_run",
       summary:
         subsetManifest.manifestValidation.reason ??
-        subsetManifest.manifestValidation.schemaValidation.summary,
+        subsetManifest.manifestValidation.endpointReferenceValidation.summary,
     },
     {
       name: "endpoint_classification_summary",
       status: "advisory",
       summary:
-        `${endpointClassificationSummary.total} endpoints classified: ` +
-        `${endpointClassificationSummary.byClassification.foundation_candidate} foundation_candidate, ` +
-        `${endpointClassificationSummary.byClassification.placeholder_excluded} placeholder_excluded, ` +
-        `${endpointClassificationSummary.byClassification.runtime_only} runtime_only, ` +
-        `${endpointClassificationSummary.byClassification.unclassified} unclassified.`,
+        `${summary.total} endpoints classified: ` +
+        `${summary.byClassification.platform_client_candidate} platform_client_candidate, ` +
+        `${summary.byClassification.operational} operational, ` +
+        `${summary.byClassification.diagnostic_excluded} diagnostic_excluded, ` +
+        `${summary.byClassification.placeholder_excluded} placeholder_excluded, ` +
+        `${summary.byClassification.runtime_only} runtime_only, ` +
+        `${summary.byClassification.unclassified} unclassified.`,
     },
-    ...assistantChecks,
+    ...platformChecks,
     {
       name: "readiness_status",
       status: "not_ready",
@@ -169,42 +177,38 @@ function buildChecks(
   ];
 }
 
-interface AssistantCandidateChecks {
+interface PlatformClientChecks {
   checks: CheckReport[];
   blockingFindings: Finding[];
   advisoryFindings: Finding[];
 }
 
-function buildAssistantCandidateChecks(
+function buildPlatformClientChecks(
   openApiInventory: OpenApiInventory,
   endpoints: EndpointReport[],
-): AssistantCandidateChecks {
+): PlatformClientChecks {
   const shape = openApiInventory.assistantContractShape;
   if (!shape) {
-    return {
-      checks: [],
-      blockingFindings: [],
-      advisoryFindings: [],
-    };
+    return { checks: [], blockingFindings: [], advisoryFindings: [] };
   }
 
   const expectedEndpoints = [
     "POST /api/v1/assistant/sessions",
     "POST /api/v1/assistant/sessions/{sessionId}/messages",
+    "GET /api/v1/hotel-searches/{searchId}/offers",
   ];
   const endpointIssues = expectedEndpoints.filter((expected) => {
     const [method, path] = expected.split(" ", 2);
     const endpoint = endpoints.find(
       (candidate) =>
-        candidate.method === method.toLowerCase() &&
-        candidate.path === path,
+        candidate.method === method.toLowerCase() && candidate.path === path,
     );
 
     return (
       endpoint === undefined ||
       !endpoint.inOpenApi ||
       !endpoint.inRuntime ||
-      endpoint.classification !== "foundation_candidate" ||
+      endpoint.classification !== "platform_client_candidate" ||
       endpoint.readiness !== "not_ready"
     );
   });
@@ -212,15 +216,102 @@ function buildAssistantCandidateChecks(
   const shapeExpectations: Array<[string, boolean]> = [
     ["create-session requestBody optional", shape.createSessionRequestBodyOptional],
     ["message requestBody required", shape.continueSessionRequestBodyRequired],
-    ["AssistantMessageRequest.message property present", shape.messagePropertyPresent],
+    ["AssistantMessageRequest.message present", shape.messagePropertyPresent],
     ["AssistantMessageRequest.message required", shape.messageRequired],
     ["AssistantMessageRequest.clientContext optional", shape.clientContextOptional],
-    [
-      "AssistantMessageResponse.nextAction property present",
-      shape.nextActionPropertyPresent,
-    ],
+    ["AssistantMessageRequest rejects unknown fields", shape.requestAdditionalPropertiesForbidden],
+    ["AssistantMessageResponse.nextAction present", shape.nextActionPropertyPresent],
     ["AssistantMessageResponse.nextAction required", shape.nextActionRequired],
+    ["AssistantMessageResponse rejects unknown fields", shape.responseAdditionalPropertiesForbidden],
+    ["hotelSearchId property present", shape.hotelSearchIdPropertyPresent],
+    ["hotelSearchId conditional enforced", shape.hotelSearchIdConditional],
     ["message endpoint 404 response present", shape.sessionNotFoundResponsePresent],
+    ["assistant validation errors present", shape.validationErrorResponsesPresent],
+    ["offers operation present", shape.offersOperationPresent],
+    ["offers 404 response present", shape.offersNotFoundResponsePresent],
+    ["offers response rejects unknown fields", shape.offersAdditionalPropertiesForbidden],
+    ["search response rejects unknown fields", shape.searchAdditionalPropertiesForbidden],
+    ["metadata rejects unknown fields", shape.metadataAdditionalPropertiesForbidden],
+    ["hotel offer rejects unknown fields", shape.hotelOfferAdditionalPropertiesForbidden],
+    ["rating remains optional", shape.ratingOptional],
+    ["amenities remain optional", shape.amenitiesOptional],
+    ["message.maxLength is 4000", shape.messageMaxLength === 4_000],
+    [
+      "nextAction values match runtime",
+      sameValues(shape.nextActionValues, [
+        "ask_clarification",
+        "show_boundary_message",
+        "show_hotel_results",
+      ]),
+    ],
+    [
+      "AssistantSession required fields match runtime",
+      sameValues(shape.sessionRequiredFields, [
+        "createdAt",
+        "sessionId",
+        "status",
+        "updatedAt",
+      ]),
+    ],
+    [
+      "AssistantMessage required fields match runtime",
+      sameValues(shape.messageResponseRequiredFields, ["content", "role"]),
+    ],
+    [
+      "HotelSearchResponse required fields match runtime",
+      sameValues(shape.searchRequiredFields, [
+        "criteria",
+        "metadata",
+        "searchId",
+        "sessionId",
+        "status",
+      ]),
+    ],
+    [
+      "HotelOffersResponse required fields match runtime",
+      sameValues(shape.offersRequiredFields, [
+        "metadata",
+        "offers",
+        "providerFacts",
+        "searchId",
+        "status",
+      ]),
+    ],
+    [
+      "terminal search statuses match runtime",
+      sameValues(shape.searchStatusValues, [
+        "completed_no_offers",
+        "completed_with_offers",
+      ]) &&
+        sameValues(shape.offersStatusValues, [
+          "completed_no_offers",
+          "completed_with_offers",
+        ]),
+    ],
+    [
+      "metadata required fields match runtime",
+      sameValues(shape.metadataRequiredFields, [
+        "freshness",
+        "providerState",
+        "resultCompleteness",
+        "warnings",
+      ]),
+    ],
+    [
+      "hotel offer required fields match runtime",
+      sameValues(shape.hotelOfferRequiredFields, [
+        "availability",
+        "freshness",
+        "hotelName",
+        "location",
+        "matchSummary",
+        "offerId",
+        "price",
+        "providerFacts",
+        "providerOfferRef",
+        "source",
+      ]),
+    ],
   ];
   const shapeIssues = shapeExpectations
     .filter(([, satisfied]) => !satisfied)
@@ -229,97 +320,86 @@ function buildAssistantCandidateChecks(
   const blockingFindings: Finding[] = [];
   if (endpointIssues.length > 0) {
     blockingFindings.push({
-      code: "ASSISTANT_ENDPOINT_CANDIDATE_INVENTORY_MISMATCH",
+      code: "PLATFORM_CLIENT_ENDPOINT_INVENTORY_MISMATCH",
       severity: "blocking",
       message:
-        `Assistant endpoint candidate inventory mismatch: ${endpointIssues.join(", ")}. ` +
-        "Generated-client readiness remains not_ready.",
+        `Platform-client endpoint inventory mismatch: ${endpointIssues.join(", ")}. ` +
+        "Readiness remains not_ready.",
     });
   }
   if (shapeIssues.length > 0) {
     blockingFindings.push({
-      code: "ASSISTANT_ENDPOINT_CONTRACT_SHAPE_MISMATCH",
+      code: "PLATFORM_CLIENT_CONTRACT_SHAPE_MISMATCH",
       severity: "blocking",
       message:
-        `Assistant endpoint contract shape mismatch: ${shapeIssues.join(", ")}. ` +
-        "This static check does not validate runtime behavior.",
+        `Platform-client contract shape mismatch: ${shapeIssues.join(", ")}. ` +
+        "This static check does not execute backend behavior.",
     });
   }
-
-  const validationSummary = shape.validationErrorResponsesPresent
-    ? "Both Assistant operations expose a 400 validation-error response."
-    : "One or more Assistant operations do not expose a 400 validation-error response.";
-  const maxLengthSummary =
-    shape.messageMaxLength === undefined
-      ? "message.maxLength is not declared."
-      : `message.maxLength is declared as ${shape.messageMaxLength}.`;
 
   return {
     checks: [
       {
-        name: "assistant_endpoint_candidate_inventory",
+        name: "platform_client_endpoint_inventory",
         status: endpointIssues.length === 0 ? "passed" : "failed",
         summary:
           endpointIssues.length === 0
-            ? "Assistant foundation candidates are present in OpenAPI and static runtime inventories with not_ready readiness."
-            : `Assistant endpoint candidate inventory issues: ${endpointIssues.join(", ")}.`,
+            ? "All three bounded platform-client endpoints are present in OpenAPI and runtime inventories."
+            : `Platform-client endpoint issues: ${endpointIssues.join(", ")}.`,
       },
       {
-        name: "assistant_endpoint_contract_shape",
+        name: "platform_client_contract_shape",
         status: shapeIssues.length === 0 ? "passed" : "failed",
         summary:
           shapeIssues.length === 0
-            ? "Assistant request/response contract shape matches the bounded Stage 7.39 candidate expectations."
-            : `Assistant contract shape issues: ${shapeIssues.join(", ")}.`,
+            ? "The bounded assistant/search/offers schemas match the Stage 10.3 runtime contract."
+            : `Platform-client schema issues: ${shapeIssues.join(", ")}.`,
       },
       {
-        name: "assistant_endpoint_runtime_semantics",
+        name: "platform_client_runtime_semantics",
         status: "advisory",
         summary:
-          `${validationSummary} ${maxLengthSummary} ` +
-          "clientContext behavior, empty-object validation, malformed/unknown JSON, and maxLength enforcement are not checked by this static tool.",
+          "HTTP behavior is covered by backend PlatformClientContractTest; this read-only tool performs no HTTP calls.",
       },
     ],
     blockingFindings,
     advisoryFindings: [
       {
-        code: "ASSISTANT_RUNTIME_SEMANTICS_NOT_CHECKED",
+        code: "RUNTIME_HTTP_NOT_EXECUTED_BY_CONFORMANCE_TOOL",
         severity: "advisory",
         message:
-          "Assistant runtime semantics remain covered by backend tests or future-only decisions; this tool performs no HTTP calls and makes no runtime or readiness claim.",
+          "The conformance tool validates static OpenAPI/runtime inventories and manifest references only; backend tests remain the runtime evidence.",
       },
     ],
   };
+}
+
+function sameValues(actual: string[], expected: string[]): boolean {
+  return JSON.stringify([...actual].sort()) === JSON.stringify([...expected].sort());
 }
 
 function buildEndpointClassificationSummary(
   endpoints: EndpointReport[],
 ): EndpointClassificationSummary {
   const byClassification: Record<EndpointClassification, number> = {
-    foundation_candidate: 0,
+    platform_client_candidate: 0,
+    operational: 0,
+    diagnostic_excluded: 0,
     placeholder_excluded: 0,
     runtime_only: 0,
     unclassified: 0,
   };
-
   let openApiOnly = 0;
   let runtimeOnly = 0;
   let inBothInventories = 0;
 
   for (const endpoint of endpoints) {
     byClassification[endpoint.classification] += 1;
-
     if (endpoint.inOpenApi && endpoint.inRuntime) {
       inBothInventories += 1;
-      continue;
-    }
-
-    if (endpoint.inOpenApi) {
-      openApiOnly += 1;
-    }
-
-    if (endpoint.inRuntime) {
-      runtimeOnly += 1;
+    } else {
+      if (endpoint.inOpenApi) openApiOnly += 1;
+      if (endpoint.inRuntime) runtimeOnly += 1;
     }
   }
 
@@ -336,43 +416,36 @@ function buildEndpointClassificationFindings(
   summary: EndpointClassificationSummary,
 ): Finding[] {
   const findings: Finding[] = [];
-
   if (summary.byClassification.unclassified > 0) {
     findings.push({
       code: "UNCLASSIFIED_ENDPOINTS_VISIBLE",
       severity: "advisory",
       message:
-        `${summary.byClassification.unclassified} endpoints are unclassified in the skeleton report; ` +
-        "they remain not_ready and require a future explicit subset/classification decision.",
+        `${summary.byClassification.unclassified} endpoints remain unclassified and not_ready.`,
     });
   }
-
   if (summary.byClassification.runtime_only > 0) {
     findings.push({
       code: "RUNTIME_ONLY_ENDPOINTS_VISIBLE",
       severity: "advisory",
       message:
-        `${summary.byClassification.runtime_only} runtime-only endpoints are visible in the skeleton report; ` +
-        "static inventory drift is advisory until a future conformance mode is activated.",
+        `${summary.byClassification.runtime_only} runtime-only endpoints remain outside the OpenAPI candidate subset.`,
     });
   }
-
   return findings;
 }
 
 function buildSubsetManifestFindings(
   subsetManifest: SubsetManifestState,
 ): Finding[] {
-  if (subsetManifest.exists) {
-    return [];
-  }
+  if (subsetManifest.exists) return [];
 
   return [
     {
       code: "GENERATED_CLIENT_READY_SUBSET_MISSING",
       severity: "advisory",
       message:
-        "Generated-client-ready subset manifest is not created; this is expected for the skeleton and keeps readiness not_ready.",
+        "Platform-client subset manifest is missing; readiness remains not_ready.",
     },
   ];
 }
@@ -382,25 +455,18 @@ function buildFutureOnlyChecks(): CheckReport[] {
     {
       name: "generated_client_generation",
       status: "future_only",
-      summary: "Generated clients are not generated by this skeleton.",
+      summary: "Generated clients are not generated by Stage 10.3.",
     },
     {
       name: "generated_client_compile",
       status: "not_run",
-      summary:
-        "Generated-client compile check is future-only and was not run.",
-    },
-    {
-      name: "runtime_http_contract_tests",
-      status: "not_run",
-      summary:
-        "Runtime HTTP contract tests are future-only and were not run.",
+      summary: "No generated-client target exists, so compile was not run.",
     },
     {
       name: "full_openapi_finalization_gate",
       status: "future_only",
       summary:
-        "Full OpenAPI finalization remains blocked by missing real hotel search/resource behavior.",
+        "The whole OpenAPI document remains not_ready because diagnostic and placeholder endpoints are outside the bounded subset.",
     },
   ];
 }

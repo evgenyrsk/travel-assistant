@@ -154,6 +154,20 @@ function inspectAssistantContractShape(
   const requestProperties = recordValue(requestSchema?.properties);
   const responseProperties = recordValue(responseSchema?.properties);
   const messageProperty = recordValue(requestProperties?.message);
+  const sessionSchema = recordValue(schemas?.AssistantSession);
+  const messageResponseSchema = recordValue(schemas?.AssistantMessage);
+  const offersSchema = recordValue(schemas?.HotelOffersResponse);
+  const searchSchema = recordValue(schemas?.HotelSearchResponse);
+  const metadataSchema = recordValue(schemas?.SearchResultMetadata);
+  const hotelOfferSchema = recordValue(schemas?.HotelOffer);
+  const searchProperties = recordValue(searchSchema?.properties);
+  const offersProperties = recordValue(offersSchema?.properties);
+  const nextActionProperty = recordValue(responseProperties?.nextAction);
+  const offersOperation = operationValue(
+    paths,
+    "/hotel-searches/{searchId}/offers",
+    "get",
+  );
 
   return {
     createSessionRequestBodyOptional:
@@ -177,7 +191,73 @@ function inspectAssistantContractShape(
       responseRef(continueSession, "400") ===
         "#/components/responses/ValidationError",
     messageMaxLength: numberValue(messageProperty?.maxLength),
+    requestAdditionalPropertiesForbidden:
+      requestSchema?.additionalProperties === false,
+    responseAdditionalPropertiesForbidden:
+      responseSchema?.additionalProperties === false,
+    nextActionValues: stringArray(nextActionProperty?.enum),
+    hotelSearchIdPropertyPresent:
+      recordValue(responseProperties?.hotelSearchId) !== undefined,
+    hotelSearchIdConditional: hasHotelSearchIdConditional(responseSchema),
+    sessionRequiredFields: stringArray(sessionSchema?.required).sort(),
+    messageResponseRequiredFields: stringArray(
+      messageResponseSchema?.required,
+    ).sort(),
+    offersOperationPresent: offersOperation !== undefined,
+    offersNotFoundResponsePresent:
+      responseRef(offersOperation, "404") ===
+      "#/components/responses/HotelSearchNotFound",
+    offersRequiredFields: stringArray(offersSchema?.required).sort(),
+    offersAdditionalPropertiesForbidden:
+      offersSchema?.additionalProperties === false,
+    searchRequiredFields: stringArray(searchSchema?.required).sort(),
+    searchStatusValues: stringArray(
+      recordValue(searchProperties?.status)?.enum,
+    ).sort(),
+    searchAdditionalPropertiesForbidden:
+      searchSchema?.additionalProperties === false,
+    offersStatusValues: stringArray(
+      recordValue(offersProperties?.status)?.enum,
+    ).sort(),
+    metadataRequiredFields: stringArray(metadataSchema?.required).sort(),
+    metadataAdditionalPropertiesForbidden:
+      metadataSchema?.additionalProperties === false,
+    hotelOfferRequiredFields: stringArray(hotelOfferSchema?.required).sort(),
+    hotelOfferAdditionalPropertiesForbidden:
+      hotelOfferSchema?.additionalProperties === false,
+    ratingOptional:
+      recordValue(recordValue(hotelOfferSchema?.properties)?.rating) !==
+        undefined &&
+      !stringArray(hotelOfferSchema?.required).includes("rating"),
+    amenitiesOptional:
+      recordValue(recordValue(hotelOfferSchema?.properties)?.amenities) !==
+        undefined &&
+      !stringArray(hotelOfferSchema?.required).includes("amenities"),
   };
+}
+
+function hasHotelSearchIdConditional(
+  responseSchema: Record<string, unknown> | undefined,
+): boolean {
+  if (!Array.isArray(responseSchema?.allOf)) {
+    return false;
+  }
+
+  return responseSchema.allOf.some((entry) => {
+    const conditional = recordValue(entry);
+    const ifSchema = recordValue(conditional?.if);
+    const ifProperties = recordValue(ifSchema?.properties);
+    const ifNextAction = recordValue(ifProperties?.nextAction);
+    const thenSchema = recordValue(conditional?.then);
+    const elseSchema = recordValue(conditional?.else);
+    const elseNotSchema = recordValue(elseSchema?.not);
+
+    return (
+      ifNextAction?.const === "show_hotel_results" &&
+      stringArray(thenSchema?.required).includes("hotelSearchId") &&
+      stringArray(elseNotSchema?.required).includes("hotelSearchId")
+    );
+  });
 }
 
 function operationValue(

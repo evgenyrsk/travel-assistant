@@ -2,12 +2,12 @@ openapi: 3.1.0
 info:
   title: Travel Assistant MVP Hotel API
   summary: Draft frontend/backend API contract for the hotel-only MVP.
-  version: 0.1.2-draft
+  version: 0.2.0-draft
   description: >
-    Stage 6.8 draft contract for Travel Assistant MVP v1. The API is
-    hotel-only and describes client-facing backend endpoints. It does not
-    define provider APIs, database schema, backend implementation, frontend
-    implementation, or provider-specific integration code.
+    Draft Travel Assistant MVP v1 contract. Stage 10.3 aligns the bounded
+    chat-first subset with runtime behavior without promoting the whole
+    OpenAPI document to generated-client readiness. The API is hotel-only and
+    provider-neutral.
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 servers:
   - url: /api/v1
@@ -46,8 +46,8 @@ paths:
         state only and does not imply account history or cross-device storage.
         If the request body is omitted, the backend creates a session without an
         initial user message. If an application/json body is provided, it follows
-        AssistantMessageRequest; malformed JSON and unknown-field runtime
-        behavior are not finalized by this contract cleanup.
+        AssistantMessageRequest. Malformed JSON, unsupported JSON shapes, and
+        unknown fields produce VALIDATION_ERROR for body.
       operationId: createAssistantSession
       requestBody:
         required: false
@@ -74,11 +74,10 @@ paths:
       summary: Continue an assistant session.
       description: >
         Adds a user message to an existing hotel-only assistant session and
-        returns the assistant response, updated session state, and any visible
-        search intent summary information. The request body is required and
-        follows AssistantMessageRequest. Runtime behavior for malformed JSON,
-        unknown JSON fields, and hard maxLength enforcement is not finalized by
-        this contract cleanup.
+        returns the assistant response and updated session state. The request
+        body is required and follows AssistantMessageRequest. Malformed JSON,
+        unsupported JSON shapes, and unknown fields produce VALIDATION_ERROR
+        for body.
       operationId: continueAssistantSession
       parameters:
         - $ref: "#/components/parameters/SessionId"
@@ -108,10 +107,9 @@ paths:
         - Hotel Search
       summary: Create a hotel search request.
       description: >
-        Creates a hotel-only search request from confirmed or visible search
-        criteria. This endpoint calls the application/provider boundary
-        conceptually; it does not expose provider-specific payloads or provider
-        integration details.
+        Diagnostic endpoint for direct hotel search checks. It is not part of
+        the bounded platform-client contract; regular clients use the assistant
+        session flow and then load offers by opaque searchId.
       operationId: createHotelSearch
       requestBody:
         required: true
@@ -139,9 +137,9 @@ paths:
         - Hotel Search
       summary: Get hotel offers for a search.
       description: >
-        Returns hotel offers and search result state for a hotel-only search.
-        Provider facts, assistant assumptions, and unknown data remain separated
-        so the frontend can keep uncertainty visible.
+        Returns a terminal hotel result for an opaque searchId created by the
+        assistant flow. The envelope is provider-neutral and contains no
+        provider DTO.
       operationId: getHotelOffers
       parameters:
         - $ref: "#/components/parameters/SearchId"
@@ -419,6 +417,7 @@ components:
         currentTime:
           type: string
           format: date-time
+      additionalProperties: false
 
     AssistantSession:
       type: object
@@ -439,33 +438,20 @@ components:
           type: string
           enum:
             - collecting_requirements
-            - ready_for_search
-            - searching
-            - results_available
-            - search_failed
-            - no_offers_available
-            - closed
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
-        searchIntentSummary:
-          $ref: "#/components/schemas/SearchIntentSummary"
-          description: >
-            Optional future-facing summary of captured hotel search intent. The
-            current Stage 7 assistant foundation does not use this field as
-            generated-client readiness evidence.
+      additionalProperties: false
 
     AssistantMessageRequest:
       type: object
       description: >
-        Contract shape for assistant user text. message is required when a JSON
-        body is provided. clientContext is optional behavior-neutral client hint
-        data in the current Stage 7 foundation. Runtime handling of malformed
-        JSON, unknown JSON fields, and maxLength enforcement remains a later
-        validation/test concern.
+        Platform-neutral assistant user text. message is required when a JSON
+        body is provided and must contain from 1 to 4000 Unicode code points.
+        clientContext is optional behavior-neutral client hint data.
       required:
         - message
       properties:
@@ -474,14 +460,13 @@ components:
           minLength: 1
           maxLength: 4000
           description: >
-            User message for the assistant. maxLength is a contract-level limit;
-            Stage 7.39 does not claim runtime enforcement.
+            User message passed to application logic unchanged after successful
+            JSON, non-blank, and Unicode length validation.
         clientContext:
           type: object
           description: >
-            Optional client hint container. The current Assistant foundation can
-            accept this shape but does not promise behavior changes, locale/time
-            validation, or generated-client readiness from these fields.
+            Optional client hint container. Its fields do not change behavior in
+            the current bounded contract.
           additionalProperties: false
           properties:
             locale:
@@ -498,6 +483,20 @@ components:
         - session
         - assistantMessage
         - nextAction
+      allOf:
+        - if:
+            properties:
+              nextAction:
+                const: show_hotel_results
+            required:
+              - nextAction
+          then:
+            required:
+              - hotelSearchId
+          else:
+            not:
+              required:
+                - hotelSearchId
       properties:
         session:
           $ref: "#/components/schemas/AssistantSession"
@@ -506,27 +505,18 @@ components:
         nextAction:
           type: string
           description: >
-            Required assistant UI action hint for the response. It is not a
-            generated-client readiness signal and does not by itself prove real
-            hotel search readiness.
+            Required platform-neutral client action for the current turn.
           enum:
             - ask_clarification
-            - ready_for_hotel_search
             - show_hotel_results
             - show_boundary_message
-            - none
         hotelSearchId:
           type: string
           description: >
             Optional opaque identifier of a hotel search created by the current
-            assistant message. It is present only when nextAction is
-            show_hotel_results and does not imply generated-client readiness.
-        hotelSearchRequest:
-          $ref: "#/components/schemas/HotelSearchRequest"
-          description: >
-            Optional future-only request shape for a later hotel search flow.
-            The current Stage 7 assistant foundation does not emit or validate
-            this field as readiness evidence.
+            assistant message. It is required only when nextAction is
+            show_hotel_results and absent for every other nextAction.
+      additionalProperties: false
 
     AssistantMessage:
       type: object
@@ -538,21 +528,9 @@ components:
           type: string
           enum:
             - assistant
-            - user
         content:
           type: string
-        assumptions:
-          type: array
-          items:
-            $ref: "#/components/schemas/AssistantAssumption"
-        derivedAssumptions:
-          type: array
-          items:
-            $ref: "#/components/schemas/DerivedAssumption"
-        unknowns:
-          type: array
-          items:
-            $ref: "#/components/schemas/UnknownData"
+      additionalProperties: false
 
     SearchIntentSummary:
       type: object
@@ -696,8 +674,10 @@ components:
       type: object
       required:
         - searchId
-        - status
         - sessionId
+        - status
+        - criteria
+        - metadata
       properties:
         searchId:
           type: string
@@ -706,17 +686,13 @@ components:
         status:
           type: string
           enum:
-            - accepted
-            - searching
             - completed_with_offers
             - completed_no_offers
-            - failed
         criteria:
-          $ref: "#/components/schemas/HotelSearchCriteria"
+          $ref: "#/components/schemas/HotelSearchCriteriaResponse"
         metadata:
           $ref: "#/components/schemas/SearchResultMetadata"
-        failure:
-          $ref: "#/components/schemas/HotelSearchFailure"
+      additionalProperties: false
 
     HotelOffersResponse:
       type: object
@@ -724,53 +700,82 @@ components:
         - searchId
         - status
         - offers
+        - metadata
+        - providerFacts
       properties:
         searchId:
           type: string
         status:
           type: string
           enum:
-            - accepted
-            - searching
             - completed_with_offers
             - completed_no_offers
-            - failed
         offers:
           type: array
           items:
             $ref: "#/components/schemas/HotelOffer"
         metadata:
           $ref: "#/components/schemas/SearchResultMetadata"
-        failure:
-          $ref: "#/components/schemas/HotelSearchFailure"
         providerFacts:
           type: array
           items:
             $ref: "#/components/schemas/ProviderFact"
-        userPreferences:
-          type: array
-          items:
-            $ref: "#/components/schemas/UserPreference"
-        assumptions:
-          type: array
-          items:
-            $ref: "#/components/schemas/AssistantAssumption"
-        derivedAssumptions:
-          type: array
-          items:
-            $ref: "#/components/schemas/DerivedAssumption"
-        unknowns:
-          type: array
-          items:
-            $ref: "#/components/schemas/UnknownData"
+      additionalProperties: false
+
+    HotelSearchCriteriaResponse:
+      type: object
+      required:
+        - destination
+        - checkInDate
+        - checkOutDate
+        - guests
+      properties:
+        destination:
+          type: string
+        checkInDate:
+          type: string
+          format: date
+        checkOutDate:
+          type: string
+          format: date
+        guests:
+          type: object
+          required:
+            - adults
+            - children
+            - childrenAges
+          properties:
+            adults:
+              type: integer
+              minimum: 1
+            children:
+              type: integer
+              minimum: 0
+            childrenAges:
+              type: array
+              items:
+                type: integer
+                minimum: 0
+                maximum: 17
+          additionalProperties: false
+        rooms:
+          type: integer
+          minimum: 1
+      additionalProperties: false
 
     HotelOffer:
       type: object
       required:
         - offerId
+        - providerOfferRef
         - hotelName
         - location
         - price
+        - availability
+        - source
+        - freshness
+        - matchSummary
+        - providerFacts
       properties:
         offerId:
           type: string
@@ -792,8 +797,6 @@ components:
           description: Omitted when the list response does not provide amenity facts.
           items:
             $ref: "#/components/schemas/HotelAmenity"
-        cancellationPolicy:
-          type: string
         availability:
           type: string
           enum:
@@ -816,21 +819,15 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProviderFact"
-        assistantAssumptions:
-          type: array
-          items:
-            $ref: "#/components/schemas/AssistantAssumption"
-        derivedAssumptions:
-          type: array
-          items:
-            $ref: "#/components/schemas/DerivedAssumption"
-        unknowns:
-          type: array
-          items:
-            $ref: "#/components/schemas/UnknownData"
+      additionalProperties: false
 
     SearchResultMetadata:
       type: object
+      required:
+        - resultCompleteness
+        - freshness
+        - providerState
+        - warnings
       properties:
         resultCompleteness:
           type: string
@@ -852,13 +849,11 @@ components:
             - unavailable
             - failed
             - unknown
-        refreshedAt:
-          type: string
-          format: date-time
         warnings:
           type: array
           items:
             type: string
+      additionalProperties: false
 
     HotelSearchFailure:
       type: object
@@ -886,15 +881,13 @@ components:
       required:
         - field
         - value
+        - source
+        - freshness
       properties:
         field:
           type: string
         value:
-          type:
-            - string
-            - number
-            - boolean
-            - "null"
+          type: string
         source:
           type: string
           description: Generic source label when available; not a provider DTO.
@@ -904,6 +897,7 @@ components:
             - fresh
             - stale
             - unknown
+      additionalProperties: false
 
     UserPreference:
       type: object
@@ -993,6 +987,9 @@ components:
       required:
         - amount
         - currency
+        - basis
+        - includesTaxesAndFees
+        - providerFreshness
       properties:
         amount:
           type: number
@@ -1020,6 +1017,7 @@ components:
             - fresh
             - stale
             - unknown
+      additionalProperties: false
 
     HotelLocation:
       type: object
@@ -1031,22 +1029,15 @@ components:
           type: string
         country:
           type: string
-        address:
-          type: string
-        latitude:
-          type: number
-          minimum: -90
-          maximum: 90
-        longitude:
-          type: number
-          minimum: -180
-          maximum: 180
-        distanceToCenterKm:
-          type: number
-          minimum: 0
+      additionalProperties: false
 
     HotelRating:
       type: object
+      required:
+        - value
+        - scale
+        - reviewCount
+        - source
       properties:
         value:
           type: number
@@ -1060,14 +1051,14 @@ components:
           minimum: 0
         source:
           type: string
+      additionalProperties: false
 
     HotelAmenity:
       type: object
       required:
         - name
+        - source
       properties:
-        code:
-          type: string
         name:
           type: string
         source:
@@ -1076,6 +1067,7 @@ components:
             - provider_fact
             - assistant_assumption
             - unknown
+      additionalProperties: false
 
     ShortlistItem:
       type: object
@@ -1200,6 +1192,7 @@ components:
         details:
           type: object
           additionalProperties: true
+      additionalProperties: false
 
     ValidationErrorResponse:
       type: object
@@ -1228,9 +1221,5 @@ components:
                 type: string
               message:
                 type: string
-              rejectedValue:
-                type:
-                  - string
-                  - number
-                  - boolean
-                  - "null"
+            additionalProperties: false
+      additionalProperties: false

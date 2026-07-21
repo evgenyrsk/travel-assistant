@@ -57,10 +57,24 @@ browser storage или provider contracts. Это позволяет отдел�
 Android и desktop clients переиспользовать `/api/v1/**`, не дублируя
 provider/LLM orchestration и business rules.
 
+Ограниченный продуктовый контракт Stage 10.3 состоит из трёх endpoint:
+
+- `POST /api/v1/assistant/sessions`;
+- `POST /api/v1/assistant/sessions/{sessionId}/messages`;
+- `GET /api/v1/hotel-searches/{searchId}/offers`.
+
+`hotelSearchId` присутствует только при `nextAction=show_hotel_results`.
+Assistant message содержит от 1 до 4000 Unicode code points; malformed JSON и
+unknown fields отклоняются безопасным `VALIDATION_ERROR`. Прямой
+`POST /api/v1/hotel-searches` остается endpoint диагностической страницы и не
+входит в основной клиентский контракт.
+
 Текущий server обслуживает same-origin web/PWA через proxy. Для отдельного
 cross-origin web deployment понадобится будущая configurable CORS allowlist;
 native clients не ограничиваются browser CORS. Native SDK, generated clients,
 auth, durable session resume и cross-device sync пока не реализованы.
+CORS остается выключенным по умолчанию; wildcard и credentialed origins не
+разрешены.
 
 ## Проверки
 

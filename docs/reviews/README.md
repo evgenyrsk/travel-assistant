@@ -490,6 +490,7 @@
 177. `docs/reviews/stage-10-0-cross-platform-readiness-and-open-question-reconciliation.md`
 178. `docs/reviews/stage-10-1-bounded-pwa-foundation.md`
 179. `docs/reviews/stage-10-2-cross-platform-client-contract-and-accessibility-verification.md`
+180. `docs/reviews/stage-10-3-platform-neutral-api-contract-hardening.md`
 
 ## Historical / superseded документы
 

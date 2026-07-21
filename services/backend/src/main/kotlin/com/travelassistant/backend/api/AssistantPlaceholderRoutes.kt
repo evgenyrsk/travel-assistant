@@ -8,7 +8,6 @@ import com.travelassistant.backend.domain.assistant.AssistantSession
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.request.receiveNullable
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
@@ -25,17 +24,16 @@ fun Route.assistantPlaceholderRoutes(
 ) {
     route("/assistant/sessions") {
         post {
-            val request = runCatching {
-                call.receiveNullable<AssistantMessageRequest>()
-            }.getOrNull()
-            val initialMessageText = request?.message
-
-            if (request != null && initialMessageText.isNullOrBlank()) {
-                call.respondValidationError(
-                    field = "message",
-                    message = "Message text must be present and not blank.",
-                )
-                return@post
+            val initialMessageText = when (val request = call.readAssistantMessageRequest()) {
+                AssistantMessageRequestReadResult.NoBody -> null
+                is AssistantMessageRequestReadResult.Accepted -> request.message
+                is AssistantMessageRequestReadResult.Invalid -> {
+                    call.respondValidationError(
+                        field = request.field,
+                        message = request.message,
+                    )
+                    return@post
+                }
             }
 
             val session = createAssistantSession.createSession()
@@ -58,17 +56,23 @@ fun Route.assistantPlaceholderRoutes(
         }
 
         post("/{sessionId}/messages") {
-            val request = runCatching {
-                call.receiveNullable<AssistantMessageRequest>()
-            }.getOrNull()
-            val messageText = request?.message
+            val messageText = when (val request = call.readAssistantMessageRequest()) {
+                AssistantMessageRequestReadResult.NoBody -> {
+                    call.respondValidationError(
+                        field = "message",
+                        message = "Message text must be present and not blank.",
+                    )
+                    return@post
+                }
 
-            if (messageText.isNullOrBlank()) {
-                call.respondValidationError(
-                    field = "message",
-                    message = "Message text must be present and not blank.",
-                )
-                return@post
+                is AssistantMessageRequestReadResult.Accepted -> request.message
+                is AssistantMessageRequestReadResult.Invalid -> {
+                    call.respondValidationError(
+                        field = request.field,
+                        message = request.message,
+                    )
+                    return@post
+                }
             }
 
             val acceptedMessage = createAssistantSession.acceptUserMessage(

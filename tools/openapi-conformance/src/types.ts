@@ -42,6 +42,27 @@ export interface AssistantContractShape {
   sessionNotFoundResponsePresent: boolean;
   validationErrorResponsesPresent: boolean;
   messageMaxLength?: number;
+  requestAdditionalPropertiesForbidden: boolean;
+  responseAdditionalPropertiesForbidden: boolean;
+  nextActionValues: string[];
+  hotelSearchIdPropertyPresent: boolean;
+  hotelSearchIdConditional: boolean;
+  sessionRequiredFields: string[];
+  messageResponseRequiredFields: string[];
+  offersOperationPresent: boolean;
+  offersNotFoundResponsePresent: boolean;
+  offersRequiredFields: string[];
+  offersAdditionalPropertiesForbidden: boolean;
+  searchRequiredFields: string[];
+  searchStatusValues: string[];
+  searchAdditionalPropertiesForbidden: boolean;
+  offersStatusValues: string[];
+  metadataRequiredFields: string[];
+  metadataAdditionalPropertiesForbidden: boolean;
+  hotelOfferRequiredFields: string[];
+  hotelOfferAdditionalPropertiesForbidden: boolean;
+  ratingOptional: boolean;
+  amenitiesOptional: boolean;
 }
 
 export interface RuntimeRoute {
@@ -64,12 +85,14 @@ export interface EndpointReport {
   inRuntime: boolean;
   runtimeSourceFiles: string[];
   classification: EndpointClassification;
-  placeholderReason?: string;
+  classificationReason?: string;
   readiness: "not_ready";
 }
 
 export type EndpointClassification =
-  | "foundation_candidate"
+  | "platform_client_candidate"
+  | "operational"
+  | "diagnostic_excluded"
   | "placeholder_excluded"
   | "runtime_only"
   | "unclassified";
@@ -137,7 +160,7 @@ export interface ConformanceReport {
   subsetManifest: {
     path: string;
     exists: boolean;
-    status: "missing_not_created" | "present_not_evaluated";
+    status: "missing_not_created" | "present_candidate" | "present_validated";
     requiredForSkeleton: false;
   };
   manifestDetection: ManifestDetectionReport;
