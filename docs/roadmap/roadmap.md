@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 12 завершён в границах демонстрационного hotel-only MVP с итеративным уточнением |
-| Последний завершенный этап | Stage 12.8 — iterative refinement MVP verification |
-| Следующий планируемый шаг | Не назначен; требуется отдельное roadmap-aligned решение |
+| Текущий этап | Stage 13 активирован как on-demand details выбранного hotel offer |
+| Последний завершенный этап | Stage 13.0 — selected hotel details readiness и open-question reconciliation |
+| Следующий планируемый шаг | Stage 13.1 — один контролируемый hotel details contract probe |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -63,6 +63,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
 | Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
+| Stage 13 | Активирован | Выбран on-demand сценарий деталей явно выбранного offer; реализация ожидает ограниченную contract verification Stage 13.1. |
 
 ## 2. Правила управления roadmap
 
@@ -695,7 +696,8 @@ confirmation до поиска, отсутствие карточек до «Д�
 
 Stage 12 завершил функциональный MVP итеративного уточнения hotel search.
 Deployment, product clients и production hardening по-прежнему требуют
-отдельных roadmap-решений; следующий этап не активирован.
+отдельных roadmap-решений. Текущим отдельным решением активирован только
+on-demand details-срез Stage 13.
 
 ### Stage 12 — Итеративное уточнение hotel search
 
@@ -774,7 +776,33 @@ refinement выполняются только после отдельных п�
 создаёт новый `hotelSearchId`, предыдущий поиск остаётся доступен, а пустой
 успешный результат и provider failure не смешиваются. Пул из 20 предложений
 сохраняется на backend, demo shell показывает первые 5. Stage 12 завершён;
-следующий этап не активирован.
+Stage 13 активирован отдельной задачей и не меняет границы закрытого MVP.
+
+### Stage 13 — Детали выбранного hotel offer
+
+**Статус:** активирован Stage 13.0; следующий шаг — Stage 13.1.
+
+**Цель:** позволить пользователю явно выбрать предложение из сохранённого
+поиска и запросить дополнительные provider-backed facts без N+1-загрузки,
+раскрытия provider `hotelId` или перехода к booking/rates lifecycle.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 13.0 | Selected hotel details readiness и open-question reconciliation | Завершен; выбран `GET /api/v1/hotels/{hotelId}` как первый contract candidate |
+| Stage 13.1 | Controlled hotel details contract verification | Следующий; один разрешённый probe без retry и обезличенный fixture |
+| Stage 13.2 | Provider-neutral details model и mapping | Planned; только после совместимого Stage 13.1 fixture |
+| Stage 13.3 | Selected-offer resolution policy | Planned; resolve через `hotelSearchId`/`offerId`, provider id остаётся internal |
+| Stage 13.4 | Details transport/orchestration | Planned; `MockEngine`, без public/runtime wiring |
+| Stage 13.5 | Platform-neutral contract alignment | Planned; отдельное решение о public API/assistant response |
+| Stage 13.6 | Opt-in runtime и bounded verification | Planned; без rates, booking или automatic card enrichment |
+
+Stage 13.0 закрыл сортировку и `search-filters-availability` как осознанно
+отложенные возможности текущего MVP. Taxes/fees в `shownPrice` остаются
+unknown без перерасчёта. Официальный S2S-статус, SLA и rate limits остаются
+внешними rollout gates, но не блокируют один контролируемый contract probe.
+Details разрешены только on demand после явного выбора пользователя; массовая
+загрузка для всех 20 offers запрещена. Rates, deeplink, shortlist, comparison,
+booking и payment не активированы.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

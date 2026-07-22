@@ -111,3 +111,13 @@
   API в infrastructure layer.
 - Оставить details, shortlist, comparison, booking и payment отдельными
   направлениями расширения.
+
+## Этап 13 — детали выбранного hotel offer
+
+- Разрешать запрос details только после явного выбора сохранённого offer.
+- Использовать opaque `hotelSearchId` и `offerId`, не раскрывая provider
+  `hotelId` клиенту или LLM.
+- Проверить `GET /api/v1/hotels/{hotelId}` отдельно до создания DTO и runtime
+  wiring.
+- Не выполнять N+1-загрузку деталей для всей выдачи.
+- Оставить rates, deeplink, booking и payment отдельными будущими решениями.
