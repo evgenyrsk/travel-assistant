@@ -43,6 +43,8 @@ class HotelsApiFilteredSearchWithoutSortFixtureContractTest {
             assertTrue(offer.providerReference.startsWith("hotel-filtered-fixture-"))
             assertEquals("RUB", offer.currency)
             assertTrue(assertNotNull(offer.rating) >= 8.0)
+            assertTrue(assertNotNull(offer.starRating) in setOf(4, 5))
+            assertNotNull(offer.freeCancellationUntil)
             assertNull(offer.amenities)
             assertEquals(HotelOffer.Availability.AVAILABLE, offer.availability)
         }

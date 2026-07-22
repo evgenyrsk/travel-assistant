@@ -1,5 +1,7 @@
 package com.travelassistant.backend.domain.hotel
 
+import java.time.Instant
+
 data class HotelOffer(
     val id: String,
     val providerReference: String,
@@ -14,6 +16,8 @@ data class HotelOffer(
     val availability: Availability,
     val source: String,
     val freshness: Freshness,
+    val starRating: Int? = null,
+    val freeCancellationUntil: Instant? = null,
 ) {
     enum class Availability(val apiValue: String) {
         AVAILABLE("available"),

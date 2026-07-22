@@ -1,6 +1,7 @@
 package com.travelassistant.backend.infrastructure.provider
 
 import com.travelassistant.backend.domain.hotel.HotelOffer
+import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -20,6 +21,7 @@ class HotelsApiSearchResponseMapperTest {
                     ratingsCount = 321,
                 ),
                 availableRoomsCount = 2,
+                freeCancellationUntil = "2026-07-17T21:00:00+00:00",
             ),
         )
 
@@ -34,6 +36,8 @@ class HotelsApiSearchResponseMapperTest {
         assertEquals(8.7, offer.rating)
         assertEquals(321, offer.reviewCount)
         assertNull(offer.amenities)
+        assertEquals(5, offer.starRating)
+        assertEquals(Instant.parse("2026-07-17T21:00:00Z"), offer.freeCancellationUntil)
         assertEquals(HotelOffer.Availability.AVAILABLE, offer.availability)
         assertEquals("tbank_hotels_api", offer.source)
         assertEquals(HotelOffer.Freshness.UNKNOWN, offer.freshness)
@@ -55,6 +59,8 @@ class HotelsApiSearchResponseMapperTest {
 
         assertNull(offer.rating)
         assertNull(offer.reviewCount)
+        assertEquals(5, offer.starRating)
+        assertNull(offer.freeCancellationUntil)
         assertEquals(HotelOffer.Availability.UNKNOWN, offer.availability)
     }
 
@@ -108,6 +114,10 @@ class HotelsApiSearchResponseMapperTest {
             ) to HotelsApiSearchMappingError.Issue.INVALID_REVIEW,
             hotel(availableRoomsCount = -1) to
                 HotelsApiSearchMappingError.Issue.INVALID_AVAILABILITY,
+            hotel(starRating = 6) to
+                HotelsApiSearchMappingError.Issue.INVALID_STAR_RATING,
+            hotel(freeCancellationUntil = "not-a-date") to
+                HotelsApiSearchMappingError.Issue.INVALID_CANCELLATION,
         )
 
         invalidHotels.forEach { (hotel, expectedIssue) ->
@@ -139,6 +149,7 @@ class HotelsApiSearchResponseMapperTest {
             ratingsCount = 10,
         ),
         availableRoomsCount: Int = 1,
+        freeCancellationUntil: String? = null,
     ): HotelsApiSearchResponseDto.Hotel =
         HotelsApiSearchResponseDto.Hotel(
             hotelId = hotelId,
@@ -158,6 +169,7 @@ class HotelsApiSearchResponseMapperTest {
                 isCreditCardDataRequired = false,
                 paymentPlace = "online",
                 shownPrice = shownPrice,
+                freeCancellationUntil = freeCancellationUntil,
             ),
             review = review,
         )

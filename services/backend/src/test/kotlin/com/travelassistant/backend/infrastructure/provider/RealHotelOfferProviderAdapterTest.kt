@@ -68,6 +68,12 @@ class RealHotelOfferProviderAdapterTest {
                 HotelOfferProviderResult.RequestRejectionReason.INVALID_OCCUPANCY,
             HotelsApiSearchMappingError.Issue.INVALID_CHILD_AGE to
                 HotelOfferProviderResult.RequestRejectionReason.INVALID_OCCUPANCY,
+            HotelsApiSearchMappingError.Issue.INVALID_MAX_TOTAL_PRICE to
+                HotelOfferProviderResult.RequestRejectionReason.INVALID_PREFERENCES,
+            HotelsApiSearchMappingError.Issue.UNSUPPORTED_MAX_TOTAL_PRICE_CURRENCY to
+                HotelOfferProviderResult.RequestRejectionReason.INVALID_PREFERENCES,
+            HotelsApiSearchMappingError.Issue.INVALID_STARS to
+                HotelOfferProviderResult.RequestRejectionReason.INVALID_PREFERENCES,
         )
         requestIssues.forEach { (issue, expectedReason) ->
             val result = adapter {
@@ -97,6 +103,10 @@ class RealHotelOfferProviderAdapterTest {
                 HotelOfferProviderResult.ResponseRejectionReason.INVALID_REVIEW,
             HotelsApiSearchMappingError.Issue.INVALID_AVAILABILITY to
                 HotelOfferProviderResult.ResponseRejectionReason.INVALID_AVAILABILITY,
+            HotelsApiSearchMappingError.Issue.INVALID_STAR_RATING to
+                HotelOfferProviderResult.ResponseRejectionReason.INVALID_HOTEL_DATA,
+            HotelsApiSearchMappingError.Issue.INVALID_CANCELLATION to
+                HotelOfferProviderResult.ResponseRejectionReason.INVALID_HOTEL_DATA,
         )
         responseIssues.forEach { (issue, expectedReason) ->
             val result = adapter {

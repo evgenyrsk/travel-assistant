@@ -8,6 +8,7 @@ internal data class HotelsApiSearchRequestDto(
     val checkinDate: String,
     val checkoutDate: String,
     val guests: List<Guest>,
+    val filters: List<HotelsApiSearchFilterDto> = emptyList(),
     val offset: Int? = null,
     val limit: Int? = null,
 ) {

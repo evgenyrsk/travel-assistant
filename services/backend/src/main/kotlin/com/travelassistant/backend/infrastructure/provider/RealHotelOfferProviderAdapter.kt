@@ -113,6 +113,11 @@ internal class RealHotelOfferProviderAdapter(
             HotelsApiSearchMappingError.Issue.INVALID_CHILD_AGE,
             -> HotelOfferProviderResult.RequestRejectionReason.INVALID_OCCUPANCY
 
+            HotelsApiSearchMappingError.Issue.INVALID_MAX_TOTAL_PRICE,
+            HotelsApiSearchMappingError.Issue.UNSUPPORTED_MAX_TOTAL_PRICE_CURRENCY,
+            HotelsApiSearchMappingError.Issue.INVALID_STARS,
+            -> HotelOfferProviderResult.RequestRejectionReason.INVALID_PREFERENCES
+
             else -> HotelOfferProviderResult.RequestRejectionReason.UNKNOWN
         }
 
@@ -124,6 +129,10 @@ internal class RealHotelOfferProviderAdapter(
 
             HotelsApiSearchMappingError.Issue.INVALID_HOTEL_NAME ->
                 HotelOfferProviderResult.ResponseRejectionReason.INVALID_HOTEL_DATA
+
+            HotelsApiSearchMappingError.Issue.INVALID_STAR_RATING,
+            HotelsApiSearchMappingError.Issue.INVALID_CANCELLATION,
+            -> HotelOfferProviderResult.ResponseRejectionReason.INVALID_HOTEL_DATA
 
             HotelsApiSearchMappingError.Issue.INVALID_LOCATION ->
                 HotelOfferProviderResult.ResponseRejectionReason.INVALID_LOCATION_DATA

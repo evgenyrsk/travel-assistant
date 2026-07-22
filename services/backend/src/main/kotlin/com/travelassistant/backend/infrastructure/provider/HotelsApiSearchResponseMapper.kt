@@ -1,6 +1,8 @@
 package com.travelassistant.backend.infrastructure.provider
 
 import com.travelassistant.backend.domain.hotel.HotelOffer
+import java.time.OffsetDateTime
+import java.time.format.DateTimeParseException
 
 internal object HotelsApiSearchResponseMapper {
 
@@ -44,6 +46,12 @@ internal object HotelsApiSearchResponseMapper {
                 providerReference = providerReference,
             )
         }
+        if (hotel.starRating !in MIN_STAR_RATING..MAX_STAR_RATING) {
+            return rejected(
+                issue = HotelsApiSearchMappingError.Issue.INVALID_STAR_RATING,
+                providerReference = providerReference,
+            )
+        }
         if (
             hotel.areaLocation.destinationName.isBlank() ||
             hotel.areaLocation.countryName.isBlank()
@@ -83,6 +91,16 @@ internal object HotelsApiSearchResponseMapper {
                 providerReference = providerReference,
             )
         }
+        val freeCancellationUntil = try {
+            hotel.rateForHotelsFeed.freeCancellationUntil?.let { value ->
+                OffsetDateTime.parse(value).toInstant()
+            }
+        } catch (_: DateTimeParseException) {
+            return rejected(
+                issue = HotelsApiSearchMappingError.Issue.INVALID_CANCELLATION,
+                providerReference = providerReference,
+            )
+        }
 
         return HotelResult.Mapped(
             offer = HotelOffer(
@@ -103,6 +121,8 @@ internal object HotelsApiSearchResponseMapper {
                 },
                 source = SOURCE,
                 freshness = HotelOffer.Freshness.UNKNOWN,
+                starRating = hotel.starRating,
+                freeCancellationUntil = freeCancellationUntil,
             ),
         )
     }
@@ -137,4 +157,6 @@ internal object HotelsApiSearchResponseMapper {
     private const val OFFER_ID_PREFIX = "tbank-hotels-api:"
     private const val MIN_RATING = 0.0
     private const val MAX_RATING = 10.0
+    private const val MIN_STAR_RATING = 0
+    private const val MAX_STAR_RATING = 5
 }

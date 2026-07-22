@@ -2,9 +2,16 @@ package com.travelassistant.backend.infrastructure.provider
 
 import com.travelassistant.backend.application.hotel.HotelLocationResolution
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+import java.math.BigDecimal
 import java.time.LocalDate
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
@@ -27,8 +34,89 @@ class HotelsApiSearchRequestMapperTest {
         assertEquals(1, result.request.guests.size)
         assertEquals(2, result.request.guests.single().adultsCount)
         assertEquals(listOf(17, 0), result.request.guests.single().childrenAge)
+        assertEquals(emptyList(), result.request.filters)
         assertNull(result.request.offset)
         assertNull(result.request.limit)
+
+        val body = HotelsApiJson.codec.parseToJsonElement(
+            HotelsApiJson.codec.encodeToString(result.request),
+        ).jsonObject
+        assertFalse("filters" in body)
+        assertFalse("sort" in body)
+    }
+
+    @Test
+    fun `maps four preferences to exact provider filters in deterministic order`() {
+        val preferences = HotelSearchPreferences(
+            maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
+                amount = BigDecimal("80000.50"),
+                currency = "RUB",
+            ),
+            stars = linkedSetOf(5, 4),
+            minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+            freeCancellationRequired = true,
+        )
+
+        val mapped = assertIs<HotelsApiSearchRequestMapper.Result.Mapped>(
+            HotelsApiSearchRequestMapper.map(
+                location = location(),
+                criteria = criteria(preferences = preferences),
+            ),
+        )
+        val body = HotelsApiJson.codec.parseToJsonElement(
+            HotelsApiJson.codec.encodeToString(mapped.request),
+        ).jsonObject
+        val filters = body.getValue("filters").jsonArray.map { it.jsonObject }
+
+        assertEquals(
+            listOf("price", "stars", "review_rating", "free_cancellation_allowed"),
+            filters.map { it.getValue("filterId").jsonPrimitive.content },
+        )
+        assertEquals("range", filters[0].getValue("\$objectType").jsonPrimitive.content)
+        assertEquals("0", filters[0].getValue("min").jsonPrimitive.content)
+        assertEquals("80000.50", filters[0].getValue("max").jsonPrimitive.content)
+        assertFalse(filters[0].getValue("max").jsonPrimitive.isString)
+        assertEquals("array", filters[1].getValue("\$objectType").jsonPrimitive.content)
+        assertEquals(
+            listOf("4", "5"),
+            filters[1].getValue("values").jsonArray.map { it.jsonPrimitive.content },
+        )
+        assertEquals("radio", filters[2].getValue("\$objectType").jsonPrimitive.content)
+        assertEquals("8", filters[2].getValue("value").jsonPrimitive.content)
+        assertEquals("boolean", filters[3].getValue("\$objectType").jsonPrimitive.content)
+        assertEquals("true", filters[3].getValue("value").jsonPrimitive.content)
+        assertFalse("sort" in body)
+    }
+
+    @Test
+    fun `rejects invalid provider preference values without producing a request`() {
+        val invalidPreferences = listOf(
+            HotelSearchPreferences(
+                maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
+                    amount = BigDecimal.ZERO,
+                    currency = "RUB",
+                ),
+            ) to HotelsApiSearchMappingError.Issue.INVALID_MAX_TOTAL_PRICE,
+            HotelSearchPreferences(
+                maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
+                    amount = BigDecimal("80000"),
+                    currency = "USD",
+                ),
+            ) to HotelsApiSearchMappingError.Issue.UNSUPPORTED_MAX_TOTAL_PRICE_CURRENCY,
+            HotelSearchPreferences(stars = setOf(6)) to
+                HotelsApiSearchMappingError.Issue.INVALID_STARS,
+        )
+
+        invalidPreferences.forEach { (preferences, expectedIssue) ->
+            val result = assertIs<HotelsApiSearchRequestMapper.Result.Rejected>(
+                HotelsApiSearchRequestMapper.map(
+                    location = location(),
+                    criteria = criteria(preferences = preferences),
+                ),
+            )
+
+            assertEquals(expectedIssue, result.error.issue)
+        }
     }
 
     @Test
@@ -94,6 +182,7 @@ class HotelsApiSearchRequestMapperTest {
         destination: String = "Казань",
         childrenAges: List<Int> = emptyList(),
         rooms: Int? = 1,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): HotelSearchCriteria =
         HotelSearchCriteria(
             destination = destination,
@@ -104,5 +193,6 @@ class HotelsApiSearchRequestMapperTest {
                 childrenAges = childrenAges,
             ),
             rooms = rooms,
+            preferences = preferences,
         )
 }

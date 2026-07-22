@@ -31,6 +31,7 @@ sealed interface HotelOfferProviderResult {
         INVALID_DESTINATION,
         INVALID_DATE_RANGE,
         INVALID_OCCUPANCY,
+        INVALID_PREFERENCES,
         UNKNOWN,
     }
 

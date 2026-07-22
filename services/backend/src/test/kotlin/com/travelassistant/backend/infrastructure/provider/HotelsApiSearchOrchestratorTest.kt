@@ -5,6 +5,7 @@ import com.travelassistant.backend.application.hotel.HotelLocationResolution
 import com.travelassistant.backend.application.hotel.HotelLocationResolutionRequest
 import com.travelassistant.backend.application.hotel.HotelLocationResolverBoundary
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -15,6 +16,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.jsonArray
@@ -23,6 +25,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
@@ -117,6 +120,52 @@ class HotelsApiSearchOrchestratorTest {
         assertEquals(1, requestCount)
         assertEquals(77, body.getValue("destinationId").jsonPrimitive.content.toInt())
         assertEquals(77, result.location.destinationId)
+        client.close()
+    }
+
+    @Test
+    fun `sends four filters in one bounded request without sort or pagination retry`() = runBlocking {
+        var capturedRequest: HttpRequestData? = null
+        var requestCount = 0
+        val client = client { request ->
+            requestCount += 1
+            capturedRequest = request
+            searchResponse(isLoadingCompleted = false, nextOffset = 50)
+        }
+        val orchestrator = orchestrator(
+            client = client,
+            resolver = HotelLocationResolverBoundary {
+                HotelLocationResolution(candidates = listOf(location(77)))
+            },
+        )
+
+        assertIs<HotelsApiSearchOrchestrator.Result.Success>(
+            orchestrator.search(
+                HotelsApiSearchOrchestrator.Request(
+                    criteria = criteria(preferences = preferences()),
+                ),
+            ),
+        )
+
+        val body = HotelsApiJson.codec.parseToJsonElement(
+            assertIs<TextContent>(capturedRequest?.body).text,
+        ).jsonObject
+        val filters = body.getValue("filters").jsonArray.map { it.jsonObject }
+        assertEquals(1, requestCount)
+        assertEquals(0, body.getValue("offset").jsonPrimitive.content.toInt())
+        assertEquals(20, body.getValue("limit").jsonPrimitive.content.toInt())
+        assertEquals(
+            listOf("price", "stars", "review_rating", "free_cancellation_allowed"),
+            filters.map { it.getValue("filterId").jsonPrimitive.content },
+        )
+        assertEquals("80000", filters[0].getValue("max").jsonPrimitive.content)
+        assertEquals(
+            listOf("4", "5"),
+            filters[1].getValue("values").jsonArray.map { it.jsonPrimitive.content },
+        )
+        assertEquals("8", filters[2].getValue("value").jsonPrimitive.content)
+        assertEquals("true", filters[3].getValue("value").jsonPrimitive.content)
+        assertFalse("sort" in body)
         client.close()
     }
 
@@ -308,6 +357,7 @@ class HotelsApiSearchOrchestratorTest {
     private fun criteria(
         childrenAges: List<Int> = emptyList(),
         rooms: Int? = 1,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): HotelSearchCriteria =
         HotelSearchCriteria(
             destination = "Казань",
@@ -318,6 +368,18 @@ class HotelsApiSearchOrchestratorTest {
                 childrenAges = childrenAges,
             ),
             rooms = rooms,
+            preferences = preferences,
+        )
+
+    private fun preferences(): HotelSearchPreferences =
+        HotelSearchPreferences(
+            maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
+                amount = BigDecimal("80000"),
+                currency = "RUB",
+            ),
+            stars = setOf(5, 4),
+            minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+            freeCancellationRequired = true,
         )
 
     private fun searchResponse(

@@ -24,6 +24,11 @@ internal object HotelsApiSearchRequestMapper {
         if (criteria.guests.childrenAges.any { it !in MIN_CHILD_AGE..MAX_CHILD_AGE }) {
             return Result.Rejected(error(HotelsApiSearchMappingError.Issue.INVALID_CHILD_AGE))
         }
+        val filters = when (val mapping = HotelsApiSearchFilterMapper.map(criteria.preferences)) {
+            is HotelsApiSearchFilterMapper.Result.Mapped -> mapping.filters
+            is HotelsApiSearchFilterMapper.Result.Rejected ->
+                return Result.Rejected(mapping.error)
+        }
 
         return Result.Mapped(
             request = HotelsApiSearchRequestDto(
@@ -36,6 +41,7 @@ internal object HotelsApiSearchRequestMapper {
                         childrenAge = criteria.guests.childrenAges,
                     ),
                 ),
+                filters = filters,
                 offset = null,
                 limit = null,
             ),

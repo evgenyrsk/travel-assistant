@@ -87,8 +87,9 @@ Java/Spring Boot не является принятым backend stack для Tra
 
 Текущий демонстрационный MVP ориентирован на hotel-only flow: пользователь
 уточняет обязательные критерии, подтверждает поиск, получает hotel options и
-может следующей репликой изменить необязательные фильтры или сортировку для
-нового подтвержденного provider search.
+может следующей репликой изменить необязательные фильтры для нового
+подтвержденного provider search. Пользовательская сортировка отложена, потому
+что наблюдаемый Hotels API runtime ее не принимает.
 
 External provider layer отвечает за hotel facts: цены, availability, location, amenities, policies, ratings, source/freshness and related data, если эти данные доступны из provider/source.
 
