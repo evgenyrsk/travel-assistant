@@ -506,6 +506,7 @@
 193. `docs/reviews/stage-12-7-no-results-refinement.md`
 194. `docs/reviews/stage-12-8-iterative-refinement-mvp-verification.md`
 195. `docs/reviews/stage-13-0-selected-hotel-details-readiness-and-open-question-reconciliation.md`
+196. `docs/reviews/stage-13-1-controlled-hotel-details-contract-verification.md`
 
 ## Historical / superseded документы
 

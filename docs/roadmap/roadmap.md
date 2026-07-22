@@ -9,8 +9,8 @@ Roadmap не является трекером задач, продуктово�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 13 активирован как on-demand details выбранного hotel offer |
-| Последний завершенный этап | Stage 13.0 — selected hotel details readiness и open-question reconciliation |
-| Следующий планируемый шаг | Stage 13.1 — один контролируемый hotel details contract probe |
+| Последний завершенный этап | Stage 13.1 — controlled hotel details contract verification |
+| Следующий планируемый шаг | Stage 13.2 — provider-neutral details model и fixture-driven mapping |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -63,7 +63,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
 | Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
-| Stage 13 | Активирован | Выбран on-demand сценарий деталей явно выбранного offer; реализация ожидает ограниченную contract verification Stage 13.1. |
+| Stage 13 | Активирован | Контракт успешного ответа `GET /api/v1/hotels/{hotelId}` подтверждён одной анонимной проверкой; production model и mapping ещё не добавлены. |
 
 ## 2. Правила управления roadmap
 
@@ -780,7 +780,7 @@ Stage 13 активирован отдельной задачей и не мен
 
 ### Stage 13 — Детали выбранного hotel offer
 
-**Статус:** активирован Stage 13.0; следующий шаг — Stage 13.1.
+**Статус:** Stage 13.1 завершён; следующий шаг — Stage 13.2.
 
 **Цель:** позволить пользователю явно выбрать предложение из сохранённого
 поиска и запросить дополнительные provider-backed facts без N+1-загрузки,
@@ -789,8 +789,8 @@ Stage 13 активирован отдельной задачей и не мен
 | Sub-stage | Scope | Статус |
 |---|---|---|
 | Stage 13.0 | Selected hotel details readiness и open-question reconciliation | Завершен; выбран `GET /api/v1/hotels/{hotelId}` как первый contract candidate |
-| Stage 13.1 | Controlled hotel details contract verification | Следующий; один разрешённый probe без retry и обезличенный fixture |
-| Stage 13.2 | Provider-neutral details model и mapping | Planned; только после совместимого Stage 13.1 fixture |
+| Stage 13.1 | Controlled hotel details contract verification | Завершен; search и details вернули `200`, строковый search `hotelId` принят details path, добавлен sanitized fixture |
+| Stage 13.2 | Provider-neutral details model и mapping | Следующий; tolerant optional fields, без transport/runtime wiring |
 | Stage 13.3 | Selected-offer resolution policy | Planned; resolve через `hotelSearchId`/`offerId`, provider id остаётся internal |
 | Stage 13.4 | Details transport/orchestration | Planned; `MockEngine`, без public/runtime wiring |
 | Stage 13.5 | Platform-neutral contract alignment | Planned; отдельное решение о public API/assistant response |
@@ -803,6 +803,15 @@ unknown без перерасчёта. Официальный S2S-статус, 
 Details разрешены только on demand после явного выбора пользователя; массовая
 загрузка для всех 20 offers запрещена. Rates, deeplink, shortlist, comparison,
 booking и payment не активированы.
+
+Stage 13.1 выполнил один prerequisite search и один details request без auth,
+redirect или retry. Оба вернули `200 application/json`; строковый `hotelId` из
+search response принят `GET /api/v1/hotels/{hotelId}`. Обезличенный fixture
+подтвердил `payload` с location, images, facilities, rules, payment methods и
+certification data. Одно наблюдение не доказывает universal requiredness,
+официальную S2S-поддержку или error semantics. Поэтому Stage 13.2 должен
+оставаться provider-neutral и устойчивым к отсутствующим optional fields, не
+перенося contacts/certification в public model автоматически.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 
