@@ -504,6 +504,7 @@
 191. `docs/reviews/stage-12-5-refinement-runtime-flow.md`
 192. `docs/reviews/stage-12-6-platform-neutral-response-alignment.md`
 193. `docs/reviews/stage-12-7-no-results-refinement.md`
+194. `docs/reviews/stage-12-8-iterative-refinement-mvp-verification.md`
 
 ## Historical / superseded документы
 

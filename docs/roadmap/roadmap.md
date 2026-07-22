@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 12 активирован; Stage 12.4 добавил deterministic Hotels API filter mapping без runtime refinement |
-| Последний завершенный этап | Stage 12.4 — Hotels API filter mapping |
-| Следующий планируемый шаг | Stage 12.6 — platform-neutral response alignment |
+| Текущий этап | Stage 12 завершён в границах демонстрационного hotel-only MVP с итеративным уточнением |
+| Последний завершенный этап | Stage 12.8 — iterative refinement MVP verification |
+| Следующий планируемый шаг | Не назначен; требуется отдельное roadmap-aligned решение |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -62,7 +62,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
-| Stage 12 | Активирован | Stage 12.5 подключил session-bound refinement, повторное confirmation и новый provider search после явного подтверждения. |
+| Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
 
 ## 2. Правила управления roadmap
 
@@ -693,13 +693,13 @@ shell и завершает их совместно. Контролируемы�
 confirmation до поиска, отсутствие карточек до «Да», получение 20 REAL offers
 и отображение первых 5. Raw provider/LLM data и secrets не публиковались.
 
-**Следующий шаг:** Stage 12.0 пересогласовал функциональный MVP вокруг
-итеративного уточнения hotel search. Deployment, product clients и production
-hardening по-прежнему требуют отдельных roadmap-решений.
+Stage 12 завершил функциональный MVP итеративного уточнения hotel search.
+Deployment, product clients и production hardening по-прежнему требуют
+отдельных roadmap-решений; следующий этап не активирован.
 
 ### Stage 12 — Итеративное уточнение hotel search
 
-**Статус:** активирован; Stage 12.7 завершен, следующий шаг — Stage 12.8.
+**Статус:** завершен Stage 12.8; production readiness не заявлена.
 
 **Цель:** позволить пользователю получить первичные предложения, уточнить
 необязательные предпочтения в чате, подтвердить полный обновленный набор
@@ -718,7 +718,7 @@ hardening по-прежнему требуют отдельных roadmap-реш
 | Stage 12.5 | Refinement runtime flow | Завершен; typed patch сохраняется в session context, полный confirmation предшествует одному новому provider search |
 | Stage 12.6 | Platform-neutral response alignment | Завершен; offers response содержит только активные preferences и подтверждённые nullable stars/cancellation facts |
 | Stage 12.7 | No-results refinement | Завершен; один provider-neutral совет без автоматического изменения preferences или нового поиска |
-| Stage 12.8 | MVP verification | Следующий; regression и один отдельно разрешенный REAL smoke |
+| Stage 12.8 | MVP verification | Завершен; regression, safe empty/failure outcomes и один отдельно разрешенный REAL smoke пройдены |
 
 Принятые продуктовые правила Stage 12.0:
 
@@ -768,8 +768,13 @@ endpoint необязательные `starRating`, `freeCancellationUntil` и
 `minimumGuestRating` → `stars` → `freeCancellationRequired` → `maxTotalPrice`.
 Backend и demo shell не применяют совет автоматически: пользовательская
 реплика проходит прежний confirmation flow и только затем может создать новый
-поиск. `search-filters-availability` не подключён. Следующим разрешен Stage
-12.8.
+поиск. `search-filters-availability` не подключён. Stage 12.8 подтвердил
+regression-сценариями и одним REAL browser smoke, что initial search и
+refinement выполняются только после отдельных подтверждений, refinement
+создаёт новый `hotelSearchId`, предыдущий поиск остаётся доступен, а пустой
+успешный результат и provider failure не смешиваются. Пул из 20 предложений
+сохраняется на backend, demo shell показывает первые 5. Stage 12 завершён;
+следующий этап не активирован.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

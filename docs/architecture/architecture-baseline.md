@@ -4,7 +4,7 @@
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальную архитектурную основу Travel Assistant после завершения Stage 0–11 и пересогласования функционального MVP в Stage 12.0. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Этот документ фиксирует актуальную архитектурную основу Travel Assistant после завершения Stage 0–12. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
 
 Он нужен как компактная точка входа в текущее архитектурное состояние: какие границы подтверждены, где находится conceptual architecture baseline и какие Stage 5 artifacts являются исходными источниками.
 
@@ -14,9 +14,8 @@
 
 ## 2. Текущий статус архитектуры
 
-- Stage 0–11 завершены; Stage 12.0 пересогласовал следующий hotel-only
-  функциональный срез, а подробные статусы находятся в
-  `docs/roadmap/roadmap.md`.
+- Stage 0–12 завершены; следующий этап не активирован, а подробные статусы
+  находятся в `docs/roadmap/roadmap.md`.
 - Backend использует Kotlin + Ktor и сохраняет разделение domain, application, infrastructure и API слоев.
 - `LlmClient` и `HotelOfferProviderBoundary` реализованы как application-owned асинхронные границы.
 - OpenRouter и публичный Hotels API имеют opt-in adapters и отдельные `HttpClient`; оба режима по умолчанию остаются `FAKE`.
@@ -40,10 +39,11 @@
 - Stage 11.0 добавил только локальный launcher/runbook и подтвердил полный REAL
   demo flow. Backend layers, public API, provider boundaries и runtime defaults
   при этом не изменились.
-- Stage 12.0 закрепил итеративное уточнение как направление application
-  orchestration: provider-neutral preferences накапливаются в session context,
-  каждое изменение provider request требует нового подтверждения, а применение
-  hard filters должно выполнять новый provider search.
+- Stage 12 реализовал итеративное уточнение в application orchestration:
+  provider-neutral preferences накапливаются в session context, каждое
+  изменение provider request требует нового подтверждения, hard filters
+  передаются одним новым provider search, а пустая выдача не запускает
+  автоматическое ослабление или retry.
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 

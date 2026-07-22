@@ -348,6 +348,145 @@ class AssistantHotelRefinementIntegrationTest {
         )
     }
 
+    @Test
+    fun completedEmptyRefinementReturnsOneSuggestionWithoutAutomaticRetry() =
+        testApplication {
+            val constraintsStore = InMemoryAssistantHotelConstraintsStore()
+            val requestedPaths = mutableListOf<String>()
+            val hotelsHttpClient = queuedHotelsHttpClient(
+                requestedPaths = requestedPaths,
+                searchResponses = listOf(
+                    HttpStatusCode.OK to fixture("search-success.json"),
+                    HttpStatusCode.OK to emptySearchResponse(),
+                ),
+            )
+            val llmClient = queuedCandidateClient(
+                requests = mutableListOf(),
+                responses = listOf(
+                    candidate(constraints = completeConstraints()),
+                    candidate(
+                        preferencePatch = LlmHotelSearchPreferencesPatch(
+                            minimumGuestRating = 9,
+                        ),
+                    ),
+                ),
+            )
+
+            application {
+                moduleWithAssistantLlm(
+                    llmClient = llmClient,
+                    providerConfig = realProviderConfig(),
+                    realHotelHttpClientFactory = { hotelsHttpClient },
+                    hotelConstraintsStore = constraintsStore,
+                    clock = clock,
+                )
+            }
+
+            val sessionId = createSession()
+            sendMessage(sessionId, "Найди отель в Казани")
+            val firstSearchId = confirmedSearchId(sessionId)
+
+            val refinement = sendMessage(sessionId, "Рейтинг не ниже 9")
+            assertEquals("ask_clarification", refinement.nextAction())
+            assertFalse(refinement.containsKey("hotelSearchId"))
+
+            val emptyResult = sendMessage(sessionId, "Да")
+            val secondSearchId = emptyResult["hotelSearchId"]?.jsonPrimitive?.content.orEmpty()
+            assertEquals("show_hotel_results", emptyResult.nextAction())
+            assertTrue(secondSearchId.isNotBlank())
+            assertNotEquals(firstSearchId, secondSearchId)
+
+            val offers = offersBody(secondSearchId)
+            val suggestion = offers.getValue("refinementSuggestion").jsonObject
+            assertEquals("completed_no_offers", offers.getValue("status").jsonPrimitive.content)
+            assertTrue(offers.getValue("offers").jsonArray.isEmpty())
+            assertEquals(
+                9,
+                offers.getValue("appliedPreferences")
+                    .jsonObject
+                    .getValue("minimumGuestRating")
+                    .jsonPrimitive
+                    .content
+                    .toInt(),
+            )
+            assertEquals("relax_preference", suggestion.getValue("type").jsonPrimitive.content)
+            assertEquals(
+                "minimumGuestRating",
+                suggestion.getValue("preference").jsonPrimitive.content,
+            )
+            assertEquals(HttpStatusCode.OK, offersStatus(firstSearchId))
+            assertEquals(
+                listOf(
+                    "/search-api/search/autocomplete",
+                    "/api/v1/hotels/search",
+                    "/search-api/search/autocomplete",
+                    "/api/v1/hotels/search",
+                ),
+                requestedPaths,
+            )
+        }
+
+    @Test
+    fun providerFailureAfterRefinementKeepsPreviousSearchAndCreatesNoNewId() =
+        testApplication {
+            val constraintsStore = InMemoryAssistantHotelConstraintsStore()
+            val requestedPaths = mutableListOf<String>()
+            val hotelsHttpClient = queuedHotelsHttpClient(
+                requestedPaths = requestedPaths,
+                searchResponses = listOf(
+                    HttpStatusCode.OK to fixture("search-success.json"),
+                    HttpStatusCode.ServiceUnavailable to providerUnavailableResponse(),
+                ),
+            )
+            val llmClient = queuedCandidateClient(
+                requests = mutableListOf(),
+                responses = listOf(
+                    candidate(constraints = completeConstraints()),
+                    candidate(
+                        preferencePatch = LlmHotelSearchPreferencesPatch(
+                            freeCancellationRequired = true,
+                        ),
+                    ),
+                ),
+            )
+
+            application {
+                moduleWithAssistantLlm(
+                    llmClient = llmClient,
+                    providerConfig = realProviderConfig(),
+                    realHotelHttpClientFactory = { hotelsHttpClient },
+                    hotelConstraintsStore = constraintsStore,
+                    clock = clock,
+                )
+            }
+
+            val sessionId = createSession()
+            sendMessage(sessionId, "Найди отель в Казани")
+            val firstSearchId = confirmedSearchId(sessionId)
+            sendMessage(sessionId, "Только с бесплатной отменой")
+
+            val failure = sendMessage(sessionId, "Да")
+
+            assertEquals("ask_clarification", failure.nextAction())
+            assertFalse(failure.containsKey("hotelSearchId"))
+            assertEquals(HttpStatusCode.OK, offersStatus(firstSearchId))
+            assertEquals(HttpStatusCode.NotFound, offersStatus("hotel-search-local-000002"))
+            assertTrue(
+                constraintsStore.findBySession(AssistantSessionId(sessionId))
+                    ?.preferences
+                    ?.freeCancellationRequired == true,
+            )
+            assertEquals(
+                listOf(
+                    "/search-api/search/autocomplete",
+                    "/api/v1/hotels/search",
+                    "/search-api/search/autocomplete",
+                    "/api/v1/hotels/search",
+                ),
+                requestedPaths,
+            )
+        }
+
     private fun queuedCandidateClient(
         requests: MutableList<LlmCandidateRequest>,
         responses: List<LlmCandidate>,
@@ -414,6 +553,60 @@ class AssistantHotelRefinementIntegrationTest {
               }
             ],
             "hotels": []
+          }
+        }
+        """.trimIndent()
+
+    private fun queuedHotelsHttpClient(
+        requestedPaths: MutableList<String>,
+        searchResponses: List<Pair<HttpStatusCode, String>>,
+    ): HttpClient {
+        val responses = ArrayDeque(searchResponses)
+
+        return HttpClient(
+            MockEngine { request ->
+                val path = request.url.encodedPath
+                requestedPaths += path
+                val response = when (path) {
+                    "/search-api/search/autocomplete" ->
+                        HttpStatusCode.OK to autocompleteResponse()
+
+                    "/api/v1/hotels/search" -> responses.removeFirst()
+                    else -> error("Unexpected Hotels API path: $path")
+                }
+                respond(
+                    content = response.second,
+                    status = response.first,
+                    headers = headersOf(
+                        HttpHeaders.ContentType,
+                        ContentType.Application.Json.toString(),
+                    ),
+                )
+            },
+        ) {
+            install(HttpTimeout)
+        }
+    }
+
+    private fun emptySearchResponse(): String =
+        """
+        {
+          "payload": {
+            "filteredHotelsCount": 0,
+            "hotels": [],
+            "hotelsTotalCount": 0,
+            "isLoadingCompleted": true,
+            "nextOffset": null
+          }
+        }
+        """.trimIndent()
+
+    private fun providerUnavailableResponse(): String =
+        """
+        {
+          "error": {
+            "code": "temporarily_unavailable",
+            "details": {}
           }
         }
         """.trimIndent()
