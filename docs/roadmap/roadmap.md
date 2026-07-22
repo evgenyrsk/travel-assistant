@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 12 активирован; Stage 12.1b выявил runtime-запрет provider sorting |
-| Последний завершенный этап | Stage 12.1b — controlled filter request verification |
-| Следующий планируемый шаг | Stage 12.1c — один filtered search без `sort`; Stage 12.2 остается заблокирован до проверки |
+| Текущий этап | Stage 12 активирован; Stage 12.1c подтвердил четыре filter payload без `sort` |
+| Последний завершенный этап | Stage 12.1c — filtered search without sort verification |
+| Следующий планируемый шаг | Stage 12.2 — provider-neutral preference model для четырех filters без пользовательского `sort` |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -62,7 +62,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
-| Stage 12 | Активирован | Stage 12.1b подтвердил filter shapes через availability endpoint, но runtime search запретил `sort`; следующий шаг — filtered search без `sort`. |
+| Stage 12 | Активирован | Stage 12.1c подтвердил четыре filter payload одним успешным search без `sort`; Stage 12.2 разблокирован. |
 
 ## 2. Правила управления roadmap
 
@@ -699,7 +699,7 @@ hardening по-прежнему требуют отдельных roadmap-реш
 
 ### Stage 12 — Итеративное уточнение hotel search
 
-**Статус:** активирован; Stage 12.1b завершен, следующий шаг — Stage 12.1c.
+**Статус:** активирован; Stage 12.1c завершен, следующий шаг — Stage 12.2.
 
 **Цель:** позволить пользователю получить первичные предложения, уточнить
 необязательные предпочтения в чате, подтвердить полный обновленный набор
@@ -711,8 +711,8 @@ hardening по-прежнему требуют отдельных roadmap-реш
 | Stage 12.1 | Filter contract verification | Завершен с contract drift: catalog вернул `review_rating` как `radio` со значениями `9..5`, а не как ожидаемый `range`; availability и filtered search не вызывались |
 | Stage 12.1a | Reconciliation семантики минимального гостевого рейтинга | Завершен; разрешены только дискретные пороги `5`, `6`, `7`, `8`, `9`, без округления |
 | Stage 12.1b | Controlled filter request verification | Завершен; availability endpoint принял четыре filter shape и вернул пустой payload, filtered search отклонил `sort` с `sorting_is_not_allowed_yet`; пользовательские sort preferences отложены |
-| Stage 12.1c | Filtered search verification without sort | Следующий; один отдельно разрешенный filtered search с теми же четырьмя filters без `sort`, без retries |
-| Stage 12.2 | Provider-neutral preference model | Заблокирован до успешного завершения Stage 12.1c |
+| Stage 12.1c | Filtered search verification without sort | Завершен; один запрос без `sort` вернул `200` и 20 предложений, соответствующих price/stars/rating/cancellation facts |
+| Stage 12.2 | Provider-neutral preference model | Следующий; четыре подтвержденных filters, без пользовательского `sort` |
 | Stage 12.3 | LLM extraction для уточнений | Запланирован после Stage 12.2 |
 | Stage 12.4 | Hotels API filter mapping | Запланирован после Stage 12.3 и подтверждения wire values |
 | Stage 12.5 | Refinement runtime flow | Запланирован после Stage 12.4 |
@@ -743,11 +743,12 @@ hardening по-прежнему требуют отдельных roadmap-реш
   объяснение доступных или ослабляемых фильтров.
 
 Stage 12.1b выполнил два отдельно разрешенных вызова без retries. Availability
-endpoint принял четыре filter shape, но вернул пустой payload. Filtered search
-вернул `400 sorting_is_not_allowed_yet`, поэтому пользовательские sort
-preferences перенесены из текущего MVP и локальная имитация provider-wide
-sorting запрещена. Один Stage 12.1c filtered-search вызов без `sort` требует
-отдельного явного разрешения; Stage 12.2 до него не активируется.
+endpoint принял четыре filter shape, но вернул пустой payload, а filtered search
+запретил `sort`. Stage 12.1c затем выполнил один запрос без `sort` и получил
+`200` с 20 предложениями, фактически соответствующими price, stars,
+review-rating и free-cancellation условиям. Пользовательские sort preferences и
+filter availability остаются отложенными; Stage 12.2 разблокирован для четырех
+provider-neutral preferences.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

@@ -1,0 +1,109 @@
+{
+  "payload": {
+    "filteredHotelsCount": 38,
+    "filters": {
+      "price": {
+        "min": 11800,
+        "max": 214600,
+        "unit": "RUB"
+      }
+    },
+    "hotels": [
+      {
+        "hotelId": "hotel-filtered-fixture-1",
+        "hotelName": "Тестовый отель 1",
+        "hotelChain": "Тестовая сеть 1",
+        "starRating": 4,
+        "areaLocation": {
+          "countryName": "Тестовая страна",
+          "destinationId": 1001,
+          "destinationName": "Тестовый город",
+          "signature": "Тестовый город, Тестовая страна",
+          "type": {
+            "code": "city",
+            "name": "Город"
+          }
+        },
+        "hotelLocation": {
+          "address": "Тестовая улица, 1",
+          "coordinates": {
+            "latitude": 55.01,
+            "longitude": 49.01
+          }
+        },
+        "images": [
+          "https://images.example.test/hotel-1/image-1.jpg",
+          "https://images.example.test/hotel-1/image-2.jpg"
+        ],
+        "categoryCode": "hotel",
+        "rateForHotelsFeed": {
+          "availableRoomsCount": 100,
+          "freeCancellationUntil": "2026-08-08T21:00:00+00:00",
+          "isCreditCardDataRequired": false,
+          "mealName": "Питание не включено",
+          "mealType": "nomeal",
+          "paymentPlace": "now",
+          "shownPrice": {
+            "amount": 28350,
+            "currency": "RUB"
+          }
+        },
+        "review": {
+          "rating": 9,
+          "ratingsCount": 1044
+        }
+      },
+      {
+        "hotelId": "hotel-filtered-fixture-2",
+        "hotelName": "Тестовый отель 2",
+        "hotelChain": "Тестовая сеть 2",
+        "starRating": 4,
+        "areaLocation": {
+          "countryName": "Тестовая страна",
+          "destinationId": 1001,
+          "destinationName": "Тестовый город",
+          "signature": "Тестовый город, Тестовая страна",
+          "type": {
+            "code": "city",
+            "name": "Город"
+          }
+        },
+        "hotelLocation": {
+          "address": "Тестовая улица, 2",
+          "coordinates": {
+            "latitude": 55.02,
+            "longitude": 49.02
+          }
+        },
+        "images": [
+          "https://images.example.test/hotel-2/image-1.jpg",
+          "https://images.example.test/hotel-2/image-2.jpg"
+        ],
+        "categoryCode": "hotel",
+        "rateForHotelsFeed": {
+          "availableRoomsCount": 268,
+          "freeCancellationUntil": "2026-08-08T21:00:00+00:00",
+          "isCreditCardDataRequired": false,
+          "mealName": "Питание не включено",
+          "mealType": "nomeal",
+          "paymentPlace": "now",
+          "shownPrice": {
+            "amount": 19760,
+            "currency": "RUB"
+          }
+        },
+        "review": {
+          "rating": 8.8,
+          "ratingsCount": 1357
+        }
+      }
+    ],
+    "hotelsMinPrice": {
+      "amount": 17200,
+      "currency": "RUB"
+    },
+    "hotelsTotalCount": 128,
+    "isLoadingCompleted": false,
+    "nextOffset": 20
+  }
+}

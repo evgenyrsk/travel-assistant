@@ -1,0 +1,81 @@
+{
+  "observedAt": "2026-07-22",
+  "sanitized": true,
+  "automaticRetries": false,
+  "alternatePayloadsSent": false,
+  "requestContract": {
+    "destinationIdReplaced": true,
+    "checkinDate": "2026-08-10",
+    "checkoutDate": "2026-08-14",
+    "guests": [
+      {
+        "adultsCount": 2,
+        "childrenAge": []
+      }
+    ],
+    "offset": 0,
+    "limit": 20,
+    "filters": [
+      {
+        "$objectType": "range",
+        "filterId": "price",
+        "min": 0,
+        "max": 80000
+      },
+      {
+        "$objectType": "array",
+        "filterId": "stars",
+        "values": ["4", "5"]
+      },
+      {
+        "$objectType": "radio",
+        "filterId": "review_rating",
+        "value": "8"
+      },
+      {
+        "$objectType": "boolean",
+        "filterId": "free_cancellation_allowed",
+        "value": true
+      }
+    ]
+  },
+  "call": {
+    "method": "POST",
+    "path": "/api/v1/hotels/search",
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "redirected": false,
+    "attemptCount": 1
+  },
+  "observation": {
+    "originalHotelsCount": 20,
+    "sanitizedHotelsCount": 2,
+    "currencies": ["RUB"],
+    "starRatings": [4, 5],
+    "maximumShownPrice": 69843,
+    "minimumKnownGuestRating": 8.2,
+    "missingReviewCount": 0,
+    "missingFreeCancellationUntilCount": 0
+  },
+  "fixture": {
+    "file": "filtered-search-success.json",
+    "sha256": "79d0b4bc839008bbcab79b2bb70fd91f852baf054f43a27728e24dc516341751"
+  },
+  "redactions": [
+    "destination identifier",
+    "hotel identifiers",
+    "hotel and chain names",
+    "location names and signatures",
+    "addresses",
+    "coordinates",
+    "image URLs",
+    "response headers"
+  ],
+  "excluded": [
+    "authorization",
+    "cookies",
+    "session metadata",
+    "device metadata",
+    "tracing metadata"
+  ]
+}
