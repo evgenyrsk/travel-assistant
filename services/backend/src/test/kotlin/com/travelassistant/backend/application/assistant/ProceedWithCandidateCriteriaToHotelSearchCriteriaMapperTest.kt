@@ -1,6 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -72,6 +73,19 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
     }
 
     @Test
+    fun preservesProviderNeutralPreferencesWithoutProviderMapping() {
+        val preferences = HotelSearchPreferences(
+            stars = setOf(4, 5),
+            minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+            freeCancellationRequired = true,
+        )
+
+        val result = mapper(completeCriteria(preferences = preferences))
+
+        assertEquals(preferences, result.preferences)
+    }
+
+    @Test
     fun remainsDeterministicForSameCriteria() {
         val criteria = completeCriteria()
 
@@ -110,6 +124,7 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
             childrenAges = listOf(7),
         ),
         rooms: Int = 1,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): ProceedWithCandidateCriteria =
         ProceedWithCandidateCriteria(
             destination = destination,
@@ -117,5 +132,6 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
             checkOutDate = checkOutDate,
             guests = guests,
             rooms = rooms,
+            preferences = preferences,
         )
 }

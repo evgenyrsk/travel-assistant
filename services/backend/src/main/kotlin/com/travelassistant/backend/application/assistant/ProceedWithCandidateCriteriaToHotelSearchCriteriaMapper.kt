@@ -14,5 +14,6 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapper {
                 childrenAges = criteria.guests.childrenAges,
             ),
             rooms = criteria.rooms,
+            preferences = criteria.preferences,
         )
 }

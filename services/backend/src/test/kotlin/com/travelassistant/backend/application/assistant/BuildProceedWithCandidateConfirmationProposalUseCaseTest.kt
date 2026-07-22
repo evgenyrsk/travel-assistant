@@ -1,5 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -88,6 +90,45 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
     }
 
     @Test
+    fun includesOnlyActivePreferencesInDeterministicOrder() {
+        val proposal = useCase(
+            acceptedCriteria(
+                preferences = HotelSearchPreferences(
+                    maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
+                        amount = BigDecimal("80000.00"),
+                        currency = "RUB",
+                    ),
+                    stars = setOf(5, 4),
+                    minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+                    freeCancellationRequired = true,
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                ProceedWithCandidateConfirmationField(
+                    "max-total-price",
+                    "максимальная стоимость за весь период",
+                    "80000 RUB",
+                ),
+                ProceedWithCandidateConfirmationField("stars", "звёзды", "4, 5"),
+                ProceedWithCandidateConfirmationField(
+                    "min-guest-rating",
+                    "минимальный гостевой рейтинг",
+                    "8",
+                ),
+                ProceedWithCandidateConfirmationField(
+                    "free-cancellation",
+                    "бесплатная отмена",
+                    "обязательна",
+                ),
+            ),
+            proposal.displayFields.takeLast(4),
+        )
+    }
+
+    @Test
     fun omitsBlankDestinationFromDisplayFields() {
         val proposal = useCase(acceptedCriteria(destination = "   "))
 
@@ -133,6 +174,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
             adults = 2,
             childrenAges = listOf(7),
         ),
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): ProceedWithCandidateValidationResult.Accepted =
         ProceedWithCandidateValidationResult.Accepted(
             ProceedWithCandidateCriteria(
@@ -141,6 +183,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                 checkOutDate = LocalDate.parse("2026-07-04"),
                 guests = guests,
                 rooms = 1,
+                preferences = preferences,
             ),
         )
 }

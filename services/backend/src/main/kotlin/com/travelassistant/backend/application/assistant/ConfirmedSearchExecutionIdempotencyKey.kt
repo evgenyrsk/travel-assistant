@@ -24,6 +24,12 @@ value class ConfirmedSearchExecutionIdempotencyKey(val value: String) {
                 criteria.guests.children.toString(),
                 criteria.guests.childrenAges.sorted().joinToString(separator = ","),
                 criteria.rooms?.toString().orEmpty(),
+                criteria.preferences.maxTotalPrice?.let { price ->
+                    "${price.amount.stripTrailingZeros().toPlainString()}:${price.currency}"
+                }.orEmpty(),
+                criteria.preferences.stars.sorted().joinToString(separator = ","),
+                criteria.preferences.minimumGuestRating?.value?.toString().orEmpty(),
+                criteria.preferences.freeCancellationRequired.toString(),
             ).joinToString(separator = "|")
 
             return ConfirmedSearchExecutionIdempotencyKey(

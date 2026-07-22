@@ -65,5 +65,41 @@ class BuildProceedWithCandidateConfirmationProposalUseCase {
                 label = "номера",
                 value = rooms.toString(),
             ))
+            preferences.maxTotalPrice?.let { price ->
+                add(
+                    ProceedWithCandidateConfirmationField(
+                        key = "max-total-price",
+                        label = "максимальная стоимость за весь период",
+                        value = "${price.amount.stripTrailingZeros().toPlainString()} ${price.currency}",
+                    ),
+                )
+            }
+            preferences.stars.takeIf(Set<Int>::isNotEmpty)?.let { stars ->
+                add(
+                    ProceedWithCandidateConfirmationField(
+                        key = "stars",
+                        label = "звёзды",
+                        value = stars.sorted().joinToString(separator = ", "),
+                    ),
+                )
+            }
+            preferences.minimumGuestRating?.let { rating ->
+                add(
+                    ProceedWithCandidateConfirmationField(
+                        key = "min-guest-rating",
+                        label = "минимальный гостевой рейтинг",
+                        value = rating.value.toString(),
+                    ),
+                )
+            }
+            if (preferences.freeCancellationRequired) {
+                add(
+                    ProceedWithCandidateConfirmationField(
+                        key = "free-cancellation",
+                        label = "бесплатная отмена",
+                        value = "обязательна",
+                    ),
+                )
+            }
         }
 }

@@ -1,5 +1,6 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import java.time.LocalDate
 
 data class AssistantHotelConstraints(
@@ -10,6 +11,7 @@ data class AssistantHotelConstraints(
     val childrenCount: Int? = null,
     val childrenAges: List<Int>? = null,
     val rooms: Int? = null,
+    val preferences: HotelSearchPreferences = HotelSearchPreferences(),
     val unresolvedFields: Set<AssistantHotelConstraintField> = emptySet(),
 ) {
     fun toConfirmedConstraints(): Map<String, String> =

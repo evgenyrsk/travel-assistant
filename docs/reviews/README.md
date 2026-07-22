@@ -498,6 +498,7 @@
 185. `docs/reviews/stage-12-1a-discrete-guest-rating-filter-policy.md`
 186. `docs/reviews/stage-12-1b-controlled-filter-request-verification.md`
 187. `docs/reviews/stage-12-1c-filtered-search-without-sort-verification.md`
+188. `docs/reviews/stage-12-2-provider-neutral-preference-model.md`
 
 ## Historical / superseded документы
 
