@@ -37,6 +37,7 @@ internal object LlmProviderFactory {
                 httpClient = httpClient,
                 config = config,
                 diagnosticObserver = diagnosticObserver,
+                candidateContract = OpenRouterCandidateContract.HOTEL_SEARCH_REFINEMENT,
             ),
             candidateRetryPolicy = LlmCandidateRetryPolicy.SINGLE_RETRY,
             closeAction = httpClient::close,

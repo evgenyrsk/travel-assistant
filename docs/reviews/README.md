@@ -501,6 +501,7 @@
 188. `docs/reviews/stage-12-2-provider-neutral-preference-model.md`
 189. `docs/reviews/stage-12-3-llm-preference-patch-extraction.md`
 190. `docs/reviews/stage-12-4-hotels-api-filter-mapping.md`
+191. `docs/reviews/stage-12-5-refinement-runtime-flow.md`
 
 ## Historical / superseded документы
 

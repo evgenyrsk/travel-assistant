@@ -10,7 +10,7 @@ Roadmap не является трекером задач, продуктово�
 |---|---|
 | Текущий этап | Stage 12 активирован; Stage 12.4 добавил deterministic Hotels API filter mapping без runtime refinement |
 | Последний завершенный этап | Stage 12.4 — Hotels API filter mapping |
-| Следующий планируемый шаг | Stage 12.5 — refinement runtime flow с повторным confirmation |
+| Следующий планируемый шаг | Stage 12.6 — platform-neutral response alignment |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -62,7 +62,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
-| Stage 12 | Активирован | Stage 12.4 добавил детерминированное преобразование четырех preferences в Hotels API filters и сохранил runtime activation для Stage 12.5. |
+| Stage 12 | Активирован | Stage 12.5 подключил session-bound refinement, повторное confirmation и новый provider search после явного подтверждения. |
 
 ## 2. Правила управления roadmap
 
@@ -699,7 +699,7 @@ hardening по-прежнему требуют отдельных roadmap-реш
 
 ### Stage 12 — Итеративное уточнение hotel search
 
-**Статус:** активирован; Stage 12.4 завершен, следующий шаг — Stage 12.5.
+**Статус:** активирован; Stage 12.5 завершен, следующий шаг — Stage 12.6.
 
 **Цель:** позволить пользователю получить первичные предложения, уточнить
 необязательные предпочтения в чате, подтвердить полный обновленный набор
@@ -715,8 +715,8 @@ hardening по-прежнему требуют отдельных roadmap-реш
 | Stage 12.2 | Provider-neutral preference model | Завершен; четыре preferences, атомарный session patch, confirmation и idempotency support без provider/runtime wiring |
 | Stage 12.3 | LLM extraction для уточнений | Завершен; typed `SET`/`CLEAR`, строгая refinement schema и fail-closed core runtime без provider execution |
 | Stage 12.4 | Hotels API filter mapping | Завершен; четыре preferences детерминированно преобразуются в проверенные filters, offer facts дополнены stars/cancellation без runtime refinement |
-| Stage 12.5 | Refinement runtime flow | Следующий; повторное confirmation и новый provider search после явного подтверждения |
-| Stage 12.6 | Platform-neutral response alignment | Запланирован после стабильного backend behavior |
+| Stage 12.5 | Refinement runtime flow | Завершен; typed patch сохраняется в session context, полный confirmation предшествует одному новому provider search |
+| Stage 12.6 | Platform-neutral response alignment | Следующий; необязательные offer facts и applied preferences без новых endpoint-ов |
 | Stage 12.7 | No-results refinement | Запланирован без автоматического подключения filter availability |
 | Stage 12.8 | MVP verification | Запланирован как regression и один отдельно разрешенный REAL smoke |
 
@@ -753,11 +753,13 @@ filter availability остаются отложенными. Это разбло
 confirmation/idempotency без LLM extraction, provider mapping или runtime
 search. Stage 12.3 добавил отдельный strict structured-output профиль для
 typed preference patch и его чистое преобразование в `KEEP`/`SET`/`CLEAR`.
-Production `LlmProviderFactory` сохраняет core-профиль: refinement schema,
-session mutation и provider execution в runtime не активированы. Stage 12.4
-добавил точные provider filter DTO/mapping, сохранил один request с `offset=0`,
-`limit=20`, не добавил `sort` и сохранил подтвержденные `starRating` и
-`freeCancellationUntil` как внутренние facts. Следующим разрешен Stage 12.5.
+Stage 12.4 добавил точные provider filter DTO/mapping, сохранил один request с
+`offset=0`, `limit=20`, не добавил `sort` и сохранил подтвержденные
+`starRating` и `freeCancellationUntil` как внутренние facts. Stage 12.5 затем
+активировал strict refinement-профиль OpenRouter, session-bound применение
+typed patch и полный повторный confirmation. До ответа «Да» provider не
+вызывается; успешное уточнение выполняет один новый поиск, а предыдущий
+`hotelSearchId` остается доступным. Следующим разрешен Stage 12.6.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

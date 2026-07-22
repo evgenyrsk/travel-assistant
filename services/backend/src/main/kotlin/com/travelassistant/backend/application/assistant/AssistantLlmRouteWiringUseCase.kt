@@ -26,6 +26,10 @@ class AssistantLlmRouteWiringUseCase(
 ) : AssistantSessionBoundary {
     private val accumulateHotelConstraints =
         AccumulateAssistantHotelConstraintsUseCase(hotelConstraintsStore)
+    private val mapHotelSearchPreferencesPatch =
+        MapLlmHotelSearchPreferencesPatchUseCase()
+    private val applyHotelSearchPreferencesPatch =
+        ApplyHotelSearchPreferencesPatchUseCase(hotelConstraintsStore)
 
     override fun createSession(): AssistantSession =
         assistantSessionBoundary.createSession()
@@ -67,25 +71,41 @@ class AssistantLlmRouteWiringUseCase(
 
     private suspend fun AcceptedAssistantMessage.withLlmDecision(
         command: AcceptAssistantMessageCommand,
-    ): AcceptedAssistantMessage =
-        when (val decision = planAssistantLlmDecisionUseCase(requestFor(command))) {
+    ): AcceptedAssistantMessage {
+        return when (val decision = planAssistantLlmDecisionUseCase(requestFor(command))) {
             is AssistantCandidateDecision.AskClarification -> {
-                decision.candidate
-                    ?.takeIf { candidate -> candidate.isSafeForContextAccumulation() }
-                    ?.let { candidate -> accumulateConstraints(sessionId, candidate) }
+                val candidate = decision.candidate
+                if (
+                    candidate != null &&
+                    candidate.isSafeForContextAccumulation() &&
+                    updateSearchContext(sessionId, candidate) == null
+                ) {
+                    return withClarification(PREFERENCES_CLARIFICATION_MESSAGE)
+                }
                 withClarification(decision.question)
             }
 
             is AssistantCandidateDecision.Fallback ->
                 withSafeBoundaryMessage()
 
-            is AssistantCandidateDecision.ProceedWithCandidate ->
+            is AssistantCandidateDecision.ProceedWithCandidate -> {
+                if (!decision.candidate.isSafeForContextAccumulation()) {
+                    return withConfirmationPlan(
+                        planProceedWithCandidateConfirmationUseCase(decision),
+                    )
+                }
+
+                val contextUpdate = updateSearchContext(sessionId, decision.candidate)
+                    ?: return withClarification(PREFERENCES_CLARIFICATION_MESSAGE)
                 withConfirmationPlan(
                     planProceedWithCandidateConfirmationUseCase(
-                        decision.withAccumulatedConstraints(sessionId),
+                        decision.withUpdatedConstraints(contextUpdate),
+                        contextUpdate.constraints.preferences,
                     ),
                 )
+            }
         }
+    }
 
     private fun requestFor(command: AcceptAssistantMessageCommand): LlmCandidateRequest {
         val constraints = hotelConstraintsStore.findBySession(command.sessionId)
@@ -98,14 +118,9 @@ class AssistantLlmRouteWiringUseCase(
         )
     }
 
-    private fun AssistantCandidateDecision.ProceedWithCandidate.withAccumulatedConstraints(
-        sessionId: AssistantSessionId,
+    private fun AssistantCandidateDecision.ProceedWithCandidate.withUpdatedConstraints(
+        accumulation: AssistantHotelConstraintsAccumulationResult,
     ): AssistantCandidateDecision.ProceedWithCandidate {
-        if (!candidate.isSafeForContextAccumulation()) {
-            return this
-        }
-
-        val accumulation = accumulateConstraints(sessionId, candidate)
         val missingFields = (
             accumulation.constraints.missingRequiredFields() +
                 accumulation.issues.map { issue -> issue.field.key }
@@ -113,7 +128,7 @@ class AssistantLlmRouteWiringUseCase(
 
         return AssistantCandidateDecision.ProceedWithCandidate(
             candidate.copy(
-                extractedConstraints = accumulation.constraints.toConfirmedConstraints(),
+                extractedConstraints = accumulation.constraints.toCoreConstraints(),
                 missingRequiredFields = missingFields,
                 clarificationQuestion = when {
                     AssistantHotelConstraintField.CHILDREN.key in missingFields ->
@@ -125,6 +140,34 @@ class AssistantLlmRouteWiringUseCase(
                     else -> candidate.clarificationQuestion
                 },
             ),
+        )
+    }
+
+    private fun updateSearchContext(
+        sessionId: AssistantSessionId,
+        candidate: LlmCandidate,
+    ): AssistantHotelConstraintsAccumulationResult? {
+        val accumulation = accumulateConstraints(sessionId, candidate)
+        val mappedPatch = when (
+            val mappingResult = mapHotelSearchPreferencesPatch(candidate.preferencePatch)
+        ) {
+            is MapLlmHotelSearchPreferencesPatchResult.Mapped -> mappingResult.patch
+            is MapLlmHotelSearchPreferencesPatchResult.Rejected -> return null
+        }
+        when (
+            applyHotelSearchPreferencesPatch(
+                ApplyHotelSearchPreferencesPatchCommand(
+                    sessionId = sessionId,
+                    patch = mappedPatch,
+                ),
+            )
+        ) {
+            is ApplyHotelSearchPreferencesPatchResult.Applied -> Unit
+            is ApplyHotelSearchPreferencesPatchResult.Rejected -> return null
+        }
+
+        return accumulation.copy(
+            constraints = checkNotNull(hotelConstraintsStore.findBySession(sessionId)),
         )
     }
 
@@ -295,5 +338,9 @@ class AssistantLlmRouteWiringUseCase(
 
         const val CHILDREN_AGES_CLARIFICATION_MESSAGE =
             "Укажите возраст каждого ребёнка (от 0 до 17 лет)."
+
+        const val PREFERENCES_CLARIFICATION_MESSAGE =
+            "Уточните предпочтения: максимальную стоимость за весь период, звёзды, " +
+                "минимальный рейтинг или требование бесплатной отмены."
     }
 }

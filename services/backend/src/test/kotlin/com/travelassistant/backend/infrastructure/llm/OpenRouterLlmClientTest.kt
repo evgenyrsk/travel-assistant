@@ -210,6 +210,7 @@ class OpenRouterLlmClientTest {
         val systemPrompt = messages.first().jsonObject.getValue("content").jsonPrimitive.content
         assertTrue(systemPrompt.contains("Preferences are optional"))
         assertTrue(systemPrompt.contains("must not be rounded"))
+        assertTrue(systemPrompt.contains("keep every preference"))
         assertTrue(systemPrompt.contains("Do not extract sorting preferences"))
 
         val schema = body.getValue("response_format").jsonObject

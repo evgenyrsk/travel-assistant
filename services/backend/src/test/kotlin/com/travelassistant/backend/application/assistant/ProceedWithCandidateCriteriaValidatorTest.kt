@@ -1,6 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,6 +24,19 @@ class ProceedWithCandidateCriteriaValidatorTest {
         assertEquals(1, accepted.criteria.guests.children)
         assertEquals(listOf(7), accepted.criteria.guests.childrenAges)
         assertEquals(1, accepted.criteria.rooms)
+    }
+
+    @Test
+    fun carriesApplicationOwnedPreferencesIntoAcceptedCriteria() {
+        val preferences = HotelSearchPreferences(
+            stars = setOf(4, 5),
+            minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+        )
+
+        val result = validator(proceedWithCandidate(), preferences)
+
+        val accepted = assertIs<ProceedWithCandidateValidationResult.Accepted>(result)
+        assertEquals(preferences, accepted.criteria.preferences)
     }
 
     @Test

@@ -21,6 +21,8 @@ internal object OpenRouterHotelSearchPreferencesContract {
             "NEEDS_CLARIFICATION and must not be rounded. Use free-cancellation=true only for an " +
             "explicit requirement. Use clear for an explicitly removed preference, including " +
             "phrases such as remove the rating restriction. Never set and clear the same field. " +
+            "Existing preferences can be present in confirmedConstraints under the same canonical " +
+            "keys; keep every preference that the user did not explicitly change or clear. " +
             "Preferences are optional and must never appear in missingRequiredFields. " +
             "Do not extract sorting preferences."
 

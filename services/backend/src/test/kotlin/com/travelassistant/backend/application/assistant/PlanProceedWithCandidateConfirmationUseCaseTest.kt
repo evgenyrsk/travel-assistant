@@ -1,6 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -27,6 +28,27 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
         assertEquals(
             "Проверить отели по этим параметрам?",
             confirmation.proposal.confirmationQuestion,
+        )
+    }
+
+    @Test
+    fun includesCurrentPreferencesInCriteriaAndConfirmation() {
+        val preferences = HotelSearchPreferences(
+            stars = setOf(4, 5),
+            minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+            freeCancellationRequired = true,
+        )
+
+        val plan = useCase(proceedWithCandidate(), preferences)
+
+        val confirmation = assertIs<ProceedWithCandidateConfirmationPlan.ConfirmationRequired>(plan)
+        assertEquals(preferences, confirmation.criteria.preferences)
+        assertEquals(
+            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
+                "выезд: 2026-07-04; взрослые: 2; дети: 1; возраст детей: 7; " +
+                "номера: 1; звёзды: 4, 5; минимальный гостевой рейтинг: 8; " +
+                "бесплатная отмена: обязательна.",
+            confirmation.proposal.summary,
         )
     }
 

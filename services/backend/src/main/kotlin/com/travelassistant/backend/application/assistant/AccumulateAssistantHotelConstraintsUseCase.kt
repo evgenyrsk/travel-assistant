@@ -173,6 +173,7 @@ class AccumulateAssistantHotelConstraintsUseCase(
             childrenCount = childrenCount,
             childrenAges = childrenAges,
             rooms = rooms,
+            preferences = current.preferences,
             unresolvedFields = unresolved,
         )
 

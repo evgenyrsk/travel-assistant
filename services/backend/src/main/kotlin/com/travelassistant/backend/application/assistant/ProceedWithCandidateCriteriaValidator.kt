@@ -1,12 +1,14 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import java.time.LocalDate
 
 class ProceedWithCandidateCriteriaValidator {
 
     operator fun invoke(
         decision: AssistantCandidateDecision.ProceedWithCandidate,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): ProceedWithCandidateValidationResult {
         val candidate = decision.candidate
         val issues = linkedSetOf<ProceedWithCandidateValidationIssue>()
@@ -101,6 +103,7 @@ class ProceedWithCandidateCriteriaValidator {
                     childrenAges = checkNotNull(childrenAges),
                 ),
                 rooms = checkNotNull(rooms),
+                preferences = preferences,
             ),
         )
     }

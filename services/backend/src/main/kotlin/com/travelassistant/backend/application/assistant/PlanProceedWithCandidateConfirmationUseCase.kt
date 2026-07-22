@@ -1,8 +1,11 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+
 class PlanProceedWithCandidateConfirmationUseCase private constructor(
     private val validateCriteria: (
         AssistantCandidateDecision.ProceedWithCandidate,
+        HotelSearchPreferences,
     ) -> ProceedWithCandidateValidationResult,
     private val buildProposal: (
         ProceedWithCandidateValidationResult.Accepted,
@@ -15,14 +18,17 @@ class PlanProceedWithCandidateConfirmationUseCase private constructor(
         proposalBuilder: BuildProceedWithCandidateConfirmationProposalUseCase =
             BuildProceedWithCandidateConfirmationProposalUseCase(),
     ) : this(
-        validateCriteria = criteriaValidator::invoke,
+        validateCriteria = { decision, preferences ->
+            criteriaValidator(decision, preferences)
+        },
         buildProposal = proposalBuilder::invoke,
     )
 
     operator fun invoke(
         decision: AssistantCandidateDecision.ProceedWithCandidate,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): ProceedWithCandidateConfirmationPlan =
-        when (val validationResult = validateCriteria(decision)) {
+        when (val validationResult = validateCriteria(decision, preferences)) {
             is ProceedWithCandidateValidationResult.Accepted ->
                 ProceedWithCandidateConfirmationPlan.ConfirmationRequired(
                     criteria = validationResult.criteria,

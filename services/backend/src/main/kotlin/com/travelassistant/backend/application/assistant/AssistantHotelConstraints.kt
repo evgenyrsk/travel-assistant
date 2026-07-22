@@ -16,6 +16,26 @@ data class AssistantHotelConstraints(
 ) {
     fun toConfirmedConstraints(): Map<String, String> =
         buildMap {
+            putAll(toCoreConstraints())
+            preferences.maxTotalPrice?.let { price ->
+                put(
+                    MAX_TOTAL_PRICE_KEY,
+                    "${price.amount.stripTrailingZeros().toPlainString()} ${price.currency}",
+                )
+            }
+            preferences.stars.takeIf(Set<Int>::isNotEmpty)?.let { stars ->
+                put(STARS_KEY, stars.sorted().joinToString(","))
+            }
+            preferences.minimumGuestRating?.let { rating ->
+                put(MINIMUM_GUEST_RATING_KEY, rating.value.toString())
+            }
+            if (preferences.freeCancellationRequired) {
+                put(FREE_CANCELLATION_KEY, "true")
+            }
+        }
+
+    fun toCoreConstraints(): Map<String, String> =
+        buildMap {
             destination
                 ?.takeIf { AssistantHotelConstraintField.DESTINATION !in unresolvedFields }
                 ?.let { put(AssistantHotelConstraintField.DESTINATION.key, it) }
@@ -70,6 +90,13 @@ data class AssistantHotelConstraints(
         return AssistantHotelConstraintField.entries
             .filter(missingFields::contains)
             .map(AssistantHotelConstraintField::key)
+    }
+
+    private companion object {
+        const val MAX_TOTAL_PRICE_KEY = "max-total-price"
+        const val STARS_KEY = "stars"
+        const val MINIMUM_GUEST_RATING_KEY = "min-guest-rating"
+        const val FREE_CANCELLATION_KEY = "free-cancellation"
     }
 }
 

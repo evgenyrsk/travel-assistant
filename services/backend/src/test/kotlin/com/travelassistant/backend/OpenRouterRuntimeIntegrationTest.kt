@@ -108,6 +108,15 @@ class OpenRouterRuntimeIntegrationTest {
             assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
             assertTrue(assistantMessage.contains(CONFIRMATION_QUESTION))
             assertFalse(body.containsKey("hotelSearchId"))
+
+            val requestBody = capturedRequest?.body as io.ktor.http.content.TextContent
+            val schema = Json.parseToJsonElement(requestBody.text).jsonObject
+                .getValue("response_format").jsonObject
+                .getValue("json_schema").jsonObject
+                .getValue("schema").jsonObject
+            assertTrue(
+                "preferencePatch" in schema.getValue("properties").jsonObject,
+            )
         }
 
     @Test
@@ -360,6 +369,13 @@ class OpenRouterRuntimeIntegrationTest {
                         put(key, value)
                     }
                 }
+            }
+            putJsonObject("preferencePatch") {
+                put("max-total-price", null as String?)
+                put("stars", null as String?)
+                put("min-guest-rating", null as String?)
+                put("free-cancellation", null as String?)
+                putJsonArray("clear") {}
             }
             put("missingRequiredFields", buildJsonArray {
                 missingRequiredFields.forEach(::add)

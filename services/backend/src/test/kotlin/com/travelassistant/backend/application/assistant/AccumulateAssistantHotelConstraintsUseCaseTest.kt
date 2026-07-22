@@ -1,6 +1,8 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -49,6 +51,44 @@ class AccumulateAssistantHotelConstraintsUseCaseTest {
         assertEquals(2, result.constraints.adults)
         assertEquals(1, result.constraints.rooms)
         assertEquals(emptySet(), result.issues)
+    }
+
+    @Test
+    fun preservesPreferencesWhileUpdatingCoreConstraints() {
+        val preferences = HotelSearchPreferences(
+            maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
+                amount = BigDecimal("80000"),
+                currency = "RUB",
+            ),
+            stars = linkedSetOf(4, 5),
+            minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+            freeCancellationRequired = true,
+        )
+        store.save(
+            sessionId,
+            AssistantHotelConstraints(
+                destination = "Rome",
+                preferences = preferences,
+            ),
+        )
+
+        val result = accumulate(command("destination" to "Paris"))
+
+        assertEquals(preferences, result.constraints.preferences)
+        assertEquals(
+            mapOf(
+                "destination" to "Paris",
+                "max-total-price" to "80000 RUB",
+                "stars" to "4,5",
+                "min-guest-rating" to "8",
+                "free-cancellation" to "true",
+            ),
+            result.constraints.toConfirmedConstraints(),
+        )
+        assertEquals(
+            mapOf("destination" to "Paris"),
+            result.constraints.toCoreConstraints(),
+        )
     }
 
     @Test
