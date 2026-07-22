@@ -499,6 +499,7 @@
 186. `docs/reviews/stage-12-1b-controlled-filter-request-verification.md`
 187. `docs/reviews/stage-12-1c-filtered-search-without-sort-verification.md`
 188. `docs/reviews/stage-12-2-provider-neutral-preference-model.md`
+189. `docs/reviews/stage-12-3-llm-preference-patch-extraction.md`
 
 ## Historical / superseded документы
 

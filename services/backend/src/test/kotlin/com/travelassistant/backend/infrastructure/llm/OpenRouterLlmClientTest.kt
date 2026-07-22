@@ -6,6 +6,7 @@ import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmCandidateValidationResult
 import com.travelassistant.backend.application.llm.LlmClientResponse
 import com.travelassistant.backend.application.llm.LlmClientRetryableFailureReason
+import com.travelassistant.backend.application.llm.LlmHotelSearchPreferencesPatch
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -24,6 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.buildJsonArray
@@ -33,6 +35,8 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -135,6 +139,7 @@ class OpenRouterLlmClientTest {
         val schema = jsonSchema.getValue("schema").jsonObject
         assertFalse(schema.getValue("additionalProperties").jsonPrimitive.boolean)
         val properties = schema.getValue("properties").jsonObject
+        assertFalse(properties.containsKey("preferencePatch"))
         val extractedConstraints = properties
             .getValue("extractedConstraints").jsonObject
         val constraintProperties = extractedConstraints.getValue("properties").jsonObject
@@ -162,6 +167,135 @@ class OpenRouterLlmClientTest {
                 .getValue("description").jsonPrimitive.content.contains("in Russian"),
         )
 
+        httpClient.close()
+    }
+
+    @Test
+    fun `refinement contract posts strict preference schema and maps typed patch`() = runBlocking {
+        var capturedRequest: HttpRequestData? = null
+        val httpClient = mockClient { request ->
+            capturedRequest = request
+            successfulResponse(refinementCandidateContent())
+        }
+
+        val response = assertIs<LlmClientResponse.Candidate>(
+            client(
+                httpClient = httpClient,
+                candidateContract = OpenRouterCandidateContract.HOTEL_SEARCH_REFINEMENT,
+            ).generateCandidate(
+                refinementRequest(
+                    "До 80 тысяч, только 4–5 звёзд и с бесплатной отменой; убери рейтинг",
+                ),
+            ),
+        )
+
+        assertEquals(
+            LlmHotelSearchPreferencesPatch(
+                maxTotalPrice = LlmHotelSearchPreferencesPatch.MaxTotalPrice(
+                    amount = "80000",
+                    currency = null,
+                ),
+                stars = linkedSetOf(4, 5),
+                freeCancellationRequired = true,
+                clear = setOf(
+                    LlmHotelSearchPreferencesPatch.Field.MINIMUM_GUEST_RATING,
+                ),
+            ),
+            response.value.preferencePatch,
+        )
+
+        val requestBody = assertIs<TextContent>(capturedRequest?.body).text
+        val body = Json.parseToJsonElement(requestBody).jsonObject
+        val messages = body.getValue("messages").jsonArray
+        val systemPrompt = messages.first().jsonObject.getValue("content").jsonPrimitive.content
+        assertTrue(systemPrompt.contains("Preferences are optional"))
+        assertTrue(systemPrompt.contains("must not be rounded"))
+        assertTrue(systemPrompt.contains("Do not extract sorting preferences"))
+
+        val schema = body.getValue("response_format").jsonObject
+            .getValue("json_schema").jsonObject
+            .getValue("schema").jsonObject
+        val properties = schema.getValue("properties").jsonObject
+        val required = schema.getValue("required").jsonArray
+            .map { value -> value.jsonPrimitive.content }
+        assertTrue("preferencePatch" in required)
+
+        val preferencePatch = properties.getValue("preferencePatch").jsonObject
+        assertFalse(preferencePatch.getValue("additionalProperties").jsonPrimitive.boolean)
+        assertEquals(
+            setOf(
+                "max-total-price",
+                "stars",
+                "min-guest-rating",
+                "free-cancellation",
+                "clear",
+            ),
+            preferencePatch.getValue("properties").jsonObject.keys,
+        )
+        val preferenceProperties = preferencePatch.getValue("properties").jsonObject
+        assertEquals(
+            listOf("0", "1", "2", "3", "4", "5"),
+            preferenceProperties.getValue("stars").jsonObject
+                .getValue("items").jsonObject
+                .getValue("enum").jsonArray
+                .map { value -> value.toString() },
+        )
+        assertEquals(
+            listOf("5", "6", "7", "8", "9", "null"),
+            preferenceProperties.getValue("min-guest-rating").jsonObject
+                .getValue("enum").jsonArray
+                .map { value -> value.toString() },
+        )
+        assertEquals(
+            LlmHotelSearchPreferencesPatch.Field.entries.map { field -> "\"${field.wireName}\"" },
+            preferenceProperties.getValue("clear").jsonObject
+                .getValue("items").jsonObject
+                .getValue("enum").jsonArray
+                .map { value -> value.toString() },
+        )
+        httpClient.close()
+    }
+
+    @Test
+    fun `core runtime contract rejects unexpected preference patch`() = runBlocking {
+        val httpClient = mockClient {
+            successfulResponse(refinementCandidateContent())
+        }
+
+        assertEquals(
+            retryableFailure(LlmClientRetryableFailureReason.INVALID_CANDIDATE),
+            client(httpClient).generateCandidate(safeRequest()),
+        )
+        httpClient.close()
+    }
+
+    @Test
+    fun `unsupported rating remains clarification and is not a required field`() = runBlocking {
+        val httpClient = mockClient {
+            successfulResponse(
+                candidateContent(
+                    preferencePatch = emptyPreferencePatch(),
+                    clarificationQuestion = "Укажите минимальный рейтинг: 5, 6, 7, 8 или 9.",
+                ),
+            )
+        }
+
+        val result = GenerateLlmCandidateUseCase(
+            client(
+                httpClient = httpClient,
+                candidateContract = OpenRouterCandidateContract.HOTEL_SEARCH_REFINEMENT,
+            ),
+        )(
+            refinementRequest("Рейтинг не ниже 8.5"),
+        )
+        val accepted = assertIs<LlmCandidateValidationResult.Accepted>(result)
+
+        assertTrue(accepted.candidate.preferencePatch.isEmpty)
+        assertFalse("min-guest-rating" in accepted.candidate.missingRequiredFields)
+        assertEquals(
+            "Укажите минимальный рейтинг: 5, 6, 7, 8 или 9.",
+            accepted.candidate.clarificationQuestion,
+        )
         httpClient.close()
     }
 
@@ -475,6 +609,8 @@ class OpenRouterLlmClientTest {
         apiKey: String = "synthetic-api-key",
         timeoutMillis: Long = 5_000,
         diagnosticObserver: OpenRouterDiagnosticObserver = OpenRouterDiagnosticObserver.NONE,
+        candidateContract: OpenRouterCandidateContract =
+            OpenRouterCandidateContract.CORE_HOTEL_SEARCH,
     ): OpenRouterLlmClient =
         OpenRouterLlmClient(
             httpClient = httpClient,
@@ -485,6 +621,7 @@ class OpenRouterLlmClientTest {
                 timeoutMillis = timeoutMillis,
             ),
             diagnosticObserver = diagnosticObserver,
+            candidateContract = candidateContract,
         )
 
     private fun safeRequest(): LlmCandidateRequest =
@@ -492,6 +629,19 @@ class OpenRouterLlmClientTest {
             userMessage = "Найди отель в Казани",
             confirmedConstraints = mapOf("destination" to "Казань"),
             missingRequiredFields = listOf("check-in", "check-out", "adults", "rooms"),
+        )
+
+    private fun refinementRequest(userMessage: String): LlmCandidateRequest =
+        LlmCandidateRequest(
+            userMessage = userMessage,
+            confirmedConstraints = mapOf(
+                "destination" to "Казань",
+                "check-in" to "2026-08-10",
+                "check-out" to "2026-08-14",
+                "adults" to "2",
+                "children" to "0",
+                "rooms" to "1",
+            ),
         )
 
     private fun mockClient(
@@ -542,6 +692,8 @@ class OpenRouterLlmClientTest {
     private fun candidateContent(
         outcome: String = "NEEDS_CLARIFICATION",
         childrenAges: String? = null,
+        preferencePatch: JsonObject? = null,
+        clarificationQuestion: String = "Укажите даты и количество номеров.",
     ): String =
         buildJsonObject {
             put("outcome", outcome)
@@ -562,6 +714,7 @@ class OpenRouterLlmClientTest {
                     put("rooms", JsonNull)
                 },
             )
+            preferencePatch?.let { patch -> put("preferencePatch", patch) }
             put(
                 "missingRequiredFields",
                 buildJsonArray {
@@ -571,11 +724,14 @@ class OpenRouterLlmClientTest {
                 },
             )
             put("conflicts", buildJsonArray {})
-            put("clarificationQuestion", "Укажите даты и количество номеров.")
+            put("clarificationQuestion", clarificationQuestion)
             put("warnings", buildJsonArray {})
         }.toString()
 
-    private fun completeCandidateContent(childrenAges: String?): String =
+    private fun completeCandidateContent(
+        childrenAges: String?,
+        preferencePatch: JsonObject? = null,
+    ): String =
         buildJsonObject {
             put("outcome", "INTERPRETED")
             put("intent", "HOTEL_SEARCH")
@@ -595,11 +751,41 @@ class OpenRouterLlmClientTest {
                     put("rooms", "1")
                 },
             )
+            preferencePatch?.let { patch -> put("preferencePatch", patch) }
             put("missingRequiredFields", buildJsonArray {})
             put("conflicts", buildJsonArray {})
             put("clarificationQuestion", JsonNull)
             put("warnings", buildJsonArray {})
         }.toString()
+
+    private fun refinementCandidateContent(): String =
+        completeCandidateContent(
+            childrenAges = null,
+            preferencePatch = buildJsonObject {
+                putJsonObject("max-total-price") {
+                    put("amount", "80000")
+                    put("currency", JsonNull)
+                }
+                putJsonArray("stars") {
+                    add(4)
+                    add(5)
+                }
+                put("min-guest-rating", JsonNull)
+                put("free-cancellation", true)
+                putJsonArray("clear") {
+                    add("min-guest-rating")
+                }
+            },
+        )
+
+    private fun emptyPreferencePatch(): JsonObject =
+        buildJsonObject {
+            put("max-total-price", JsonNull)
+            put("stars", JsonNull)
+            put("min-guest-rating", JsonNull)
+            put("free-cancellation", JsonNull)
+            put("clear", buildJsonArray {})
+        }
 
     private data class DiagnosticCase(
         val responseBody: String,

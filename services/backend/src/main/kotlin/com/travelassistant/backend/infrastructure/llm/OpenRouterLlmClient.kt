@@ -5,6 +5,7 @@ import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmClient
 import com.travelassistant.backend.application.llm.LlmClientResponse
 import com.travelassistant.backend.application.llm.LlmClientRetryableFailureReason
+import com.travelassistant.backend.application.llm.LlmHotelSearchPreferencesPatch
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -38,6 +39,8 @@ internal class OpenRouterLlmClient(
     private val httpClient: HttpClient,
     private val config: OpenRouterConfig,
     private val diagnosticObserver: OpenRouterDiagnosticObserver = OpenRouterDiagnosticObserver.NONE,
+    private val candidateContract: OpenRouterCandidateContract =
+        OpenRouterCandidateContract.CORE_HOTEL_SEARCH,
 ) : LlmClient {
 
     override suspend fun generateCandidate(request: LlmCandidateRequest): LlmClientResponse =
@@ -95,12 +98,21 @@ internal class OpenRouterLlmClient(
         val content = choice.message?.content?.takeIf(String::isNotBlank)
             ?: return empty(OpenRouterDiagnosticEvent.EMPTY_CONTENT)
         val candidate = try {
+            val candidateElement = OpenRouterJson.candidateCodec.parseToJsonElement(content)
+            val candidateObject = candidateElement as? JsonObject
+                ?: return failure(OpenRouterDiagnosticEvent.INVALID_CANDIDATE)
+            if (
+                candidateContract == OpenRouterCandidateContract.CORE_HOTEL_SEARCH &&
+                candidateObject.containsKey("preferencePatch")
+            ) {
+                return failure(OpenRouterDiagnosticEvent.INVALID_CANDIDATE)
+            }
             OpenRouterJson.candidateCodec.decodeFromString<OpenRouterCandidateDto>(content)
         } catch (_: SerializationException) {
             return failure(OpenRouterDiagnosticEvent.INVALID_CANDIDATE)
         }
         val domainCandidate = candidate
-            .toDomainCandidate()
+            .toDomainCandidate(candidateContract)
             ?: return failure(OpenRouterDiagnosticEvent.INVALID_CANDIDATE)
 
         report(OpenRouterDiagnosticEvent.CANDIDATE_DECODED)
@@ -207,7 +219,7 @@ internal class OpenRouterLlmClient(
                     add(
                         buildJsonObject {
                             put("role", "system")
-                            put("content", SYSTEM_PROMPT)
+                            put("content", systemPrompt())
                         },
                     )
                     add(
@@ -282,6 +294,9 @@ internal class OpenRouterLlmClient(
                         ),
                     )
                     put("extractedConstraints", extractedConstraintsSchema())
+                    if (candidateContract == OpenRouterCandidateContract.HOTEL_SEARCH_REFINEMENT) {
+                        put("preferencePatch", OpenRouterHotelSearchPreferencesContract.schema())
+                    }
                     put(
                         "missingRequiredFields",
                         stringArraySchema(MISSING_REQUIRED_FIELDS_DESCRIPTION),
@@ -294,18 +309,19 @@ internal class OpenRouterLlmClient(
                     put("warnings", stringArraySchema(WARNINGS_DESCRIPTION))
                 },
             )
-            put(
-                "required",
-                stringArray(
-                    "outcome",
-                    "intent",
-                    "extractedConstraints",
-                    "missingRequiredFields",
-                    "conflicts",
-                    "clarificationQuestion",
-                    "warnings",
-                ),
+            val requiredProperties = mutableListOf(
+                "outcome",
+                "intent",
+                "extractedConstraints",
+                "missingRequiredFields",
+                "conflicts",
+                "clarificationQuestion",
+                "warnings",
             )
+            if (candidateContract == OpenRouterCandidateContract.HOTEL_SEARCH_REFINEMENT) {
+                requiredProperties += "preferencePatch"
+            }
+            put("required", stringArray(*requiredProperties.toTypedArray()))
             put("additionalProperties", false)
         }
 
@@ -365,6 +381,13 @@ internal class OpenRouterLlmClient(
             values.forEach(::add)
         }
 
+    private fun systemPrompt(): String =
+        when (candidateContract) {
+            OpenRouterCandidateContract.CORE_HOTEL_SEARCH -> CORE_SYSTEM_PROMPT
+            OpenRouterCandidateContract.HOTEL_SEARCH_REFINEMENT ->
+                "$CORE_SYSTEM_PROMPT ${OpenRouterHotelSearchPreferencesContract.promptAddition}"
+        }
+
     private companion object {
         const val CHAT_COMPLETIONS_PATH = "chat/completions"
         const val CANDIDATE_SCHEMA_NAME = "travel_assistant_hotel_candidate"
@@ -406,7 +429,7 @@ internal class OpenRouterLlmClient(
         const val WARNINGS_DESCRIPTION =
             "Blocking safety warnings; empty for a safe complete hotel request."
 
-        const val SYSTEM_PROMPT =
+        const val CORE_SYSTEM_PROMPT =
             "You extract hotel-only travel constraints for Travel Assistant. " +
                 "Return only JSON matching the required schema. " +
                 "Use confirmed constraints as context and never invent missing values. " +
@@ -419,6 +442,7 @@ internal class OpenRouterLlmClient(
                 "list only missing canonical keys, and ask one non-empty clarification question in Russian. " +
                 "Use only the canonical constraint keys supplied by the schema. " +
                 "For unsupported non-hotel requests, return UNSUPPORTED intent and outcome."
+
     }
 }
 
@@ -446,21 +470,32 @@ private data class OpenRouterCandidateDto(
     val outcome: String,
     val intent: String,
     val extractedConstraints: OpenRouterExtractedConstraintsDto,
+    val preferencePatch: OpenRouterHotelSearchPreferencesContract.Dto? = null,
     val missingRequiredFields: List<String>,
     val conflicts: List<String>,
     val clarificationQuestion: String?,
     val warnings: List<String>,
 ) {
-    fun toDomainCandidate(): LlmCandidate? {
+    fun toDomainCandidate(contract: OpenRouterCandidateContract): LlmCandidate? {
         val mappedOutcome = runCatching { LlmCandidate.Outcome.valueOf(outcome) }.getOrNull()
             ?: return null
         val mappedIntent = runCatching { LlmCandidate.Intent.valueOf(intent) }.getOrNull()
             ?: return null
+        val mappedPreferencePatch = when (contract) {
+            OpenRouterCandidateContract.CORE_HOTEL_SEARCH -> {
+                if (preferencePatch != null) return null
+                LlmHotelSearchPreferencesPatch()
+            }
+
+            OpenRouterCandidateContract.HOTEL_SEARCH_REFINEMENT ->
+                preferencePatch?.toDomainPatch() ?: return null
+        }
 
         return LlmCandidate(
             outcome = mappedOutcome,
             intent = mappedIntent,
             extractedConstraints = extractedConstraints.toDomainMap(),
+            preferencePatch = mappedPreferencePatch,
             missingRequiredFields = missingRequiredFields,
             conflicts = conflicts,
             clarificationQuestion = clarificationQuestion,

@@ -24,7 +24,11 @@ class LlmCandidateValidator {
         }
 
     private fun validateCandidate(candidate: LlmCandidate): LlmCandidateValidationResult {
-        if (!hasValidContent(candidate) || !hasConsistentOutcome(candidate)) {
+        if (
+            !hasValidContent(candidate) ||
+            !hasValidPreferencePatch(candidate.preferencePatch) ||
+            !hasConsistentOutcome(candidate)
+        ) {
             return rejected(LlmCandidateValidationResult.Reason.INVALID_CANDIDATE)
         }
 
@@ -41,7 +45,40 @@ class LlmCandidateValidator {
             candidate.warnings,
         ).all { values -> values.none(String::isBlank) }
 
-        return constraintsAreValid && listsAreValid
+        val preferencesAreNotRequired = candidate.missingRequiredFields.none(
+            PREFERENCE_FIELD_NAMES::contains,
+        )
+
+        return constraintsAreValid && listsAreValid && preferencesAreNotRequired
+    }
+
+    private fun hasValidPreferencePatch(patch: LlmHotelSearchPreferencesPatch): Boolean {
+        val priceIsValid = patch.maxTotalPrice?.let { price ->
+            val amount = price.amount.trim().toBigDecimalOrNull()
+            val currency = price.currency?.trim()
+            amount != null && amount.signum() > 0 &&
+                (price.currency == null || !currency.isNullOrEmpty()) &&
+                (currency == null || currency.equals(SUPPORTED_CURRENCY, ignoreCase = true))
+        } ?: true
+        val starsAreValid = patch.stars?.let { stars ->
+            stars.isNotEmpty() && stars.all { star -> star in MIN_STARS..MAX_STARS }
+        } ?: true
+        val ratingIsValid = patch.minimumGuestRating?.let(SUPPORTED_GUEST_RATINGS::contains) ?: true
+        val cancellationIsValid = patch.freeCancellationRequired != false
+        val setFields = buildSet {
+            if (patch.maxTotalPrice != null) add(LlmHotelSearchPreferencesPatch.Field.MAX_TOTAL_PRICE)
+            if (patch.stars != null) add(LlmHotelSearchPreferencesPatch.Field.STARS)
+            if (patch.minimumGuestRating != null) {
+                add(LlmHotelSearchPreferencesPatch.Field.MINIMUM_GUEST_RATING)
+            }
+            if (patch.freeCancellationRequired != null) {
+                add(LlmHotelSearchPreferencesPatch.Field.FREE_CANCELLATION)
+            }
+        }
+        val operationsDoNotConflict = setFields.none(patch.clear::contains)
+
+        return priceIsValid && starsAreValid && ratingIsValid && cancellationIsValid &&
+            operationsDoNotConflict
     }
 
     private fun hasConsistentOutcome(candidate: LlmCandidate): Boolean =
@@ -63,6 +100,7 @@ class LlmCandidateValidator {
             LlmCandidate.Outcome.UNSUPPORTED ->
                 candidate.intent == LlmCandidate.Intent.UNSUPPORTED &&
                     candidate.extractedConstraints.isEmpty() &&
+                    candidate.preferencePatch.isEmpty &&
                     candidate.missingRequiredFields.isEmpty() &&
                     candidate.conflicts.isEmpty() &&
                     candidate.clarificationQuestion.isNullOrBlank()
@@ -72,4 +110,13 @@ class LlmCandidateValidator {
         reason: LlmCandidateValidationResult.Reason,
     ): LlmCandidateValidationResult =
         LlmCandidateValidationResult.Rejected(reason)
+
+    private companion object {
+        const val SUPPORTED_CURRENCY = "RUB"
+        const val MIN_STARS = 0
+        const val MAX_STARS = 5
+        val SUPPORTED_GUEST_RATINGS = 5..9
+        val PREFERENCE_FIELD_NAMES = LlmHotelSearchPreferencesPatch.Field.entries
+            .mapTo(mutableSetOf()) { field -> field.wireName }
+    }
 }

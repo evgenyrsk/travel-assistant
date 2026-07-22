@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 12 активирован; Stage 12.2 добавил provider-neutral preferences и атомарный session patch |
-| Последний завершенный этап | Stage 12.2 — provider-neutral preference model |
-| Следующий планируемый шаг | Stage 12.3 — LLM extraction typed preference patch без provider/runtime execution |
+| Текущий этап | Stage 12 активирован; Stage 12.3 добавил typed LLM preference patch с fail-closed runtime boundary |
+| Последний завершенный этап | Stage 12.3 — LLM preference patch extraction |
+| Следующий планируемый шаг | Stage 12.4 — deterministic Hotels API filter mapping без runtime refinement |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -62,7 +62,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
-| Stage 12 | Активирован | Stage 12.2 добавил четыре provider-neutral preferences, атомарные `KEEP`/`SET`/`CLEAR`, confirmation и idempotency support; Stage 12.3 разблокирован. |
+| Stage 12 | Активирован | Stage 12.3 добавил typed LLM `SET`/`CLEAR` extraction в отдельном refinement-профиле; Stage 12.4 разблокирован, runtime activation отложена. |
 
 ## 2. Правила управления roadmap
 
@@ -699,7 +699,7 @@ hardening по-прежнему требуют отдельных roadmap-реш
 
 ### Stage 12 — Итеративное уточнение hotel search
 
-**Статус:** активирован; Stage 12.2 завершен, следующий шаг — Stage 12.3.
+**Статус:** активирован; Stage 12.3 завершен, следующий шаг — Stage 12.4.
 
 **Цель:** позволить пользователю получить первичные предложения, уточнить
 необязательные предпочтения в чате, подтвердить полный обновленный набор
@@ -713,8 +713,8 @@ hardening по-прежнему требуют отдельных roadmap-реш
 | Stage 12.1b | Controlled filter request verification | Завершен; availability endpoint принял четыре filter shape и вернул пустой payload, filtered search отклонил `sort` с `sorting_is_not_allowed_yet`; пользовательские sort preferences отложены |
 | Stage 12.1c | Filtered search verification without sort | Завершен; один запрос без `sort` вернул `200` и 20 предложений, соответствующих price/stars/rating/cancellation facts |
 | Stage 12.2 | Provider-neutral preference model | Завершен; четыре preferences, атомарный session patch, confirmation и idempotency support без provider/runtime wiring |
-| Stage 12.3 | LLM extraction для уточнений | Следующий; typed `SET`/`CLEAR` без provider execution |
-| Stage 12.4 | Hotels API filter mapping | Запланирован после Stage 12.3 и подтверждения wire values |
+| Stage 12.3 | LLM extraction для уточнений | Завершен; typed `SET`/`CLEAR`, строгая refinement schema и fail-closed core runtime без provider execution |
+| Stage 12.4 | Hotels API filter mapping | Следующий; deterministic mapping четырех preferences без runtime refinement |
 | Stage 12.5 | Refinement runtime flow | Запланирован после Stage 12.4 |
 | Stage 12.6 | Platform-neutral response alignment | Запланирован после стабильного backend behavior |
 | Stage 12.7 | No-results refinement | Запланирован без автоматического подключения filter availability |
@@ -751,7 +751,11 @@ filter availability остаются отложенными. Это разбло
 который добавил внутреннюю модель четырех provider-neutral preferences,
 атомарные операции `KEEP`/`SET`/`CLEAR`, session-bound накопление и учет в
 confirmation/idempotency без LLM extraction, provider mapping или runtime
-search. Следующим разрешен Stage 12.3.
+search. Stage 12.3 добавил отдельный strict structured-output профиль для
+typed preference patch и его чистое преобразование в `KEEP`/`SET`/`CLEAR`.
+Production `LlmProviderFactory` сохраняет core-профиль: refinement schema,
+session mutation и provider execution в runtime не активированы. Следующим
+разрешен Stage 12.4.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 
