@@ -495,6 +495,7 @@
 182. `docs/reviews/stage-11-0-local-real-mvp-demo-readiness.md`
 183. `docs/reviews/stage-12-0-iterative-hotel-search-refinement-reconciliation.md`
 184. `docs/reviews/stage-12-1-hotels-api-filter-contract-verification.md`
+185. `docs/reviews/stage-12-1a-discrete-guest-rating-filter-policy.md`
 
 ## Historical / superseded документы
 

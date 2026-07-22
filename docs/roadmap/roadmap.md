@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 12 активирован; Stage 12.1 завершен с обнаруженным contract drift |
-| Последний завершенный этап | Stage 12.1 — filter contract verification (`review_rating` имеет тип `radio`, а не ожидаемый `range`) |
-| Следующий планируемый шаг | Stage 12.1a — reconciliation семантики минимального гостевого рейтинга; Stage 12.2 заблокирован |
+| Текущий этап | Stage 12 активирован; Stage 12.1a закрыл семантику минимального гостевого рейтинга |
+| Последний завершенный этап | Stage 12.1a — discrete guest rating filter policy |
+| Следующий планируемый шаг | Stage 12.1b — controlled filter request verification; Stage 12.2 остается заблокирован до успешной проверки |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -62,7 +62,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
-| Stage 12 | Активирован | Stage 12.1 подтвердил три filter shape и обнаружил drift для `review_rating`; реализация preferences заблокирована до Stage 12.1a. |
+| Stage 12 | Активирован | Stage 12.1a принял дискретные пороги рейтинга `5..9`; фактический request mapping должен быть проверен в Stage 12.1b. |
 
 ## 2. Правила управления roadmap
 
@@ -699,8 +699,7 @@ hardening по-прежнему требуют отдельных roadmap-реш
 
 ### Stage 12 — Итеративное уточнение hotel search
 
-**Статус:** активирован; Stage 12.1 завершен с contract drift, следующий шаг —
-Stage 12.1a.
+**Статус:** активирован; Stage 12.1a завершен, следующий шаг — Stage 12.1b.
 
 **Цель:** позволить пользователю получить первичные предложения, уточнить
 необязательные предпочтения в чате, подтвердить полный обновленный набор
@@ -710,8 +709,9 @@ Stage 12.1a.
 |---|---|---|
 | Stage 12.0 | MVP и roadmap reconciliation | Завершен; итеративное уточнение принято как текущий функциональный MVP, shortlist/details/comparison перенесены в расширение |
 | Stage 12.1 | Filter contract verification | Завершен с contract drift: catalog вернул `review_rating` как `radio` со значениями `9..5`, а не как ожидаемый `range`; availability и filtered search не вызывались |
-| Stage 12.1a | Reconciliation семантики минимального гостевого рейтинга | Следующий; review/design-only решение до новых live-вызовов и mapping implementation |
-| Stage 12.2 | Provider-neutral preference model | Заблокирован до завершения Stage 12.1a |
+| Stage 12.1a | Reconciliation семантики минимального гостевого рейтинга | Завершен; разрешены только дискретные пороги `5`, `6`, `7`, `8`, `9`, без округления |
+| Stage 12.1b | Controlled filter request verification | Следующий; проверить `radio.value`, остальные три filter payload и sort максимум одним availability и одним filtered-search вызовом после отдельного разрешения |
+| Stage 12.2 | Provider-neutral preference model | Заблокирован до успешного завершения Stage 12.1b |
 | Stage 12.3 | LLM extraction для уточнений | Запланирован после Stage 12.2 |
 | Stage 12.4 | Hotels API filter mapping | Запланирован после Stage 12.3 и подтверждения wire values |
 | Stage 12.5 | Refinement runtime flow | Запланирован после Stage 12.4 |
@@ -743,8 +743,9 @@ Stage 12.1a.
 
 Разрешенный Stage 12.1 catalog-вызов выполнен один раз без retries и вернул
 `200`. После обнаружения contract drift оставшиеся availability и filtered
-search вызовы остановлены. Новые live-вызовы требуют отдельного решения после
-Stage 12.1a; результаты могут сохраняться только как обезличенные fixtures.
+search вызовы остановлены. Stage 12.1a закрыл продуктовую политику, но не подтвердил
+request wire shape. Два Stage 12.1b live-вызова требуют отдельного явного
+разрешения; результаты могут сохраняться только как обезличенные fixtures.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 
