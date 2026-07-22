@@ -502,6 +502,7 @@
 189. `docs/reviews/stage-12-3-llm-preference-patch-extraction.md`
 190. `docs/reviews/stage-12-4-hotels-api-filter-mapping.md`
 191. `docs/reviews/stage-12-5-refinement-runtime-flow.md`
+192. `docs/reviews/stage-12-6-platform-neutral-response-alignment.md`
 
 ## Historical / superseded документы
 

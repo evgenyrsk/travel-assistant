@@ -699,7 +699,7 @@ hardening по-прежнему требуют отдельных roadmap-реш
 
 ### Stage 12 — Итеративное уточнение hotel search
 
-**Статус:** активирован; Stage 12.5 завершен, следующий шаг — Stage 12.6.
+**Статус:** активирован; Stage 12.6 завершен, следующий шаг — Stage 12.7.
 
 **Цель:** позволить пользователю получить первичные предложения, уточнить
 необязательные предпочтения в чате, подтвердить полный обновленный набор
@@ -716,8 +716,8 @@ hardening по-прежнему требуют отдельных roadmap-реш
 | Stage 12.3 | LLM extraction для уточнений | Завершен; typed `SET`/`CLEAR`, строгая refinement schema и fail-closed core runtime без provider execution |
 | Stage 12.4 | Hotels API filter mapping | Завершен; четыре preferences детерминированно преобразуются в проверенные filters, offer facts дополнены stars/cancellation без runtime refinement |
 | Stage 12.5 | Refinement runtime flow | Завершен; typed patch сохраняется в session context, полный confirmation предшествует одному новому provider search |
-| Stage 12.6 | Platform-neutral response alignment | Следующий; необязательные offer facts и applied preferences без новых endpoint-ов |
-| Stage 12.7 | No-results refinement | Запланирован без автоматического подключения filter availability |
+| Stage 12.6 | Platform-neutral response alignment | Завершен; offers response содержит только активные preferences и подтверждённые nullable stars/cancellation facts |
+| Stage 12.7 | No-results refinement | Следующий; без автоматического подключения filter availability |
 | Stage 12.8 | MVP verification | Запланирован как regression и один отдельно разрешенный REAL smoke |
 
 Принятые продуктовые правила Stage 12.0:
@@ -759,7 +759,11 @@ Stage 12.4 добавил точные provider filter DTO/mapping, сохран
 активировал strict refinement-профиль OpenRouter, session-bound применение
 typed patch и полный повторный confirmation. До ответа «Да» provider не
 вызывается; успешное уточнение выполняет один новый поиск, а предыдущий
-`hotelSearchId` остается доступным. Следующим разрешен Stage 12.6.
+`hotelSearchId` остается доступным. Stage 12.6 добавил в прежний offers
+endpoint необязательные `starRating`, `freeCancellationUntil` и
+`appliedPreferences`, согласовал OpenAPI/conformance и показ этих данных в
+локальной demo shell. Неизвестные факты отсутствуют в JSON, provider DTO не
+раскрываются. Следующим разрешен Stage 12.7.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

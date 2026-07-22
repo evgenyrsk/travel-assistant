@@ -5,6 +5,8 @@ export function toOfferViewModel(offer) {
     location: [offer.location?.city, offer.location?.country].filter(Boolean).join(", "),
     price: formatPrice(offer.price),
     rating: formatRating(offer.rating),
+    starRating: formatStarRating(offer.starRating),
+    freeCancellation: formatFreeCancellation(offer.freeCancellationUntil),
     availability: availabilityLabel(offer.availability),
     availabilityTone: offer.availability ?? "unknown",
     matchSummary: offer.matchSummary ?? "Причина ранжирования не указана.",
@@ -13,6 +15,10 @@ export function toOfferViewModel(offer) {
 
 export function renderOfferCardMarkup(offer) {
   const view = toOfferViewModel(offer);
+  const optionalFacts = [view.starRating, view.freeCancellation].filter(Boolean);
+  const optionalFactsMarkup = optionalFacts.length === 0
+    ? ""
+    : `<p class="offer-card__details">${optionalFacts.map(escapeHtml).join(" · ")}</p>`;
 
   return `
     <div class="offer-card__header">
@@ -28,8 +34,26 @@ export function renderOfferCardMarkup(offer) {
       <strong>${escapeHtml(view.price)}</strong>
       <span>${escapeHtml(view.rating)}</span>
     </div>
+    ${optionalFactsMarkup}
     <p class="offer-card__summary">${escapeHtml(view.matchSummary)}</p>
   `;
+}
+
+export function formatAppliedPreferences(preferences) {
+  if (!preferences || typeof preferences !== "object") {
+    return "";
+  }
+
+  return [
+    formatMaximumTotalPrice(preferences.maxTotalPrice),
+    formatStarPreference(preferences.stars),
+    Number.isInteger(preferences.minimumGuestRating)
+      ? `рейтинг от ${preferences.minimumGuestRating}`
+      : null,
+    preferences.freeCancellationRequired === true
+      ? "бесплатная отмена"
+      : null,
+  ].filter(Boolean).join(" · ");
 }
 
 export function toErrorMessage(error) {
@@ -57,6 +81,76 @@ function formatRating(rating) {
   }
 
   return `${rating.value.toFixed(1)} / ${rating.scale ?? 10}`;
+}
+
+function formatStarRating(starRating) {
+  if (!Number.isInteger(starRating) || starRating < 0 || starRating > 5) {
+    return null;
+  }
+
+  return `${starRating} ${starWord(starRating)}`;
+}
+
+function formatFreeCancellation(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const deadline = new Date(value);
+  if (Number.isNaN(deadline.getTime())) {
+    return null;
+  }
+
+  const formatted = new Intl.DateTimeFormat("ru-RU", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(deadline);
+  return `Бесплатная отмена до ${formatted}`;
+}
+
+function formatMaximumTotalPrice(price) {
+  if (typeof price?.amount !== "string" || !price.currency) {
+    return null;
+  }
+
+  const amount = Number(price.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return null;
+  }
+
+  return `до ${new Intl.NumberFormat("ru-RU", {
+    style: "currency",
+    currency: price.currency,
+    maximumFractionDigits: 2,
+  }).format(amount)} за поездку`;
+}
+
+function formatStarPreference(stars) {
+  if (!Array.isArray(stars)) {
+    return null;
+  }
+
+  const normalized = [...new Set(stars)]
+    .filter((star) => Number.isInteger(star) && star >= 0 && star <= 5)
+    .sort((left, right) => left - right);
+  if (normalized.length === 0) {
+    return null;
+  }
+
+  const label = normalized.length === 1
+    ? `${normalized[0]} ${starWord(normalized[0])}`
+    : `${normalized.join(", ")} звёзд`;
+  return label;
+}
+
+function starWord(value) {
+  if (value === 1) {
+    return "звезда";
+  }
+  if (value >= 2 && value <= 4) {
+    return "звезды";
+  }
+  return "звёзд";
 }
 
 function availabilityLabel(availability) {

@@ -87,6 +87,12 @@ Assistant message принимается только как строгий JSON
 `nextAction=show_hotel_results`; ошибки не содержат provider DTO или внутренних
 данных. CORS не установлен: default policy — deny, без wildcard и credentials.
 
+`GET /hotel-searches/{searchId}/offers` может дополнительно вернуть активные
+`appliedPreferences`, а каждое предложение — известные `starRating` и
+`freeCancellationUntil`. Эти поля отсутствуют, если preference не активен или
+provider fact неизвестен; backend не подставляет нулевые значения и не
+раскрывает filter DTO Hotels API.
+
 Фактический путь проверки доступности: `GET /api/v1/health`.
 
 Фактический путь создания локальной assistant session: `POST /api/v1/assistant/sessions`.

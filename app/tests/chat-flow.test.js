@@ -54,7 +54,12 @@ test("loads and presents no more than five ranked offers", async () => {
       },
       async getHotelOffers(searchId) {
         assert.equal(searchId, "hotel-search-local-000001");
-        return { offers };
+        return {
+          offers,
+          appliedPreferences: {
+            minimumGuestRating: 8,
+          },
+        };
       },
     },
     onOffers: offerViews.push.bind(offerViews),
@@ -69,6 +74,9 @@ test("loads and presents no more than five ranked offers", async () => {
     ["offer-1", "offer-2", "offer-3", "offer-4", "offer-5"],
   );
   assert.equal(offerViews[0].totalCount, 8);
+  assert.deepEqual(offerViews[0].appliedPreferences, {
+    minimumGuestRating: 8,
+  });
 });
 
 test("does not load offers for clarification or boundary responses", async () => {

@@ -720,6 +720,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProviderFact"
+        appliedPreferences:
+          $ref: "#/components/schemas/AppliedHotelSearchPreferences"
+          description: Omitted when the search has no active optional preferences.
       additionalProperties: false
 
     HotelSearchCriteriaResponse:
@@ -763,6 +766,49 @@ components:
           minimum: 1
       additionalProperties: false
 
+    AppliedHotelSearchPreferences:
+      type: object
+      properties:
+        maxTotalPrice:
+          $ref: "#/components/schemas/MaximumTotalPricePreference"
+        stars:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: integer
+            minimum: 0
+            maximum: 5
+        minimumGuestRating:
+          type: integer
+          enum:
+            - 5
+            - 6
+            - 7
+            - 8
+            - 9
+        freeCancellationRequired:
+          type: boolean
+          enum:
+            - true
+      additionalProperties: false
+
+    MaximumTotalPricePreference:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: string
+          pattern: "^[0-9]+(?:\\.[0-9]+)?$"
+          description: Exact decimal constraint without floating-point conversion.
+        currency:
+          type: string
+          enum:
+            - RUB
+      additionalProperties: false
+
     HotelOffer:
       type: object
       required:
@@ -797,6 +843,15 @@ components:
           description: Omitted when the list response does not provide amenity facts.
           items:
             $ref: "#/components/schemas/HotelAmenity"
+        starRating:
+          type: integer
+          minimum: 0
+          maximum: 5
+          description: Omitted when the provider does not return a hotel category.
+        freeCancellationUntil:
+          type: string
+          format: date-time
+          description: Omitted when a free-cancellation deadline is unknown.
         availability:
           type: string
           enum:

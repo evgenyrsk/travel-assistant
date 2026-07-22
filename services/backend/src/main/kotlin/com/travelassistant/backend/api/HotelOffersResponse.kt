@@ -1,8 +1,11 @@
 package com.travelassistant.backend.api
 
 import com.travelassistant.backend.domain.hotel.HotelSearch
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class HotelOffersResponse(
     val searchId: String,
@@ -10,6 +13,8 @@ data class HotelOffersResponse(
     val offers: List<HotelOfferResponse>,
     val metadata: Metadata,
     val providerFacts: List<HotelOfferResponse.ProviderFact>,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val appliedPreferences: AppliedHotelSearchPreferencesResponse? = null,
 ) {
     @Serializable
     data class Metadata(
@@ -34,6 +39,9 @@ data class HotelOffersResponse(
                     warnings = emptyList(),
                 ),
                 providerFacts = offers.flatMap { it.providerFacts },
+                appliedPreferences = AppliedHotelSearchPreferencesResponse.from(
+                    search.criteria.preferences,
+                ),
             )
         }
     }

@@ -235,6 +235,13 @@ function buildPlatformClientChecks(
     ["hotel offer rejects unknown fields", shape.hotelOfferAdditionalPropertiesForbidden],
     ["rating remains optional", shape.ratingOptional],
     ["amenities remain optional", shape.amenitiesOptional],
+    ["starRating remains optional", shape.starRatingOptional],
+    ["freeCancellationUntil remains optional", shape.freeCancellationUntilOptional],
+    ["appliedPreferences remains optional", shape.appliedPreferencesOptional],
+    [
+      "applied preferences reject unknown fields",
+      shape.appliedPreferencesAdditionalPropertiesForbidden,
+    ],
     ["message.maxLength is 4000", shape.messageMaxLength === 4_000],
     [
       "nextAction values match runtime",
@@ -310,6 +317,15 @@ function buildPlatformClientChecks(
         "providerFacts",
         "providerOfferRef",
         "source",
+      ]),
+    ],
+    [
+      "applied preference fields match runtime",
+      sameValues(shape.appliedPreferencesFields, [
+        "freeCancellationRequired",
+        "maxTotalPrice",
+        "minimumGuestRating",
+        "stars",
       ]),
     ],
   ];

@@ -73,6 +73,7 @@ export function createChatFlow({
       offers,
       totalCount: allOffers.length,
       hotelSearchId,
+      appliedPreferences: result?.appliedPreferences,
     });
     onStatus(
       allOffers.length === 0

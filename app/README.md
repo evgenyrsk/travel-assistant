@@ -12,7 +12,9 @@ web-клиент: его UI, SDK и lifecycle будет определять о
 3. `ask_clarification` и `show_boundary_message` отображаются в истории диалога;
 4. подтверждение отправляется обычным сообщением;
 5. при `show_hotel_results` frontend загружает предложения по `hotelSearchId`;
-6. область результатов показывает первые пять предложений в порядке backend-ранжирования.
+6. область результатов показывает первые пять предложений в порядке backend-ранжирования;
+7. активные условия поиска и доступные факты о звёздах и бесплатной отмене
+   отображаются без подстановки неизвестных значений.
 
 История диалога хранится только в памяти текущей страницы. OpenRouter и Hotels API
 не вызываются из браузера: demo shell обращается только к Travel Assistant
@@ -78,6 +80,11 @@ Assistant message содержит от 1 до 4000 Unicode code points; malform
 unknown fields отклоняются безопасным `VALIDATION_ERROR`. Прямой
 `POST /api/v1/hotel-searches` остается endpoint диагностической страницы и не
 входит в основной клиентский контракт.
+
+Ответ offers может содержать необязательные `starRating`,
+`freeCancellationUntil` и `appliedPreferences`. Отсутствие этих полей означает
+неизвестный или неактивный факт, а не нулевое значение. Demo shell только
+отображает эти данные и не повторяет provider filtering или ranking.
 
 Текущий server обслуживает локальную same-origin demo shell через proxy. Для
 будущего cross-origin продуктового web-клиента понадобится configurable CORS

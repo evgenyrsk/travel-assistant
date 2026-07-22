@@ -4,6 +4,7 @@ import com.travelassistant.backend.domain.hotel.HotelOffer
 import com.travelassistant.backend.domain.hotel.RankedHotelOffer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -13,12 +14,14 @@ class HotelOfferResponseTest {
     private val json = Json { encodeDefaults = true }
 
     @Test
-    fun omitsUnknownRatingAndAmenitiesFromJson() {
+    fun omitsUnknownOptionalProviderFactsFromJson() {
         val response = HotelOfferResponse.from(
             rankedOffer(
                 rating = null,
                 reviewCount = null,
                 amenities = null,
+                starRating = null,
+                freeCancellationUntil = null,
             ),
         )
 
@@ -26,15 +29,20 @@ class HotelOfferResponseTest {
 
         assertFalse(encoded.contains("\"rating\""))
         assertFalse(encoded.contains("\"amenities\""))
+        assertFalse(encoded.contains("\"starRating\""))
+        assertFalse(encoded.contains("\"freeCancellationUntil\""))
     }
 
     @Test
-    fun keepsKnownRatingAndAmenitiesInJson() {
+    fun keepsKnownOptionalProviderFactsInJson() {
+        val cancellationDeadline = Instant.parse("2026-08-09T18:00:00Z")
         val response = HotelOfferResponse.from(
             rankedOffer(
                 rating = 8.7,
                 reviewCount = 42,
                 amenities = listOf("Wi-Fi"),
+                starRating = 4,
+                freeCancellationUntil = cancellationDeadline,
             ),
         )
 
@@ -43,12 +51,16 @@ class HotelOfferResponseTest {
         assertTrue(encoded.contains("\"rating\""))
         assertTrue(encoded.contains("\"reviewCount\":42"))
         assertTrue(encoded.contains("\"amenities\""))
+        assertTrue(encoded.contains("\"starRating\":4"))
+        assertTrue(encoded.contains("\"freeCancellationUntil\":\"$cancellationDeadline\""))
     }
 
     private fun rankedOffer(
         rating: Double?,
         reviewCount: Int?,
         amenities: List<String>?,
+        starRating: Int?,
+        freeCancellationUntil: Instant?,
     ): RankedHotelOffer =
         RankedHotelOffer(
             offer = HotelOffer(
@@ -65,6 +77,8 @@ class HotelOfferResponseTest {
                 availability = HotelOffer.Availability.AVAILABLE,
                 source = "test",
                 freshness = HotelOffer.Freshness.UNKNOWN,
+                starRating = starRating,
+                freeCancellationUntil = freeCancellationUntil,
             ),
             matchSummary = "Test summary",
         )

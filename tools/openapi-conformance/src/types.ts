@@ -63,6 +63,11 @@ export interface AssistantContractShape {
   hotelOfferAdditionalPropertiesForbidden: boolean;
   ratingOptional: boolean;
   amenitiesOptional: boolean;
+  starRatingOptional: boolean;
+  freeCancellationUntilOptional: boolean;
+  appliedPreferencesOptional: boolean;
+  appliedPreferencesFields: string[];
+  appliedPreferencesAdditionalPropertiesForbidden: boolean;
 }
 
 export interface RuntimeRoute {

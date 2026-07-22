@@ -1,6 +1,10 @@
 import { createApiClient } from "./api-client.js";
 import { createChatFlow } from "./chat-flow.js";
-import { renderOfferCardMarkup, toErrorMessage } from "./offer-view.js";
+import {
+  formatAppliedPreferences,
+  renderOfferCardMarkup,
+  toErrorMessage,
+} from "./offer-view.js";
 
 const api = createApiClient();
 const elements = {
@@ -63,22 +67,29 @@ function appendMessage(role, author, content) {
   article.scrollIntoView({ block: "nearest" });
 }
 
-function renderOffers({ offers, totalCount }) {
+function renderOffers({ offers, totalCount, appliedPreferences }) {
   elements.results.replaceChildren();
   elements.resultsCount.textContent = String(offers.length);
+  const preferenceSummary = formatAppliedPreferences(appliedPreferences);
 
   if (offers.length === 0) {
     elements.emptyState.hidden = false;
     elements.emptyState.textContent = "По текущим параметрам предложения не найдены.";
-    elements.resultsSummary.hidden = true;
+    elements.resultsSummary.hidden = !preferenceSummary;
+    elements.resultsSummary.textContent = preferenceSummary
+      ? `Применённые условия: ${preferenceSummary}.`
+      : "";
     return;
   }
 
   elements.emptyState.hidden = true;
   elements.resultsSummary.hidden = false;
-  elements.resultsSummary.textContent = totalCount > offers.length
+  const countSummary = totalCount > offers.length
     ? `Показаны ${offers.length} лучших предложений из ${totalCount}.`
     : `Показаны все предложения: ${offers.length}.`;
+  elements.resultsSummary.textContent = preferenceSummary
+    ? `${countSummary} Применённые условия: ${preferenceSummary}.`
+    : countSummary;
 
   for (const offer of offers) {
     const article = document.createElement("article");

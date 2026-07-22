@@ -364,6 +364,14 @@ class ProviderSeamIntegrationTest {
             "tbank_hotels_api",
             offers.single().jsonObject["source"]?.jsonPrimitive?.content,
         )
+        assertEquals(
+            4,
+            offers.single().jsonObject["starRating"]?.jsonPrimitive?.content?.toInt(),
+        )
+        assertEquals(
+            "2026-07-17T18:00:00Z",
+            offers.single().jsonObject["freeCancellationUntil"]?.jsonPrimitive?.content,
+        )
     }
 
     @Test
@@ -545,7 +553,8 @@ class ProviderSeamIntegrationTest {
                   "availableRoomsCount": 1,
                   "isCreditCardDataRequired": false,
                   "paymentPlace": "online",
-                  "shownPrice": {"amount": 12000.0, "currency": "RUB"}
+                  "shownPrice": {"amount": 12000.0, "currency": "RUB"},
+                  "freeCancellationUntil": "2026-07-17T18:00:00Z"
                 },
                 "review": {"rating": 8.7, "ratingsCount": 42}
               }

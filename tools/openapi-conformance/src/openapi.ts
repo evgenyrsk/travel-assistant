@@ -160,8 +160,15 @@ function inspectAssistantContractShape(
   const searchSchema = recordValue(schemas?.HotelSearchResponse);
   const metadataSchema = recordValue(schemas?.SearchResultMetadata);
   const hotelOfferSchema = recordValue(schemas?.HotelOffer);
+  const appliedPreferencesSchema = recordValue(
+    schemas?.AppliedHotelSearchPreferences,
+  );
   const searchProperties = recordValue(searchSchema?.properties);
   const offersProperties = recordValue(offersSchema?.properties);
+  const hotelOfferProperties = recordValue(hotelOfferSchema?.properties);
+  const appliedPreferencesProperties = recordValue(
+    appliedPreferencesSchema?.properties,
+  );
   const nextActionProperty = recordValue(responseProperties?.nextAction);
   const offersOperation = operationValue(
     paths,
@@ -226,13 +233,26 @@ function inspectAssistantContractShape(
     hotelOfferAdditionalPropertiesForbidden:
       hotelOfferSchema?.additionalProperties === false,
     ratingOptional:
-      recordValue(recordValue(hotelOfferSchema?.properties)?.rating) !==
-        undefined &&
+      recordValue(hotelOfferProperties?.rating) !== undefined &&
       !stringArray(hotelOfferSchema?.required).includes("rating"),
     amenitiesOptional:
-      recordValue(recordValue(hotelOfferSchema?.properties)?.amenities) !==
-        undefined &&
+      recordValue(hotelOfferProperties?.amenities) !== undefined &&
       !stringArray(hotelOfferSchema?.required).includes("amenities"),
+    starRatingOptional:
+      recordValue(hotelOfferProperties?.starRating) !== undefined &&
+      !stringArray(hotelOfferSchema?.required).includes("starRating"),
+    freeCancellationUntilOptional:
+      recordValue(hotelOfferProperties?.freeCancellationUntil) !== undefined &&
+      !stringArray(hotelOfferSchema?.required).includes("freeCancellationUntil"),
+    appliedPreferencesOptional:
+      stringValue(recordValue(offersProperties?.appliedPreferences)?.$ref) ===
+        "#/components/schemas/AppliedHotelSearchPreferences" &&
+      !stringArray(offersSchema?.required).includes("appliedPreferences"),
+    appliedPreferencesFields: Object.keys(
+      appliedPreferencesProperties ?? {},
+    ).sort(),
+    appliedPreferencesAdditionalPropertiesForbidden:
+      appliedPreferencesSchema?.additionalProperties === false,
   };
 }
 

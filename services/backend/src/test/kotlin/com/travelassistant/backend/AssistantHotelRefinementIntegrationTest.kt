@@ -297,8 +297,34 @@ class AssistantHotelRefinementIntegrationTest {
         assertEquals(2, searchRequestBodies.size)
         val refinedRequest = Json.parseToJsonElement(searchRequestBodies[1]).jsonObject
         val filters = refinedRequest.getValue("filters").jsonArray
+        assertFalse(offersBody(firstSearchId).containsKey("appliedPreferences"))
+        val appliedPreferences = offersBody(secondSearchId)
+            .getValue("appliedPreferences")
+            .jsonObject
 
         assertNotEquals(firstSearchId, secondSearchId)
+        assertEquals(
+            "80000",
+            appliedPreferences
+                .getValue("maxTotalPrice")
+                .jsonObject
+                .getValue("amount")
+                .jsonPrimitive
+                .content,
+        )
+        assertEquals(
+            listOf(4, 5),
+            appliedPreferences.getValue("stars").jsonArray.map { star ->
+                star.jsonPrimitive.content.toInt()
+            },
+        )
+        assertEquals(
+            8,
+            appliedPreferences.getValue("minimumGuestRating").jsonPrimitive.content.toInt(),
+        )
+        assertTrue(
+            appliedPreferences.getValue("freeCancellationRequired").jsonPrimitive.content.toBoolean(),
+        )
         assertEquals(
             listOf(
                 "price",
@@ -433,6 +459,12 @@ class AssistantHotelRefinementIntegrationTest {
 
     private suspend fun ApplicationTestBuilder.offersStatus(searchId: String): HttpStatusCode =
         client.get("/api/v1/hotel-searches/$searchId/offers").status
+
+    private suspend fun ApplicationTestBuilder.offersBody(searchId: String): JsonObject {
+        val response = client.get("/api/v1/hotel-searches/$searchId/offers")
+        assertEquals(HttpStatusCode.OK, response.status)
+        return Json.parseToJsonElement(response.bodyAsText()).jsonObject
+    }
 
     private fun JsonObject.nextAction(): String? =
         get("nextAction")?.jsonPrimitive?.content

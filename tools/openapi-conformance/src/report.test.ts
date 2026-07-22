@@ -78,6 +78,8 @@ describe("Platform-client conformance", () => {
     const inventory = syntheticOpenApiInventory({
       nextActionValues: ["ask_clarification", "future_action"],
       hotelSearchIdConditional: false,
+      appliedPreferencesOptional: false,
+      starRatingOptional: false,
     });
     const report = buildReport(
       inventory,
@@ -90,7 +92,9 @@ describe("Platform-client conformance", () => {
         (finding) =>
           finding.code === "PLATFORM_CLIENT_CONTRACT_SHAPE_MISMATCH" &&
           finding.message.includes("nextAction values match runtime") &&
-          finding.message.includes("hotelSearchId conditional enforced"),
+          finding.message.includes("hotelSearchId conditional enforced") &&
+          finding.message.includes("appliedPreferences remains optional") &&
+          finding.message.includes("starRating remains optional"),
       ),
     );
     assert.equal(report.status, "not_ready");
@@ -296,6 +300,16 @@ function syntheticOpenApiInventory(
       hotelOfferAdditionalPropertiesForbidden: true,
       ratingOptional: true,
       amenitiesOptional: true,
+      starRatingOptional: true,
+      freeCancellationUntilOptional: true,
+      appliedPreferencesOptional: true,
+      appliedPreferencesFields: [
+        "freeCancellationRequired",
+        "maxTotalPrice",
+        "minimumGuestRating",
+        "stars",
+      ],
+      appliedPreferencesAdditionalPropertiesForbidden: true,
       ...overrides,
     },
   };
