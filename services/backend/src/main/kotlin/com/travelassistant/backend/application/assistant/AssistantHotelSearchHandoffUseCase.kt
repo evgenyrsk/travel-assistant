@@ -42,7 +42,7 @@ class AssistantHotelSearchHandoffUseCase(
                         acceptedMessage.copy(
                             assistantReply = AssistantReply(
                                 type = AssistantReplyType.HOTEL_SEARCH_RESULTS,
-                                message = "Поиск завершён. Подходящие варианты готовы.",
+                                message = "Поиск завершён. Результат готов.",
                             ),
                             nextAction = AssistantNextAction.SHOW_HOTEL_RESULTS,
                             hotelSearchId = searchResult.search.id,

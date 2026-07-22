@@ -37,7 +37,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
         assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, result.responseDirective.nextAction)
         assertEquals(TransitionMessageKind.RESULTS_READY, result.responseDirective.messageKind)
         assertEquals(
-            "Поиск завершён. Подходящие варианты готовы.",
+            "Поиск завершён. Результат готов.",
             result.messageText,
         )
         assertEquals(
@@ -282,7 +282,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
             result.pendingConsumeInstruction,
         )
         assertEquals(
-            "Поиск завершён. Подходящие варианты готовы.",
+            "Поиск завершён. Результат готов.",
             result.messageText,
         )
     }

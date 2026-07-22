@@ -1,5 +1,6 @@
 package com.travelassistant.backend.api
 
+import com.travelassistant.backend.application.hotel.HotelNoOffersRefinementPlan
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
@@ -69,6 +70,37 @@ class HotelOffersResponseTest {
         )
         assertEquals(8, applied.getValue("minimumGuestRating").jsonPrimitive.content.toInt())
         assertTrue(applied.getValue("freeCancellationRequired").jsonPrimitive.content.toBoolean())
+    }
+
+    @Test
+    fun `exposes one typed no-offers refinement suggestion`() {
+        val encoded = json.encodeToString(
+            HotelOffersResponse.from(
+                search = search(
+                    HotelSearchPreferences(
+                        minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+                    ),
+                ),
+                refinementPlan = HotelNoOffersRefinementPlan.Suggestion(
+                    preference = HotelNoOffersRefinementPlan.Preference.MINIMUM_GUEST_RATING,
+                    message = "Уберите ограничение и подтвердите новый поиск.",
+                ),
+            ),
+        )
+        val suggestion = Json.parseToJsonElement(encoded)
+            .jsonObject
+            .getValue("refinementSuggestion")
+            .jsonObject
+
+        assertEquals("relax_preference", suggestion.getValue("type").jsonPrimitive.content)
+        assertEquals(
+            "minimumGuestRating",
+            suggestion.getValue("preference").jsonPrimitive.content,
+        )
+        assertEquals(
+            "Уберите ограничение и подтвердите новый поиск.",
+            suggestion.getValue("message").jsonPrimitive.content,
+        )
     }
 
     private fun search(

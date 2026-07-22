@@ -723,6 +723,9 @@ components:
         appliedPreferences:
           $ref: "#/components/schemas/AppliedHotelSearchPreferences"
           description: Omitted when the search has no active optional preferences.
+        refinementSuggestion:
+          $ref: "#/components/schemas/HotelSearchRefinementSuggestion"
+          description: Omitted unless a completed empty search has one active preference that can be relaxed.
       additionalProperties: false
 
     HotelSearchCriteriaResponse:
@@ -807,6 +810,29 @@ components:
           type: string
           enum:
             - RUB
+      additionalProperties: false
+
+    HotelSearchRefinementSuggestion:
+      type: object
+      required:
+        - type
+        - preference
+        - message
+      properties:
+        type:
+          type: string
+          enum:
+            - relax_preference
+        preference:
+          type: string
+          enum:
+            - minimumGuestRating
+            - stars
+            - freeCancellationRequired
+            - maxTotalPrice
+        message:
+          type: string
+          minLength: 1
       additionalProperties: false
 
     HotelOffer:

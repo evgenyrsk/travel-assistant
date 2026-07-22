@@ -68,6 +68,11 @@ export interface AssistantContractShape {
   appliedPreferencesOptional: boolean;
   appliedPreferencesFields: string[];
   appliedPreferencesAdditionalPropertiesForbidden: boolean;
+  refinementSuggestionOptional: boolean;
+  refinementSuggestionRequiredFields: string[];
+  refinementSuggestionTypeValues: string[];
+  refinementSuggestionPreferenceValues: string[];
+  refinementSuggestionAdditionalPropertiesForbidden: boolean;
 }
 
 export interface RuntimeRoute {

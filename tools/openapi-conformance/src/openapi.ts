@@ -163,11 +163,17 @@ function inspectAssistantContractShape(
   const appliedPreferencesSchema = recordValue(
     schemas?.AppliedHotelSearchPreferences,
   );
+  const refinementSuggestionSchema = recordValue(
+    schemas?.HotelSearchRefinementSuggestion,
+  );
   const searchProperties = recordValue(searchSchema?.properties);
   const offersProperties = recordValue(offersSchema?.properties);
   const hotelOfferProperties = recordValue(hotelOfferSchema?.properties);
   const appliedPreferencesProperties = recordValue(
     appliedPreferencesSchema?.properties,
+  );
+  const refinementSuggestionProperties = recordValue(
+    refinementSuggestionSchema?.properties,
   );
   const nextActionProperty = recordValue(responseProperties?.nextAction);
   const offersOperation = operationValue(
@@ -253,6 +259,21 @@ function inspectAssistantContractShape(
     ).sort(),
     appliedPreferencesAdditionalPropertiesForbidden:
       appliedPreferencesSchema?.additionalProperties === false,
+    refinementSuggestionOptional:
+      stringValue(recordValue(offersProperties?.refinementSuggestion)?.$ref) ===
+        "#/components/schemas/HotelSearchRefinementSuggestion" &&
+      !stringArray(offersSchema?.required).includes("refinementSuggestion"),
+    refinementSuggestionRequiredFields: stringArray(
+      refinementSuggestionSchema?.required,
+    ).sort(),
+    refinementSuggestionTypeValues: stringArray(
+      recordValue(refinementSuggestionProperties?.type)?.enum,
+    ).sort(),
+    refinementSuggestionPreferenceValues: stringArray(
+      recordValue(refinementSuggestionProperties?.preference)?.enum,
+    ).sort(),
+    refinementSuggestionAdditionalPropertiesForbidden:
+      refinementSuggestionSchema?.additionalProperties === false,
   };
 }
 

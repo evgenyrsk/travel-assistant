@@ -88,8 +88,14 @@ Java/Spring Boot не является принятым backend stack для Tra
 Текущий демонстрационный MVP ориентирован на hotel-only flow: пользователь
 уточняет обязательные критерии, подтверждает поиск, получает hotel options и
 может следующей репликой изменить необязательные фильтры для нового
-подтвержденного provider search. Пользовательская сортировка отложена, потому
-что наблюдаемый Hotels API runtime ее не принимает.
+  подтвержденного provider search. Пользовательская сортировка отложена, потому
+  что наблюдаемый Hotels API runtime ее не принимает.
+
+Успешная пустая выдача моделируется как сохранённый `COMPLETED_NO_OFFERS`, а
+provider failure не создаёт search resource. Чистая application policy может
+выбрать одно provider-neutral preference для явного ослабления; API только
+отображает typed suggestion. Policy не изменяет criteria, не вызывает provider
+и не подключает `search-filters-availability`.
 
 External provider layer отвечает за hotel facts: цены, availability, location, amenities, policies, ratings, source/freshness and related data, если эти данные доступны из provider/source.
 

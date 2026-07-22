@@ -242,6 +242,11 @@ function buildPlatformClientChecks(
       "applied preferences reject unknown fields",
       shape.appliedPreferencesAdditionalPropertiesForbidden,
     ],
+    ["refinementSuggestion remains optional", shape.refinementSuggestionOptional],
+    [
+      "refinement suggestion rejects unknown fields",
+      shape.refinementSuggestionAdditionalPropertiesForbidden,
+    ],
     ["message.maxLength is 4000", shape.messageMaxLength === 4_000],
     [
       "nextAction values match runtime",
@@ -322,6 +327,27 @@ function buildPlatformClientChecks(
     [
       "applied preference fields match runtime",
       sameValues(shape.appliedPreferencesFields, [
+        "freeCancellationRequired",
+        "maxTotalPrice",
+        "minimumGuestRating",
+        "stars",
+      ]),
+    ],
+    [
+      "refinement suggestion required fields match runtime",
+      sameValues(shape.refinementSuggestionRequiredFields, [
+        "message",
+        "preference",
+        "type",
+      ]),
+    ],
+    [
+      "refinement suggestion type matches runtime",
+      sameValues(shape.refinementSuggestionTypeValues, ["relax_preference"]),
+    ],
+    [
+      "refinement suggestion preferences match runtime",
+      sameValues(shape.refinementSuggestionPreferenceValues, [
         "freeCancellationRequired",
         "maxTotalPrice",
         "minimumGuestRating",

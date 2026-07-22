@@ -3,6 +3,7 @@ package com.travelassistant.backend.api
 import com.travelassistant.backend.application.hotel.CreateHotelSearchResult
 import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.application.hotel.HotelSearchBoundary
+import com.travelassistant.backend.application.hotel.PlanHotelNoOffersRefinementUseCase
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -13,7 +14,11 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 
-fun Route.hotelSearchRoutes(hotelSearchBoundary: HotelSearchBoundary) {
+fun Route.hotelSearchRoutes(
+    hotelSearchBoundary: HotelSearchBoundary,
+    planNoOffersRefinement: PlanHotelNoOffersRefinementUseCase =
+        PlanHotelNoOffersRefinementUseCase(),
+) {
     route("/hotel-searches") {
         post {
             val request = runCatching {
@@ -57,7 +62,10 @@ fun Route.hotelSearchRoutes(hotelSearchBoundary: HotelSearchBoundary) {
 
             call.respond(
                 HttpStatusCode.OK,
-                HotelOffersResponse.from(search),
+                HotelOffersResponse.from(
+                    search = search,
+                    refinementPlan = planNoOffersRefinement(search),
+                ),
             )
         }
     }

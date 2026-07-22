@@ -88,6 +88,6 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
             "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз."
 
         const val RESULTS_READY_MESSAGE =
-            "Поиск завершён. Подходящие варианты готовы."
+            "Поиск завершён. Результат готов."
     }
 }

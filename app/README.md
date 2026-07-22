@@ -86,6 +86,10 @@ unknown fields отклоняются безопасным `VALIDATION_ERROR`. �
 неизвестный или неактивный факт, а не нулевое значение. Demo shell только
 отображает эти данные и не повторяет provider filtering или ranking.
 
+При успешном `completed_no_offers` backend может вернуть один
+`refinementSuggestion`. Demo shell показывает его следующей репликой, но не
+снимает preference и не отправляет новый поиск автоматически.
+
 Текущий server обслуживает локальную same-origin demo shell через proxy. Для
 будущего cross-origin продуктового web-клиента понадобится configurable CORS
 allowlist; native clients не ограничиваются browser CORS. Product UI, native

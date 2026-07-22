@@ -68,13 +68,18 @@ export function createChatFlow({
     const result = await api.getHotelOffers(hotelSearchId);
     const allOffers = Array.isArray(result?.offers) ? result.offers : [];
     const offers = allOffers.slice(0, MAX_PRESENTED_OFFERS);
+    const refinementSuggestion = toRefinementSuggestion(result?.refinementSuggestion);
 
     onOffers({
       offers,
       totalCount: allOffers.length,
       hotelSearchId,
       appliedPreferences: result?.appliedPreferences,
+      refinementSuggestion,
     });
+    if (allOffers.length === 0 && refinementSuggestion) {
+      onAssistantMessage(refinementSuggestion.message);
+    }
     onStatus(
       allOffers.length === 0
         ? "Поиск завершён без предложений."
@@ -82,4 +87,28 @@ export function createChatFlow({
       allOffers.length === 0 ? "idle" : "success",
     );
   }
+}
+
+function toRefinementSuggestion(value) {
+  const supportedPreferences = new Set([
+    "minimumGuestRating",
+    "stars",
+    "freeCancellationRequired",
+    "maxTotalPrice",
+  ]);
+  const message = typeof value?.message === "string" ? value.message.trim() : "";
+
+  if (
+    value?.type !== "relax_preference" ||
+    !supportedPreferences.has(value?.preference) ||
+    !message
+  ) {
+    return undefined;
+  }
+
+  return {
+    type: value.type,
+    preference: value.preference,
+    message,
+  };
 }

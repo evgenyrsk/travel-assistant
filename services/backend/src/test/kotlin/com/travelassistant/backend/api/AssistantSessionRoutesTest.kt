@@ -146,7 +146,7 @@ class AssistantSessionRoutesTest {
         assertEquals("show_hotel_results", assistantBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals("hotel-search-local-000001", hotelSearchId)
         assertEquals(
-            "Поиск завершён. Подходящие варианты готовы.",
+            "Поиск завершён. Результат готов.",
             assistantBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
 
@@ -521,7 +521,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("show_hotel_results", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Поиск завершён. Подходящие варианты готовы.",
+            "Поиск завершён. Результат готов.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertTrue(hotelSearchId.isNotBlank())
@@ -1005,7 +1005,7 @@ class AssistantSessionRoutesTest {
         assertEquals(false, promptBody.containsKey("hotelSearchId"))
         assertEquals("show_hotel_results", confirmBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Поиск завершён. Подходящие варианты готовы.",
+            "Поиск завершён. Результат готов.",
             confirmBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertTrue(hotelSearchId.isNotBlank())

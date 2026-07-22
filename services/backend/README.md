@@ -93,6 +93,12 @@ Assistant message принимается только как строгий JSON
 provider fact неизвестен; backend не подставляет нулевые значения и не
 раскрывает filter DTO Hotels API.
 
+Для сохранённого `completed_no_offers` с активными preferences ответ может
+дополнительно содержать один `refinementSuggestion`. Это только безопасный
+совет: backend не снимает ограничение и не запускает новый provider search без
+следующей реплики пользователя и повторного подтверждения. Provider failure не
+создаёт search resource и `hotelSearchId`.
+
 Фактический путь проверки доступности: `GET /api/v1/health`.
 
 Фактический путь создания локальной assistant session: `POST /api/v1/assistant/sessions`.

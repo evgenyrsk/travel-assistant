@@ -5,8 +5,11 @@ import com.travelassistant.backend.application.hotel.CreateHotelSearchResult
 import com.travelassistant.backend.application.hotel.HotelLocationSuggestion
 import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.application.hotel.HotelSearchBoundary
+import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearch
+import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchId
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import com.travelassistant.backend.module
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -23,6 +26,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.math.BigDecimal
+import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -213,6 +218,44 @@ class HotelSearchRoutesTest {
     }
 
     @Test
+    fun `returns one typed refinement suggestion for a completed empty search`() =
+        testApplication {
+            val boundary = ConfigurableHotelSearchBoundary().apply {
+                storedSearch = emptySearchWithPreferences()
+            }
+            application {
+                configureSerialization()
+                configureErrorHandling()
+                routing {
+                    route("/api/v1") {
+                        hotelSearchRoutes(boundary)
+                    }
+                }
+            }
+
+            val response = client.get(
+                "/api/v1/hotel-searches/hotel-search-local-empty/offers",
+            )
+            val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+            val suggestion = body.getValue("refinementSuggestion").jsonObject
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("completed_no_offers", body.getValue("status").jsonPrimitive.content)
+            assertTrue(body.getValue("offers").jsonArray.isEmpty())
+            assertEquals("relax_preference", suggestion.getValue("type").jsonPrimitive.content)
+            assertEquals(
+                "minimumGuestRating",
+                suggestion.getValue("preference").jsonPrimitive.content,
+            )
+            assertTrue(
+                suggestion.getValue("message").jsonPrimitive.content.contains(
+                    "подтвердить новый поиск",
+                ),
+            )
+            assertEquals(0, boundary.createSearchCalls)
+        }
+
+    @Test
     fun mapsTypedNotCreatedOutcomesToExistingSafeSchemas() = testApplication {
         val boundary = ConfigurableHotelSearchBoundary()
         application {
@@ -318,16 +361,46 @@ class HotelSearchRoutesTest {
         }
         """.trimIndent()
 
+    private fun emptySearchWithPreferences(): HotelSearch =
+        HotelSearch(
+            id = HotelSearchId("hotel-search-local-empty"),
+            sessionId = AssistantSessionId("assistant-session-local-test"),
+            criteria = HotelSearchCriteria(
+                destination = "Казань",
+                checkInDate = LocalDate.parse("2026-08-10"),
+                checkOutDate = LocalDate.parse("2026-08-14"),
+                guests = HotelSearchCriteria.Guests(adults = 2),
+                rooms = 1,
+                preferences = HotelSearchPreferences(
+                    maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
+                        amount = BigDecimal("80000"),
+                        currency = "RUB",
+                    ),
+                    stars = setOf(4, 5),
+                    minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+                    freeCancellationRequired = true,
+                ),
+            ),
+            status = HotelSearch.Status.COMPLETED_NO_OFFERS,
+            offers = emptyList(),
+        )
+
     private class ConfigurableHotelSearchBoundary : HotelSearchBoundary {
         var nextResult: CreateHotelSearchResult =
             CreateHotelSearchResult.NotCreated(HotelOfferProviderResult.LocationNotFound)
+        var storedSearch: HotelSearch? = null
+        var createSearchCalls: Int = 0
 
         override suspend fun createSearch(
             command: CreateHotelSearchCommand,
-        ): CreateHotelSearchResult =
-            nextResult
+        ): CreateHotelSearchResult {
+            createSearchCalls += 1
+            return nextResult
+        }
 
         override fun getSearch(searchId: HotelSearchId): HotelSearch =
-            throw RuntimeException("Not expected in tests")
+            checkNotNull(storedSearch).also { search ->
+                check(search.id == searchId)
+            }
     }
 }

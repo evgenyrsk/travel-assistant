@@ -1,5 +1,6 @@
 package com.travelassistant.backend.api
 
+import com.travelassistant.backend.application.hotel.HotelNoOffersRefinementPlan
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -15,6 +16,8 @@ data class HotelOffersResponse(
     val providerFacts: List<HotelOfferResponse.ProviderFact>,
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val appliedPreferences: AppliedHotelSearchPreferencesResponse? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val refinementSuggestion: RefinementSuggestion? = null,
 ) {
     @Serializable
     data class Metadata(
@@ -24,8 +27,19 @@ data class HotelOffersResponse(
         val warnings: List<String>,
     )
 
+    @Serializable
+    data class RefinementSuggestion(
+        val type: String,
+        val preference: String,
+        val message: String,
+    )
+
     companion object {
-        fun from(search: HotelSearch): HotelOffersResponse {
+        fun from(
+            search: HotelSearch,
+            refinementPlan: HotelNoOffersRefinementPlan =
+                HotelNoOffersRefinementPlan.NotApplicable,
+        ): HotelOffersResponse {
             val offers = search.offers.map(HotelOfferResponse::from)
 
             return HotelOffersResponse(
@@ -42,6 +56,15 @@ data class HotelOffersResponse(
                 appliedPreferences = AppliedHotelSearchPreferencesResponse.from(
                     search.criteria.preferences,
                 ),
+                refinementSuggestion = when (refinementPlan) {
+                    HotelNoOffersRefinementPlan.NotApplicable -> null
+                    is HotelNoOffersRefinementPlan.Suggestion ->
+                        RefinementSuggestion(
+                            type = "relax_preference",
+                            preference = refinementPlan.preference.apiValue,
+                            message = refinementPlan.message,
+                        )
+                },
             )
         }
     }

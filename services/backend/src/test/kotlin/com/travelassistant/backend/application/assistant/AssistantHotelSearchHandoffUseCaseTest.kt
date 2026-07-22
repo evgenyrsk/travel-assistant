@@ -43,7 +43,7 @@ class AssistantHotelSearchHandoffUseCaseTest {
         assertEquals(AssistantNextAction.SHOW_HOTEL_RESULTS, acceptedMessage.nextAction)
         assertEquals("hotel-search-local-000001", acceptedMessage.hotelSearchId?.value)
         assertEquals(
-            "Поиск завершён. Подходящие варианты готовы.",
+            "Поиск завершён. Результат готов.",
             acceptedMessage.assistantReply.message,
         )
 
