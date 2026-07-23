@@ -4,7 +4,10 @@
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальную архитектурную основу Travel Assistant после завершения Stage 0–12 и выбора следующего hotel-only среза в Stage 13.0. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Этот документ фиксирует актуальную архитектурную основу Travel Assistant после
+закрытия рабочего hotel-only MVP в Stage 14.0. Текущий статус этапов и любое
+будущее разрешённое расширение фиксируются только в
+`docs/roadmap/roadmap.md`.
 
 Он нужен как компактная точка входа в текущее архитектурное состояние: какие границы подтверждены, где находится conceptual architecture baseline и какие Stage 5 artifacts являются исходными источниками.
 
@@ -14,9 +17,8 @@
 
 ## 2. Текущий статус архитектуры
 
-- Stage 0–12 завершены; Stage 13.0 активировал только contract readiness для
-  on-demand деталей выбранного offer, а подробные статусы находятся в
-  `docs/roadmap/roadmap.md`.
+- Stage 0–14.0 завершены в границах рабочего `demo-ready MVP`; подробные
+  статусы находятся в `docs/roadmap/roadmap.md`.
 - Backend использует Kotlin + Ktor и сохраняет разделение domain, application, infrastructure и API слоев.
 - `LlmClient` и `HotelOfferProviderBoundary` реализованы как application-owned асинхронные границы.
 - OpenRouter и публичный Hotels API имеют opt-in adapters и отдельные `HttpClient`; оба режима по умолчанию остаются `FAKE`.
@@ -30,9 +32,9 @@
 - Stage 10.2 подтвердил same-origin web/PWA и platform-neutral JSON/HTTP
   boundary; native/desktop остаются архитектурно совместимыми без готового SDK,
   а cross-origin web требует отдельной CORS policy.
-- Stage 10.3 закрепил ограниченный chat-first API subset: создание Assistant
-  session, продолжение диалога и чтение offers по opaque `searchId`. Весь
-  OpenAPI и generated clients по-прежнему имеют статус `not_ready`.
+- Stage 10.3 закрепил ограниченный chat-first API subset; Stage 13.5 дополнил
+  его on-demand details выбранного opaque offer. Весь OpenAPI и generated
+  clients по-прежнему имеют статус `not_ready`.
 - Stage 10.4 закрепил Travel Assistant как самостоятельный backend-сервис, а
   текущий web/PWA — как локальную demo shell, не являющуюся будущим продуктовым
   клиентом. Web, Android, iOS и другие platform UI/SDK принадлежат отдельным
@@ -45,13 +47,13 @@
   изменение provider request требует нового подтверждения, hard filters
   передаются одним новым provider search, а пустая выдача не запускает
   автоматическое ослабление или retry.
-- Stage 13.0 закрепил следующую границу: static details запрашиваются только
-  для явно выбранного сохранённого offer. Provider `hotelId` остаётся внутри
-  backend, массовая N+1-загрузка и public contract пока не добавляются.
-- Stage 13.1 одной контролируемой анонимной проверкой подтвердил контракт
-  успешного ответа `GET /api/v1/hotels/{hotelId}` и совместимость search
-  `hotelId` с details path. Это не подтверждает обязательность полей для всех
-  ответов, error semantics или официальный S2S SLA.
+- Stage 13 добавил provider-neutral details model, fixture-driven mapping,
+  selected-offer resolution, transport adapter, platform-neutral endpoint,
+  opt-in REAL wiring и явную кнопку demo shell. Provider `hotelId` остаётся
+  внутри backend; массовая N+1-загрузка отсутствует.
+- Stage 14.0 подтвердил полный flow одним REAL browser smoke и остановил
+  функциональное расширение MVP. Это не подтверждает production readiness,
+  официальный S2S SLA или generated-client readiness.
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 
@@ -96,8 +98,9 @@ Java/Spring Boot не является принятым backend stack для Tra
 Текущий демонстрационный MVP ориентирован на hotel-only flow: пользователь
 уточняет обязательные критерии, подтверждает поиск, получает hotel options и
 может следующей репликой изменить необязательные фильтры для нового
-  подтвержденного provider search. Пользовательская сортировка отложена, потому
-  что наблюдаемый Hotels API runtime ее не принимает.
+подтвержденного provider search. Затем пользователь может явно запросить
+provider-backed details одной сохранённой карточки. Пользовательская сортировка
+отложена, потому что наблюдаемый Hotels API runtime ее не принимает.
 
 Успешная пустая выдача моделируется как сохранённый `COMPLETED_NO_OFFERS`, а
 provider failure не создаёт search resource. Чистая application policy может
@@ -138,9 +141,15 @@ transcript, API responses или provider facts. Будущие продукто
   `/api/v1/**`; provider/LLM orchestration, secrets, business validation и
   ranking не дублируются на web, iOS, Android или desktop.
 - Platform contract boundary: продуктовые клиенты используют только
-  `POST /assistant/sessions`, `POST /assistant/sessions/{sessionId}/messages` и
-  `GET /hotel-searches/{searchId}/offers` под `/api/v1`. Health является
-  operational endpoint, прямое создание hotel search — diagnostic-only.
+  `POST /assistant/sessions`, `POST /assistant/sessions/{sessionId}/messages`,
+  `GET /hotel-searches/{searchId}/offers` и
+  `GET /hotel-searches/{searchId}/offers/{offerId}/details` под `/api/v1`.
+  Health является operational endpoint, прямое создание hotel search —
+  diagnostic-only.
+- Selected-details boundary: public `offerId` назначается application layer и
+  не содержит provider reference. Backend разрешает offer только внутри
+  указанного search, а provider `hotelId` передаётся исключительно details
+  adapter.
 - Cross-origin boundary: CORS по умолчанию не включён. Будущая web allowlist
   должна содержать точные origin со scheme/host/port, без wildcard и
   credentials, и требует отдельного этапа активации.
@@ -151,7 +160,9 @@ transcript, API responses или provider facts. Будущие продукто
   backend/domain modules. Решение зафиксировано в
   [`ADR-0001`](../decisions/adr-0001-service-core-and-client-integration-boundary.md).
 - Stack boundary: backend implementation использует Kotlin + Ktor, если только будущий ADR явно не меняет это решение.
-- Implementation boundary: Stage 7–9 завершили process-local MVP и opt-in real integrations; durable infrastructure и production hardening не активированы.
+- Implementation boundary: Stage 7–14 завершили process-local рабочий MVP и
+  opt-in real integrations; durable infrastructure и production hardening не
+  активированы.
 
 Future flights, combined itinerary, booking, payment, account history и full auth остаются outside MVP v1.
 

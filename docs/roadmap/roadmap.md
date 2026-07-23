@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 13 активирован как on-demand details выбранного hotel offer |
-| Последний завершенный этап | Stage 13.7 — selected hotel details demo flow |
-| Следующий планируемый шаг | Stage 14.0 — working hotel MVP closure |
+| Текущий этап | Рабочий hotel-only MVP закрыт; функциональное расширение остановлено |
+| Последний завершенный этап | Stage 14.0 — working hotel MVP closure |
+| Следующий планируемый шаг | Отсутствует; новый scope требует отдельного product/roadmap decision |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -64,6 +64,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
 | Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
+| Stage 14 | Завершен | Полные gates и один REAL browser smoke подтвердили рабочий `demo-ready MVP` без заявления production readiness. |
 
 ## 2. Правила управления roadmap
 
@@ -174,7 +175,9 @@ explanation/comparison flow остаются направлениями hotel-on
 - `docs/product/stage-1/stage-1-summary.md`
 - `docs/product/stage-1/stage-1-consistency-review.md`
 
-**Заметка о завершении:** Booking и payment исключены из MVP. Более ранние flight и combined recommendations superseded для MVP v1; flight search является следующим расширением после hotel flow, а combined flow — более поздним расширением после flight flow.
+**Заметка о завершении:** Booking и payment исключены из MVP. Более ранние
+flight и combined recommendations superseded для MVP v1; оба направления
+остаются future candidates и требуют отдельного product/roadmap decision.
 
 **Carryover:** точный existing travel API contract, provider-backed discovery, recommendation criteria, persistence/authorization и язык uncertainty/provider-error остаются входными данными для будущих решений.
 
@@ -796,7 +799,6 @@ Stage 13 активирован отдельной задачей и не мен
 | Stage 13.5 | Platform-neutral details API | Завершен; typed details endpoint, safe errors и четвёртый `platform_client_candidate`, OpenAPI остаётся `not_ready` |
 | Stage 13.6 | Opt-in REAL details runtime wiring | Завершен; search/details используют один runtime и общий Hotels API client, `FAKE` остаётся default |
 | Stage 13.7 | Selected hotel details demo flow | Завершен; явная кнопка загружает details выбранного opaque offer без N+1 и chat selection commands |
-| Stage 14.0 | Working hotel MVP closure | Следующий; полные gates и один разрешённый REAL browser smoke без retry |
 
 Stage 13.0 закрыл сортировку и `search-filters-availability` как осознанно
 отложенные возможности текущего MVP. Taxes/fees в `shownPrice` остаются
@@ -842,8 +844,8 @@ Stage 13.5 добавил platform-neutral endpoint деталей по паре
 identity не попадает в response, а not-found, invalid provider response и
 temporary unavailable получают безопасные typed HTTP outcomes. OpenAPI и
 subset manifest согласованы с runtime как четвёртый
-`platform_client_candidate`, но сохраняют `not_ready`; REAL details adapter ещё
-не подключён к runtime.
+`platform_client_candidate`, но сохраняют `not_ready`. На момент Stage 13.5
+REAL details adapter ещё не был подключён к runtime.
 
 Stage 13.6 подключил details boundary к общему hotel provider runtime. В режиме
 `REAL` search и details используют один application-owned Hotels API
@@ -859,6 +861,25 @@ empty и безопасное error-состояния. Повторное ра�
 не создаёт новый запрос. Browser QA подтвердил focus management, отсутствие
 горизонтального overflow на 320 и 390 CSS px и высоту основной кнопки 44 CSS
 px. Stage 13 завершён без rates, deeplink, shortlist, comparison или booking.
+
+### Stage 14 — Закрытие рабочего hotel-only MVP
+
+**Статус:** завершён Stage 14.0. Новый функциональный этап не активирован.
+
+Stage 14.0 повторно выполнил backend, frontend, launcher и OpenAPI conformance
+gates, проверил secret/provider-ID boundaries и провёл один разрешённый REAL
+browser smoke без retry. Полный запрос создал confirmation prompt до поиска;
+после отдельного «Да» backend получил 20 provider offers, demo shell показала
+5 карточек, а явный выбор одной карточки выполнил ровно один details request.
+Browser использовал только локальные `/api/v1/**`; public response и URL не
+раскрыли provider `hotelId`.
+
+Итоговый статус — `demo-ready MVP`. Stores остаются process-local, `FAKE`
+остаётся default, OpenAPI/generated clients сохраняют `not_ready`. Это не
+production readiness и не готовность к внешнему rollout. Rates, deeplink,
+shortlist, comparison, booking, payment, auth, durable storage, deployment и
+product clients не активированы. Любая следующая функциональность требует
+отдельного product/roadmap decision.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

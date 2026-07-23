@@ -86,9 +86,19 @@ node scripts/local-demo.mjs --real
 4. Дождитесь загрузки предложений.
 5. Проверьте, что demo shell показывает не более пяти карточек из provider pool
    размером до 20.
+6. Нажмите «Подробнее» у одной выбранной карточки.
+7. Проверьте, что появились только доступные сведения выбранного отеля, а
+   остальные карточки не загрузили details автоматически.
 
 До подтверждения `hotelSearchId` не должен появляться. Браузер обращается только
-к локальным `/api/v1/**`; OpenRouter и Hotels API вызываются backend.
+к локальным `/api/v1/**`; OpenRouter и Hotels API вызываются backend. Публичные
+URL используют только opaque `hotelSearchId` и `offerId`, а provider `hotelId`
+остаётся внутри backend.
+
+Для проверки refinement после первого результата можно отдельной репликой
+установить один или несколько поддержанных фильтров, проверить новый полный
+confirmation prompt и подтвердить новый поиск. Предыдущий `hotelSearchId`
+остаётся доступен до завершения локального процесса.
 
 ## Завершение
 
@@ -112,6 +122,6 @@ demo shell и при необходимости завершит их process gr
 ## Границы
 
 Локальное демо не подтверждает production readiness, SLA, публичный rollout,
-auth, durable storage, CORS или готовность product web/mobile clients. Booking,
-payment, hotel details, shortlist и отдельный comparison flow не входят в этот
-демонстрационный срез.
+auth, durable storage, CORS или готовность product web/mobile clients. Rates,
+deeplink, shortlist, отдельный comparison flow, booking и payment не входят в
+этот демонстрационный срез.

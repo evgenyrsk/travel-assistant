@@ -4,7 +4,10 @@
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальную продуктовую основу Travel Assistant после завершения Stage 0–12 и выбора следующего hotel-only расширения в Stage 13.0. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Этот документ фиксирует актуальную продуктовую основу Travel Assistant после
+закрытия рабочего hotel-only MVP в Stage 14.0. Текущий статус этапов и любое
+будущее разрешённое расширение фиксируются только в
+`docs/roadmap/roadmap.md`.
 
 Он нужен как компактная точка входа в текущее продуктовое состояние: что входит в MVP v1, что остается за его пределами, какие продуктовые границы уже подтверждены и где искать исходные stage artifacts.
 
@@ -26,7 +29,10 @@
 - Stage 10 - завершен после подтверждения платформонезависимого HTTP-контракта и границы между backend-сервисом, локальной demo shell и будущими продуктовыми клиентами.
 - Stage 11 - завершен после добавления воспроизводимого launcher и успешной локальной REAL-демонстрации chat-first hotel flow.
 - Stage 12 - завершил демонстрационный MVP итеративного уточнения hotel search; подробный статус находится только в roadmap.
-- Stage 13.0 - выбрал on-demand детали явно выбранного hotel offer как следующий ограниченный hotel-only срез.
+- Stage 13 - завершил on-demand детали явно выбранного hotel offer без
+  раскрытия provider identity и N+1-загрузки.
+- Stage 14.0 - подтвердил рабочий `demo-ready MVP` полными gates и одним REAL
+  browser smoke; production readiness не заявлена.
 
 Stage 7 сформировал process-local hotel-only основу. Stage 8 добавил явное
 подтверждение до поиска. Stage 9 добавил opt-in adapters для Hotels API и
@@ -55,6 +61,13 @@ confirmation backend получил пул из 20 REAL provider offers, а demo
 условий. Это не означает production readiness или готовность будущих
 продуктовых клиентов.
 
+Stage 13 добавил детали явно выбранного предложения. Demo shell загружает их
+только по кнопке «Подробнее», используя opaque `hotelSearchId + offerId`;
+provider `hotelId` остаётся внутри backend. Stage 14.0 подтвердил единый REAL
+сценарий от естественного запроса и confirmation до 20 provider offers, пяти
+карточек demo shell и одного details request. Функциональное расширение MVP на
+этом остановлено до отдельного решения.
+
 ## 3. Границы MVP v1
 
 MVP v1 - это hotel-only travel assistant.
@@ -75,6 +88,8 @@ MVP v1 - это hotel-only travel assistant.
 - повторное подтверждение полного набора критериев перед каждым новым provider
   search;
 - ранжирование и краткое объяснение полученных hotel options;
+- on-demand детали одного явно выбранного offer без автоматической загрузки
+  остальных карточек;
 - явное разделение provider facts, user-provided constraints, assistant assumptions и unknown data.
 
 MVP v1 не является полным планировщиком поездки, booking flow или аккаунтной историей путешествий.
@@ -95,10 +110,10 @@ MVP v1 не является полным планировщиком поезд�
 - production integrations за пределами явно запланированных provider abstractions;
 - любые будущие возможности, не активированные отдельной задачей roadmap.
 
-Текущим следующим расширением выбран on-demand сценарий деталей одного hotel
-offer. Flight search остаётся отдельным более широким направлением и может быть
-активирован только новым product/roadmap decision. Combined itinerary
-возвращается только после появления flight flow и отдельного решения.
+Rates, deeplink, shortlist и comparison остаются отдельными направлениями и не
+входят в завершённый MVP. Flight search может быть активирован только новым
+product/roadmap decision. Combined itinerary возвращается только после
+появления flight flow и отдельного решения.
 
 ## 5. Пользовательский и бизнес-контекст
 
@@ -133,6 +148,8 @@ AI важен не как источник фактов, а как слой по
    provider до нового подтверждения.
 9. После подтверждения выполняется новый provider search и создается новый
    `hotelSearchId`; предыдущий поиск остается доступен в process-local storage.
+10. Пользователь может явно открыть details одной карточки; это создаёт один
+    backend request и не загружает сведения остальных offers.
 
 Первичный provider-backed поиск получает один ограниченный пул до 20 уникальных
 кандидатов. Ассистентская подача 2-5 вариантов является отдельной задачей
@@ -175,6 +192,9 @@ hardening остается отдельным будущим решением.
   предложения сохраняется без округления, если provider его вернул.
 - Статус `LIMITED` нельзя выводить из количества комнат или другого
   эвристического threshold без подтвержденного provider fact.
+- Public `offerId` не должен содержать provider `hotelId`. Details разрешаются
+  только по паре opaque `hotelSearchId + offerId` и загружаются после явного
+  пользовательского выбора.
 - Локальная demo shell остается online-only и не обещает resume или
   cross-device sync; transcript и provider results не становятся durable data.
 
@@ -243,11 +263,10 @@ Stage 12.1b подтвердил runtime-ограничение сортиров
 - расширенная accessibility-проверка перед внешним пользовательским запуском;
 - production security, observability и deployment boundaries.
 
-Hotel details, current-session shortlist и отдельный интерактивный
-comparison flow остаются направлениями hotel-only расширения. Они не являются
-обязательными для текущего демонстрационного MVP и не блокируют итеративное
-уточнение поиска. Booking, payment и cancellation execution остаются отдельным
-будущим scope.
+Rates, deeplink, current-session shortlist и отдельный интерактивный comparison
+flow остаются направлениями hotel-only расширения. Они не входят в завершённый
+демонстрационный MVP. Booking, payment и cancellation execution остаются
+отдельным будущим scope.
 
 Ограничения не являются активным списком задач. Любой следующий шаг выбирается
 отдельной задачей и остается согласованным с основным roadmap.

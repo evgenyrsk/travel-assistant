@@ -121,3 +121,15 @@
   wiring.
 - Не выполнять N+1-загрузку деталей для всей выдачи.
 - Оставить rates, deeplink, booking и payment отдельными будущими решениями.
+
+## Этап 14 — закрытие рабочего hotel-only MVP
+
+- Подтвердить полный chat-first flow: требования, confirmation, offers,
+  refinement и details выбранного offer.
+- Проверить отсутствие provider IDs, secrets и raw provider/LLM errors в
+  публичной границе.
+- Выполнить полные quality gates и один контролируемый REAL browser smoke без
+  автоматического retry.
+- Зафиксировать статус `demo-ready MVP` без заявления production readiness.
+- Остановить функциональное расширение до отдельного нового product/roadmap
+  решения.
