@@ -9,6 +9,7 @@ import io.ktor.client.request.HttpRequestData
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpMethod
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import java.io.IOException
@@ -22,6 +23,49 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class PublicHotelsApiHttpTransportTest {
+
+    @Test
+    fun `gets JSON from configured public host without credentials or request body`() =
+        runBlocking {
+            var capturedRequest: HttpRequestData? = null
+            val client = HttpClient(
+                MockEngine { request ->
+                    capturedRequest = request
+                    respond(
+                        content = """{"payload":{"hotelId":"hotel-1"}}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(
+                            HttpHeaders.ContentType,
+                            ContentType.Application.Json.toString(),
+                        ),
+                    )
+                },
+            ) {
+                install(HttpTimeout)
+            }
+
+            val response = transport(client).getJson(
+                path = "/api/v1/hotels/hotel-1",
+                userLanguage = "RU",
+            )
+
+            assertEquals(200, response.statusCode)
+            assertEquals(HttpMethod.Get, capturedRequest?.method)
+            assertEquals(
+                "https://public-hotels.test/api/v1/hotels/hotel-1",
+                capturedRequest?.url.toString(),
+            )
+            assertEquals(
+                ContentType.Application.Json.toString(),
+                capturedRequest?.headers?.get(HttpHeaders.Accept),
+            )
+            assertEquals("RU", capturedRequest?.headers?.get("X-User-Language"))
+            assertNull(capturedRequest?.headers?.get(HttpHeaders.ContentType))
+            assertNull(capturedRequest?.headers?.get(HttpHeaders.Authorization))
+            assertNull(capturedRequest?.headers?.get(HttpHeaders.Cookie))
+
+            client.close()
+        }
 
     @Test
     fun `posts unchanged JSON to configured public host without authorization`() = runBlocking {
@@ -112,6 +156,11 @@ class PublicHotelsApiHttpTransportTest {
             }
 
             assertEquals(HotelProviderErrorCategory.UNKNOWN, error.category)
+
+            val getError = assertFailsWith<HotelProviderException> {
+                runBlocking { transport.getJson(path) }
+            }
+            assertEquals(HotelProviderErrorCategory.UNKNOWN, getError.category)
         }
         client.close()
     }
@@ -119,6 +168,7 @@ class PublicHotelsApiHttpTransportTest {
     @Test
     fun `maps unsuccessful HTTP statuses to safe provider categories`() {
         val cases = mapOf(
+            HttpStatusCode.NotFound to HotelProviderErrorCategory.NOT_FOUND,
             HttpStatusCode.Unauthorized to HotelProviderErrorCategory.AUTHENTICATION_FAILED,
             HttpStatusCode.Forbidden to HotelProviderErrorCategory.AUTHENTICATION_FAILED,
             HttpStatusCode.RequestTimeout to HotelProviderErrorCategory.TIMEOUT,
@@ -169,6 +219,32 @@ class PublicHotelsApiHttpTransportTest {
 
         val error = assertFailsWith<HotelProviderException> {
             runBlocking { transport.postJson("/api/v1/hotels/search", "{}") }
+        }
+
+        assertEquals(HotelProviderErrorCategory.TIMEOUT, error.category)
+        client.close()
+    }
+
+    @Test
+    fun `applies configured request timeout to GET`() {
+        val client = HttpClient(
+            MockEngine {
+                delay(100)
+                respondOk()
+            },
+        ) {
+            install(HttpTimeout)
+        }
+        val transport = PublicHotelsApiHttpTransport(
+            httpClient = client,
+            publicTarget = HotelsApiTargetConfig.public(
+                baseUrl = "https://public-hotels.test/",
+                timeoutMillis = 10,
+            ),
+        )
+
+        val error = assertFailsWith<HotelProviderException> {
+            runBlocking { transport.getJson("/api/v1/hotels/hotel-1") }
         }
 
         assertEquals(HotelProviderErrorCategory.TIMEOUT, error.category)

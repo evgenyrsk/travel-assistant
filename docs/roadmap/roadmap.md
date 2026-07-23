@@ -9,8 +9,8 @@ Roadmap не является трекером задач, продуктово�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 13 активирован как on-demand details выбранного hotel offer |
-| Последний завершенный этап | Stage 13.3 — opaque offer identity и search-bound selected-offer resolution |
-| Следующий планируемый шаг | Stage 13.4 — hotel details transport adapter через `MockEngine` |
+| Последний завершенный этап | Stage 13.4 — hotel details transport и provider adapter через `MockEngine` |
+| Следующий планируемый шаг | Stage 13.5 — platform-neutral hotel details API |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -63,7 +63,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
 | Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
-| Stage 13 | Активирован | Контракт и mapping details подтверждены; public offer identity изолирована от provider `hotelId`, следующий шаг — transport adapter без runtime wiring. |
+| Stage 13 | Активирован | Details contract, mapping и изолированный transport adapter готовы; следующий шаг — platform-neutral API без REAL wiring. |
 
 ## 2. Правила управления roadmap
 
@@ -780,7 +780,7 @@ Stage 13 активирован отдельной задачей и не мен
 
 ### Stage 13 — Детали выбранного hotel offer
 
-**Статус:** Stage 13.3 завершён; следующий шаг — Stage 13.4.
+**Статус:** Stage 13.4 завершён; следующий шаг — Stage 13.5.
 
 **Цель:** позволить пользователю явно выбрать предложение из сохранённого
 поиска и запросить дополнительные provider-backed facts без N+1-загрузки,
@@ -792,8 +792,8 @@ Stage 13 активирован отдельной задачей и не мен
 | Stage 13.1 | Controlled hotel details contract verification | Завершен; search и details вернули `200`, строковый search `hotelId` принят details path, добавлен sanitized fixture |
 | Stage 13.2 | Provider-neutral details model и mapping | Завершен; bounded domain model, tolerant DTO и fixture-driven typed mapping без HTTP |
 | Stage 13.3 | Opaque offer identity и selected-offer resolution | Завершен; provider candidates не назначают ID, public `providerOfferRef` удалён, resolve ограничен указанным search |
-| Stage 13.4 | Details transport и provider adapter | Следующий; безопасный GET и typed outcomes через `MockEngine`, без public/runtime wiring |
-| Stage 13.5 | Platform-neutral details API | Planned; endpoint по `hotelSearchId + offerId`, OpenAPI остаётся `not_ready` |
+| Stage 13.4 | Details transport и provider adapter | Завершен; safe GET, host/path protection, typed outcomes и mapping через `MockEngine`, без wiring |
+| Stage 13.5 | Platform-neutral details API | Следующий; endpoint по `hotelSearchId + offerId`, OpenAPI остаётся `not_ready` |
 | Stage 13.6 | Opt-in REAL details runtime wiring | Planned; общий Hotels API client lifecycle, `FAKE` остаётся default |
 | Stage 13.7 | Selected hotel details demo flow | Planned; явная кнопка без N+1 и без chat selection commands |
 | Stage 14.0 | Working hotel MVP closure | Planned; полные gates и один разрешённый REAL browser smoke без retry |
@@ -829,6 +829,13 @@ process-local opaque IDs, не содержащие provider `hotelId`. Публ
 разрешается только по паре `hotelSearchId + offerId`; unknown search и unknown
 offer остаются разными typed outcomes. Details transport и runtime вызов ещё
 не подключены.
+
+Stage 13.4 добавил safe JSON GET в существующий public Hotels API transport и
+application-owned `HotelDetailsProviderBoundary`. Adapter кодирует opaque
+provider reference как один path segment, проверяет identity ответа и
+возвращает `Loaded`, `NotFound`, `ResponseRejected` или
+`ProviderUnavailable`. Все проверки выполнены через `MockEngine`;
+`Application.kt`, routes и runtime composition не изменены.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

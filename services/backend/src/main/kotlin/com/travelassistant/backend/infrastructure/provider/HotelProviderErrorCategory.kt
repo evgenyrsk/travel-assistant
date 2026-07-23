@@ -1,6 +1,7 @@
 package com.travelassistant.backend.infrastructure.provider
 
 enum class HotelProviderErrorCategory {
+    NOT_FOUND,
     UNAVAILABLE,
     TIMEOUT,
     RATE_LIMITED,

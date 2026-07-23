@@ -8,6 +8,7 @@ class HotelProviderErrorCategoryTest {
     @Test
     fun containsAllExpectedCategories() {
         val expected = setOf(
+            HotelProviderErrorCategory.NOT_FOUND,
             HotelProviderErrorCategory.UNAVAILABLE,
             HotelProviderErrorCategory.TIMEOUT,
             HotelProviderErrorCategory.RATE_LIMITED,
@@ -22,6 +23,6 @@ class HotelProviderErrorCategoryTest {
 
     @Test
     fun categoryCountIsStable() {
-        assertEquals(7, HotelProviderErrorCategory.entries.size)
+        assertEquals(8, HotelProviderErrorCategory.entries.size)
     }
 }

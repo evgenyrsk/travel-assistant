@@ -63,6 +63,11 @@ internal class RealHotelOfferProviderAdapter(
         exception: HotelProviderException,
     ): HotelOfferProviderResult =
         when (exception.category) {
+            HotelProviderErrorCategory.NOT_FOUND ->
+                HotelOfferProviderResult.ResponseRejected(
+                    HotelOfferProviderResult.ResponseRejectionReason.INVALID_PAYLOAD,
+                )
+
             HotelProviderErrorCategory.INVALID_RESPONSE ->
                 HotelOfferProviderResult.ResponseRejected(
                     HotelOfferProviderResult.ResponseRejectionReason.INVALID_PAYLOAD,

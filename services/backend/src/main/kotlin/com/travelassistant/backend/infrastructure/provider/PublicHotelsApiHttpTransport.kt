@@ -6,9 +6,11 @@ import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.accept
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -27,7 +29,7 @@ internal class PublicHotelsApiHttpTransport(
         userLanguage: String? = null,
     ): HotelsApiHttpResponse {
         val requestUrl = resolveRequestUrl(path)
-        val response = try {
+        return execute {
             httpClient.post(requestUrl) {
                 expectSuccess = false
                 timeout {
@@ -38,6 +40,31 @@ internal class PublicHotelsApiHttpTransport(
                 userLanguage?.let { header(USER_LANGUAGE_HEADER, it) }
                 setBody(body)
             }
+        }
+    }
+
+    suspend fun getJson(
+        path: String,
+        userLanguage: String? = null,
+    ): HotelsApiHttpResponse {
+        val requestUrl = resolveRequestUrl(path)
+        return execute {
+            httpClient.get(requestUrl) {
+                expectSuccess = false
+                timeout {
+                    requestTimeoutMillis = publicTarget.timeoutMillis
+                }
+                accept(ContentType.Application.Json)
+                userLanguage?.let { header(USER_LANGUAGE_HEADER, it) }
+            }
+        }
+    }
+
+    private suspend fun execute(
+        request: suspend () -> HttpResponse,
+    ): HotelsApiHttpResponse {
+        val response = try {
+            request()
         } catch (exception: HttpRequestTimeoutException) {
             throw providerException(
                 category = HotelProviderErrorCategory.TIMEOUT,
@@ -104,6 +131,10 @@ internal class PublicHotelsApiHttpTransport(
 
     private fun providerExceptionFor(statusCode: Int): HotelProviderException =
         when (statusCode) {
+            404 -> providerException(
+                HotelProviderErrorCategory.NOT_FOUND,
+                "Hotels API resource was not found",
+            )
             401, 403 -> providerException(
                 HotelProviderErrorCategory.AUTHENTICATION_FAILED,
                 "Hotels API rejected request authentication",

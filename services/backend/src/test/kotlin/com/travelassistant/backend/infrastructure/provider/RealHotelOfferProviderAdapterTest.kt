@@ -157,6 +157,19 @@ class RealHotelOfferProviderAdapterTest {
             ),
             invalidResponse,
         )
+
+        val notFound = adapter {
+            throw HotelProviderException(
+                HotelProviderErrorCategory.NOT_FOUND,
+                "provider-sensitive-not-found",
+            )
+        }.search(criteria())
+        assertEquals(
+            HotelOfferProviderResult.ResponseRejected(
+                HotelOfferProviderResult.ResponseRejectionReason.INVALID_PAYLOAD,
+            ),
+            notFound,
+        )
     }
 
     @Test
