@@ -96,10 +96,14 @@ HOTELS_API_USER_LANGUAGE=RU
   предыдущий process-local search остаётся доступен.
 - Один provider request получает пул до 20 offers; demo shell показывает до
   пяти уже ранжированных предложений.
+- Offer может содержать первый безопасный HTTPS `imageUrl` из search response;
+  отсутствие изображения не отклоняет offer и не запускает details lookup.
 - `completed_no_offers` отличается от provider failure и может содержать один
   безопасный `refinementSuggestion` без автоматического retry.
 - Details загружаются только для явно выбранного offer. Массовой N+1-загрузки
   нет.
+- Description sections проходят fail-closed allowlist; certification,
+  registry, owner и contact data не входят в публичный details response.
 - Неизвестные rating, amenities, taxes/fees и другие optional facts не
   заменяются нулевыми или выдуманными значениями.
 - Provider DTO, raw response, internal exceptions, secrets и provider IDs не

@@ -1,15 +1,19 @@
+export const OFFER_RANKING_EXPLANATION =
+  "Сначала показаны доступные варианты с известным более высоким рейтингом; " +
+  "при равном рейтинге — с меньшей общей ценой.";
+
 export function toOfferViewModel(offer) {
   return {
     id: offer.offerId,
     name: offer.hotelName,
     location: [offer.location?.city, offer.location?.country].filter(Boolean).join(", "),
+    imageUrl: safeImageUrl(offer.imageUrl),
     price: formatPrice(offer.price),
     rating: formatRating(offer.rating),
     starRating: formatStarRating(offer.starRating),
     freeCancellation: formatFreeCancellation(offer.freeCancellationUntil),
     availability: availabilityLabel(offer.availability),
     availabilityTone: offer.availability ?? "unknown",
-    matchSummary: offer.matchSummary ?? "Причина ранжирования не указана.",
   };
 }
 
@@ -18,33 +22,66 @@ export function renderOfferCardMarkup(offer) {
   const optionalFacts = [view.starRating, view.freeCancellation].filter(Boolean);
   const optionalFactsMarkup = optionalFacts.length === 0
     ? ""
-    : `<p class="offer-card__details">${optionalFacts.map(escapeHtml).join(" · ")}</p>`;
+    : `<div class="offer-card__tags">${optionalFacts
+      .map((fact) => `<span class="offer-card__tag">${escapeHtml(fact)}</span>`)
+      .join("")}</div>`;
+  const hasImage = Boolean(view.imageUrl);
+  const imageMarkup = hasImage
+    ? `<img
+        class="offer-card__image"
+        data-role="offer-image"
+        src="${escapeHtml(view.imageUrl)}"
+        alt="Фото отеля ${escapeHtml(view.name)}"
+        loading="lazy"
+        decoding="async"
+        referrerpolicy="no-referrer"
+      >`
+    : "";
 
   return `
-    <div class="offer-card__header">
-      <div>
-        <p class="offer-card__location">${escapeHtml(view.location)}</p>
-        <h3>${escapeHtml(view.name)}</h3>
+    <div
+      class="offer-card__media"
+      data-role="offer-media"
+      data-state="${hasImage ? "image" : "placeholder"}"
+    >
+      ${imageMarkup}
+      <div
+        class="offer-card__placeholder"
+        data-role="offer-image-placeholder"
+        aria-hidden="true"
+        ${hasImage ? "hidden" : ""}
+      >
+        <span class="offer-card__placeholder-icon" aria-hidden="true">✦</span>
+        <span>Фото пока нет</span>
       </div>
-      <span class="availability availability--${escapeHtml(view.availabilityTone)}">
-        ${escapeHtml(view.availability)}
-      </span>
     </div>
-    <div class="offer-card__facts">
-      <strong>${escapeHtml(view.price)}</strong>
-      <span>${escapeHtml(view.rating)}</span>
-    </div>
-    ${optionalFactsMarkup}
-    <p class="offer-card__summary">${escapeHtml(view.matchSummary)}</p>
-    <div class="offer-card__actions">
-      <button
-        class="offer-card__details-button"
-        type="button"
-        data-action="load-details"
-        data-offer-id="${escapeHtml(view.id)}"
-        aria-expanded="false"
-        aria-label="Показать подробности: ${escapeHtml(view.name)}"
-      >Подробнее</button>
+    <div class="offer-card__content">
+      <div class="offer-card__header">
+        <div>
+          <p class="offer-card__location">${escapeHtml(view.location)}</p>
+          <h3>${escapeHtml(view.name)}</h3>
+        </div>
+      </div>
+      <div class="offer-card__facts">
+        <strong>${escapeHtml(view.price)}</strong>
+        <span class="offer-card__rating">${escapeHtml(view.rating)}</span>
+      </div>
+      <div class="offer-card__tags">
+        <span class="availability availability--${escapeHtml(view.availabilityTone)}">
+          ${escapeHtml(view.availability)}
+        </span>
+      </div>
+      ${optionalFactsMarkup}
+      <div class="offer-card__actions">
+        <button
+          class="offer-card__details-button"
+          type="button"
+          data-action="load-details"
+          data-offer-id="${escapeHtml(view.id)}"
+          aria-expanded="false"
+          aria-label="Показать подробности: ${escapeHtml(view.name)}"
+        >Подробнее</button>
+      </div>
     </div>
     <section
       class="hotel-details"
@@ -101,7 +138,7 @@ function formatRating(rating) {
 }
 
 function formatStarRating(starRating) {
-  if (!Number.isInteger(starRating) || starRating < 0 || starRating > 5) {
+  if (!Number.isInteger(starRating) || starRating < 1 || starRating > 5) {
     return null;
   }
 
@@ -178,6 +215,28 @@ function availabilityLabel(availability) {
       return "Мало мест";
     default:
       return "Доступность неизвестна";
+  }
+}
+
+function safeImageUrl(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
+  }
+
+  try {
+    const url = new URL(value.trim());
+    if (
+      url.protocol !== "https:" ||
+      !url.hostname ||
+      url.username ||
+      url.password ||
+      url.hash
+    ) {
+      return null;
+    }
+    return value.trim();
+  } catch {
+    return null;
   }
 }
 

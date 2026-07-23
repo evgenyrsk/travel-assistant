@@ -18,14 +18,20 @@ web-клиент: его UI, SDK и lifecycle будет определять о
 8. детали загружаются только после явного выбора кнопки «Подробнее» для одной
    карточки.
 
+Карточки компактны и адаптивны: горизонтальны на desktop и вертикальны на
+mobile. Общее правило ранжирования показано один раз над списком, а
+повторяющийся `matchSummary` не выводится в каждой карточке.
+
 История диалога хранится только в памяти текущей страницы. OpenRouter и Hotels API
 не вызываются из браузера: demo shell обращается только к Travel Assistant
 backend через `/api/v1/**`.
 
 Интерфейс адаптируется к desktop и mobile, сохраняет заметный keyboard focus и
 учитывает `prefers-reduced-motion`. Внешние web fonts и frontend dependencies
-не используются. Provider-backed изображения загружаются только по HTTPS после
-явного запроса деталей выбранного отеля.
+не используются. Первое изображение offer может загружаться непосредственно из
+search response только по HTTPS, с `referrerpolicy=no-referrer`; при unknown или
+ошибке загрузки показывается нейтральный placeholder. Дополнительные изображения
+появляются только после явного запроса details выбранного отеля.
 
 Stage 10.1 добавил ограниченную PWA foundation: web app manifest, локальные
 installability icons, standalone/mobile metadata и safe-area layout. Клиент
@@ -85,7 +91,7 @@ unknown fields отклоняются безопасным `VALIDATION_ERROR`. �
 `POST /api/v1/hotel-searches` остается endpoint диагностической страницы и не
 входит в основной клиентский контракт.
 
-Ответ offers может содержать необязательные `starRating`,
+Ответ offers может содержать необязательные `imageUrl`, `starRating`,
 `freeCancellationUntil` и `appliedPreferences`. Отсутствие этих полей означает
 неизвестный или неактивный факт, а не нулевое значение. Demo shell только
 отображает эти данные и не повторяет provider filtering или ranking.
@@ -118,8 +124,8 @@ npm run build
 
 Автоматические тесты проверяют API paths, продолжение session, безопасные
 clarification/boundary outcomes, ограничение presentation-слоя пятью уже
-ранжированными предложениями и on-demand загрузку деталей только выбранной
-карточки.
+ранжированными предложениями, безопасный image fallback, компактный responsive
+layout и on-demand загрузку деталей только выбранной карточки.
 
 Frontend не реализует ranking, pagination, booking, payment, durable transcript
 storage или прямые provider calls.

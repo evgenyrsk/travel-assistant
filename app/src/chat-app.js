@@ -2,6 +2,7 @@ import { createApiClient } from "./api-client.js";
 import { createChatFlow } from "./chat-flow.js";
 import {
   formatAppliedPreferences,
+  OFFER_RANKING_EXPLANATION,
   renderOfferCardMarkup,
   toErrorMessage,
 } from "./offer-view.js";
@@ -98,8 +99,8 @@ function renderOffers({ offers, totalCount, appliedPreferences }) {
     ? `Показаны ${offers.length} лучших предложений из ${totalCount}.`
     : `Показаны все предложения: ${offers.length}.`;
   elements.resultsSummary.textContent = preferenceSummary
-    ? `${countSummary} Применённые условия: ${preferenceSummary}.`
-    : countSummary;
+    ? `${countSummary} Применённые условия: ${preferenceSummary}. ${OFFER_RANKING_EXPLANATION}`
+    : `${countSummary} ${OFFER_RANKING_EXPLANATION}`;
 
   offers.forEach((offer, index) => {
     const article = document.createElement("article");
@@ -110,8 +111,25 @@ function renderOffers({ offers, totalCount, appliedPreferences }) {
     const detailsId = `hotel-details-${index + 1}`;
     details.id = detailsId;
     button.setAttribute("aria-controls", detailsId);
+    const image = article.querySelector("[data-role='offer-image']");
+    image?.addEventListener("error", () => showOfferImageFallback(article), { once: true });
     elements.results.append(article);
   });
+}
+
+function showOfferImageFallback(card) {
+  const media = card.querySelector("[data-role='offer-media']");
+  const image = card.querySelector("[data-role='offer-image']");
+  const placeholder = card.querySelector("[data-role='offer-image-placeholder']");
+  if (!media || !placeholder) {
+    return;
+  }
+
+  if (image) {
+    image.hidden = true;
+  }
+  placeholder.hidden = false;
+  media.dataset.state = "placeholder";
 }
 
 async function toggleHotelDetails(button) {

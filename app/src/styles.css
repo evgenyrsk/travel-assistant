@@ -585,6 +585,7 @@ button:disabled {
   margin: -10px 0 17px;
   color: var(--text-muted);
   font-size: 12px;
+  line-height: 1.55;
 }
 
 .empty-state {
@@ -654,7 +655,10 @@ button:disabled {
 
 .offer-card {
   position: relative;
-  padding: 20px;
+  display: grid;
+  grid-template-columns: minmax(148px, 34%) minmax(0, 1fr);
+  min-height: 178px;
+  overflow: visible;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -671,29 +675,90 @@ button:disabled {
 
 .offer-card::before {
   position: absolute;
-  top: 19px;
-  left: 19px;
+  z-index: 2;
+  top: 11px;
+  left: 11px;
   display: grid;
   width: 30px;
   height: 30px;
   place-items: center;
-  color: var(--brand-strong);
-  background: var(--brand-soft);
-  border-radius: 10px;
+  color: #ffffff;
+  background: rgba(9, 72, 62, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  box-shadow: 0 5px 14px rgba(9, 72, 62, 0.2);
+  backdrop-filter: blur(8px);
   content: counter(offer-rank);
   font-size: 12px;
   font-weight: 800;
 }
 
+.offer-card__media {
+  position: relative;
+  min-width: 0;
+  min-height: 178px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #e7efeb, #dfe8e4);
+  border-radius: 17px 0 0 17px;
+}
+
+.offer-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 178px;
+  object-fit: cover;
+}
+
+.offer-card__placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 178px;
+  place-content: center;
+  place-items: center;
+  gap: 8px;
+  padding: 20px;
+  color: #6c7a75;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.78), transparent 4rem),
+    linear-gradient(145deg, #eef3f1, #dfe8e4);
+  font-size: 11px;
+  font-weight: 720;
+  text-align: center;
+}
+
+.offer-card__placeholder-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: #64857a;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(183, 200, 193, 0.9);
+  border-radius: 13px;
+  font-size: 16px;
+}
+
+.offer-card__content {
+  display: flex;
+  min-width: 0;
+  padding: 17px 18px 16px;
+  flex-direction: column;
+}
+
 .offer-card__header {
-  padding-left: 43px;
+  display: block;
 }
 
 .offer-card__location {
-  margin-bottom: 5px;
+  margin-bottom: 4px;
+  overflow: hidden;
   font-size: 11px;
   font-weight: 720;
   letter-spacing: 0.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .availability {
@@ -721,9 +786,9 @@ button:disabled {
 
 .offer-card__facts {
   align-items: center;
-  margin-top: 17px;
-  padding-top: 14px;
-  border-top: 1px solid #e8eeeb;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .offer-card__facts strong {
@@ -733,30 +798,40 @@ button:disabled {
 }
 
 .offer-card__facts span {
-  color: #46554f;
-  font-size: 13px;
+  color: #33453f;
+  font-size: 12px;
   font-weight: 700;
 }
 
-.offer-card__details {
-  margin: 10px 0 0;
-  color: #315f52;
-  font-size: 12px;
-  font-weight: 720;
-  line-height: 1.45;
+.offer-card__rating {
+  padding: 4px 8px;
+  background: #f1f5f3;
+  border-radius: 999px;
 }
 
-.offer-card__summary {
-  margin: 13px 0 0;
-  color: #4d5b56;
-  font-size: 13px;
-  line-height: 1.55;
+.offer-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.offer-card__tag {
+  padding: 5px 8px;
+  color: #315f52;
+  background: var(--surface-brand);
+  border: 1px solid #d2e4dc;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 720;
+  line-height: 1.25;
 }
 
 .offer-card__actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 15px;
+  margin-top: auto;
+  padding-top: 12px;
 }
 
 .offer-card__details-button {
@@ -775,7 +850,8 @@ button:disabled {
 }
 
 .hotel-details {
-  margin-top: 15px;
+  grid-column: 1 / -1;
+  margin: 0 16px 16px;
   padding: 18px;
   color: #3f4e49;
   background: linear-gradient(145deg, #f7faf8, #f0f6f3);
@@ -1090,6 +1166,25 @@ footer {
     min-height: 430px;
   }
 
+  .offer-card {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-card__media {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+    border-radius: 17px 17px 0 0;
+  }
+
+  .offer-card__image,
+  .offer-card__placeholder {
+    min-height: 0;
+  }
+
+  .offer-card__content {
+    padding: 17px 17px 15px;
+  }
+
   .offer-card__actions {
     justify-content: stretch;
   }
@@ -1099,6 +1194,7 @@ footer {
   }
 
   .hotel-details {
+    margin: 0 12px 12px;
     padding: 15px;
   }
 

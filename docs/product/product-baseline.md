@@ -31,8 +31,10 @@
 - Stage 12 - завершил демонстрационный MVP итеративного уточнения hotel search; подробный статус находится только в roadmap.
 - Stage 13 - завершил on-demand детали явно выбранного hotel offer без
   раскрытия provider identity и N+1-загрузки.
-- Stage 14.0 - подтвердил рабочий `demo-ready MVP` полными gates и одним REAL
-  browser smoke; production readiness не заявлена.
+- Stage 14.0 - подтвердил рабочий `demo-ready MVP`; Stage 14.1a и Stage 14.1b
+  усилили безопасность details, сделали confirmation понятным и добавили
+  optional image contract. Responsive redesign Stage 14.1c прошёл локальные
+  gates, но остаётся открытым до решения по отсутствующим live image facts.
 
 Stage 7 сформировал process-local hotel-only основу. Stage 8 добавил явное
 подтверждение до поиска. Stage 9 добавил opt-in adapters для Hotels API и
@@ -67,6 +69,14 @@ provider `hotelId` остаётся внутри backend. Stage 14.0 подтв�
 сценарий от естественного запроса и confirmation до 20 provider offers, пяти
 карточек demo shell и одного details request. Функциональное расширение MVP на
 этом остановлено до отдельного решения.
+
+Stage 14.1a и Stage 14.1b сохранили этот функциональный scope. Confirmation показывает
+критерии естественным русским текстом, служебные description sections
+фильтруются fail-closed, а карточка может показать первый безопасный HTTPS
+image из уже полученного search response. Кандидат Stage 14.1c объясняет
+действующее ранжирование один раз над списком и не повторяет одинаковый
+`matchSummary` в каждой карточке. Единственный REAL smoke не вернул image facts,
+поэтому live image presentation пока не считается подтверждённой.
 
 ## 3. Границы MVP v1
 
@@ -150,6 +160,9 @@ AI важен не как источник фактов, а как слой по
    `hotelSearchId`; предыдущий поиск остается доступен в process-local storage.
 10. Пользователь может явно открыть details одной карточки; это создаёт один
     backend request и не загружает сведения остальных offers.
+11. Demo shell может показать первое безопасное изображение из search response;
+    отсутствие или ошибка изображения не блокирует предложение и отображается
+    нейтральным placeholder.
 
 Первичный provider-backed поиск получает один ограниченный пул до 20 уникальных
 кандидатов. Ассистентская подача 2-5 вариантов является отдельной задачей
@@ -195,6 +208,11 @@ hardening остается отдельным будущим решением.
 - Public `offerId` не должен содержать provider `hotelId`. Details разрешаются
   только по паре opaque `hotelSearchId + offerId` и загружаются после явного
   пользовательского выбора.
+- Публичные details содержат только разрешённые пользовательские описания:
+  certification, registry, owner, contacts и похожие служебные данные
+  отбрасываются fail-closed.
+- Публичный `imageUrl`, если присутствует, должен быть безопасным HTTPS URL без
+  credentials; browser использует `no-referrer`, image proxy в MVP отсутствует.
 - Локальная demo shell остается online-only и не обещает resume или
   cross-device sync; transcript и provider results не становятся durable data.
 

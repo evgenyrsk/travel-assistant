@@ -144,3 +144,22 @@ test("chat page exposes bounded accessibility semantics", async () => {
   assert.match(styles, /button\s*\{[\s\S]*?min-height:\s*48px/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
 });
+
+test("hotel cards keep responsive image fallback and focus-safe details behavior", async () => {
+  const [chatApp, offerView, styles] = await Promise.all([
+    readFile(new URL("chat-app.js", sourceUrl), "utf8"),
+    readFile(new URL("offer-view.js", sourceUrl), "utf8"),
+    readFile(new URL("styles.css", sourceUrl), "utf8"),
+  ]);
+
+  assert.match(chatApp, /addEventListener\("error",[\s\S]*showOfferImageFallback/);
+  assert.match(chatApp, /placeholder\.hidden = false/);
+  assert.match(chatApp, /details\.focus\(\)/);
+  assert.doesNotMatch(offerView, /offer-card__summary/);
+  assert.match(styles, /\.offer-card\s*\{[\s\S]*grid-template-columns:/);
+  assert.match(
+    styles,
+    /@media \(max-width: 640px\)[\s\S]*\.offer-card\s*\{\s*grid-template-columns:\s*1fr;/,
+  );
+  assert.match(styles, /\.offer-card__details-button\s*\{[\s\S]*min-height:\s*44px/);
+});

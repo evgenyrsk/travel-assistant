@@ -864,15 +864,16 @@ px. Stage 13 завершён без rates, deeplink, shortlist, comparison ил
 
 ### Stage 14 — Закрытие рабочего hotel-only MVP
 
-**Статус:** Stage 14.0 завершён; Stage 14.1 активирован отдельной задачей,
-Stage 14.1a и Stage 14.1b завершены, следующий шаг — Stage 14.1c.
+**Статус:** Stage 14.0 завершён; Stage 14.1a и Stage 14.1b завершены. Реализация
+и локальные gates Stage 14.1c готовы, но этап остаётся открытым: единственный
+разрешённый REAL smoke не вернул `imageUrl` ни для одного из 20 offers.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
 | Stage 14.0 | Закрытие рабочего hotel-only MVP | Завершён; зафиксирован `demo-ready MVP` |
 | Stage 14.1a | Безопасность details и понятное confirmation | Завершён; служебные sections фильтруются fail-closed, confirmation переведён на естественный русский текст, внутренний offer получает первый безопасный image URL |
 | Stage 14.1b | Optional image в публичном offer contract | Завершён; `imageUrl` optional, только HTTPS, без provider identity или N+1; OpenAPI остаётся `not_ready` |
-| Stage 14.1c | Компактные карточки результатов | Следующий шаг; demo-only responsive redesign без product scope expansion |
+| Stage 14.1c | Компактные карточки результатов | Открыт; локальный redesign и fallback проверены, live image branch не подтверждён из-за отсутствия image facts в единственном REAL response |
 
 Stage 14.0 повторно выполнил backend, frontend, launcher и OpenAPI conformance
 gates, проверил secret/provider-ID boundaries и провёл один разрешённый REAL
@@ -899,7 +900,18 @@ preferences обычным русским текстом; поиск по-пре
 раздельными Stage 14.1b и Stage 14.1c. Stage 14.1b добавил optional `imageUrl`
 в provider-neutral offers response и OpenAPI без generated clients, details
 lookup или N+1. Subset manifest сохранил `not_ready` и
-`readinessClaim=false`; responsive demo-redesign остаётся Stage 14.1c.
+`readinessClaim=false`.
+
+Кандидат Stage 14.1c переработал только локальную demo shell: на desktop карточки имеют
+горизонтальный layout, на mobile — вертикальный; первый optional image
+загружается с `no-referrer`, а unknown или ошибочный URL заменяется нейтральным
+CSS-placeholder. Повторяющийся `matchSummary` скрыт в presentation-слое, при
+этом API field и backend ranking не изменены. Правило ранжирования отображается
+один раз над списком. On-demand details, keyboard focus и отсутствие N+1
+сохранены. Локальные browser/gate проверки прошли. Единственный REAL smoke
+успешно выполнил confirmation, один search и один details request, но public
+offers response не содержал `imageUrl`, поэтому live image branch остался
+неподтверждённым. Автоматический retry не выполнялся.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

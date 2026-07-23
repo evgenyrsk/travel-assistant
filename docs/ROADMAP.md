@@ -130,6 +130,8 @@
   публичной границе.
 - Выполнить полные quality gates и один контролируемый REAL browser smoke без
   автоматического retry.
+- После smoke стабилизировать безопасность details, текст confirmation и
+  responsive presentation карточек без изменения продуктового scope.
 - Зафиксировать статус `demo-ready MVP` без заявления production readiness.
 - Остановить функциональное расширение до отдельного нового product/roadmap
   решения.

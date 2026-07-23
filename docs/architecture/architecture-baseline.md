@@ -17,7 +17,8 @@
 
 ## 2. Текущий статус архитектуры
 
-- Stage 0–14.0 завершены в границах рабочего `demo-ready MVP`; подробные
+- Stage 0–14.0 завершены в границах рабочего `demo-ready MVP`; Stage 14.1a и
+  Stage 14.1b завершены, Stage 14.1c остаётся открытым; подробные
   статусы находятся в `docs/roadmap/roadmap.md`.
 - Backend использует Kotlin + Ktor и сохраняет разделение domain, application, infrastructure и API слоев.
 - `LlmClient` и `HotelOfferProviderBoundary` реализованы как application-owned асинхронные границы.
@@ -54,6 +55,11 @@
 - Stage 14.0 подтвердил полный flow одним REAL browser smoke и остановил
   функциональное расширение MVP. Это не подтверждает production readiness,
   официальный S2S SLA или generated-client readiness.
+- Stage 14.1a и Stage 14.1b добавили fail-closed фильтрацию description
+  sections, общую проверку безопасных HTTPS image URL и optional
+  provider-neutral image contract без details lookup или N+1. Кандидат Stage
+  14.1c ограничен responsive presentation и fallback; live provider image
+  branch пока не подтверждён.
 
 Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
 
@@ -150,6 +156,11 @@ transcript, API responses или provider facts. Будущие продукто
   не содержит provider reference. Backend разрешает offer только внутри
   указанного search, а provider `hotelId` передаётся исключительно details
   adapter.
+- Provider-content safety boundary: description sections проходят allowlist и
+  content-фильтрацию до application/public model; служебные certification,
+  registry, owner и contact данные не доходят до API. Optional offer image
+  допускается только как HTTPS URL без credentials и не влияет на принятие
+  offer.
 - Cross-origin boundary: CORS по умолчанию не включён. Будущая web allowlist
   должна содержать точные origin со scheme/host/port, без wildcard и
   credentials, и требует отдельного этапа активации.
