@@ -9,8 +9,8 @@ Roadmap не является трекером задач, продуктово�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 13 активирован как on-demand details выбранного hotel offer |
-| Последний завершенный этап | Stage 13.5 — platform-neutral hotel details API |
-| Следующий планируемый шаг | Stage 13.6 — opt-in REAL hotel details runtime wiring |
+| Последний завершенный этап | Stage 13.6 — opt-in REAL hotel details runtime wiring |
+| Следующий планируемый шаг | Stage 13.7 — selected hotel details demo flow |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -780,7 +780,7 @@ Stage 13 активирован отдельной задачей и не мен
 
 ### Stage 13 — Детали выбранного hotel offer
 
-**Статус:** Stage 13.5 завершён; следующий шаг — Stage 13.6.
+**Статус:** Stage 13.6 завершён; следующий шаг — Stage 13.7.
 
 **Цель:** позволить пользователю явно выбрать предложение из сохранённого
 поиска и запросить дополнительные provider-backed facts без N+1-загрузки,
@@ -794,8 +794,8 @@ Stage 13 активирован отдельной задачей и не мен
 | Stage 13.3 | Opaque offer identity и selected-offer resolution | Завершен; provider candidates не назначают ID, public `providerOfferRef` удалён, resolve ограничен указанным search |
 | Stage 13.4 | Details transport и provider adapter | Завершен; safe GET, host/path protection, typed outcomes и mapping через `MockEngine`, без wiring |
 | Stage 13.5 | Platform-neutral details API | Завершен; typed details endpoint, safe errors и четвёртый `platform_client_candidate`, OpenAPI остаётся `not_ready` |
-| Stage 13.6 | Opt-in REAL details runtime wiring | Следующий; общий Hotels API client lifecycle, `FAKE` остаётся default |
-| Stage 13.7 | Selected hotel details demo flow | Planned; явная кнопка без N+1 и без chat selection commands |
+| Stage 13.6 | Opt-in REAL details runtime wiring | Завершен; search/details используют один runtime и общий Hotels API client, `FAKE` остаётся default |
+| Stage 13.7 | Selected hotel details demo flow | Следующий; явная кнопка без N+1 и без chat selection commands |
 | Stage 14.0 | Working hotel MVP closure | Planned; полные gates и один разрешённый REAL browser smoke без retry |
 
 Stage 13.0 закрыл сортировку и `search-filters-availability` как осознанно
@@ -844,6 +844,12 @@ temporary unavailable получают безопасные typed HTTP outcomes.
 subset manifest согласованы с runtime как четвёртый
 `platform_client_candidate`, но сохраняют `not_ready`; REAL details adapter ещё
 не подключён к runtime.
+
+Stage 13.6 подключил details boundary к общему hotel provider runtime. В режиме
+`REAL` search и details используют один application-owned Hotels API
+`HttpClient`; в режиме `FAKE` доступен детерминированный details provider без
+network calls. Details по-прежнему загружаются только по явному endpoint-вызову
+для выбранного offer; live call и frontend flow не выполнялись.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

@@ -16,8 +16,6 @@ import com.travelassistant.backend.application.assistant.InMemoryPendingConfirma
 import com.travelassistant.backend.application.assistant.PendingConfirmationStore
 import com.travelassistant.backend.application.assistant.PlanAssistantLlmDecisionUseCase
 import com.travelassistant.backend.application.hotel.CreateHotelSearchUseCase
-import com.travelassistant.backend.application.hotel.HotelDetailsProviderBoundary
-import com.travelassistant.backend.application.hotel.HotelDetailsProviderResult
 import com.travelassistant.backend.application.hotel.InMemoryHotelSearchStateStore
 import com.travelassistant.backend.application.hotel.LoadSelectedHotelDetailsUseCase
 import com.travelassistant.backend.application.hotel.ResolveSelectedHotelOfferUseCase
@@ -66,7 +64,6 @@ internal fun Application.moduleWithProviderConfigs(
     openRouterHttpClientFactory: () -> HttpClient = ::createProductionOpenRouterHttpClient,
     openRouterDiagnosticObserver: OpenRouterDiagnosticObserver = OpenRouterDiagnosticObserver.NONE,
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
-    hotelDetailsProvider: HotelDetailsProviderBoundary = unavailableHotelDetailsProvider(),
 ) {
     val llmProviderRuntime = LlmProviderFactory.create(
         config = llmProviderConfig,
@@ -87,7 +84,6 @@ internal fun Application.moduleWithProviderConfigs(
             hotelConstraintsStore = hotelConstraintsStore,
             clock = clock,
             realHotelHttpClientFactory = realHotelHttpClientFactory,
-            hotelDetailsProvider = hotelDetailsProvider,
         )
     } catch (error: Throwable) {
         llmProviderRuntime.close()
@@ -103,7 +99,6 @@ internal fun Application.moduleWithAssistantLlm(
     hotelConstraintsStore: AssistantHotelConstraintsStore = InMemoryAssistantHotelConstraintsStore(),
     clock: Clock = Clock.systemUTC(),
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
-    hotelDetailsProvider: HotelDetailsProviderBoundary = unavailableHotelDetailsProvider(),
 ) {
     val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
     val hotelProviderRuntime = HotelOfferProviderFactory.create(
@@ -152,17 +147,10 @@ internal fun Application.moduleWithAssistantLlm(
         hotelSearchBoundary = hotelSearchBoundary,
         loadSelectedHotelDetails = LoadSelectedHotelDetailsUseCase(
             resolveSelectedOffer = ResolveSelectedHotelOfferUseCase(hotelSearchStateStore),
-            hotelDetailsProvider = hotelDetailsProvider,
+            hotelDetailsProvider = hotelProviderRuntime.detailsProvider,
         ),
     )
 }
-
-private fun unavailableHotelDetailsProvider(): HotelDetailsProviderBoundary =
-    HotelDetailsProviderBoundary {
-        HotelDetailsProviderResult.ProviderUnavailable(
-            HotelDetailsProviderResult.UnavailableReason.UNAVAILABLE,
-        )
-    }
 
 private fun defaultAssistantLlmClient(): LlmClient =
     FakeLlmClient(

@@ -13,6 +13,7 @@ object HotelOfferProviderFactory {
         when (config.mode) {
             HotelProviderMode.FAKE -> HotelOfferProviderRuntime(
                 provider = FakeHotelOfferProvider(),
+                detailsProvider = FakeHotelDetailsProvider(),
             )
 
             HotelProviderMode.REAL -> createRealRuntime(
@@ -40,6 +41,10 @@ object HotelOfferProviderFactory {
         return HotelOfferProviderRuntime(
             provider = RealHotelOfferProviderAdapter(
                 search = orchestrator::search,
+                language = language,
+            ),
+            detailsProvider = HotelsApiHotelDetailsProviderAdapter(
+                transport = transport,
                 language = language,
             ),
             closeAction = httpClient::close,
