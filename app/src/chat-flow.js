@@ -8,6 +8,7 @@ export function createChatFlow({
   onOffers = () => {},
 }) {
   let sessionId;
+  let activeHotelSearchId;
 
   return {
     async submit(rawMessage) {
@@ -41,6 +42,14 @@ export function createChatFlow({
     getSessionId() {
       return sessionId;
     },
+
+    async loadOfferDetails(offerId) {
+      if (!activeHotelSearchId || !offerId) {
+        throw new Error("Не удалось определить выбранное предложение.");
+      }
+
+      return api.getHotelOfferDetails(activeHotelSearchId, offerId);
+    },
   };
 
   async function handleNextAction(response) {
@@ -69,6 +78,7 @@ export function createChatFlow({
     const allOffers = Array.isArray(result?.offers) ? result.offers : [];
     const offers = allOffers.slice(0, MAX_PRESENTED_OFFERS);
     const refinementSuggestion = toRefinementSuggestion(result?.refinementSuggestion);
+    activeHotelSearchId = hotelSearchId;
 
     onOffers({
       offers,

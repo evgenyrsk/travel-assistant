@@ -14,15 +14,18 @@ web-клиент: его UI, SDK и lifecycle будет определять о
 5. при `show_hotel_results` frontend загружает предложения по `hotelSearchId`;
 6. область результатов показывает первые пять предложений в порядке backend-ранжирования;
 7. активные условия поиска и доступные факты о звёздах и бесплатной отмене
-   отображаются без подстановки неизвестных значений.
+   отображаются без подстановки неизвестных значений;
+8. детали загружаются только после явного выбора кнопки «Подробнее» для одной
+   карточки.
 
 История диалога хранится только в памяти текущей страницы. OpenRouter и Hotels API
 не вызываются из браузера: demo shell обращается только к Travel Assistant
 backend через `/api/v1/**`.
 
 Интерфейс адаптируется к desktop и mobile, сохраняет заметный keyboard focus и
-учитывает `prefers-reduced-motion`. Внешние web fonts, изображения и frontend
-dependencies не используются.
+учитывает `prefers-reduced-motion`. Внешние web fonts и frontend dependencies
+не используются. Provider-backed изображения загружаются только по HTTPS после
+явного запроса деталей выбранного отеля.
 
 Stage 10.1 добавил ограниченную PWA foundation: web app manifest, локальные
 installability icons, standalone/mobile metadata и safe-area layout. Клиент
@@ -69,11 +72,12 @@ browser storage или provider contracts. Это позволяет отдел�
 Android и desktop clients переиспользовать `/api/v1/**`, не дублируя
 provider/LLM orchestration и business rules.
 
-Ограниченный продуктовый контракт Stage 10.3 состоит из трёх endpoint:
+Ограниченный продуктовый контракт состоит из четырёх endpoint:
 
 - `POST /api/v1/assistant/sessions`;
 - `POST /api/v1/assistant/sessions/{sessionId}/messages`;
-- `GET /api/v1/hotel-searches/{searchId}/offers`.
+- `GET /api/v1/hotel-searches/{searchId}/offers`;
+- `GET /api/v1/hotel-searches/{searchId}/offers/{offerId}/details`.
 
 `hotelSearchId` присутствует только при `nextAction=show_hotel_results`.
 Assistant message содержит от 1 до 4000 Unicode code points; malformed JSON и
@@ -85,6 +89,12 @@ unknown fields отклоняются безопасным `VALIDATION_ERROR`. �
 `freeCancellationUntil` и `appliedPreferences`. Отсутствие этих полей означает
 неизвестный или неактивный факт, а не нулевое значение. Demo shell только
 отображает эти данные и не повторяет provider filtering или ranking.
+
+`offerId` является opaque идентификатором Travel Assistant. Demo shell не знает
+provider `hotelId`: она передаёт пару `searchId + offerId` в details endpoint и
+показывает только доступные provider-neutral сведения. Другие карточки не
+загружаются автоматически; повторное открытие уже загруженного блока использует
+данные текущей страницы без нового запроса.
 
 При успешном `completed_no_offers` backend может вернуть один
 `refinementSuggestion`. Demo shell показывает его следующей репликой, но не
@@ -107,8 +117,9 @@ npm run build
 ```
 
 Автоматические тесты проверяют API paths, продолжение session, безопасные
-clarification/boundary outcomes и ограничение presentation-слоя пятью уже
-ранжированными предложениями.
+clarification/boundary outcomes, ограничение presentation-слоя пятью уже
+ранжированными предложениями и on-demand загрузку деталей только выбранной
+карточки.
 
 Frontend не реализует ranking, pagination, booking, payment, durable transcript
 storage или прямые provider calls.

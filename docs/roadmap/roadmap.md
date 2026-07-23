@@ -9,8 +9,8 @@ Roadmap не является трекером задач, продуктово�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 13 активирован как on-demand details выбранного hotel offer |
-| Последний завершенный этап | Stage 13.6 — opt-in REAL hotel details runtime wiring |
-| Следующий планируемый шаг | Stage 13.7 — selected hotel details demo flow |
+| Последний завершенный этап | Stage 13.7 — selected hotel details demo flow |
+| Следующий планируемый шаг | Stage 14.0 — working hotel MVP closure |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -63,7 +63,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
 | Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
-| Stage 13 | Активирован | Details contract, mapping и изолированный transport adapter готовы; следующий шаг — platform-neutral API без REAL wiring. |
+| Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
 
 ## 2. Правила управления roadmap
 
@@ -780,7 +780,7 @@ Stage 13 активирован отдельной задачей и не мен
 
 ### Stage 13 — Детали выбранного hotel offer
 
-**Статус:** Stage 13.6 завершён; следующий шаг — Stage 13.7.
+**Статус:** завершён Stage 13.7; следующий шаг — Stage 14.0.
 
 **Цель:** позволить пользователю явно выбрать предложение из сохранённого
 поиска и запросить дополнительные provider-backed facts без N+1-загрузки,
@@ -795,8 +795,8 @@ Stage 13 активирован отдельной задачей и не мен
 | Stage 13.4 | Details transport и provider adapter | Завершен; safe GET, host/path protection, typed outcomes и mapping через `MockEngine`, без wiring |
 | Stage 13.5 | Platform-neutral details API | Завершен; typed details endpoint, safe errors и четвёртый `platform_client_candidate`, OpenAPI остаётся `not_ready` |
 | Stage 13.6 | Opt-in REAL details runtime wiring | Завершен; search/details используют один runtime и общий Hotels API client, `FAKE` остаётся default |
-| Stage 13.7 | Selected hotel details demo flow | Следующий; явная кнопка без N+1 и без chat selection commands |
-| Stage 14.0 | Working hotel MVP closure | Planned; полные gates и один разрешённый REAL browser smoke без retry |
+| Stage 13.7 | Selected hotel details demo flow | Завершен; явная кнопка загружает details выбранного opaque offer без N+1 и chat selection commands |
+| Stage 14.0 | Working hotel MVP closure | Следующий; полные gates и один разрешённый REAL browser smoke без retry |
 
 Stage 13.0 закрыл сортировку и `search-filters-availability` как осознанно
 отложенные возможности текущего MVP. Taxes/fees в `shownPrice` остаются
@@ -850,6 +850,15 @@ Stage 13.6 подключил details boundary к общему hotel provider ru
 `HttpClient`; в режиме `FAKE` доступен детерминированный details provider без
 network calls. Details по-прежнему загружаются только по явному endpoint-вызову
 для выбранного offer; live call и frontend flow не выполнялись.
+
+Stage 13.7 добавил в локальную demo shell явную кнопку «Подробнее». Frontend
+передаёт backend только opaque `hotelSearchId + offerId`, загружает сведения
+одной выбранной карточки и не обращается к Hotels API напрямую. Неизвестные
+поля не отображаются как нули или пустые значения; предусмотрены loading,
+empty и безопасное error-состояния. Повторное раскрытие уже загруженного блока
+не создаёт новый запрос. Browser QA подтвердил focus management, отсутствие
+горизонтального overflow на 320 и 390 CSS px и высоту основной кнопки 44 CSS
+px. Stage 13 завершён без rates, deeplink, shortlist, comparison или booking.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

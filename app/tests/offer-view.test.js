@@ -64,6 +64,10 @@ test("renders a hotel offer with its matchSummary", () => {
   assert.match(markup, /4 звезды/);
   assert.match(markup, /Бесплатная отмена до/);
   assert.match(markup, /Доступно; выше размещены варианты с лучшим рейтингом/);
+  assert.match(markup, /data-action="load-details"/);
+  assert.match(markup, /data-offer-id="fake-offer-rome-001"/);
+  assert.match(markup, />Подробнее<\/button>/);
+  assert.match(markup, /data-role="hotel-details"/);
 });
 
 test("formats only active applied preferences", () => {

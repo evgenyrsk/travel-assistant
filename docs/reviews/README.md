@@ -512,6 +512,7 @@
 199. `docs/reviews/stage-13-4-hotel-details-transport-adapter.md`
 200. `docs/reviews/stage-13-5-platform-neutral-hotel-details-api.md`
 201. `docs/reviews/stage-13-6-opt-in-real-hotel-details-runtime-wiring.md`
+202. `docs/reviews/stage-13-7-selected-hotel-details-demo-flow.md`
 
 ## Historical / superseded документы
 

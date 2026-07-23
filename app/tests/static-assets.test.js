@@ -77,7 +77,14 @@ test("PWA raster icons have the declared dimensions", async () => {
 });
 
 test("frontend remains online-only without service worker or cache storage", async () => {
-  const scriptNames = ["api-client.js", "app.js", "chat-app.js", "chat-flow.js", "offer-view.js"];
+  const scriptNames = [
+    "api-client.js",
+    "app.js",
+    "chat-app.js",
+    "chat-flow.js",
+    "hotel-details-view.js",
+    "offer-view.js",
+  ];
   const scripts = await Promise.all(scriptNames.map((name) => readFile(new URL(name, sourceUrl), "utf8")));
   const server = await readFile(new URL("../server.mjs", import.meta.url), "utf8");
 
@@ -92,7 +99,14 @@ test("frontend remains online-only without service worker or cache storage", asy
 
 test("API client remains independent from browser state and provider contracts", async () => {
   const apiClient = await readFile(new URL("api-client.js", sourceUrl), "utf8");
-  const scriptNames = ["api-client.js", "app.js", "chat-app.js", "chat-flow.js", "offer-view.js"];
+  const scriptNames = [
+    "api-client.js",
+    "app.js",
+    "chat-app.js",
+    "chat-flow.js",
+    "hotel-details-view.js",
+    "offer-view.js",
+  ];
   const frontendSources = await Promise.all(
     scriptNames.map((name) => readFile(new URL(name, sourceUrl), "utf8")),
   );

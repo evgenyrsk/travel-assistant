@@ -50,6 +50,13 @@ export function createApiClient({
     getHotelOffers(searchId) {
       return requestJson(fetchImpl, `${baseUrl}/hotel-searches/${encodeURIComponent(searchId)}/offers`);
     },
+
+    getHotelOfferDetails(searchId, offerId) {
+      return requestJson(
+        fetchImpl,
+        `${baseUrl}/hotel-searches/${encodeURIComponent(searchId)}/offers/${encodeURIComponent(offerId)}/details`,
+      );
+    },
   };
 }
 

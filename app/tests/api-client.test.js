@@ -82,6 +82,29 @@ test("surfaces backend error messages", async () => {
   );
 });
 
+test("loads details only for an opaque search-bound offer path", async () => {
+  const calls = [];
+  const api = createApiClient({
+    fetchImpl: async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({ hotelName: "Тестовый отель" });
+    },
+  });
+
+  const details = await api.getHotelOfferDetails(
+    "search/opaque id",
+    "offer/opaque id",
+  );
+
+  assert.equal(details.hotelName, "Тестовый отель");
+  assert.deepEqual(calls, [
+    {
+      url: "/api/v1/hotel-searches/search%2Fopaque%20id/offers/offer%2Fopaque%20id/details",
+      options: {},
+    },
+  ]);
+});
+
 test("sends initial and subsequent chat messages through assistant routes", async () => {
   const calls = [];
   const api = createApiClient({
@@ -146,6 +169,7 @@ test("supports an absolute API base URL without browser credentials", async () =
   await api.createAssistantSession("Найди отель");
   await api.sendAssistantMessage("session/mobile client", "Казань");
   await api.getHotelOffers("search/native client");
+  await api.getHotelOfferDetails("search/native client", "offer/native client");
 
   assert.deepEqual(
     calls.map(({ url }) => url),
@@ -153,6 +177,7 @@ test("supports an absolute API base URL without browser credentials", async () =
       "https://api.example.test/api/v1/assistant/sessions",
       "https://api.example.test/api/v1/assistant/sessions/session%2Fmobile%20client/messages",
       "https://api.example.test/api/v1/hotel-searches/search%2Fnative%20client/offers",
+      "https://api.example.test/api/v1/hotel-searches/search%2Fnative%20client/offers/offer%2Fnative%20client/details",
     ],
   );
 

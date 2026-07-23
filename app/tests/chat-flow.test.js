@@ -176,6 +176,50 @@ test("rejects results action without a hotel search id", async () => {
   );
 });
 
+test("loads details only after explicit selection and only for that offer", async () => {
+  const calls = [];
+  const flow = createChatFlow({
+    api: {
+      async createAssistantSession() {
+        return assistantResponse("Предложения готовы.", {
+          nextAction: "show_hotel_results",
+          hotelSearchId: "hotel-search-local-000001",
+        });
+      },
+      async getHotelOffers(searchId) {
+        calls.push(["offers", searchId]);
+        return {
+          offers: [{ offerId: "offer-1" }, { offerId: "offer-2" }],
+        };
+      },
+      async getHotelOfferDetails(searchId, offerId) {
+        calls.push(["details", searchId, offerId]);
+        return { hotelName: "Выбранный отель" };
+      },
+    },
+  });
+
+  await flow.submit("Да, ищи");
+  assert.deepEqual(calls, [["offers", "hotel-search-local-000001"]]);
+
+  const details = await flow.loadOfferDetails("offer-2");
+
+  assert.equal(details.hotelName, "Выбранный отель");
+  assert.deepEqual(calls, [
+    ["offers", "hotel-search-local-000001"],
+    ["details", "hotel-search-local-000001", "offer-2"],
+  ]);
+});
+
+test("does not load details before a result search exists", async () => {
+  const flow = createChatFlow({ api: {} });
+
+  await assert.rejects(
+    () => flow.loadOfferDetails("offer-1"),
+    /Не удалось определить выбранное предложение/,
+  );
+});
+
 function assistantResponse(content, overrides = {}) {
   return {
     session: {

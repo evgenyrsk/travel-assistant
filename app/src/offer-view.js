@@ -36,6 +36,23 @@ export function renderOfferCardMarkup(offer) {
     </div>
     ${optionalFactsMarkup}
     <p class="offer-card__summary">${escapeHtml(view.matchSummary)}</p>
+    <div class="offer-card__actions">
+      <button
+        class="offer-card__details-button"
+        type="button"
+        data-action="load-details"
+        data-offer-id="${escapeHtml(view.id)}"
+        aria-expanded="false"
+        aria-label="Показать подробности: ${escapeHtml(view.name)}"
+      >Подробнее</button>
+    </div>
+    <section
+      class="hotel-details"
+      data-role="hotel-details"
+      aria-live="polite"
+      tabindex="-1"
+      hidden
+    ></section>
   `;
 }
 

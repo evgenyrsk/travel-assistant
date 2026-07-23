@@ -5,6 +5,7 @@ import {
   renderOfferCardMarkup,
   toErrorMessage,
 } from "./offer-view.js";
+import { renderHotelDetailsMarkup } from "./hotel-details-view.js";
 
 const api = createApiClient();
 const elements = {
@@ -50,6 +51,15 @@ elements.form.addEventListener("submit", async (event) => {
   }
 });
 
+elements.results.addEventListener("click", (event) => {
+  const button = event.target.closest?.("button[data-action='load-details']");
+  if (!button || !elements.results.contains(button)) {
+    return;
+  }
+
+  void toggleHotelDetails(button);
+});
+
 function appendMessage(role, author, content) {
   const article = document.createElement("article");
   article.className = `chat-message chat-message--${role}`;
@@ -91,11 +101,67 @@ function renderOffers({ offers, totalCount, appliedPreferences }) {
     ? `${countSummary} Применённые условия: ${preferenceSummary}.`
     : countSummary;
 
-  for (const offer of offers) {
+  offers.forEach((offer, index) => {
     const article = document.createElement("article");
     article.className = "offer-card";
     article.innerHTML = renderOfferCardMarkup(offer);
+    const details = article.querySelector("[data-role='hotel-details']");
+    const button = article.querySelector("button[data-action='load-details']");
+    const detailsId = `hotel-details-${index + 1}`;
+    details.id = detailsId;
+    button.setAttribute("aria-controls", detailsId);
     elements.results.append(article);
+  });
+}
+
+async function toggleHotelDetails(button) {
+  const card = button.closest(".offer-card");
+  const details = card?.querySelector("[data-role='hotel-details']");
+  if (!card || !details) {
+    return;
+  }
+
+  if (button.dataset.loaded === "true") {
+    const showDetails = details.hidden;
+    details.hidden = !showDetails;
+    button.setAttribute("aria-expanded", String(showDetails));
+    button.textContent = showDetails ? "Скрыть детали" : "Подробнее";
+    if (showDetails) {
+      details.focus();
+    }
+    return;
+  }
+
+  const offerId = button.dataset.offerId;
+  button.disabled = true;
+  button.textContent = "Загружаю...";
+  button.setAttribute("aria-expanded", "true");
+  details.hidden = false;
+  details.dataset.state = "loading";
+  details.setAttribute("aria-busy", "true");
+  details.textContent = "Загружаю сведения о выбранном отеле...";
+
+  try {
+    const response = await chatFlow.loadOfferDetails(offerId);
+    if (!card.isConnected) {
+      return;
+    }
+    details.innerHTML = renderHotelDetailsMarkup(response);
+    details.dataset.state = "loaded";
+    button.dataset.loaded = "true";
+    button.textContent = "Скрыть детали";
+    details.focus();
+  } catch (error) {
+    if (!card.isConnected) {
+      return;
+    }
+    details.textContent = toErrorMessage(error);
+    details.dataset.state = "error";
+    button.textContent = "Попробовать снова";
+    details.focus();
+  } finally {
+    details.removeAttribute("aria-busy");
+    button.disabled = false;
   }
 }
 
