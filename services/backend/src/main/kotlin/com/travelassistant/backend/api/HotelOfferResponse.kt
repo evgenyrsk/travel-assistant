@@ -20,6 +20,8 @@ data class HotelOfferResponse(
     val starRating: Int? = null,
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val freeCancellationUntil: String? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val imageUrl: String? = null,
     val availability: String,
     val source: String,
     val freshness: String,
@@ -99,6 +101,7 @@ data class HotelOfferResponse(
                 },
                 starRating = offer.starRating,
                 freeCancellationUntil = offer.freeCancellationUntil?.toString(),
+                imageUrl = offer.imageUrl,
                 availability = offer.availability.apiValue,
                 source = offer.source,
                 freshness = offer.freshness.apiValue,

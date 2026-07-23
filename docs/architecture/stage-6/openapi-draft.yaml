@@ -1077,6 +1077,11 @@ components:
           type: string
           format: date-time
           description: Omitted when a free-cancellation deadline is unknown.
+        imageUrl:
+          type: string
+          format: uri
+          pattern: "^https://"
+          description: First safe hotel image URL; omitted when unknown or invalid.
         availability:
           type: string
           enum:

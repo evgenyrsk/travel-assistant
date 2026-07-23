@@ -72,6 +72,7 @@ export interface AssistantContractShape {
   amenitiesOptional: boolean;
   starRatingOptional: boolean;
   freeCancellationUntilOptional: boolean;
+  imageUrlOptional: boolean;
   appliedPreferencesOptional: boolean;
   appliedPreferencesFields: string[];
   appliedPreferencesAdditionalPropertiesForbidden: boolean;

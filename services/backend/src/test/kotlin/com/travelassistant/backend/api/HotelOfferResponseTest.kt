@@ -22,6 +22,7 @@ class HotelOfferResponseTest {
                 amenities = null,
                 starRating = null,
                 freeCancellationUntil = null,
+                imageUrl = null,
             ),
         )
 
@@ -31,6 +32,7 @@ class HotelOfferResponseTest {
         assertFalse(encoded.contains("\"amenities\""))
         assertFalse(encoded.contains("\"starRating\""))
         assertFalse(encoded.contains("\"freeCancellationUntil\""))
+        assertFalse(encoded.contains("\"imageUrl\""))
         assertFalse(encoded.contains("providerOfferRef"))
         assertFalse(encoded.contains("provider-1"))
     }
@@ -45,6 +47,7 @@ class HotelOfferResponseTest {
                 amenities = listOf("Wi-Fi"),
                 starRating = 4,
                 freeCancellationUntil = cancellationDeadline,
+                imageUrl = "https://images.example.invalid/hotel.jpg",
             ),
         )
 
@@ -55,6 +58,10 @@ class HotelOfferResponseTest {
         assertTrue(encoded.contains("\"amenities\""))
         assertTrue(encoded.contains("\"starRating\":4"))
         assertTrue(encoded.contains("\"freeCancellationUntil\":\"$cancellationDeadline\""))
+        assertTrue(
+            encoded.contains("\"imageUrl\":\"https://images.example.invalid/hotel.jpg\""),
+        )
+        assertFalse(encoded.contains("provider-1"))
     }
 
     private fun rankedOffer(
@@ -63,6 +70,7 @@ class HotelOfferResponseTest {
         amenities: List<String>?,
         starRating: Int?,
         freeCancellationUntil: Instant?,
+        imageUrl: String?,
     ): RankedHotelOffer =
         RankedHotelOffer(
             offer = HotelOffer(
@@ -81,6 +89,7 @@ class HotelOfferResponseTest {
                 freshness = HotelOffer.Freshness.UNKNOWN,
                 starRating = starRating,
                 freeCancellationUntil = freeCancellationUntil,
+                imageUrl = imageUrl,
             ),
             matchSummary = "Test summary",
         )

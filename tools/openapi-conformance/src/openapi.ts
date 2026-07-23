@@ -271,6 +271,9 @@ function inspectAssistantContractShape(
     freeCancellationUntilOptional:
       recordValue(hotelOfferProperties?.freeCancellationUntil) !== undefined &&
       !stringArray(hotelOfferSchema?.required).includes("freeCancellationUntil"),
+    imageUrlOptional:
+      recordValue(hotelOfferProperties?.imageUrl) !== undefined &&
+      !stringArray(hotelOfferSchema?.required).includes("imageUrl"),
     appliedPreferencesOptional:
       stringValue(recordValue(offersProperties?.appliedPreferences)?.$ref) ===
         "#/components/schemas/AppliedHotelSearchPreferences" &&

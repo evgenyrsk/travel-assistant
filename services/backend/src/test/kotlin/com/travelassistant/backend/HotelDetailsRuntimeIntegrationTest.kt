@@ -79,6 +79,10 @@ class HotelDetailsRuntimeIntegrationTest {
             assertEquals(HttpStatusCode.OK, offersResponse.status)
             assertEquals(HttpStatusCode.OK, detailsResponse.status)
             assertEquals("Отель Пример", details.getValue("hotelName").jsonPrimitive.content)
+            assertEquals(
+                "https://images.example.test/hotel-1/image-1.jpg",
+                selectedOffer.getValue("imageUrl").jsonPrimitive.content,
+            )
             assertNotEquals("hotel-fixture-1", offerId)
             assertEquals(1, httpClientCreations)
             assertEquals(

@@ -329,6 +329,7 @@ function syntheticOpenApiInventory(
       amenitiesOptional: true,
       starRatingOptional: true,
       freeCancellationUntilOptional: true,
+      imageUrlOptional: true,
       appliedPreferencesOptional: true,
       appliedPreferencesFields: [
         "freeCancellationRequired",

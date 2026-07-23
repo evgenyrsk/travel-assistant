@@ -243,6 +243,7 @@ function buildPlatformClientChecks(
     ["amenities remain optional", shape.amenitiesOptional],
     ["starRating remains optional", shape.starRatingOptional],
     ["freeCancellationUntil remains optional", shape.freeCancellationUntilOptional],
+    ["imageUrl remains optional", shape.imageUrlOptional],
     ["appliedPreferences remains optional", shape.appliedPreferencesOptional],
     [
       "applied preferences reject unknown fields",
