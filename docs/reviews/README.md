@@ -514,6 +514,7 @@
 201. `docs/reviews/stage-13-6-opt-in-real-hotel-details-runtime-wiring.md`
 202. `docs/reviews/stage-13-7-selected-hotel-details-demo-flow.md`
 203. `docs/reviews/stage-14-0-working-hotel-mvp-closure.md`
+204. `docs/reviews/stage-14-1a-hotel-details-safety-and-confirmation-copy.md`
 
 ## Historical / superseded документы
 

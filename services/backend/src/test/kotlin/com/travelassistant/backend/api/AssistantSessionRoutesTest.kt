@@ -308,9 +308,13 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 0; номера: 1. " +
-                "Проверить отели по этим параметрам?",
+            """Проверьте параметры:
+Куда: Rome
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, без детей
+Номера: 1 номер
+
+Найти отели по этим параметрам?""",
             body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, body.containsKey("hotelSearchId"))
@@ -332,8 +336,11 @@ class AssistantSessionRoutesTest {
         assertEquals(routeNow, pendingConfirmation?.updatedAt)
         assertEquals(routeNow.plusSeconds(900), pendingConfirmation?.expiresAt)
         assertEquals(
-            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 0; номера: 1.",
+            """Проверьте параметры:
+Куда: Rome
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, без детей
+Номера: 1 номер""",
             pendingConfirmation?.proposal?.summary,
         )
         listOf(
@@ -724,9 +731,13 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Параметры hotel search: направление: Paris; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 0; номера: 1. " +
-                "Проверить отели по этим параметрам?",
+            """Проверьте параметры:
+Куда: Paris
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, без детей
+Номера: 1 номер
+
+Найти отели по этим параметрам?""",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))

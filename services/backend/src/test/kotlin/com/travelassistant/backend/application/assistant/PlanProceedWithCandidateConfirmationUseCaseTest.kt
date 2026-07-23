@@ -21,12 +21,15 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
         assertEquals(1, confirmation.criteria.guests.children)
         assertEquals(1, confirmation.criteria.rooms)
         assertEquals(
-            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 1; возраст детей: 7; номера: 1.",
+            """Проверьте параметры:
+Куда: Rome
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, 1 ребёнок (7 лет)
+Номера: 1 номер""",
             confirmation.proposal.summary,
         )
         assertEquals(
-            "Проверить отели по этим параметрам?",
+            "Найти отели по этим параметрам?",
             confirmation.proposal.confirmationQuestion,
         )
     }
@@ -44,10 +47,12 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
         val confirmation = assertIs<ProceedWithCandidateConfirmationPlan.ConfirmationRequired>(plan)
         assertEquals(preferences, confirmation.criteria.preferences)
         assertEquals(
-            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 1; возраст детей: 7; " +
-                "номера: 1; звёзды: 4, 5; минимальный гостевой рейтинг: 8; " +
-                "бесплатная отмена: обязательна.",
+            """Проверьте параметры:
+Куда: Rome
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, 1 ребёнок (7 лет)
+Номера: 1 номер
+Условия: 4–5 звёзд; рейтинг от 8; бесплатная отмена""",
             confirmation.proposal.summary,
         )
     }

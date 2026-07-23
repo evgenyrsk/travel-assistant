@@ -1,7 +1,6 @@
 package com.travelassistant.backend.infrastructure.provider
 
 import com.travelassistant.backend.domain.hotel.HotelDetails
-import java.net.URI
 import java.time.LocalTime
 import java.time.format.DateTimeParseException
 import java.util.Locale
@@ -49,25 +48,13 @@ internal object HotelsApiHotelDetailsResponseMapper {
                 hotelChain = payload.hotelChain.normalizedOrNull(),
                 starRating = payload.starRating,
                 location = location,
-                descriptionSections = payload.description?.mapNotNull { section ->
-                    val title = section.title.normalizedOrNull()
-                    val paragraphs = section.paragraphs.mapNotNull { paragraph ->
-                        paragraph.normalizedOrNull()
-                    }
-                    if (title == null && paragraphs.isEmpty()) {
-                        null
-                    } else {
-                        HotelDetails.DescriptionSection(
-                            title = title,
-                            paragraphs = paragraphs,
-                        )
-                    }
-                },
-                imageUrls = payload.images?.asSequence()
-                    ?.mapNotNull { imageUrl -> imageUrl.safeHttpsUrlOrNull() }
-                    ?.distinct()
-                    ?.take(MAX_IMAGE_COUNT)
-                    ?.toList(),
+                descriptionSections = HotelsApiHotelDetailsDescriptionPolicy.filter(
+                    payload.description,
+                ),
+                imageUrls = HotelsApiSafeImageUrlPolicy.collect(
+                    payload.images,
+                    MAX_IMAGE_COUNT,
+                ),
                 amenityGroups = payload.facilitiesGroups?.mapNotNull { group ->
                     val name = group.groupName.normalizedOrNull()
                     val amenities = group.facilities
@@ -150,17 +137,6 @@ internal object HotelsApiHotelDetailsResponseMapper {
 
     private fun String?.normalizedOrNull(): String? =
         this?.trim()?.takeIf(String::isNotEmpty)
-
-    private fun String.safeHttpsUrlOrNull(): String? {
-        val normalized = trim()
-        val uri = runCatching { URI(normalized) }.getOrNull() ?: return null
-        return normalized.takeIf {
-            uri.scheme.equals("https", ignoreCase = true) &&
-                !uri.host.isNullOrBlank() &&
-                uri.userInfo == null &&
-                uri.fragment == null
-        }
-    }
 
     private fun String.paymentMethodOrNull(): HotelDetails.PaymentMethod? =
         when (trim().lowercase(Locale.ROOT)) {

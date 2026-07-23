@@ -123,6 +123,7 @@ internal object HotelsApiSearchResponseMapper {
                 freshness = HotelOffer.Freshness.UNKNOWN,
                 starRating = hotel.starRating,
                 freeCancellationUntil = freeCancellationUntil,
+                imageUrl = HotelsApiSafeImageUrlPolicy.firstOrNull(hotel.images),
             ),
         )
     }

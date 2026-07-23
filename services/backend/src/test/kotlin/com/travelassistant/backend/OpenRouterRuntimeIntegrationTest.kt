@@ -423,7 +423,7 @@ class OpenRouterRuntimeIntegrationTest {
     private companion object {
         const val COMPLETE_HOTEL_REQUEST =
             "Найди отель в Казани с 10 по 14 августа 2026 года для двух взрослых без детей, одна комната"
-        const val CONFIRMATION_QUESTION = "Проверить отели по этим параметрам?"
+        const val CONFIRMATION_QUESTION = "Найти отели по этим параметрам?"
 
         val CANONICAL_CONSTRAINT_KEYS = listOf(
             "destination",

@@ -17,6 +17,7 @@ data class HotelOfferCandidate(
     val freshness: HotelOffer.Freshness,
     val starRating: Int? = null,
     val freeCancellationUntil: Instant? = null,
+    val imageUrl: String? = null,
 ) {
     fun identifiedBy(id: String): HotelOffer =
         HotelOffer(
@@ -35,5 +36,6 @@ data class HotelOfferCandidate(
             freshness = freshness,
             starRating = starRating,
             freeCancellationUntil = freeCancellationUntil,
+            imageUrl = imageUrl,
         )
 }

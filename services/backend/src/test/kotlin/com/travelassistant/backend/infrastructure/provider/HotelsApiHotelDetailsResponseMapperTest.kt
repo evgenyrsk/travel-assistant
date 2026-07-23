@@ -28,7 +28,7 @@ class HotelsApiHotelDetailsResponseMapperTest {
         assertEquals("Пример адреса", details.location?.address)
         assertEquals(0.0, details.location?.coordinates?.latitude)
         assertEquals(0.0, details.location?.coordinates?.longitude)
-        assertEquals(2, details.descriptionSections?.size)
+        assertEquals(1, details.descriptionSections?.size)
         assertEquals(2, details.imageUrls?.size)
         assertEquals(2, details.amenityGroups?.size)
         assertEquals(LocalTime.of(15, 0), details.checkInTime)
@@ -83,6 +83,67 @@ class HotelsApiHotelDetailsResponseMapperTest {
         assertEquals(10, details.imageUrls?.size)
         assertEquals("https://example.invalid/image-1.jpg", details.imageUrls?.first())
         assertEquals("https://example.invalid/image-10.jpg", details.imageUrls?.last())
+    }
+
+    @Test
+    fun `keeps allowlisted descriptions and removes service and contact data`() {
+        val details = assertIs<HotelsApiHotelDetailsResponseMapper.Result.Mapped>(
+            HotelsApiHotelDetailsResponseMapper.map(
+                response(
+                    payload().copy(
+                        description = listOf(
+                            description(
+                                title = null,
+                                "Тихий отель рядом с центром.",
+                                "Телефон: +7 999 123-45-67",
+                            ),
+                            description(
+                                title = "Об отеле",
+                                "В отеле есть круглосуточная стойка регистрации.",
+                                "Подробнее: https://registry.example.invalid/hotel",
+                            ),
+                            description(
+                                title = "Сертификация",
+                                "ИНН 1234567890, ОГРН 1234567890123, владелец — пример.",
+                            ),
+                            description(
+                                title = "Служебный раздел",
+                                "Этот текст не предназначен для пользователя.",
+                            ),
+                            description(
+                                title = "Important information",
+                                "Заселение проводится по документу, удостоверяющему личность.",
+                                "Contact: hotel@example.invalid",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ).details
+
+        assertEquals(
+            listOf(
+                HotelDetails.DescriptionSection(
+                    title = null,
+                    paragraphs = listOf("Тихий отель рядом с центром."),
+                ),
+                HotelDetails.DescriptionSection(
+                    title = "Об отеле",
+                    paragraphs = listOf("В отеле есть круглосуточная стойка регистрации."),
+                ),
+                HotelDetails.DescriptionSection(
+                    title = "Important information",
+                    paragraphs = listOf(
+                        "Заселение проводится по документу, удостоверяющему личность.",
+                    ),
+                ),
+            ),
+            details.descriptionSections,
+        )
+        val publicText = details.descriptionSections.toString()
+        listOf("ИНН", "ОГРН", "registry", "владелец", "hotel@example.invalid").forEach { forbidden ->
+            assertEquals(false, publicText.contains(forbidden, ignoreCase = true))
+        }
     }
 
     @Test
@@ -151,6 +212,15 @@ class HotelsApiHotelDetailsResponseMapperTest {
         HotelsApiHotelDetailsResponseDto.Payload(
             hotelId = "hotel-1",
             hotelName = "Отель",
+        )
+
+    private fun description(
+        title: String?,
+        vararg paragraphs: String,
+    ): HotelsApiHotelDetailsResponseDto.DescriptionSection =
+        HotelsApiHotelDetailsResponseDto.DescriptionSection(
+            title = title,
+            paragraphs = paragraphs.toList(),
         )
 
     private fun fixture(name: String): String =

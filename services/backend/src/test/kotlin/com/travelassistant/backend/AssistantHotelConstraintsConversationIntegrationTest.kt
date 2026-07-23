@@ -156,7 +156,7 @@ class AssistantHotelConstraintsConversationIntegrationTest {
         assertEquals("Paris", revisedPending?.criteria?.destination)
         assertEquals("Paris", contextStore.findBySession(AssistantSessionId(sessionId))?.destination)
         assertEquals("Rome", requests[1].confirmedConstraints["destination"])
-        assertTrue(correctionReply.assistantContent().contains("направление: Paris"))
+        assertTrue(correctionReply.assistantContent().contains("Куда: Paris"))
 
         val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
         assertEquals(HttpStatusCode.NotFound, offersResponse.status)
@@ -198,7 +198,7 @@ class AssistantHotelConstraintsConversationIntegrationTest {
         assertEquals("1", requests[1].confirmedConstraints["children"])
         assertFalse(requests[1].confirmedConstraints.containsKey("children-ages"))
         assertEquals(listOf("children-ages"), requests[1].missingRequiredFields)
-        assertTrue(confirmation.assistantContent().contains("возраст детей: 7"))
+        assertTrue(confirmation.assistantContent().contains("1 ребёнок (7 лет)"))
         assertFalse(confirmation.containsKey("hotelSearchId"))
         assertEquals(
             listOf(7),

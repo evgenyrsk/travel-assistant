@@ -91,6 +91,9 @@ class HotelDetailsRuntimeIntegrationTest {
             )
             assertFalse(detailsBody.contains("hotel-fixture-1"))
             assertFalse(detailsBody.contains("providerReference"))
+            listOf("ИНН", "ОГРН", "КПП", "registry.example", "owner data").forEach { forbidden ->
+                assertFalse(detailsBody.contains(forbidden, ignoreCase = true))
+            }
         }
 
     private fun fixtureHttpClient(
@@ -108,6 +111,17 @@ class HotelDetailsRuntimeIntegrationTest {
                     "/api/v1/hotels/hotel-fixture-1" ->
                         fixture("stage-13-1/hotel-details-success.json")
                             .replace("hotel-example-001", "hotel-fixture-1")
+                            .replace(
+                                "\"description\": [",
+                                """"description": [
+                                  {
+                                    "title": "Сертификация",
+                                    "paragraphs": [
+                                      "ИНН 1234567890, ОГРН 1234567890123, КПП 123456789",
+                                      "Owner data: https://registry.example.invalid/hotel"
+                                    ]
+                                  },""",
+                            )
                     else -> error("Unexpected Hotels API path")
                 }
                 respond(

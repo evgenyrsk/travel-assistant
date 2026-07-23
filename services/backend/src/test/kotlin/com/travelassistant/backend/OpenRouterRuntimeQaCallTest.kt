@@ -122,6 +122,6 @@ class OpenRouterRuntimeQaCallTest {
         const val EXPECTED_BASE_URL = "https://openrouter.ai/api/v1"
         const val COMPLETE_HOTEL_REQUEST =
             "Найди отель в Казани с 10 по 14 августа 2026 года для двух взрослых без детей, одна комната"
-        const val CONFIRMATION_QUESTION = "Проверить отели по этим параметрам?"
+        const val CONFIRMATION_QUESTION = "Найти отели по этим параметрам?"
     }
 }

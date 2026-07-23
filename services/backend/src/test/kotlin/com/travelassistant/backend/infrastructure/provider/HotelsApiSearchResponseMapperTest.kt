@@ -22,6 +22,11 @@ class HotelsApiSearchResponseMapperTest {
                 ),
                 availableRoomsCount = 2,
                 freeCancellationUntil = "2026-07-17T21:00:00+00:00",
+                images = listOf(
+                    "http://example.invalid/insecure.jpg",
+                    "https://images.example.invalid/first.jpg",
+                    "https://images.example.invalid/second.jpg",
+                ),
             ),
         )
 
@@ -38,6 +43,7 @@ class HotelsApiSearchResponseMapperTest {
         assertEquals(5, offer.starRating)
         assertEquals(Instant.parse("2026-07-17T21:00:00Z"), offer.freeCancellationUntil)
         assertEquals(HotelOffer.Availability.AVAILABLE, offer.availability)
+        assertEquals("https://images.example.invalid/first.jpg", offer.imageUrl)
         assertEquals("tbank_hotels_api", offer.source)
         assertEquals(HotelOffer.Freshness.UNKNOWN, offer.freshness)
     }
@@ -61,6 +67,30 @@ class HotelsApiSearchResponseMapperTest {
         assertEquals(5, offer.starRating)
         assertNull(offer.freeCancellationUntil)
         assertEquals(HotelOffer.Availability.UNKNOWN, offer.availability)
+    }
+
+    @Test
+    fun `treats absent or unsafe images as unknown without rejecting offer`() {
+        val absent = assertIs<HotelsApiSearchResponseMapper.Result.Mapped>(
+            HotelsApiSearchResponseMapper.map(response(hotel(images = null))),
+        ).offers.single()
+        val unsafe = assertIs<HotelsApiSearchResponseMapper.Result.Mapped>(
+            HotelsApiSearchResponseMapper.map(
+                response(
+                    hotel(
+                        images = listOf(
+                            "http://example.invalid/insecure.jpg",
+                            "https://user:password@example.invalid/credentials.jpg",
+                            "https://example.invalid/fragment.jpg#unsafe",
+                            "not-a-url",
+                        ),
+                    ),
+                ),
+            ),
+        ).offers.single()
+
+        assertNull(absent.imageUrl)
+        assertNull(unsafe.imageUrl)
     }
 
     @Test
@@ -149,6 +179,7 @@ class HotelsApiSearchResponseMapperTest {
         ),
         availableRoomsCount: Int = 1,
         freeCancellationUntil: String? = null,
+        images: List<String>? = null,
     ): HotelsApiSearchResponseDto.Hotel =
         HotelsApiSearchResponseDto.Hotel(
             hotelId = hotelId,
@@ -170,6 +201,7 @@ class HotelsApiSearchResponseMapperTest {
                 shownPrice = shownPrice,
                 freeCancellationUntil = freeCancellationUntil,
             ),
+            images = images,
             review = review,
         )
 

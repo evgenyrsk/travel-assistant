@@ -284,7 +284,7 @@ class AssistantLlmRouteWiringUseCase(
         }
 
     private fun ProceedWithCandidateConfirmationProposal.confirmationPromptMessage(): String =
-        "$summary $confirmationQuestion"
+        "$summary\n\n$confirmationQuestion"
 
     private fun AcceptedAssistantMessage.consumePendingConfirmation(
         consumedAt: Instant,

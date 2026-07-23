@@ -102,10 +102,10 @@ class AssistantHotelRefinementIntegrationTest {
 
         assertEquals("ask_clarification", refinedConfirmation.nextAction())
         assertFalse(refinedConfirmation.containsKey("hotelSearchId"))
-        assertTrue(refinedConfirmation.assistantContent().contains("80000 RUB"))
-        assertTrue(refinedConfirmation.assistantContent().contains("звёзды: 4, 5"))
-        assertTrue(refinedConfirmation.assistantContent().contains("гостевой рейтинг: 8"))
-        assertTrue(refinedConfirmation.assistantContent().contains("бесплатная отмена: обязательна"))
+        assertTrue(refinedConfirmation.assistantContent().contains("до 80 000 ₽"))
+        assertTrue(refinedConfirmation.assistantContent().contains("4–5 звёзд"))
+        assertTrue(refinedConfirmation.assistantContent().contains("рейтинг от 8"))
+        assertTrue(refinedConfirmation.assistantContent().contains("бесплатная отмена"))
         assertEquals(1, requests.count { request -> request.userMessage.contains("80 тысяч") })
 
         val secondSearchId = confirmedSearchId(sessionId)
@@ -117,7 +117,7 @@ class AssistantHotelRefinementIntegrationTest {
 
         assertEquals("ask_clarification", clearConfirmation.nextAction())
         assertFalse(clearConfirmation.containsKey("hotelSearchId"))
-        assertFalse(clearConfirmation.assistantContent().contains("гостевой рейтинг"))
+        assertFalse(clearConfirmation.assistantContent().contains("рейтинг от"))
         assertEquals("80000 RUB", requests[2].confirmedConstraints["max-total-price"])
         assertEquals("4,5", requests[2].confirmedConstraints["stars"])
         assertEquals("8", requests[2].confirmedConstraints["min-guest-rating"])

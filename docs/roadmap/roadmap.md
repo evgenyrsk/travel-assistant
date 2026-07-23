@@ -864,7 +864,15 @@ px. Stage 13 завершён без rates, deeplink, shortlist, comparison ил
 
 ### Stage 14 — Закрытие рабочего hotel-only MVP
 
-**Статус:** завершён Stage 14.0. Новый функциональный этап не активирован.
+**Статус:** Stage 14.0 завершён; Stage 14.1 активирован отдельной задачей,
+Stage 14.1a завершён, следующий шаг — Stage 14.1b.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 14.0 | Закрытие рабочего hotel-only MVP | Завершён; зафиксирован `demo-ready MVP` |
+| Stage 14.1a | Безопасность details и понятное confirmation | Завершён; служебные sections фильтруются fail-closed, confirmation переведён на естественный русский текст, внутренний offer получает первый безопасный image URL |
+| Stage 14.1b | Optional image в публичном offer contract | Следующий шаг; OpenAPI остаётся `not_ready` |
+| Stage 14.1c | Компактные карточки результатов | Запланирован текущей задачей после Stage 14.1b |
 
 Stage 14.0 повторно выполнил backend, frontend, launcher и OpenAPI conformance
 gates, проверил secret/provider-ID boundaries и провёл один разрешённый REAL
@@ -880,6 +888,15 @@ production readiness и не готовность к внешнему rollout. R
 shortlist, comparison, booking, payment, auth, durable storage, deployment и
 product clients не активированы. Любая следующая функциональность требует
 отдельного product/roadmap decision.
+
+Stage 14.1 активирован отдельной задачей после REAL smoke Stage 14.0. Stage
+14.1a закрыл обнаруженное раскрытие certification/registry/owner/contact data
+через provider description sections с помощью строгой allowlist, вынес общую
+проверку безопасных HTTPS images и подготовил первое изображение во внутренней
+модели offer. Confirmation теперь показывает даты, гостей, номера и active
+preferences обычным русским текстом; поиск по-прежнему запускается только
+после отдельного «Да». Публичный image contract и demo-redesign остаются
+раздельными Stage 14.1b и Stage 14.1c.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 
