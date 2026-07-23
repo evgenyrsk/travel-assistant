@@ -31,6 +31,8 @@ class HotelOfferResponseTest {
         assertFalse(encoded.contains("\"amenities\""))
         assertFalse(encoded.contains("\"starRating\""))
         assertFalse(encoded.contains("\"freeCancellationUntil\""))
+        assertFalse(encoded.contains("providerOfferRef"))
+        assertFalse(encoded.contains("provider-1"))
     }
 
     @Test

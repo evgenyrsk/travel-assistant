@@ -30,7 +30,6 @@ class HotelsApiSearchResponseMapperTest {
         ).offers.single()
 
         assertEquals("opaque/provider:hotel-1", offer.providerReference)
-        assertEquals("tbank-hotels-api:opaque/provider:hotel-1", offer.id)
         assertEquals(18_900.0, offer.totalPrice)
         assertEquals("RUB", offer.currency)
         assertEquals(8.7, offer.rating)

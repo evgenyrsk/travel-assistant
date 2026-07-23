@@ -5,7 +5,7 @@ import com.travelassistant.backend.application.hotel.HotelLocationCandidateSelec
 import com.travelassistant.backend.application.hotel.HotelLocationResolution
 import com.travelassistant.backend.application.hotel.HotelLocationResolutionRequest
 import com.travelassistant.backend.application.hotel.HotelLocationResolverBoundary
-import com.travelassistant.backend.domain.hotel.HotelOffer
+import com.travelassistant.backend.domain.hotel.HotelOfferCandidate
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
@@ -88,7 +88,7 @@ internal class HotelsApiSearchOrchestrator(
     sealed interface Result {
         data class Success(
             val location: HotelLocationResolution.Candidate,
-            val offers: List<HotelOffer>,
+            val offers: List<HotelOfferCandidate>,
         ) : Result
 
         data object LocationNotFound : Result

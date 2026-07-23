@@ -48,7 +48,7 @@ class AssistantHotelSearchHandoffUseCaseTest {
         )
 
         val search = hotelSearchBoundary.getSearch(checkNotNull(acceptedMessage.hotelSearchId))
-        assertEquals("fake-offer-rome-001", search.offers.first().offer.id)
+        assertEquals("hotel-offer-local-000002", search.offers.first().offer.id)
         assertEquals(
             "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
             search.offers.first().matchSummary,

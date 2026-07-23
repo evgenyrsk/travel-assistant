@@ -105,8 +105,14 @@ class PlatformClientContractTest {
             offersBody.keys,
         )
         assertTrue(metadata.getValue("warnings").jsonArray.isEmpty())
-        assertTrue(firstOffer.getValue("providerOfferRef").jsonPrimitive.content.isNotBlank())
-        listOf("shownPrice", "bookHash", "rateForHotelsFeed", "destinationId").forEach { providerField ->
+        assertTrue(firstOffer.getValue("offerId").jsonPrimitive.content.isNotBlank())
+        listOf(
+            "providerOfferRef",
+            "shownPrice",
+            "bookHash",
+            "rateForHotelsFeed",
+            "destinationId",
+        ).forEach { providerField ->
             assertFalse(firstOffer.containsKey(providerField))
         }
     }

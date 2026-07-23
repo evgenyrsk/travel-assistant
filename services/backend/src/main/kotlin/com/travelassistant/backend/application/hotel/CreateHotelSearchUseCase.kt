@@ -12,6 +12,7 @@ class CreateHotelSearchUseCase(
     private val hotelOfferRanker: HotelOfferRanker = HotelOfferRanker(),
     private val hotelSearchStateStore: HotelSearchStateStore = InMemoryHotelSearchStateStore(),
     private val idGenerator: HotelSearchIdGenerator = LocalHotelSearchIdGenerator(),
+    private val offerIdGenerator: HotelOfferIdGenerator = LocalHotelOfferIdGenerator(),
 ) : HotelSearchBoundary {
 
     override suspend fun createSearch(command: CreateHotelSearchCommand): CreateHotelSearchResult {
@@ -31,7 +32,10 @@ class CreateHotelSearchUseCase(
         command: CreateHotelSearchCommand,
         providerResult: HotelOfferProviderResult.SearchCompleted,
     ): CreateHotelSearchResult.Created {
-        val rankedOffers = hotelOfferRanker.rank(providerResult.offers)
+        val identifiedOffers = providerResult.offers.map { candidate ->
+            candidate.identifiedBy(offerIdGenerator.nextId())
+        }
+        val rankedOffers = hotelOfferRanker.rank(identifiedOffers)
         val status = if (rankedOffers.isEmpty()) {
             HotelSearch.Status.COMPLETED_NO_OFFERS
         } else {

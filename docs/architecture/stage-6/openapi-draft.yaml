@@ -839,7 +839,6 @@ components:
       type: object
       required:
         - offerId
-        - providerOfferRef
         - hotelName
         - location
         - price
@@ -852,9 +851,6 @@ components:
         offerId:
           type: string
           description: Opaque client-facing offer identifier.
-        providerOfferRef:
-          type: string
-          description: Opaque provider reference, not a provider DTO.
         hotelName:
           type: string
         location:

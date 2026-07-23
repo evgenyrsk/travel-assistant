@@ -1,6 +1,7 @@
 package com.travelassistant.backend.infrastructure.provider
 
 import com.travelassistant.backend.domain.hotel.HotelOffer
+import com.travelassistant.backend.domain.hotel.HotelOfferCandidate
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
 
@@ -8,7 +9,7 @@ internal object HotelsApiSearchResponseMapper {
 
     fun map(response: HotelsApiSearchResponseDto): Result {
         val errors = mutableListOf<HotelsApiSearchMappingError>()
-        val offersByProviderReference = linkedMapOf<String, HotelOffer>()
+        val offersByProviderReference = linkedMapOf<String, HotelOfferCandidate>()
 
         response.payload.hotels.forEach { hotel ->
             if (hotel.hotelId in offersByProviderReference) {
@@ -103,8 +104,7 @@ internal object HotelsApiSearchResponseMapper {
         }
 
         return HotelResult.Mapped(
-            offer = HotelOffer(
-                id = "$OFFER_ID_PREFIX$providerReference",
+            offer = HotelOfferCandidate(
                 providerReference = providerReference,
                 hotelName = hotel.hotelName,
                 city = hotel.areaLocation.destinationName,
@@ -128,13 +128,13 @@ internal object HotelsApiSearchResponseMapper {
     }
 
     sealed interface Result {
-        data class Mapped(val offers: List<HotelOffer>) : Result
+        data class Mapped(val offers: List<HotelOfferCandidate>) : Result
 
         data class Rejected(val errors: List<HotelsApiSearchMappingError>) : Result
     }
 
     private sealed interface HotelResult {
-        data class Mapped(val offer: HotelOffer) : HotelResult
+        data class Mapped(val offer: HotelOfferCandidate) : HotelResult
 
         data class Rejected(val error: HotelsApiSearchMappingError) : HotelResult
     }
@@ -154,7 +154,6 @@ internal object HotelsApiSearchResponseMapper {
         rating.isFinite() && rating in MIN_RATING..MAX_RATING && ratingsCount >= 0
 
     private const val SOURCE = "tbank_hotels_api"
-    private const val OFFER_ID_PREFIX = "tbank-hotels-api:"
     private const val MIN_RATING = 0.0
     private const val MAX_RATING = 10.0
     private const val MIN_STAR_RATING = 0

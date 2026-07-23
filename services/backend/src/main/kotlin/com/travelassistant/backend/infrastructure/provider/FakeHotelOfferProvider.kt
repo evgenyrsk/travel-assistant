@@ -3,6 +3,7 @@ package com.travelassistant.backend.infrastructure.provider
 import com.travelassistant.backend.application.hotel.HotelOfferProviderBoundary
 import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.domain.hotel.HotelOffer
+import com.travelassistant.backend.domain.hotel.HotelOfferCandidate
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 
 /**
@@ -23,8 +24,7 @@ class FakeHotelOfferProvider : HotelOfferProviderBoundary {
 
         return HotelOfferProviderResult.SearchCompleted(
             listOf(
-                HotelOffer(
-                    id = "fake-offer-$slug-002",
+                HotelOfferCandidate(
                     providerReference = "local-fake-$slug-002",
                     hotelName = "$destination Riverside Stay",
                     city = destination,
@@ -38,8 +38,7 @@ class FakeHotelOfferProvider : HotelOfferProviderBoundary {
                     source = SOURCE,
                     freshness = HotelOffer.Freshness.FRESH,
                 ),
-                HotelOffer(
-                    id = "fake-offer-$slug-001",
+                HotelOfferCandidate(
                     providerReference = "local-fake-$slug-001",
                     hotelName = "$destination Central Hotel",
                     city = destination,

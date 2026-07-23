@@ -155,7 +155,11 @@ class AssistantSessionRoutesTest {
         val offers = offersBody["offers"]?.jsonArray.orEmpty()
 
         assertEquals(HttpStatusCode.OK, offersResponse.status)
-        assertEquals("fake-offer-rome-001", offers.first().jsonObject["offerId"]?.jsonPrimitive?.content)
+        assertEquals(
+            "hotel-offer-local-000002",
+            offers.first().jsonObject["offerId"]?.jsonPrimitive?.content,
+        )
+        assertEquals(false, offers.first().jsonObject.containsKey("providerOfferRef"))
         assertEquals(
             "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
             offers.first().jsonObject["matchSummary"]?.jsonPrimitive?.content,

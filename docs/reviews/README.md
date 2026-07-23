@@ -508,6 +508,7 @@
 195. `docs/reviews/stage-13-0-selected-hotel-details-readiness-and-open-question-reconciliation.md`
 196. `docs/reviews/stage-13-1-controlled-hotel-details-contract-verification.md`
 197. `docs/reviews/stage-13-2-provider-neutral-hotel-details-mapping.md`
+198. `docs/reviews/stage-13-3-opaque-offer-identity-and-selection.md`
 
 ## Historical / superseded документы
 

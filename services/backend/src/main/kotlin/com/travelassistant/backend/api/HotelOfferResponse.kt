@@ -9,7 +9,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class HotelOfferResponse(
     val offerId: String,
-    val providerOfferRef: String,
     val hotelName: String,
     val location: Location,
     val price: Price,
@@ -70,7 +69,6 @@ data class HotelOfferResponse(
 
             return HotelOfferResponse(
                 offerId = offer.id,
-                providerOfferRef = offer.providerReference,
                 hotelName = offer.hotelName,
                 location = Location(
                     city = offer.city,

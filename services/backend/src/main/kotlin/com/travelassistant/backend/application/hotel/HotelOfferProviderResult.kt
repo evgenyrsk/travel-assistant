@@ -1,10 +1,10 @@
 package com.travelassistant.backend.application.hotel
 
-import com.travelassistant.backend.domain.hotel.HotelOffer
+import com.travelassistant.backend.domain.hotel.HotelOfferCandidate
 
 sealed interface HotelOfferProviderResult {
     data class SearchCompleted(
-        val offers: List<HotelOffer>,
+        val offers: List<HotelOfferCandidate>,
     ) : HotelOfferProviderResult
 
     sealed interface NotCompleted : HotelOfferProviderResult

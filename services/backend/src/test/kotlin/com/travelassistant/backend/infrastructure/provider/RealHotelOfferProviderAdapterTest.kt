@@ -4,6 +4,7 @@ import com.travelassistant.backend.application.hotel.HotelLocationResolution
 import com.travelassistant.backend.application.hotel.HotelLocationResolutionRequest
 import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.domain.hotel.HotelOffer
+import com.travelassistant.backend.domain.hotel.HotelOfferCandidate
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
@@ -193,9 +194,8 @@ class RealHotelOfferProviderAdapterTest {
             type = HotelLocationResolution.Type(code = "city", name = "Город"),
         )
 
-    private fun offer(): HotelOffer =
-        HotelOffer(
-            id = "tbank-hotels-api:hotel-1",
+    private fun offer(): HotelOfferCandidate =
+        HotelOfferCandidate(
             providerReference = "hotel-1",
             hotelName = "Тестовый отель",
             city = "Казань",

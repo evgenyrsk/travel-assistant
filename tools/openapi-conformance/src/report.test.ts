@@ -296,7 +296,6 @@ function syntheticOpenApiInventory(
         "offerId",
         "price",
         "providerFacts",
-        "providerOfferRef",
         "source",
       ],
       hotelOfferAdditionalPropertiesForbidden: true,

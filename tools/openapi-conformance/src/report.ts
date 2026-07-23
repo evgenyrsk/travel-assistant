@@ -320,7 +320,6 @@ function buildPlatformClientChecks(
         "offerId",
         "price",
         "providerFacts",
-        "providerOfferRef",
         "source",
       ]),
     ],

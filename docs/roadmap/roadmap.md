@@ -9,8 +9,8 @@ Roadmap не является трекером задач, продуктово�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 13 активирован как on-demand details выбранного hotel offer |
-| Последний завершенный этап | Stage 13.2 — provider-neutral hotel details model и fixture-driven mapping |
-| Следующий планируемый шаг | Stage 13.3 — opaque offer identity и selected-offer resolution |
+| Последний завершенный этап | Stage 13.3 — opaque offer identity и search-bound selected-offer resolution |
+| Следующий планируемый шаг | Stage 13.4 — hotel details transport adapter через `MockEngine` |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -63,7 +63,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
 | Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
-| Stage 13 | Активирован | Контракт details подтверждён; provider-neutral model и fixture-driven mapping добавлены без transport/runtime wiring. |
+| Stage 13 | Активирован | Контракт и mapping details подтверждены; public offer identity изолирована от provider `hotelId`, следующий шаг — transport adapter без runtime wiring. |
 
 ## 2. Правила управления roadmap
 
@@ -780,7 +780,7 @@ Stage 13 активирован отдельной задачей и не мен
 
 ### Stage 13 — Детали выбранного hotel offer
 
-**Статус:** Stage 13.2 завершён; следующий шаг — Stage 13.3.
+**Статус:** Stage 13.3 завершён; следующий шаг — Stage 13.4.
 
 **Цель:** позволить пользователю явно выбрать предложение из сохранённого
 поиска и запросить дополнительные provider-backed facts без N+1-загрузки,
@@ -791,10 +791,12 @@ Stage 13 активирован отдельной задачей и не мен
 | Stage 13.0 | Selected hotel details readiness и open-question reconciliation | Завершен; выбран `GET /api/v1/hotels/{hotelId}` как первый contract candidate |
 | Stage 13.1 | Controlled hotel details contract verification | Завершен; search и details вернули `200`, строковый search `hotelId` принят details path, добавлен sanitized fixture |
 | Stage 13.2 | Provider-neutral details model и mapping | Завершен; bounded domain model, tolerant DTO и fixture-driven typed mapping без HTTP |
-| Stage 13.3 | Opaque offer identity и selected-offer resolution | Следующий; internal `offerId`, удаление public provider reference и search-bound resolve |
-| Stage 13.4 | Details transport/orchestration | Planned; `MockEngine`, без public/runtime wiring |
-| Stage 13.5 | Platform-neutral contract alignment | Planned; отдельное решение о public API/assistant response |
-| Stage 13.6 | Opt-in runtime и bounded verification | Planned; без rates, booking или automatic card enrichment |
+| Stage 13.3 | Opaque offer identity и selected-offer resolution | Завершен; provider candidates не назначают ID, public `providerOfferRef` удалён, resolve ограничен указанным search |
+| Stage 13.4 | Details transport и provider adapter | Следующий; безопасный GET и typed outcomes через `MockEngine`, без public/runtime wiring |
+| Stage 13.5 | Platform-neutral details API | Planned; endpoint по `hotelSearchId + offerId`, OpenAPI остаётся `not_ready` |
+| Stage 13.6 | Opt-in REAL details runtime wiring | Planned; общий Hotels API client lifecycle, `FAKE` остаётся default |
+| Stage 13.7 | Selected hotel details demo flow | Planned; явная кнопка без N+1 и без chat selection commands |
+| Stage 14.0 | Working hotel MVP closure | Planned; полные gates и один разрешённый REAL browser smoke без retry |
 
 Stage 13.0 закрыл сортировку и `search-filters-availability` как осознанно
 отложенные возможности текущего MVP. Taxes/fees в `shownPrice` остаются
@@ -819,6 +821,14 @@ certification, owner/register data, provider codes и сложные rules ис�
 Optional поля сохраняют unknown, images проходят bounded HTTPS policy, а
 невалидные identity/location/time values дают typed mapping error. HTTP,
 selected-offer resolution и runtime wiring ещё не добавлены.
+
+Stage 13.3 перенёс назначение `offerId` в application layer: provider boundary
+возвращает кандидатов без client-facing ID, а сохранённый search получает
+process-local opaque IDs, не содержащие provider `hotelId`. Публичное поле
+`providerOfferRef` удалено из runtime JSON и OpenAPI. Выбранное предложение
+разрешается только по паре `hotelSearchId + offerId`; unknown search и unknown
+offer остаются разными typed outcomes. Details transport и runtime вызов ещё
+не подключены.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

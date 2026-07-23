@@ -23,12 +23,17 @@ class CreateHotelSearchUseCaseTest {
             sessionStateStore = sessionStore,
         ).createSession()
         val searchStore = InMemoryHotelSearchStateStore()
+        var nextOfferId = 0
         val useCase = CreateHotelSearchUseCase(
             assistantSessionStateStore = sessionStore,
             hotelOfferProvider = FakeHotelOfferProvider(),
             hotelSearchStateStore = searchStore,
             idGenerator = HotelSearchIdGenerator {
                 HotelSearchId("hotel-search-local-000001")
+            },
+            offerIdGenerator = HotelOfferIdGenerator {
+                nextOfferId++
+                "hotel-offer-test-${nextOfferId.toString().padStart(6, '0')}"
             },
         )
 
@@ -40,7 +45,12 @@ class CreateHotelSearchUseCaseTest {
         assertEquals("hotel-search-local-000001", search.id.value)
         assertEquals("completed_with_offers", search.status.apiValue)
         assertEquals(2, search.offers.size)
-        assertEquals("fake-offer-rome-001", search.offers.first().offer.id)
+        assertEquals(
+            setOf("hotel-offer-test-000001", "hotel-offer-test-000002"),
+            search.offers.map { it.offer.id }.toSet(),
+        )
+        assertTrue(search.offers.none { it.offer.id.contains(it.offer.providerReference) })
+        assertEquals("local-fake-rome-001", search.offers.first().offer.providerReference)
         assertEquals("local_fake_provider", search.offers.first().offer.source)
         assertEquals(
             "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
@@ -56,6 +66,7 @@ class CreateHotelSearchUseCaseTest {
             sessionStateStore = sessionStore,
         ).createSession()
         val searchStore = InMemoryHotelSearchStateStore()
+        var generatedOfferIdCount = 0
         val useCase = CreateHotelSearchUseCase(
             assistantSessionStateStore = sessionStore,
             hotelOfferProvider = HotelOfferProviderBoundary {
@@ -65,6 +76,10 @@ class CreateHotelSearchUseCaseTest {
             idGenerator = HotelSearchIdGenerator {
                 HotelSearchId("hotel-search-local-empty-001")
             },
+            offerIdGenerator = HotelOfferIdGenerator {
+                generatedOfferIdCount++
+                "hotel-offer-must-not-be-created"
+            },
         )
 
         val result = assertIs<CreateHotelSearchResult.Created>(
@@ -73,6 +88,7 @@ class CreateHotelSearchUseCaseTest {
 
         assertEquals(HotelSearch.Status.COMPLETED_NO_OFFERS, result.search.status)
         assertTrue(result.search.offers.isEmpty())
+        assertEquals(0, generatedOfferIdCount)
         assertEquals(result.search, searchStore.findById(result.search.id))
     }
 
@@ -108,6 +124,7 @@ class CreateHotelSearchUseCaseTest {
             ).createSession()
             val searchStore = RecordingHotelSearchStateStore()
             var generatedIdCount = 0
+            var generatedOfferIdCount = 0
             val useCase = CreateHotelSearchUseCase(
                 assistantSessionStateStore = sessionStore,
                 hotelOfferProvider = HotelOfferProviderBoundary { outcome },
@@ -115,6 +132,10 @@ class CreateHotelSearchUseCaseTest {
                 idGenerator = HotelSearchIdGenerator {
                     generatedIdCount++
                     HotelSearchId("hotel-search-must-not-be-created")
+                },
+                offerIdGenerator = HotelOfferIdGenerator {
+                    generatedOfferIdCount++
+                    "hotel-offer-must-not-be-created"
                 },
             )
 
@@ -124,6 +145,7 @@ class CreateHotelSearchUseCaseTest {
 
             assertEquals(outcome, result.outcome)
             assertEquals(0, generatedIdCount)
+            assertEquals(0, generatedOfferIdCount)
             assertTrue(searchStore.savedSearches.isEmpty())
         }
     }

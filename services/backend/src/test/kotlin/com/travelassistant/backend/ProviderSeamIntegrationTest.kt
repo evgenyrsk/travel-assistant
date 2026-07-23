@@ -356,9 +356,15 @@ class ProviderSeamIntegrationTest {
 
         assertEquals(HttpStatusCode.OK, offersResponse.status)
         assertEquals(1, offers.size)
+        assertEquals(false, offers.single().jsonObject.containsKey("providerOfferRef"))
         assertEquals(
-            "hotel-runtime-1",
-            offers.single().jsonObject["providerOfferRef"]?.jsonPrimitive?.content,
+            "hotel-offer-local-000001",
+            offers.single().jsonObject["offerId"]?.jsonPrimitive?.content,
+        )
+        assertEquals(
+            false,
+            offers.single().jsonObject["offerId"]?.jsonPrimitive?.content.orEmpty()
+                .contains("hotel-runtime-1"),
         )
         assertEquals(
             "tbank_hotels_api",
