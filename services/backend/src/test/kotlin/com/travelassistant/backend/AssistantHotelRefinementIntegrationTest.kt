@@ -2,6 +2,7 @@ package com.travelassistant.backend
 
 import com.travelassistant.backend.application.assistant.InMemoryAssistantHotelConstraintsStore
 import com.travelassistant.backend.application.assistant.InMemoryPendingConfirmationStore
+import com.travelassistant.backend.application.assistant.AssistantLlmDiagnosticEvent
 import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmClient
@@ -66,6 +67,7 @@ class AssistantHotelRefinementIntegrationTest {
                         stars = linkedSetOf(4, 5),
                         minimumGuestRating = 8,
                         freeCancellationRequired = true,
+                        breakfastIncludedRequired = true,
                     ),
                 ),
                 candidate(
@@ -97,7 +99,7 @@ class AssistantHotelRefinementIntegrationTest {
 
         val refinedConfirmation = sendMessage(
             sessionId,
-            "До 80 тысяч, 4–5 звёзд, рейтинг от 8 и бесплатная отмена",
+            "До 80 тысяч, 4–5 звёзд, рейтинг от 8, бесплатная отмена и завтрак",
         )
 
         assertEquals("ask_clarification", refinedConfirmation.nextAction())
@@ -106,6 +108,7 @@ class AssistantHotelRefinementIntegrationTest {
         assertTrue(refinedConfirmation.assistantContent().contains("4–5 звёзд"))
         assertTrue(refinedConfirmation.assistantContent().contains("рейтинг от 8"))
         assertTrue(refinedConfirmation.assistantContent().contains("бесплатная отмена"))
+        assertTrue(refinedConfirmation.assistantContent().contains("завтрак включён"))
         assertEquals(1, requests.count { request -> request.userMessage.contains("80 тысяч") })
 
         val secondSearchId = confirmedSearchId(sessionId)
@@ -122,6 +125,7 @@ class AssistantHotelRefinementIntegrationTest {
         assertEquals("4,5", requests[2].confirmedConstraints["stars"])
         assertEquals("8", requests[2].confirmedConstraints["min-guest-rating"])
         assertEquals("true", requests[2].confirmedConstraints["free-cancellation"])
+        assertEquals("true", requests[2].confirmedConstraints["breakfast-included"])
 
         val thirdSearchId = confirmedSearchId(sessionId)
         assertNotEquals(secondSearchId, thirdSearchId)
@@ -137,6 +141,7 @@ class AssistantHotelRefinementIntegrationTest {
         assertEquals(setOf(4, 5), storedPreferences.stars)
         assertNull(storedPreferences.minimumGuestRating)
         assertTrue(storedPreferences.freeCancellationRequired)
+        assertTrue(storedPreferences.breakfastIncludedRequired)
         assertEquals(3, requests.size)
     }
 
@@ -183,6 +188,54 @@ class AssistantHotelRefinementIntegrationTest {
                 sessionId = AssistantSessionId(sessionId),
                 now = now.plusSeconds(1),
             ),
+        )
+    }
+
+    @Test
+    fun explicitFiveStarRefinementIsAppliedWhenLlmOmitsStars() = testApplication {
+        val constraintsStore = InMemoryAssistantHotelConstraintsStore()
+        val diagnosticEvents = mutableListOf<AssistantLlmDiagnosticEvent>()
+        val llmClient = queuedCandidateClient(
+            requests = mutableListOf(),
+            responses = listOf(
+                candidate(
+                    constraints = completeConstraints(),
+                    preferencePatch = LlmHotelSearchPreferencesPatch(
+                        breakfastIncludedRequired = true,
+                    ),
+                ),
+                candidate(),
+            ),
+        )
+
+        application {
+            moduleWithAssistantLlm(
+                llmClient = llmClient,
+                hotelConstraintsStore = constraintsStore,
+                clock = clock,
+                assistantLlmDiagnosticObserver = diagnosticEvents::add,
+            )
+        }
+
+        val sessionId = createSession()
+        sendMessage(sessionId, "Найди отель в Казани с завтраком")
+        confirmedSearchId(sessionId)
+
+        val refinement = sendMessage(
+            sessionId,
+            "Обязательно отель должен быть пятизвездочным",
+        )
+
+        assertEquals("ask_clarification", refinement.nextAction())
+        assertFalse(refinement.containsKey("hotelSearchId"))
+        assertTrue(refinement.assistantContent().contains("Условия: 5 звёзд; завтрак включён"))
+        assertEquals(
+            setOf(5),
+            constraintsStore.findBySession(AssistantSessionId(sessionId))?.preferences?.stars,
+        )
+        assertEquals(
+            listOf(AssistantLlmDiagnosticEvent.PREFERENCE_STARS_ENRICHED),
+            diagnosticEvents,
         )
     }
 
@@ -265,6 +318,7 @@ class AssistantHotelRefinementIntegrationTest {
                         stars = setOf(4, 5),
                         minimumGuestRating = 8,
                         freeCancellationRequired = true,
+                        breakfastIncludedRequired = true,
                     ),
                 ),
             ),
@@ -290,7 +344,10 @@ class AssistantHotelRefinementIntegrationTest {
                 .containsKey("filters"),
         )
 
-        sendMessage(sessionId, "До 80 тысяч, 4–5 звёзд, рейтинг от 8 и бесплатная отмена")
+        sendMessage(
+            sessionId,
+            "До 80 тысяч, 4–5 звёзд, рейтинг от 8, бесплатная отмена и завтрак",
+        )
         assertEquals(1, searchRequestBodies.size)
 
         val secondSearchId = confirmedSearchId(sessionId)
@@ -325,12 +382,16 @@ class AssistantHotelRefinementIntegrationTest {
         assertTrue(
             appliedPreferences.getValue("freeCancellationRequired").jsonPrimitive.content.toBoolean(),
         )
+        assertTrue(
+            appliedPreferences.getValue("breakfastIncludedRequired").jsonPrimitive.content.toBoolean(),
+        )
         assertEquals(
             listOf(
                 "price",
                 "stars",
                 "review_rating",
                 "free_cancellation_allowed",
+                "meal_types",
             ),
             filters.map { filter ->
                 filter.jsonObject.getValue("filterId").jsonPrimitive.content

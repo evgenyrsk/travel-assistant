@@ -48,6 +48,18 @@ internal class RealHotelOfferProviderAdapter(
                     },
                 )
 
+            is HotelsApiSearchOrchestrator.Result.HotelSelectionRequired ->
+                HotelOfferProviderResult.LocationSelectionRequired(
+                    suggestions = result.candidates.map { candidate ->
+                        HotelLocationSuggestion(
+                            name = candidate.name,
+                            signature = candidate.signature,
+                            typeCode = candidate.type.code,
+                            typeName = candidate.type.name,
+                        )
+                    },
+                )
+
             is HotelsApiSearchOrchestrator.Result.RequestRejected ->
                 HotelOfferProviderResult.RequestRejected(
                     reason = result.error.issue.toRequestRejectionReason(),

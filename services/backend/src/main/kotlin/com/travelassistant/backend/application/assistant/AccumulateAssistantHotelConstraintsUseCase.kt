@@ -6,6 +6,7 @@ import java.time.LocalDate
 data class AccumulateAssistantHotelConstraintsCommand(
     val sessionId: AssistantSessionId,
     val extractedConstraints: Map<String, String>,
+    val minimumCheckInDate: LocalDate? = null,
 )
 
 data class AssistantHotelConstraintsAccumulationResult(
@@ -19,12 +20,16 @@ enum class AssistantHotelConstraintsAccumulationIssue(
     INVALID_DESTINATION(AssistantHotelConstraintField.DESTINATION),
     INVALID_CHECK_IN_DATE(AssistantHotelConstraintField.CHECK_IN),
     INVALID_CHECK_OUT_DATE(AssistantHotelConstraintField.CHECK_OUT),
+    INVALID_STAY_LENGTH(AssistantHotelConstraintField.STAY_LENGTH_NIGHTS),
+    CHECK_IN_DATE_IN_PAST(AssistantHotelConstraintField.CHECK_IN),
+    CHECK_OUT_DATE_NOT_FUTURE(AssistantHotelConstraintField.CHECK_OUT),
     INVALID_DATE_RANGE(AssistantHotelConstraintField.CHECK_OUT),
     INVALID_ADULTS(AssistantHotelConstraintField.ADULTS),
     INVALID_CHILDREN(AssistantHotelConstraintField.CHILDREN),
     INVALID_CHILDREN_AGES(AssistantHotelConstraintField.CHILDREN_AGES),
     CHILDREN_AGES_COUNT_MISMATCH(AssistantHotelConstraintField.CHILDREN_AGES),
     INVALID_ROOMS(AssistantHotelConstraintField.ROOMS),
+    UNSUPPORTED_ROOM_COUNT(AssistantHotelConstraintField.ROOMS),
 }
 
 class AccumulateAssistantHotelConstraintsUseCase(
@@ -40,6 +45,7 @@ class AccumulateAssistantHotelConstraintsUseCase(
         var destination = current.destination
         var checkInDate = current.checkInDate
         var checkOutDate = current.checkOutDate
+        var stayLengthNights = current.stayLengthNights
         var adults = current.adults
         var childrenCount = current.childrenCount
         var childrenAges = current.childrenAges
@@ -72,7 +78,51 @@ class AccumulateAssistantHotelConstraintsUseCase(
             if (checkOutDate == null) {
                 unresolved += AssistantHotelConstraintField.CHECK_OUT
                 issues += AssistantHotelConstraintsAccumulationIssue.INVALID_CHECK_OUT_DATE
+            } else {
+                stayLengthNights = null
+                unresolved -= AssistantHotelConstraintField.STAY_LENGTH_NIGHTS
             }
+        }
+
+        val stayLengthValue = command.valueFor(AssistantHotelConstraintField.STAY_LENGTH_NIGHTS)
+        if (stayLengthValue.wasProvided) {
+            unresolved -= AssistantHotelConstraintField.STAY_LENGTH_NIGHTS
+            stayLengthNights = stayLengthValue.rawValue.parseIntOrNull()
+                ?.takeIf { nights -> nights in MIN_STAY_LENGTH_NIGHTS..MAX_STAY_LENGTH_NIGHTS }
+            if (stayLengthNights == null) {
+                unresolved += AssistantHotelConstraintField.STAY_LENGTH_NIGHTS
+                issues += AssistantHotelConstraintsAccumulationIssue.INVALID_STAY_LENGTH
+            }
+        }
+
+        val minimumCheckInDate = command.minimumCheckInDate
+        if (minimumCheckInDate != null) {
+            if (
+                checkInDate != null &&
+                checkInDate.isBefore(minimumCheckInDate)
+            ) {
+                checkInDate = null
+                unresolved += AssistantHotelConstraintField.CHECK_IN
+                issues += AssistantHotelConstraintsAccumulationIssue.CHECK_IN_DATE_IN_PAST
+            }
+            if (
+                checkOutDate != null &&
+                !checkOutDate.isAfter(minimumCheckInDate)
+            ) {
+                checkOutDate = null
+                unresolved += AssistantHotelConstraintField.CHECK_OUT
+                issues += AssistantHotelConstraintsAccumulationIssue.CHECK_OUT_DATE_NOT_FUTURE
+            }
+        }
+
+        if (
+            checkInDate != null &&
+            stayLengthNights != null &&
+            !checkOutValue.wasProvided &&
+            (checkInValue.wasProvided || stayLengthValue.wasProvided || checkOutDate == null)
+        ) {
+            checkOutDate = checkInDate.plusDays(stayLengthNights.toLong())
+            unresolved -= AssistantHotelConstraintField.CHECK_OUT
         }
 
         val adultsValue = command.valueFor(AssistantHotelConstraintField.ADULTS)
@@ -136,10 +186,15 @@ class AccumulateAssistantHotelConstraintsUseCase(
         val roomsValue = command.valueFor(AssistantHotelConstraintField.ROOMS)
         if (roomsValue.wasProvided) {
             unresolved -= AssistantHotelConstraintField.ROOMS
-            rooms = roomsValue.rawValue.parseIntOrNull()?.takeIf { it >= 1 }
+            val parsedRooms = roomsValue.rawValue.parseIntOrNull()
+            rooms = parsedRooms?.takeIf { it == SUPPORTED_ROOM_COUNT }
             if (rooms == null) {
                 unresolved += AssistantHotelConstraintField.ROOMS
-                issues += AssistantHotelConstraintsAccumulationIssue.INVALID_ROOMS
+                issues += if (parsedRooms != null && parsedRooms > SUPPORTED_ROOM_COUNT) {
+                    AssistantHotelConstraintsAccumulationIssue.UNSUPPORTED_ROOM_COUNT
+                } else {
+                    AssistantHotelConstraintsAccumulationIssue.INVALID_ROOMS
+                }
             }
         }
 
@@ -169,6 +224,7 @@ class AccumulateAssistantHotelConstraintsUseCase(
             destination = destination,
             checkInDate = checkInDate,
             checkOutDate = checkOutDate,
+            stayLengthNights = stayLengthNights,
             adults = adults,
             childrenCount = childrenCount,
             childrenAges = childrenAges,
@@ -215,5 +271,8 @@ class AccumulateAssistantHotelConstraintsUseCase(
     private companion object {
         const val MIN_CHILD_AGE = 0
         const val MAX_CHILD_AGE = 17
+        const val MIN_STAY_LENGTH_NIGHTS = 1
+        const val MAX_STAY_LENGTH_NIGHTS = 365
+        const val SUPPORTED_ROOM_COUNT = 1
     }
 }

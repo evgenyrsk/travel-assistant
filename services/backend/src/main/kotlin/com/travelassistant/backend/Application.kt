@@ -4,6 +4,7 @@ import com.travelassistant.backend.api.configureApiRoutes
 import com.travelassistant.backend.api.configureErrorHandling
 import com.travelassistant.backend.api.configureSerialization
 import com.travelassistant.backend.application.assistant.AssistantHotelConstraintsStore
+import com.travelassistant.backend.application.assistant.AssistantLlmDiagnosticObserver
 import com.travelassistant.backend.application.assistant.AssistantHotelSearchHandoffUseCase
 import com.travelassistant.backend.application.assistant.AssistantLlmRouteWiringUseCase
 import com.travelassistant.backend.application.assistant.ComposeConfirmedSearchTransitionResponseUseCase
@@ -28,6 +29,7 @@ import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.infrastructure.llm.LlmProviderConfig
 import com.travelassistant.backend.infrastructure.llm.LlmProviderFactory
 import com.travelassistant.backend.infrastructure.llm.OpenRouterDiagnosticObserver
+import com.travelassistant.backend.infrastructure.llm.SafeLlmDiagnosticLogger
 import com.travelassistant.backend.infrastructure.llm.createProductionOpenRouterHttpClient
 import com.travelassistant.backend.infrastructure.provider.HotelOfferProviderFactory
 import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
@@ -62,7 +64,8 @@ internal fun Application.moduleWithProviderConfigs(
     hotelConstraintsStore: AssistantHotelConstraintsStore = InMemoryAssistantHotelConstraintsStore(),
     clock: Clock = Clock.systemUTC(),
     openRouterHttpClientFactory: () -> HttpClient = ::createProductionOpenRouterHttpClient,
-    openRouterDiagnosticObserver: OpenRouterDiagnosticObserver = OpenRouterDiagnosticObserver.NONE,
+    openRouterDiagnosticObserver: OpenRouterDiagnosticObserver = SafeLlmDiagnosticLogger,
+    assistantLlmDiagnosticObserver: AssistantLlmDiagnosticObserver = SafeLlmDiagnosticLogger,
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
 ) {
     val llmProviderRuntime = LlmProviderFactory.create(
@@ -83,6 +86,7 @@ internal fun Application.moduleWithProviderConfigs(
             pendingConfirmationStore = pendingConfirmationStore,
             hotelConstraintsStore = hotelConstraintsStore,
             clock = clock,
+            assistantLlmDiagnosticObserver = assistantLlmDiagnosticObserver,
             realHotelHttpClientFactory = realHotelHttpClientFactory,
         )
     } catch (error: Throwable) {
@@ -99,6 +103,8 @@ internal fun Application.moduleWithAssistantLlm(
     hotelConstraintsStore: AssistantHotelConstraintsStore = InMemoryAssistantHotelConstraintsStore(),
     clock: Clock = Clock.systemUTC(),
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
+    assistantLlmDiagnosticObserver: AssistantLlmDiagnosticObserver =
+        AssistantLlmDiagnosticObserver.NONE,
 ) {
     val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
     val hotelProviderRuntime = HotelOfferProviderFactory.create(
@@ -138,6 +144,7 @@ internal fun Application.moduleWithAssistantLlm(
             ),
         ),
         clock = clock,
+        diagnosticObserver = assistantLlmDiagnosticObserver,
     )
 
     configureSerialization()
@@ -165,4 +172,4 @@ private fun defaultAssistantLlmClient(): LlmClient =
     )
 
 private const val DEFAULT_LLM_CLARIFICATION_MESSAGE =
-    "Расскажите, куда и когда планируете поездку, кто едет и сколько номеров нужно."
+    "Расскажите, куда и когда планируете поездку и кто едет с вами."

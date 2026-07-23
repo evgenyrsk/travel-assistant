@@ -23,6 +23,7 @@ class HotelOfferResponseTest {
                 starRating = null,
                 freeCancellationUntil = null,
                 imageUrl = null,
+                breakfastIncluded = null,
             ),
         )
 
@@ -33,6 +34,7 @@ class HotelOfferResponseTest {
         assertFalse(encoded.contains("\"starRating\""))
         assertFalse(encoded.contains("\"freeCancellationUntil\""))
         assertFalse(encoded.contains("\"imageUrl\""))
+        assertFalse(encoded.contains("\"breakfastIncluded\""))
         assertFalse(encoded.contains("providerOfferRef"))
         assertFalse(encoded.contains("provider-1"))
     }
@@ -48,6 +50,7 @@ class HotelOfferResponseTest {
                 starRating = 4,
                 freeCancellationUntil = cancellationDeadline,
                 imageUrl = "https://images.example.invalid/hotel.jpg",
+                breakfastIncluded = true,
             ),
         )
 
@@ -61,6 +64,8 @@ class HotelOfferResponseTest {
         assertTrue(
             encoded.contains("\"imageUrl\":\"https://images.example.invalid/hotel.jpg\""),
         )
+        assertTrue(encoded.contains("\"breakfastIncluded\":true"))
+        assertTrue(encoded.contains("\"field\":\"breakfastIncluded\""))
         assertFalse(encoded.contains("provider-1"))
     }
 
@@ -71,6 +76,7 @@ class HotelOfferResponseTest {
         starRating: Int?,
         freeCancellationUntil: Instant?,
         imageUrl: String?,
+        breakfastIncluded: Boolean?,
     ): RankedHotelOffer =
         RankedHotelOffer(
             offer = HotelOffer(
@@ -90,6 +96,7 @@ class HotelOfferResponseTest {
                 starRating = starRating,
                 freeCancellationUntil = freeCancellationUntil,
                 imageUrl = imageUrl,
+                breakfastIncluded = breakfastIncluded,
             ),
             matchSummary = "Test summary",
         )

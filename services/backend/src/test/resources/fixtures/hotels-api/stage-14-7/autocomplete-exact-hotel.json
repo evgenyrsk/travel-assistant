@@ -1,0 +1,16 @@
+{
+  "payload": {
+    "locations": [],
+    "hotels": [
+      {
+        "id": "hotel-example-001",
+        "name": "Отель Пример",
+        "signature": "Отель • Пример страны, Пример города, Пример адреса",
+        "type": {
+          "code": "hotel",
+          "name": "Отель"
+        }
+      }
+    ]
+  }
+}

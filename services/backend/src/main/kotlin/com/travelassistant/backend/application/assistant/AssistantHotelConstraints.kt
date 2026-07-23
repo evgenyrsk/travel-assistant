@@ -7,10 +7,11 @@ data class AssistantHotelConstraints(
     val destination: String? = null,
     val checkInDate: LocalDate? = null,
     val checkOutDate: LocalDate? = null,
+    val stayLengthNights: Int? = null,
     val adults: Int? = null,
     val childrenCount: Int? = null,
     val childrenAges: List<Int>? = null,
-    val rooms: Int? = null,
+    val rooms: Int? = DEFAULT_ASSISTANT_ROOM_COUNT,
     val preferences: HotelSearchPreferences = HotelSearchPreferences(),
     val unresolvedFields: Set<AssistantHotelConstraintField> = emptySet(),
 ) {
@@ -32,6 +33,9 @@ data class AssistantHotelConstraints(
             if (preferences.freeCancellationRequired) {
                 put(FREE_CANCELLATION_KEY, "true")
             }
+            if (preferences.breakfastIncludedRequired) {
+                put(BREAKFAST_INCLUDED_KEY, "true")
+            }
         }
 
     fun toCoreConstraints(): Map<String, String> =
@@ -45,6 +49,9 @@ data class AssistantHotelConstraints(
             checkOutDate
                 ?.takeIf { AssistantHotelConstraintField.CHECK_OUT !in unresolvedFields }
                 ?.let { put(AssistantHotelConstraintField.CHECK_OUT.key, it.toString()) }
+            stayLengthNights
+                ?.takeIf { AssistantHotelConstraintField.STAY_LENGTH_NIGHTS !in unresolvedFields }
+                ?.let { put(AssistantHotelConstraintField.STAY_LENGTH_NIGHTS.key, it.toString()) }
             adults
                 ?.takeIf { AssistantHotelConstraintField.ADULTS !in unresolvedFields }
                 ?.let { put(AssistantHotelConstraintField.ADULTS.key, it.toString()) }
@@ -72,7 +79,9 @@ data class AssistantHotelConstraints(
         val missingFields = linkedSetOf<AssistantHotelConstraintField>()
         if (destination == null) missingFields += AssistantHotelConstraintField.DESTINATION
         if (checkInDate == null) missingFields += AssistantHotelConstraintField.CHECK_IN
-        if (checkOutDate == null) missingFields += AssistantHotelConstraintField.CHECK_OUT
+        if (checkOutDate == null && stayLengthNights == null) {
+            missingFields += AssistantHotelConstraintField.CHECK_OUT
+        }
         if (adults == null) missingFields += AssistantHotelConstraintField.ADULTS
 
         val resolvedChildrenCount = childrenCount ?: childrenAges?.size
@@ -97,8 +106,11 @@ data class AssistantHotelConstraints(
         const val STARS_KEY = "stars"
         const val MINIMUM_GUEST_RATING_KEY = "min-guest-rating"
         const val FREE_CANCELLATION_KEY = "free-cancellation"
+        const val BREAKFAST_INCLUDED_KEY = "breakfast-included"
     }
 }
+
+internal const val DEFAULT_ASSISTANT_ROOM_COUNT = 1
 
 enum class AssistantHotelConstraintField(
     val key: String,
@@ -106,6 +118,7 @@ enum class AssistantHotelConstraintField(
     DESTINATION("destination"),
     CHECK_IN("check-in"),
     CHECK_OUT("check-out"),
+    STAY_LENGTH_NIGHTS("stay-length-nights"),
     ADULTS("adults"),
     CHILDREN("children"),
     CHILDREN_AGES("children-ages"),

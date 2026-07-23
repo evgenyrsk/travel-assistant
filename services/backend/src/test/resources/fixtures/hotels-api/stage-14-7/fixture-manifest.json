@@ -1,0 +1,56 @@
+{
+  "observedAt": "2026-07-23",
+  "sanitized": true,
+  "automaticRetries": false,
+  "calls": [
+    {
+      "purpose": "exact-hotel-autocomplete",
+      "method": "POST",
+      "path": "/search-api/search/autocomplete",
+      "status": 200,
+      "contentType": "application/json",
+      "authorizationSent": false,
+      "attemptCount": 1
+    },
+    {
+      "purpose": "exact-hotel-rates",
+      "method": "POST",
+      "path": "/api/v3/hotels/{hotelId}/rates",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "authorizationSent": false,
+      "attemptCount": 1
+    }
+  ],
+  "observation": {
+    "autocompleteLocationCount": 0,
+    "autocompleteHotelCount": 1,
+    "autocompleteHotelIdType": "string",
+    "ratesCount": 24,
+    "roomsCount": 6,
+    "rateRoomIdType": "string",
+    "roomIdType": "string",
+    "mealTypesObserved": ["breakfast", "nomeal"],
+    "paymentPlacesObserved": ["hotel", "now"]
+  },
+  "redactions": [
+    "hotel, room, rate and search identifiers",
+    "hotel, room and location display values",
+    "image URLs",
+    "book hashes",
+    "response headers and tracing metadata"
+  ],
+  "excluded": [
+    "authorization",
+    "cookies",
+    "session metadata",
+    "device metadata",
+    "raw response bodies"
+  ],
+  "limitations": [
+    "single exact-hotel observation",
+    "public success does not establish an official server-to-server guarantee",
+    "rates response does not contain a guest review fact",
+    "booking fields are evidence only and remain outside the MVP model"
+  ]
+}

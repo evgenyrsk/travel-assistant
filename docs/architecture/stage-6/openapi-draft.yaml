@@ -527,7 +527,9 @@ components:
       description: >
         Platform-neutral assistant user text. message is required when a JSON
         body is provided and must contain from 1 to 4000 Unicode code points.
-        clientContext is optional behavior-neutral client hint data.
+        clientContext is optional non-authoritative client hint data. timezone
+        may be used together with the backend clock to derive the user's current
+        local calendar date; locale is behavior-neutral in the current contract.
       required:
         - message
       properties:
@@ -541,15 +543,22 @@ components:
         clientContext:
           type: object
           description: >
-            Optional client hint container. Its fields do not change behavior in
-            the current bounded contract.
+            Optional client hint container. No client clock value is trusted or
+            accepted. Missing or invalid timezone data prevents automatic
+            interpretation of relative or yearless dates and leads to an
+            assistant clarification instead.
           additionalProperties: false
           properties:
             locale:
               type: string
+              description: Optional locale hint; currently not used for behavior.
               example: en-US
             timezone:
               type: string
+              description: >
+                Optional IANA time-zone identifier used with the backend clock
+                to derive the current local date for phrases such as today and
+                tomorrow.
               example: Europe/Moscow
       additionalProperties: false
 
@@ -997,6 +1006,10 @@ components:
           type: boolean
           enum:
             - true
+        breakfastIncludedRequired:
+          type: boolean
+          enum:
+            - true
       additionalProperties: false
 
     MaximumTotalPricePreference:
@@ -1032,6 +1045,7 @@ components:
             - minimumGuestRating
             - stars
             - freeCancellationRequired
+            - breakfastIncludedRequired
             - maxTotalPrice
         message:
           type: string
@@ -1082,6 +1096,9 @@ components:
           format: uri
           pattern: "^https://"
           description: First safe hotel image URL; omitted when unknown or invalid.
+        breakfastIncluded:
+          type: boolean
+          description: Omitted when the provider response does not establish whether breakfast is included.
         availability:
           type: string
           enum:

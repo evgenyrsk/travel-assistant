@@ -39,6 +39,7 @@ class HotelOffersResponseTest {
             stars = linkedSetOf(5, 4),
             minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
             freeCancellationRequired = true,
+            breakfastIncludedRequired = true,
         )
 
         val encoded = json.encodeToString(HotelOffersResponse.from(search(preferences)))
@@ -53,6 +54,7 @@ class HotelOffersResponseTest {
                 "stars",
                 "minimumGuestRating",
                 "freeCancellationRequired",
+                "breakfastIncludedRequired",
             ),
             applied.keys,
         )
@@ -70,6 +72,7 @@ class HotelOffersResponseTest {
         )
         assertEquals(8, applied.getValue("minimumGuestRating").jsonPrimitive.content.toInt())
         assertTrue(applied.getValue("freeCancellationRequired").jsonPrimitive.content.toBoolean())
+        assertTrue(applied.getValue("breakfastIncludedRequired").jsonPrimitive.content.toBoolean())
     }
 
     @Test

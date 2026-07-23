@@ -16,5 +16,16 @@ internal object HotelsApiAutocompleteLocationMapper {
                     ),
                 )
             },
+            hotelCandidates = response.payload.hotels.orEmpty().map { hotel ->
+                HotelLocationResolution.HotelCandidate(
+                    providerReference = hotel.id,
+                    name = hotel.name,
+                    signature = hotel.signature,
+                    type = HotelLocationResolution.Type(
+                        code = hotel.type.code,
+                        name = hotel.type.name,
+                    ),
+                )
+            },
         )
 }

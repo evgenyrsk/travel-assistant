@@ -19,6 +19,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.ArrayDeque
 import kotlinx.serialization.json.Json
@@ -46,7 +47,7 @@ class AssistantHotelConstraintsConversationIntegrationTest {
             responses = listOf(
                 clarificationCandidate(
                     constraints = mapOf("destination" to "Казань"),
-                    missing = listOf("check-in", "check-out", "adults", "rooms"),
+                    missing = listOf("check-in", "check-out", "adults"),
                     question = "На какие даты планируется поездка?",
                 ),
                 clarificationCandidate(
@@ -54,13 +55,12 @@ class AssistantHotelConstraintsConversationIntegrationTest {
                         "check-in" to "2026-08-10",
                         "check-out" to "2026-08-14",
                     ),
-                    missing = listOf("adults", "rooms"),
-                    question = "Сколько будет взрослых и номеров?",
+                    missing = listOf("adults"),
+                    question = "Сколько будет взрослых?",
                 ),
                 interpretedCandidate(
                     "adults" to "2",
                     "children" to "0",
-                    "rooms" to "1",
                 ),
             ),
         )
@@ -77,7 +77,7 @@ class AssistantHotelConstraintsConversationIntegrationTest {
         val sessionId = createSession()
         val destinationReply = sendMessage(sessionId, "Ищу отель в Казани")
         val datesReply = sendMessage(sessionId, "С 10 по 14 августа 2026")
-        val guestsReply = sendMessage(sessionId, "Двое взрослых, один номер")
+        val guestsReply = sendMessage(sessionId, "Двое взрослых")
 
         assertEquals("ask_clarification", destinationReply.nextAction())
         assertEquals("ask_clarification", datesReply.nextAction())
@@ -90,17 +90,21 @@ class AssistantHotelConstraintsConversationIntegrationTest {
             ),
         )
 
-        assertEquals(emptyMap(), requests[0].confirmedConstraints)
+        assertEquals(mapOf("rooms" to "1"), requests[0].confirmedConstraints)
         assertEquals(
-            listOf("destination", "check-in", "check-out", "adults", "rooms"),
+            listOf("destination", "check-in", "check-out", "adults"),
             requests[0].missingRequiredFields,
         )
-        assertEquals(mapOf("destination" to "Казань"), requests[1].confirmedConstraints)
+        assertEquals(
+            mapOf("destination" to "Казань", "rooms" to "1"),
+            requests[1].confirmedConstraints,
+        )
         assertEquals(
             mapOf(
                 "destination" to "Казань",
                 "check-in" to "2026-08-10",
                 "check-out" to "2026-08-14",
+                "rooms" to "1",
             ),
             requests[2].confirmedConstraints,
         )
@@ -210,6 +214,68 @@ class AssistantHotelConstraintsConversationIntegrationTest {
     }
 
     @Test
+    fun carriesStayLengthAcrossTurnsAndIgnoresInventedChildQuestion() = testApplication {
+        val contextStore = InMemoryAssistantHotelConstraintsStore()
+        val pendingStore = InMemoryPendingConfirmationStore()
+        val requests = mutableListOf<LlmCandidateRequest>()
+        val llmClient = queuedLlmClient(
+            requests = requests,
+            responses = listOf(
+                clarificationCandidate(
+                    constraints = mapOf(
+                        "adults" to "2",
+                    ),
+                    missing = listOf("check-in", "check-out"),
+                    question = "Уточните дату заезда и город.",
+                ),
+                clarificationCandidate(
+                    constraints = mapOf("check-in" to "2026-08-01"),
+                    missing = listOf("check-out", "children", "children-ages"),
+                    question = "Уточните дату выезда, количество детей и их возраст.",
+                ),
+            ),
+        )
+
+        application {
+            moduleWithAssistantLlm(
+                llmClient = llmClient,
+                pendingConfirmationStore = pendingStore,
+                hotelConstraintsStore = contextStore,
+                clock = clock,
+            )
+        }
+
+        val sessionId = createSession()
+        val dateQuestion = sendMessage(
+            sessionId,
+            "Хочу вместе с супругой в Cosmos ВДНХ в начале августа на 7 ночей с завтраками",
+        )
+        val confirmation = sendMessage(sessionId, "1 августа 2026 в Cosmos ВДНХ")
+
+        assertEquals(
+            "Уточните даты поездки, указав день, месяц и год.",
+            dateQuestion.assistantContent(),
+        )
+        assertEquals("ask_clarification", confirmation.nextAction())
+        assertTrue(
+            confirmation.assistantContent().contains("Даты: 1–8 августа 2026"),
+            "${confirmation.assistantContent()} stored=" +
+                contextStore.findBySession(AssistantSessionId(sessionId)),
+        )
+        assertTrue(confirmation.assistantContent().contains("Гости: 2 взрослых, без детей"))
+        assertFalse(confirmation.assistantContent().contains("Уточните дату выезда"))
+        assertFalse(confirmation.assistantContent().contains("количество детей"))
+        assertFalse(confirmation.containsKey("hotelSearchId"))
+
+        val stored = contextStore.findBySession(AssistantSessionId(sessionId))
+        assertEquals(7, stored?.stayLengthNights)
+        assertEquals(LocalDate.parse("2026-08-08"), stored?.checkOutDate)
+        assertEquals("Cosmos ВДНХ", requests[1].confirmedConstraints["destination"])
+        assertEquals("7", requests[1].confirmedConstraints["stay-length-nights"])
+        assertEquals(listOf("check-in"), requests[1].missingRequiredFields)
+    }
+
+    @Test
     fun invalidPendingCorrectionClearsOldValueUntilValidReplacement() = testApplication {
         val contextStore = InMemoryAssistantHotelConstraintsStore()
         val pendingStore = InMemoryPendingConfirmationStore()
@@ -259,6 +325,73 @@ class AssistantHotelConstraintsConversationIntegrationTest {
                 now = now.plusSeconds(1),
             )?.criteria?.guests?.adults,
         )
+    }
+
+    @Test
+    fun blocksMultipleRoomsBeforeConfirmationAndAcceptsSingleRoomCorrection() = testApplication {
+        val contextStore = InMemoryAssistantHotelConstraintsStore()
+        val pendingStore = InMemoryPendingConfirmationStore()
+        val requests = mutableListOf<LlmCandidateRequest>()
+        val llmClient = queuedLlmClient(
+            requests = requests,
+            responses = listOf(
+                interpretedCandidate(
+                    *(completeConstraints(destination = "Cosmos ВДНХ") +
+                        ("adults" to "3")),
+                ),
+                interpretedCandidate("rooms" to "2"),
+                interpretedCandidate("rooms" to "1"),
+            ),
+        )
+
+        application {
+            moduleWithAssistantLlm(
+                llmClient = llmClient,
+                pendingConfirmationStore = pendingStore,
+                hotelConstraintsStore = contextStore,
+                clock = clock,
+            )
+        }
+
+        val sessionId = createSession()
+        sendMessage(sessionId, "Найди Cosmos ВДНХ для троих")
+        val initialSearch = sendMessage(sessionId, "да")
+        assertEquals("show_hotel_results", initialSearch.nextAction())
+
+        val unsupportedRooms = sendMessage(
+            sessionId,
+            "Давай два номера: в одном двое, во втором один",
+        )
+
+        assertEquals("ask_clarification", unsupportedRooms.nextAction())
+        assertEquals(
+            "Сейчас я могу искать только один номер за раз. " +
+                "Укажите состав гостей для одного номера или выполните отдельный поиск для второго номера.",
+            unsupportedRooms.assistantContent(),
+        )
+        assertFalse(unsupportedRooms.containsKey("hotelSearchId"))
+        assertNull(contextStore.findBySession(AssistantSessionId(sessionId))?.rooms)
+        assertNull(
+            pendingStore.findActiveBySession(
+                sessionId = AssistantSessionId(sessionId),
+                now = now.plusSeconds(1),
+            ),
+        )
+
+        val corrected = sendMessage(sessionId, "Тогда один номер на троих")
+
+        assertEquals("ask_clarification", corrected.nextAction())
+        assertTrue(corrected.assistantContent().contains("Гости: 3 взрослых, без детей"))
+        assertFalse(corrected.assistantContent().contains("Номера:"))
+        assertFalse(corrected.containsKey("hotelSearchId"))
+        assertEquals(
+            1,
+            pendingStore.findActiveBySession(
+                sessionId = AssistantSessionId(sessionId),
+                now = now.plusSeconds(1),
+            )?.criteria?.rooms,
+        )
+        assertEquals(listOf("rooms"), requests[2].missingRequiredFields)
     }
 
     @Test

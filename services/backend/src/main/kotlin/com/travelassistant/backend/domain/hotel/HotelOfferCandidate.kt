@@ -18,6 +18,7 @@ data class HotelOfferCandidate(
     val starRating: Int? = null,
     val freeCancellationUntil: Instant? = null,
     val imageUrl: String? = null,
+    val breakfastIncluded: Boolean? = null,
 ) {
     fun identifiedBy(id: String): HotelOffer =
         HotelOffer(
@@ -37,5 +38,6 @@ data class HotelOfferCandidate(
             starRating = starRating,
             freeCancellationUntil = freeCancellationUntil,
             imageUrl = imageUrl,
+            breakfastIncluded = breakfastIncluded,
         )
 }

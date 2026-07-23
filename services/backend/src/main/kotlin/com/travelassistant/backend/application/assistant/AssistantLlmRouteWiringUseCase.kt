@@ -2,11 +2,14 @@ package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
+import com.travelassistant.backend.application.llm.LlmHotelSearchPreferencesPatch
 import com.travelassistant.backend.domain.assistant.AssistantSession
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 class AssistantLlmRouteWiringUseCase(
     private val assistantSessionBoundary: AssistantSessionBoundary,
@@ -20,6 +23,17 @@ class AssistantLlmRouteWiringUseCase(
         PlanPostConfirmationDecisionUseCase(pendingConfirmationStore),
     private val composeTransitionResponse: ComposeConfirmedSearchTransitionResponseUseCase,
     private val clock: Clock = Clock.systemUTC(),
+    private val dateInterpretationPolicy: AssistantDateInterpretationPolicy =
+        AssistantDateInterpretationPolicy(),
+    private val diagnosticObserver: AssistantLlmDiagnosticObserver =
+        AssistantLlmDiagnosticObserver.NONE,
+    private val explicitNamedHotelDestinationParser: ExplicitNamedHotelDestinationParser =
+        ExplicitNamedHotelDestinationParser(),
+    private val explicitHotelStarPreferenceParser: ExplicitHotelStarPreferenceParser =
+        ExplicitHotelStarPreferenceParser(),
+    private val explicitStayLengthParser: ExplicitStayLengthParser = ExplicitStayLengthParser(),
+    private val clarificationPolicy: AssistantHotelClarificationPolicy =
+        AssistantHotelClarificationPolicy(),
     private val pendingConfirmationTtl: Duration = DEFAULT_PENDING_CONFIRMATION_TTL,
     private val explicitHotelSearchMessageParser: MinimalHotelSearchMessageParser =
         MinimalHotelSearchMessageParser(),
@@ -72,34 +86,92 @@ class AssistantLlmRouteWiringUseCase(
     private suspend fun AcceptedAssistantMessage.withLlmDecision(
         command: AcceptAssistantMessageCommand,
     ): AcceptedAssistantMessage {
-        return when (val decision = planAssistantLlmDecisionUseCase(requestFor(command))) {
+        val now = clock.instant()
+        val referenceDate = command.clientTimeZone?.let { timeZone ->
+            LocalDate.ofInstant(now, timeZone)
+        }
+        val minimumCheckInDate = referenceDate ?: LocalDate.ofInstant(
+            now,
+            EARLIEST_GLOBAL_DATE_OFFSET,
+        )
+        val request = requestFor(command, referenceDate)
+        val decision = dateInterpretationPolicy(
+            decision = planAssistantLlmDecisionUseCase(request),
+            request = request,
+        )
+
+        return when (decision) {
             is AssistantCandidateDecision.AskClarification -> {
                 val candidate = decision.candidate
+                    ?.withExplicitNamedHotelDestination(command.message)
+                    ?.withExplicitStarPreference(command.message)
+                    ?.withExplicitStayLength(command.message)
                 if (
                     candidate != null &&
-                    candidate.isSafeForContextAccumulation() &&
-                    updateSearchContext(sessionId, candidate) == null
+                    candidate.isSafeForContextAccumulation()
                 ) {
-                    return withClarification(PREFERENCES_CLARIFICATION_MESSAGE)
+                    val contextUpdate = updateSearchContext(
+                        sessionId,
+                        candidate,
+                        minimumCheckInDate,
+                    ) ?: return withClarification(PREFERENCES_CLARIFICATION_MESSAGE)
+                    val updatedDecision = AssistantCandidateDecision.ProceedWithCandidate(candidate)
+                        .withUpdatedConstraints(contextUpdate)
+                    if (updatedDecision.candidate.missingRequiredFields.isEmpty()) {
+                        return withConfirmationPlan(
+                            planProceedWithCandidateConfirmationUseCase(
+                                updatedDecision,
+                                contextUpdate.constraints.preferences,
+                            ),
+                        )
+                    }
+                    return withClarification(
+                        preferredClarification(
+                            decisionQuestion = updatedDecision.candidate.clarificationQuestion
+                                ?: decision.question,
+                            missingFields = updatedDecision.candidate.missingRequiredFields,
+                        ),
+                    )
                 }
-                withClarification(decision.question)
+                val actualMissingFields = hotelConstraintsStore
+                    .findBySession(sessionId)
+                    ?.missingRequiredFields()
+                    .orEmpty()
+                withClarification(
+                    preferredClarification(
+                        decisionQuestion = decision.question,
+                        missingFields = actualMissingFields,
+                    ),
+                )
             }
 
-            is AssistantCandidateDecision.Fallback ->
-                withSafeBoundaryMessage()
+            is AssistantCandidateDecision.Fallback -> {
+                report(decision.reason.toDiagnosticEvent())
+                withSafeBoundaryMessage(decision.reason.userMessage())
+            }
 
             is AssistantCandidateDecision.ProceedWithCandidate -> {
-                if (!decision.candidate.isSafeForContextAccumulation()) {
+                val enrichedDecision = AssistantCandidateDecision.ProceedWithCandidate(
+                    decision.candidate
+                        .withExplicitNamedHotelDestination(command.message)
+                        .withExplicitStarPreference(command.message)
+                        .withExplicitStayLength(command.message),
+                )
+                if (!enrichedDecision.candidate.isSafeForContextAccumulation()) {
                     return withConfirmationPlan(
-                        planProceedWithCandidateConfirmationUseCase(decision),
+                        planProceedWithCandidateConfirmationUseCase(enrichedDecision),
                     )
                 }
 
-                val contextUpdate = updateSearchContext(sessionId, decision.candidate)
+                val contextUpdate = updateSearchContext(
+                    sessionId,
+                    enrichedDecision.candidate,
+                    minimumCheckInDate,
+                )
                     ?: return withClarification(PREFERENCES_CLARIFICATION_MESSAGE)
                 withConfirmationPlan(
                     planProceedWithCandidateConfirmationUseCase(
-                        decision.withUpdatedConstraints(contextUpdate),
+                        enrichedDecision.withUpdatedConstraints(contextUpdate),
                         contextUpdate.constraints.preferences,
                     ),
                 )
@@ -107,7 +179,10 @@ class AssistantLlmRouteWiringUseCase(
         }
     }
 
-    private fun requestFor(command: AcceptAssistantMessageCommand): LlmCandidateRequest {
+    private fun requestFor(
+        command: AcceptAssistantMessageCommand,
+        referenceDate: LocalDate?,
+    ): LlmCandidateRequest {
         val constraints = hotelConstraintsStore.findBySession(command.sessionId)
             ?: AssistantHotelConstraints()
 
@@ -115,6 +190,7 @@ class AssistantLlmRouteWiringUseCase(
             userMessage = command.message,
             confirmedConstraints = constraints.toConfirmedConstraints(),
             missingRequiredFields = constraints.missingRequiredFields(),
+            referenceDate = referenceDate,
         )
     }
 
@@ -125,19 +201,51 @@ class AssistantLlmRouteWiringUseCase(
             accumulation.constraints.missingRequiredFields() +
                 accumulation.issues.map { issue -> issue.field.key }
             ).distinct()
+        val hasInvalidDate = accumulation.issues.any { issue ->
+            issue.field == AssistantHotelConstraintField.CHECK_IN ||
+                issue.field == AssistantHotelConstraintField.CHECK_OUT
+        }
+        val hasUnsupportedRoomCount =
+            AssistantHotelConstraintsAccumulationIssue.UNSUPPORTED_ROOM_COUNT in
+                accumulation.issues
+        if (hasUnsupportedRoomCount) {
+            report(AssistantLlmDiagnosticEvent.UNSUPPORTED_ROOM_COUNT)
+        }
 
         return AssistantCandidateDecision.ProceedWithCandidate(
             candidate.copy(
+                outcome = if (missingFields.isEmpty()) {
+                    LlmCandidate.Outcome.INTERPRETED
+                } else {
+                    LlmCandidate.Outcome.NEEDS_CLARIFICATION
+                },
                 extractedConstraints = accumulation.constraints.toCoreConstraints(),
                 missingRequiredFields = missingFields,
-                clarificationQuestion = when {
+                clarificationQuestion = if (missingFields.isEmpty()) {
+                    null
+                } else when {
+                    hasUnsupportedRoomCount ->
+                        SINGLE_ROOM_ONLY_CLARIFICATION_MESSAGE
+
+                    candidate.clarificationQuestion ==
+                        AssistantDateInterpretationPolicy.DATE_WITH_YEAR_CLARIFICATION_MESSAGE ->
+                        AssistantDateInterpretationPolicy.DATE_WITH_YEAR_CLARIFICATION_MESSAGE
+
+                    hasInvalidDate ->
+                        AssistantDateInterpretationPolicy.DATE_WITH_YEAR_CLARIFICATION_MESSAGE
+
                     AssistantHotelConstraintField.CHILDREN.key in missingFields ->
                         CHILDREN_COUNT_CLARIFICATION_MESSAGE
 
                     AssistantHotelConstraintField.CHILDREN_AGES.key in missingFields ->
                         CHILDREN_AGES_CLARIFICATION_MESSAGE
 
-                    else -> candidate.clarificationQuestion
+                    AssistantHotelConstraintField.CHECK_IN.key in missingFields ||
+                        AssistantHotelConstraintField.CHECK_OUT.key in missingFields ->
+                        clarificationPolicy.questionFor(missingFields)
+
+                    else -> clarificationPolicy.questionFor(missingFields)
+                        ?: candidate.clarificationQuestion
                 },
             ),
         )
@@ -146,8 +254,9 @@ class AssistantLlmRouteWiringUseCase(
     private fun updateSearchContext(
         sessionId: AssistantSessionId,
         candidate: LlmCandidate,
+        minimumCheckInDate: LocalDate,
     ): AssistantHotelConstraintsAccumulationResult? {
-        val accumulation = accumulateConstraints(sessionId, candidate)
+        val accumulation = accumulateConstraints(sessionId, candidate, minimumCheckInDate)
         val mappedPatch = when (
             val mappingResult = mapHotelSearchPreferencesPatch(candidate.preferencePatch)
         ) {
@@ -174,11 +283,13 @@ class AssistantLlmRouteWiringUseCase(
     private fun accumulateConstraints(
         sessionId: AssistantSessionId,
         candidate: LlmCandidate,
+        minimumCheckInDate: LocalDate,
     ): AssistantHotelConstraintsAccumulationResult =
         accumulateHotelConstraints(
             AccumulateAssistantHotelConstraintsCommand(
                 sessionId = sessionId,
                 extractedConstraints = candidate.extractedConstraints,
+                minimumCheckInDate = minimumCheckInDate,
             ),
         )
 
@@ -191,6 +302,44 @@ class AssistantLlmRouteWiringUseCase(
             conflicts.isEmpty() &&
             warnings.isEmpty()
 
+    private fun LlmCandidate.withExplicitNamedHotelDestination(message: String): LlmCandidate {
+        if (!extractedConstraints[AssistantHotelConstraintField.DESTINATION.key].isNullOrBlank()) {
+            return this
+        }
+        val destination = explicitNamedHotelDestinationParser.parse(message) ?: return this
+
+        report(AssistantLlmDiagnosticEvent.DESTINATION_ENRICHED)
+        return copy(
+            extractedConstraints = extractedConstraints +
+                (AssistantHotelConstraintField.DESTINATION.key to destination),
+        )
+    }
+
+    private fun LlmCandidate.withExplicitStarPreference(message: String): LlmCandidate {
+        val explicitStars = explicitHotelStarPreferenceParser.parse(message) ?: return this
+        val enrichedPatch = preferencePatch.copy(
+            stars = explicitStars,
+            clear = preferencePatch.clear - LlmHotelSearchPreferencesPatch.Field.STARS,
+        )
+        if (enrichedPatch == preferencePatch) {
+            return this
+        }
+
+        report(AssistantLlmDiagnosticEvent.PREFERENCE_STARS_ENRICHED)
+        return copy(preferencePatch = enrichedPatch)
+    }
+
+    private fun LlmCandidate.withExplicitStayLength(message: String): LlmCandidate {
+        val stayLength = explicitStayLengthParser.parse(message) ?: return this
+        if (extractedConstraints[AssistantHotelConstraintField.STAY_LENGTH_NIGHTS.key] == stayLength.toString()) {
+            return this
+        }
+        return copy(
+            extractedConstraints = extractedConstraints +
+                (AssistantHotelConstraintField.STAY_LENGTH_NIGHTS.key to stayLength.toString()),
+        )
+    }
+
     private fun AcceptedAssistantMessage.withClarification(question: String): AcceptedAssistantMessage =
         copy(
             assistantReply = AssistantReply(
@@ -201,11 +350,26 @@ class AssistantLlmRouteWiringUseCase(
             hotelSearchId = null,
         )
 
-    private fun AcceptedAssistantMessage.withSafeBoundaryMessage(): AcceptedAssistantMessage =
+    private fun preferredClarification(
+        decisionQuestion: String,
+        missingFields: Collection<String>,
+    ): String =
+        if (
+            decisionQuestion == AssistantDateInterpretationPolicy.DATE_WITH_YEAR_CLARIFICATION_MESSAGE ||
+            decisionQuestion == SINGLE_ROOM_ONLY_CLARIFICATION_MESSAGE
+        ) {
+            decisionQuestion
+        } else {
+            clarificationPolicy.questionFor(missingFields) ?: decisionQuestion
+        }
+
+    private fun AcceptedAssistantMessage.withSafeBoundaryMessage(
+        message: String,
+    ): AcceptedAssistantMessage =
         copy(
             assistantReply = AssistantReply(
                 type = AssistantReplyType.CLARIFICATION,
-                message = SAFE_BOUNDARY_MESSAGE,
+                message = message,
             ),
             nextAction = AssistantNextAction.SHOW_BOUNDARY_MESSAGE,
             hotelSearchId = null,
@@ -223,9 +387,73 @@ class AssistantLlmRouteWiringUseCase(
             is ProceedWithCandidateConfirmationPlan.ClarificationRequired ->
                 withClarification(plan.question)
 
-            is ProceedWithCandidateConfirmationPlan.Fallback ->
-                withSafeBoundaryMessage()
+            is ProceedWithCandidateConfirmationPlan.Fallback -> {
+                report(plan.reason.toDiagnosticEvent())
+                withSafeBoundaryMessage(plan.reason.userMessage())
+            }
         }
+
+    private fun AssistantCandidateDecision.FallbackReason.toDiagnosticEvent():
+        AssistantLlmDiagnosticEvent =
+        when (this) {
+            AssistantCandidateDecision.FallbackReason.EMPTY_RESPONSE ->
+                AssistantLlmDiagnosticEvent.CANDIDATE_EMPTY_RESPONSE
+
+            AssistantCandidateDecision.FallbackReason.CLIENT_FAILURE ->
+                AssistantLlmDiagnosticEvent.CANDIDATE_CLIENT_FAILURE
+
+            AssistantCandidateDecision.FallbackReason.INVALID_CANDIDATE ->
+                AssistantLlmDiagnosticEvent.CANDIDATE_INVALID
+
+            AssistantCandidateDecision.FallbackReason.UNSUPPORTED_INTENT ->
+                AssistantLlmDiagnosticEvent.CANDIDATE_UNSUPPORTED_INTENT
+
+            AssistantCandidateDecision.FallbackReason.MISSING_CLARIFICATION ->
+                AssistantLlmDiagnosticEvent.CANDIDATE_MISSING_CLARIFICATION
+        }
+
+    private fun ProceedWithCandidateConfirmationPlan.FallbackReason.toDiagnosticEvent():
+        AssistantLlmDiagnosticEvent =
+        when (this) {
+            ProceedWithCandidateConfirmationPlan.FallbackReason.UNSUPPORTED_INTENT ->
+                AssistantLlmDiagnosticEvent.CONFIRMATION_UNSUPPORTED_INTENT
+
+            ProceedWithCandidateConfirmationPlan.FallbackReason.UNSAFE_OR_UNSUPPORTED_OUTCOME ->
+                AssistantLlmDiagnosticEvent.CONFIRMATION_UNSAFE_OR_UNSUPPORTED_OUTCOME
+
+            ProceedWithCandidateConfirmationPlan.FallbackReason.CONFLICTS_OR_WARNINGS ->
+                AssistantLlmDiagnosticEvent.CONFIRMATION_CONFLICTS_OR_WARNINGS
+        }
+
+    private fun AssistantCandidateDecision.FallbackReason.userMessage(): String =
+        when (this) {
+            AssistantCandidateDecision.FallbackReason.EMPTY_RESPONSE,
+            AssistantCandidateDecision.FallbackReason.CLIENT_FAILURE,
+            -> TEMPORARY_LLM_FAILURE_MESSAGE
+
+            AssistantCandidateDecision.FallbackReason.INVALID_CANDIDATE,
+            AssistantCandidateDecision.FallbackReason.MISSING_CLARIFICATION,
+            -> AMBIGUOUS_LLM_RESULT_MESSAGE
+
+            AssistantCandidateDecision.FallbackReason.UNSUPPORTED_INTENT ->
+                HOTEL_ONLY_BOUNDARY_MESSAGE
+        }
+
+    private fun ProceedWithCandidateConfirmationPlan.FallbackReason.userMessage(): String =
+        when (this) {
+            ProceedWithCandidateConfirmationPlan.FallbackReason.UNSUPPORTED_INTENT ->
+                HOTEL_ONLY_BOUNDARY_MESSAGE
+
+            ProceedWithCandidateConfirmationPlan.FallbackReason.UNSAFE_OR_UNSUPPORTED_OUTCOME ->
+                AMBIGUOUS_LLM_RESULT_MESSAGE
+
+            ProceedWithCandidateConfirmationPlan.FallbackReason.CONFLICTS_OR_WARNINGS ->
+                CONFLICTING_LLM_RESULT_MESSAGE
+        }
+
+    private fun report(event: AssistantLlmDiagnosticEvent) {
+        runCatching { diagnosticObserver.record(event) }
+    }
 
     private suspend fun AcceptedAssistantMessage.withPostConfirmationDecision(
         decision: PostConfirmationDecision,
@@ -314,9 +542,21 @@ class AssistantLlmRouteWiringUseCase(
     private companion object {
         val DEFAULT_PENDING_CONFIRMATION_TTL: Duration = Duration.ofMinutes(15)
 
-        const val SAFE_BOUNDARY_MESSAGE =
-            "Пока не удалось безопасно преобразовать сообщение в запрос на поиск отелей. " +
-                "Уточните направление, даты, состав гостей и количество номеров."
+        const val TEMPORARY_LLM_FAILURE_MESSAGE =
+            "Не удалось обработать сообщение из-за временного сбоя. " +
+                "Попробуйте отправить его ещё раз."
+
+        const val AMBIGUOUS_LLM_RESULT_MESSAGE =
+            "Не удалось однозначно разобрать параметры поездки. " +
+                "Переформулируйте запрос, указав направление, даты и состав гостей."
+
+        const val CONFLICTING_LLM_RESULT_MESSAGE =
+            "В параметрах поездки осталось противоречие. " +
+                "Переформулируйте запрос или уточните спорное условие."
+
+        const val HOTEL_ONLY_BOUNDARY_MESSAGE =
+            "Сейчас я помогаю только с поиском отелей. " +
+                "Укажите направление, даты и состав гостей."
 
         const val CONFIRMATION_NEEDS_CLARIFICATION_MESSAGE =
             "Подтвердите параметры, отмените поиск или пришлите исправленные условия."
@@ -325,7 +565,7 @@ class AssistantLlmRouteWiringUseCase(
             "Хорошо, поиск отелей не запущен. Когда будете готовы, сообщите новые параметры."
 
         const val CONFIRMATION_REPLANNING_MESSAGE =
-            "Уточните исправленные направление, даты, состав гостей и количество номеров."
+            "Уточните исправленные направление, даты или состав гостей."
 
         const val NO_ACTIVE_CONFIRMATION_MESSAGE =
             "Нет активного запроса, ожидающего подтверждения. Отправьте параметры поиска отелей ещё раз."
@@ -341,6 +581,8 @@ class AssistantLlmRouteWiringUseCase(
 
         const val PREFERENCES_CLARIFICATION_MESSAGE =
             "Уточните предпочтения: максимальную стоимость за весь период, звёзды, " +
-                "минимальный рейтинг или требование бесплатной отмены."
+                "минимальный рейтинг, бесплатную отмену или включённый завтрак."
+
+        val EARLIEST_GLOBAL_DATE_OFFSET: ZoneOffset = ZoneOffset.ofHours(-12)
     }
 }

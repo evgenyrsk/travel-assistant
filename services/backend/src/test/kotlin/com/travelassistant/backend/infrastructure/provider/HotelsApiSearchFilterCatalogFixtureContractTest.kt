@@ -37,6 +37,10 @@ class HotelsApiSearchFilterCatalogFixtureContractTest {
             filter(filters, "free_cancellation_allowed").objectType(),
         )
 
+        val mealTypes = filter(filters, "meal_types")
+        assertEquals("array", mealTypes.objectType())
+        assertTrue("breakfast" in mealTypes.stringValues())
+
         val popularFilters = payload.getValue("popularFilters").jsonArray
         val popularRating = filter(popularFilters, "review_rating")
         assertEquals("radio", popularRating.objectType())
@@ -45,6 +49,10 @@ class HotelsApiSearchFilterCatalogFixtureContractTest {
         val popularCancellation = filter(popularFilters, "free_cancellation_allowed")
         assertEquals("boolean", popularCancellation.objectType())
         assertTrue(popularCancellation.getValue("value").jsonPrimitive.boolean)
+
+        val popularMealTypes = filter(popularFilters, "meal_types")
+        assertEquals("array", popularMealTypes.objectType())
+        assertEquals(listOf("breakfast"), popularMealTypes.stringValues())
     }
 
     @Test

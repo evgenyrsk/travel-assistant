@@ -34,9 +34,10 @@ class AccumulateAssistantHotelConstraintsUseCaseTest {
         assertEquals(LocalDate.parse("2026-08-10"), result.constraints.checkInDate)
         assertEquals(LocalDate.parse("2026-08-14"), result.constraints.checkOutDate)
         assertEquals(
-            listOf("adults", "rooms"),
+            listOf("adults"),
             result.constraints.missingRequiredFields(),
         )
+        assertEquals(1, result.constraints.rooms)
         assertFalse(result.constraints.toString().contains("must-not-be-stored"))
     }
 
@@ -63,6 +64,7 @@ class AccumulateAssistantHotelConstraintsUseCaseTest {
             stars = linkedSetOf(4, 5),
             minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
             freeCancellationRequired = true,
+            breakfastIncludedRequired = true,
         )
         store.save(
             sessionId,
@@ -78,21 +80,23 @@ class AccumulateAssistantHotelConstraintsUseCaseTest {
         assertEquals(
             mapOf(
                 "destination" to "Paris",
+                "rooms" to "1",
                 "max-total-price" to "80000 RUB",
                 "stars" to "4,5",
                 "min-guest-rating" to "8",
                 "free-cancellation" to "true",
+                "breakfast-included" to "true",
             ),
             result.constraints.toConfirmedConstraints(),
         )
         assertEquals(
-            mapOf("destination" to "Paris"),
+            mapOf("destination" to "Paris", "rooms" to "1"),
             result.constraints.toCoreConstraints(),
         )
     }
 
     @Test
-    fun invalidCorrectionClearsOldValueAndPreservesOtherValidUpdates() {
+    fun invalidAndUnsupportedCorrectionsClearOldValuesUntilValidReplacement() {
         accumulate(command(*completeConstraints(destination = "Rome")))
 
         val rejected = accumulate(
@@ -103,16 +107,28 @@ class AccumulateAssistantHotelConstraintsUseCaseTest {
         )
 
         assertNull(rejected.constraints.adults)
-        assertEquals(2, rejected.constraints.rooms)
+        assertNull(rejected.constraints.rooms)
         assertEquals(
-            setOf(AssistantHotelConstraintsAccumulationIssue.INVALID_ADULTS),
+            setOf(
+                AssistantHotelConstraintsAccumulationIssue.INVALID_ADULTS,
+                AssistantHotelConstraintsAccumulationIssue.UNSUPPORTED_ROOM_COUNT,
+            ),
             rejected.issues,
         )
-        assertEquals(listOf("adults"), rejected.constraints.missingRequiredFields())
+        assertEquals(
+            listOf("adults", "rooms"),
+            rejected.constraints.missingRequiredFields(),
+        )
 
-        val corrected = accumulate(command("adults" to "3"))
+        val corrected = accumulate(
+            command(
+                "adults" to "3",
+                "rooms" to "1",
+            ),
+        )
 
         assertEquals(3, corrected.constraints.adults)
+        assertEquals(1, corrected.constraints.rooms)
         assertEquals(emptySet(), corrected.constraints.unresolvedFields)
         assertEquals(emptyList(), corrected.constraints.missingRequiredFields())
     }
@@ -162,7 +178,7 @@ class AccumulateAssistantHotelConstraintsUseCaseTest {
             belowRange.issues,
         )
         assertEquals(
-            listOf("destination", "check-in", "check-out", "adults", "children-ages", "rooms"),
+            listOf("destination", "check-in", "check-out", "adults", "children-ages"),
             belowRange.constraints.missingRequiredFields(),
         )
 
@@ -182,8 +198,143 @@ class AccumulateAssistantHotelConstraintsUseCaseTest {
         assertEquals(1, result.constraints.childrenCount)
         assertNull(result.constraints.childrenAges)
         assertEquals(
-            listOf("destination", "check-in", "check-out", "adults", "children-ages", "rooms"),
+            listOf("destination", "check-in", "check-out", "adults", "children-ages"),
             result.constraints.missingRequiredFields(),
+        )
+    }
+
+    @Test
+    fun defaultsOmittedRoomCountToOne() {
+        val result = accumulate(
+            command(
+                "destination" to "Казань",
+                "check-in" to "2026-08-10",
+                "check-out" to "2026-08-14",
+                "adults" to "2",
+                "children" to "0",
+            ),
+        )
+
+        assertEquals(1, result.constraints.rooms)
+        assertEquals("1", result.constraints.toConfirmedConstraints()["rooms"])
+        assertEquals(emptyList(), result.constraints.missingRequiredFields())
+    }
+
+    @Test
+    fun derivesCheckoutWhenCheckInArrivesAfterStayLength() {
+        val duration = accumulate(
+            command(
+                "destination" to "Cosmos ВДНХ",
+                "stay-length-nights" to "7",
+                "adults" to "2",
+            ),
+        )
+
+        assertEquals(7, duration.constraints.stayLengthNights)
+        assertEquals(
+            listOf("check-in"),
+            duration.constraints.missingRequiredFields(),
+        )
+        assertEquals(
+            "7",
+            duration.constraints.toConfirmedConstraints()["stay-length-nights"],
+        )
+
+        val checkIn = accumulate(command("check-in" to "2026-08-01"))
+
+        assertEquals(LocalDate.parse("2026-08-01"), checkIn.constraints.checkInDate)
+        assertEquals(LocalDate.parse("2026-08-08"), checkIn.constraints.checkOutDate)
+        assertEquals(7, checkIn.constraints.stayLengthNights)
+        assertEquals(emptyList(), checkIn.constraints.missingRequiredFields())
+    }
+
+    @Test
+    fun explicitCheckoutReplacesPreviouslyDerivedStayLength() {
+        accumulate(
+            command(
+                "check-in" to "2026-08-01",
+                "stay-length-nights" to "7",
+            ),
+        )
+
+        val corrected = accumulate(command("check-out" to "2026-08-05"))
+
+        assertEquals(LocalDate.parse("2026-08-05"), corrected.constraints.checkOutDate)
+        assertNull(corrected.constraints.stayLengthNights)
+    }
+
+    @Test
+    fun invalidStayLengthRequiresClarificationWithoutInventingCheckout() {
+        val result = accumulate(
+            command(
+                "check-in" to "2026-08-01",
+                "stay-length-nights" to "0",
+            ),
+        )
+
+        assertNull(result.constraints.stayLengthNights)
+        assertNull(result.constraints.checkOutDate)
+        assertEquals(
+            setOf(AssistantHotelConstraintsAccumulationIssue.INVALID_STAY_LENGTH),
+            result.issues,
+        )
+        assertEquals(true, "stay-length-nights" in result.constraints.missingRequiredFields())
+    }
+
+    @Test
+    fun rejectsProviderDatesBeforeTheMinimumCheckInDate() {
+        val result = accumulate(
+            AccumulateAssistantHotelConstraintsCommand(
+                sessionId = sessionId,
+                extractedConstraints = mapOf(
+                    "check-in" to "2025-08-10",
+                    "check-out" to "2025-08-14",
+                ),
+                minimumCheckInDate = LocalDate.parse("2026-07-23"),
+            ),
+        )
+
+        assertNull(result.constraints.checkInDate)
+        assertNull(result.constraints.checkOutDate)
+        assertEquals(
+            setOf(
+                AssistantHotelConstraintsAccumulationIssue.CHECK_IN_DATE_IN_PAST,
+                AssistantHotelConstraintsAccumulationIssue.CHECK_OUT_DATE_NOT_FUTURE,
+            ),
+            result.issues,
+        )
+        assertEquals(true, "check-in" in result.constraints.missingRequiredFields())
+        assertEquals(true, "check-out" in result.constraints.missingRequiredFields())
+    }
+
+    @Test
+    fun revalidatesPreviouslyAccumulatedDatesAgainstTheCurrentMinimum() {
+        accumulate(
+            command(
+                "destination" to "Казань",
+                "check-in" to "2026-07-23",
+                "check-out" to "2026-07-24",
+                "adults" to "2",
+            ),
+        )
+
+        val result = accumulate(
+            AccumulateAssistantHotelConstraintsCommand(
+                sessionId = sessionId,
+                extractedConstraints = mapOf("destination" to "Москва"),
+                minimumCheckInDate = LocalDate.parse("2026-07-25"),
+            ),
+        )
+
+        assertEquals("Москва", result.constraints.destination)
+        assertNull(result.constraints.checkInDate)
+        assertNull(result.constraints.checkOutDate)
+        assertEquals(
+            setOf(
+                AssistantHotelConstraintsAccumulationIssue.CHECK_IN_DATE_IN_PAST,
+                AssistantHotelConstraintsAccumulationIssue.CHECK_OUT_DATE_NOT_FUTURE,
+            ),
+            result.issues,
         )
     }
 

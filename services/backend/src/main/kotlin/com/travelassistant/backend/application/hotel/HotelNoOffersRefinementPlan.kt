@@ -14,6 +14,7 @@ sealed interface HotelNoOffersRefinementPlan {
         MINIMUM_GUEST_RATING("minimumGuestRating"),
         STARS("stars"),
         FREE_CANCELLATION_REQUIRED("freeCancellationRequired"),
+        BREAKFAST_INCLUDED_REQUIRED("breakfastIncludedRequired"),
         MAX_TOTAL_PRICE("maxTotalPrice"),
     }
 }

@@ -100,6 +100,43 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
+    fun emptySuccessfulSearchUsesClearNoResultsMessage() = runBlocking {
+        val emptySearch = HotelSearch(
+            id = HotelSearchId("hotel-search-local-empty-compose-001"),
+            sessionId = AssistantSessionId("assistant-session-local-000123"),
+            criteria = HotelSearchCriteria(
+                destination = "Rome",
+                checkInDate = LocalDate.parse("2026-07-01"),
+                checkOutDate = LocalDate.parse("2026-07-04"),
+                guests = HotelSearchCriteria.Guests(
+                    adults = 2,
+                    childrenAges = emptyList(),
+                ),
+                rooms = 1,
+            ),
+            status = HotelSearch.Status.COMPLETED_NO_OFFERS,
+            offers = emptyList(),
+        )
+        val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
+            executeTransition = ExecuteConfirmedSearchTransitionUseCase(
+                attemptStore = InMemoryConfirmedSearchExecutionAttemptStore(),
+                hotelSearchBoundary = TestHotelSearchBoundary(
+                    result = CreateHotelSearchResult.Created(emptySearch),
+                ),
+            ),
+        )
+
+        val result = useCase(compositionRequest())
+
+        assertEquals(TransitionMessageKind.NO_RESULTS, result.responseDirective.messageKind)
+        assertEquals(
+            "Поиск завершён, но подходящих вариантов не найдено.",
+            result.messageText,
+        )
+        assertNotNull(result.hotelSearchId)
+    }
+
+    @Test
     fun duplicateSucceededComposesShowHotelResultsWithExistingSearchId() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val useCase = ComposeConfirmedSearchTransitionResponseUseCase(

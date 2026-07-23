@@ -123,10 +123,16 @@ test("sends initial and subsequent chat messages through assistant routes", asyn
     },
   });
 
-  await api.createAssistantSession("Найди отель в Казани");
+  const clientContext = {
+    locale: "ru-RU",
+    timezone: "Europe/Moscow",
+  };
+
+  await api.createAssistantSession("Найди отель в Казани", clientContext);
   await api.sendAssistantMessage(
     "assistant-session-local-000001",
     "С 10 по 14 августа",
+    clientContext,
   );
 
   assert.deepEqual(
@@ -144,6 +150,8 @@ test("sends initial and subsequent chat messages through assistant routes", asyn
     JSON.parse(calls[1].options.body).message,
     "С 10 по 14 августа",
   );
+  assert.deepEqual(JSON.parse(calls[0].options.body).clientContext, clientContext);
+  assert.deepEqual(JSON.parse(calls[1].options.body).clientContext, clientContext);
 });
 
 test("supports an absolute API base URL without browser credentials", async () => {

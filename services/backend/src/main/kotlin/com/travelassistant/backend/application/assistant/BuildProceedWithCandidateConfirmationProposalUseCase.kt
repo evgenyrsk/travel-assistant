@@ -31,7 +31,6 @@ class BuildProceedWithCandidateConfirmationProposalUseCase {
             }
             add("Даты: ${formatDateRange(checkInDate, checkOutDate)}")
             add("Гости: ${guests.humanReadableGuests()}")
-            add("Номера: ${rooms.withPlural("номер", "номера", "номеров")}")
             preferences.humanReadableConditions().takeIf(List<String>::isNotEmpty)?.let { conditions ->
                 add("Условия: ${conditions.joinToString(separator = "; ")}")
             }
@@ -77,11 +76,6 @@ class BuildProceedWithCandidateConfirmationProposalUseCase {
                     ),
                 )
             }
-            add(ProceedWithCandidateConfirmationField(
-                key = "rooms",
-                label = "номера",
-                value = rooms.toString(),
-            ))
             preferences.maxTotalPrice?.let { price ->
                 add(
                     ProceedWithCandidateConfirmationField(
@@ -118,6 +112,15 @@ class BuildProceedWithCandidateConfirmationProposalUseCase {
                     ),
                 )
             }
+            if (preferences.breakfastIncludedRequired) {
+                add(
+                    ProceedWithCandidateConfirmationField(
+                        key = "breakfast-included",
+                        label = "завтрак",
+                        value = "включён",
+                    ),
+                )
+            }
         }
 
     private fun ProceedWithCandidateCriteria.Guests.humanReadableGuests(): String {
@@ -146,6 +149,9 @@ class BuildProceedWithCandidateConfirmationProposalUseCase {
             }
             if (freeCancellationRequired) {
                 add("бесплатная отмена")
+            }
+            if (breakfastIncludedRequired) {
+                add("завтрак включён")
             }
         }
 

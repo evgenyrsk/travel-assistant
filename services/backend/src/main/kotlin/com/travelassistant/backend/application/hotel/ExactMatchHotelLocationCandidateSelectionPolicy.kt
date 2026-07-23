@@ -1,8 +1,5 @@
 package com.travelassistant.backend.application.hotel
 
-import java.text.Normalizer
-import java.util.Locale
-
 internal class ExactMatchHotelLocationCandidateSelectionPolicy :
     HotelLocationCandidateSelectionPolicy {
 
@@ -19,10 +16,10 @@ internal class ExactMatchHotelLocationCandidateSelectionPolicy :
             return HotelLocationCandidateSelectionResult.Selected(uniqueCandidates.single())
         }
 
-        val normalizedQuery = normalize(query)
+        val normalizedQuery = HotelSearchCandidateTextNormalizer.normalize(query)
         val exactMatches = uniqueCandidates.filter { candidate ->
-            normalize(candidate.name) == normalizedQuery ||
-                normalize(candidate.signature) == normalizedQuery
+            HotelSearchCandidateTextNormalizer.normalize(candidate.name) == normalizedQuery ||
+                HotelSearchCandidateTextNormalizer.normalize(candidate.signature) == normalizedQuery
         }
 
         return if (exactMatches.size == 1) {
@@ -32,14 +29,4 @@ internal class ExactMatchHotelLocationCandidateSelectionPolicy :
         }
     }
 
-    private fun normalize(value: String): String =
-        Normalizer.normalize(value, Normalizer.Form.NFKC)
-            .trim()
-            .replace(REPEATED_WHITESPACE, " ")
-            .lowercase(Locale.ROOT)
-            .replace('ё', 'е')
-
-    private companion object {
-        val REPEATED_WHITESPACE = Regex("\\s+")
-    }
 }

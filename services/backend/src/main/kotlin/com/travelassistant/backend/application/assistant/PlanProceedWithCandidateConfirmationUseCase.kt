@@ -42,6 +42,14 @@ class PlanProceedWithCandidateConfirmationUseCase private constructor(
     private fun planRejected(
         rejected: ProceedWithCandidateValidationResult.Rejected,
     ): ProceedWithCandidateConfirmationPlan {
+        if (ProceedWithCandidateValidationIssue.UNSUPPORTED_ROOM_COUNT in rejected.issues) {
+            return ProceedWithCandidateConfirmationPlan.ClarificationRequired(
+                question = SINGLE_ROOM_ONLY_CLARIFICATION_MESSAGE,
+                reason = ProceedWithCandidateConfirmationPlan.ClarificationReason
+                    .MISSING_OR_INVALID_CRITERIA,
+            )
+        }
+
         if (ProceedWithCandidateValidationIssue.UNSUPPORTED_INTENT in rejected.issues) {
             return ProceedWithCandidateConfirmationPlan.Fallback(
                 ProceedWithCandidateConfirmationPlan.FallbackReason.UNSUPPORTED_INTENT,
@@ -84,6 +92,6 @@ class PlanProceedWithCandidateConfirmationUseCase private constructor(
 
     private companion object {
         const val DEFAULT_CLARIFICATION_QUESTION =
-            "Уточните направление, даты, состав гостей и количество номеров, чтобы я подготовил подтверждение поиска."
+            "Уточните направление, даты и состав гостей, чтобы я подготовил подтверждение поиска."
     }
 }

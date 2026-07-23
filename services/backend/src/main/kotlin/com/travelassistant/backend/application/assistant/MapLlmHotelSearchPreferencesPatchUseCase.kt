@@ -42,6 +42,10 @@ class MapLlmHotelSearchPreferencesPatchUseCase {
                     field = LlmHotelSearchPreferencesPatch.Field.FREE_CANCELLATION,
                     value = source.freeCancellationRequired,
                 ),
+                breakfastIncludedRequired = source.operationFor(
+                    field = LlmHotelSearchPreferencesPatch.Field.BREAKFAST_INCLUDED,
+                    value = source.breakfastIncludedRequired,
+                ),
             ),
         )
     }
@@ -78,6 +82,9 @@ class MapLlmHotelSearchPreferencesPatchUseCase {
         if (freeCancellationRequired == false) {
             issues += MapLlmHotelSearchPreferencesPatchIssue.INVALID_FREE_CANCELLATION_REQUIREMENT
         }
+        if (breakfastIncludedRequired == false) {
+            issues += MapLlmHotelSearchPreferencesPatchIssue.INVALID_BREAKFAST_REQUIREMENT
+        }
     }
 
     private fun LlmHotelSearchPreferencesPatch.validateConflicts(
@@ -91,6 +98,9 @@ class MapLlmHotelSearchPreferencesPatchUseCase {
             }
             if (freeCancellationRequired != null) {
                 add(LlmHotelSearchPreferencesPatch.Field.FREE_CANCELLATION)
+            }
+            if (breakfastIncludedRequired != null) {
+                add(LlmHotelSearchPreferencesPatch.Field.BREAKFAST_INCLUDED)
             }
         }
         if (setFields.any(clear::contains)) {

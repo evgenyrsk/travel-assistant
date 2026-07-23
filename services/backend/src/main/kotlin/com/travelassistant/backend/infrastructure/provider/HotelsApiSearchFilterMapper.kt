@@ -53,6 +53,14 @@ internal object HotelsApiSearchFilterMapper {
                     ),
                 )
             }
+            if (preferences.breakfastIncludedRequired) {
+                add(
+                    HotelsApiSearchFilterDto.StringArray(
+                        filterId = MEAL_TYPES_FILTER_ID,
+                        values = listOf(BREAKFAST_FILTER_VALUE),
+                    ),
+                )
+            }
         }
 
         return Result.Mapped(filters)
@@ -80,4 +88,6 @@ internal object HotelsApiSearchFilterMapper {
     private const val STARS_FILTER_ID = "stars"
     private const val REVIEW_RATING_FILTER_ID = "review_rating"
     private const val FREE_CANCELLATION_FILTER_ID = "free_cancellation_allowed"
+    private const val MEAL_TYPES_FILTER_ID = "meal_types"
+    private const val BREAKFAST_FILTER_VALUE = "breakfast"
 }

@@ -3,7 +3,7 @@ export function createApiClient({
   baseUrl = "/api/v1",
 } = {}) {
   return {
-    createAssistantSession(initialMessage) {
+    createAssistantSession(initialMessage, clientContext) {
       const options = {
         method: "POST",
       };
@@ -14,13 +14,14 @@ export function createApiClient({
         };
         options.body = JSON.stringify({
           message: initialMessage,
+          ...optionalClientContext(clientContext),
         });
       }
 
       return requestJson(fetchImpl, `${baseUrl}/assistant/sessions`, options);
     },
 
-    sendAssistantMessage(sessionId, message) {
+    sendAssistantMessage(sessionId, message, clientContext) {
       return requestJson(
         fetchImpl,
         `${baseUrl}/assistant/sessions/${encodeURIComponent(sessionId)}/messages`,
@@ -29,7 +30,10 @@ export function createApiClient({
           headers: {
             "content-type": "application/json",
           },
-          body: JSON.stringify({ message }),
+          body: JSON.stringify({
+            message,
+            ...optionalClientContext(clientContext),
+          }),
         },
       );
     },
@@ -58,6 +62,12 @@ export function createApiClient({
       );
     },
   };
+}
+
+function optionalClientContext(clientContext) {
+  return clientContext && typeof clientContext === "object"
+    ? { clientContext }
+    : {};
 }
 
 async function requestJson(fetchImpl, url, options = {}) {

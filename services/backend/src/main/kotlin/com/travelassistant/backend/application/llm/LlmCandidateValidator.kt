@@ -65,6 +65,7 @@ class LlmCandidateValidator {
         } ?: true
         val ratingIsValid = patch.minimumGuestRating?.let(SUPPORTED_GUEST_RATINGS::contains) ?: true
         val cancellationIsValid = patch.freeCancellationRequired != false
+        val breakfastIsValid = patch.breakfastIncludedRequired != false
         val setFields = buildSet {
             if (patch.maxTotalPrice != null) add(LlmHotelSearchPreferencesPatch.Field.MAX_TOTAL_PRICE)
             if (patch.stars != null) add(LlmHotelSearchPreferencesPatch.Field.STARS)
@@ -74,11 +75,14 @@ class LlmCandidateValidator {
             if (patch.freeCancellationRequired != null) {
                 add(LlmHotelSearchPreferencesPatch.Field.FREE_CANCELLATION)
             }
+            if (patch.breakfastIncludedRequired != null) {
+                add(LlmHotelSearchPreferencesPatch.Field.BREAKFAST_INCLUDED)
+            }
         }
         val operationsDoNotConflict = setFields.none(patch.clear::contains)
 
         return priceIsValid && starsAreValid && ratingIsValid && cancellationIsValid &&
-            operationsDoNotConflict
+            breakfastIsValid && operationsDoNotConflict
     }
 
     private fun hasConsistentOutcome(candidate: LlmCandidate): Boolean =

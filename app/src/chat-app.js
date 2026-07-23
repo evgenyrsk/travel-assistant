@@ -1,4 +1,5 @@
 import { createApiClient } from "./api-client.js";
+import { readBrowserClientContext } from "./client-context.js";
 import { createChatFlow } from "./chat-flow.js";
 import {
   formatAppliedPreferences,
@@ -25,6 +26,7 @@ const elements = {
 
 const chatFlow = createChatFlow({
   api,
+  getClientContext: readBrowserClientContext,
   onUserMessage: (message) => appendMessage("user", "Вы", message),
   onAssistantMessage: (message) => appendMessage("assistant", "Ассистент", message),
   onStatus: setStatus,
@@ -71,7 +73,7 @@ function appendMessage(role, author, content) {
 
   const contentElement = document.createElement("p");
   contentElement.className = "chat-message__content";
-  contentElement.textContent = content;
+  contentElement.textContent = content.trim();
 
   article.append(authorElement, contentElement);
   elements.transcript.append(article);

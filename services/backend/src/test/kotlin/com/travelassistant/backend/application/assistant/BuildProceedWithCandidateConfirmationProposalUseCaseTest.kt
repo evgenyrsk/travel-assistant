@@ -19,8 +19,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
             """Проверьте параметры:
 Куда: Rome
 Даты: 1–4 июля 2026
-Гости: 2 взрослых, 1 ребёнок (7 лет)
-Номера: 1 номер""",
+Гости: 2 взрослых, 1 ребёнок (7 лет)""",
             proposal.summary,
         )
         assertEquals("Найти отели по этим параметрам?", proposal.confirmationQuestion)
@@ -32,7 +31,6 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                 ProceedWithCandidateConfirmationField("adults", "взрослые", "2"),
                 ProceedWithCandidateConfirmationField("children", "дети", "1"),
                 ProceedWithCandidateConfirmationField("children-ages", "возраст детей", "7"),
-                ProceedWithCandidateConfirmationField("rooms", "номера", "1"),
             ),
             proposal.displayFields,
         )
@@ -49,7 +47,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
     }
 
     @Test
-    fun includesDestinationDatesGuestsAndRooms() {
+    fun includesDestinationDatesAndGuestsWithoutInternalRoomInvariant() {
         val proposal = useCase(acceptedCriteria())
 
         val keys = proposal.displayFields.map { it.key }
@@ -61,7 +59,6 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                 "adults",
                 "children",
                 "children-ages",
-                "rooms",
             ),
             keys,
         )
@@ -69,7 +66,8 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
         assertEquals(true, proposal.summary.contains("1–4 июля 2026"))
         assertEquals(true, proposal.summary.contains("2 взрослых"))
         assertEquals(true, proposal.summary.contains("1 ребёнок (7 лет)"))
-        assertEquals(true, proposal.summary.contains("1 номер"))
+        assertFalse(proposal.summary.contains("Номера:"))
+        assertFalse(proposal.displayFields.any { it.key == "rooms" })
         assertFalse(proposal.summary.contains("hotel search"))
         assertFalse(proposal.summary.contains("2026-07-01"))
     }
@@ -104,6 +102,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                     stars = setOf(5, 4),
                     minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
                     freeCancellationRequired = true,
+                    breakfastIncludedRequired = true,
                 ),
             ),
         )
@@ -126,12 +125,17 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                     "бесплатная отмена",
                     "обязательна",
                 ),
+                ProceedWithCandidateConfirmationField(
+                    "breakfast-included",
+                    "завтрак",
+                    "включён",
+                ),
             ),
-            proposal.displayFields.takeLast(4),
+            proposal.displayFields.takeLast(5),
         )
         assertEquals(
             "Условия: до 80 000 ₽ за всё проживание; 4–5 звёзд; " +
-                "рейтинг от 8; бесплатная отмена",
+                "рейтинг от 8; бесплатная отмена; завтрак включён",
             proposal.summary.lineSequence().last(),
         )
     }
@@ -163,7 +167,6 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                     adults = 1,
                     childrenAges = listOf(1, 2, 5),
                 ),
-                rooms = 2,
             ),
         )
 
@@ -173,7 +176,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                 "Гости: 1 взрослый, 3 ребёнка (1 год, 2 года и 5 лет)",
             ),
         )
-        assertEquals(true, proposal.summary.contains("Номера: 2 номера"))
+        assertFalse(proposal.summary.contains("Номера:"))
     }
 
     @Test

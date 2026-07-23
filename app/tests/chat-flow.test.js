@@ -6,17 +6,22 @@ test("creates a session from the first message and reuses it for the next turn",
   const calls = [];
   const userMessages = [];
   const assistantMessages = [];
+  const clientContext = {
+    locale: "ru-RU",
+    timezone: "Europe/Moscow",
+  };
   const flow = createChatFlow({
     api: {
-      async createAssistantSession(message) {
-        calls.push(["create", message]);
+      async createAssistantSession(message, context) {
+        calls.push(["create", message, context]);
         return assistantResponse("Уточните даты.");
       },
-      async sendAssistantMessage(sessionId, message) {
-        calls.push(["send", sessionId, message]);
+      async sendAssistantMessage(sessionId, message, context) {
+        calls.push(["send", sessionId, message, context]);
         return assistantResponse("Подтвердите параметры.");
       },
     },
+    getClientContext: () => clientContext,
     onUserMessage: userMessages.push.bind(userMessages),
     onAssistantMessage: assistantMessages.push.bind(assistantMessages),
   });
@@ -26,8 +31,8 @@ test("creates a session from the first message and reuses it for the next turn",
 
   assert.equal(flow.getSessionId(), "assistant-session-local-000001");
   assert.deepEqual(calls, [
-    ["create", "Найди отель в Казани"],
-    ["send", "assistant-session-local-000001", "С 10 по 14 августа"],
+    ["create", "Найди отель в Казани", clientContext],
+    ["send", "assistant-session-local-000001", "С 10 по 14 августа", clientContext],
   ]);
   assert.deepEqual(userMessages, [
     "Найди отель в Казани",

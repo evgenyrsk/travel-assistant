@@ -25,7 +25,7 @@ class HotelsApiAutocompleteLocationMapperTest {
     }
 
     @Test
-    fun `does not treat hotel suggestion id as destination id`() {
+    fun `keeps hotel suggestion separate from destination candidates`() {
         val response = HotelsApiAutocompleteResponseDto(
             payload = HotelsApiAutocompleteResponseDto.Payload(
                 locations = null,
@@ -46,6 +46,8 @@ class HotelsApiAutocompleteLocationMapperTest {
         val result = HotelsApiAutocompleteLocationMapper.map(response)
 
         assertTrue(result.candidates.isEmpty())
+        assertEquals(listOf("hotel-master-1"), result.hotelCandidates.map { it.providerReference })
+        assertEquals(listOf("Тестовый отель"), result.hotelCandidates.map { it.name })
     }
 
     @Test

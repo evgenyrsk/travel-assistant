@@ -1,6 +1,7 @@
 package com.travelassistant.backend.infrastructure.provider
 
 import com.travelassistant.backend.application.hotel.ExactMatchHotelLocationCandidateSelectionPolicy
+import com.travelassistant.backend.application.hotel.ExactNamedHotelCandidateSelectionPolicy
 import com.travelassistant.backend.application.hotel.HotelLocationResolution
 import com.travelassistant.backend.application.hotel.HotelLocationResolutionRequest
 import com.travelassistant.backend.application.hotel.HotelLocationResolverBoundary
@@ -27,9 +28,73 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class HotelsApiSearchOrchestratorTest {
+
+    @Test
+    fun `uses exact hotel details and rates without destination search`() = runBlocking {
+        val capturedRequests = mutableListOf<HttpRequestData>()
+        val client = client { request ->
+            capturedRequests += request
+            when (request.url.encodedPath) {
+                "/api/v1/hotels/provider-hotel-1" -> exactHotelDetailsResponse()
+                "/api/v3/hotels/provider-hotel-1/rates" -> exactHotelRatesResponse()
+                else -> error("Unexpected Hotels API path")
+            }
+        }
+        val hotel = hotelCandidate(
+            providerReference = "provider-hotel-1",
+            name = "Cosmos Москва ВДНХ Отель",
+        )
+        val orchestrator = orchestrator(
+            client = client,
+            resolver = HotelLocationResolverBoundary {
+                HotelLocationResolution(
+                    candidates = emptyList(),
+                    hotelCandidates = listOf(hotel),
+                )
+            },
+        )
+
+        val result = assertIs<HotelsApiSearchOrchestrator.Result.Success>(
+            orchestrator.search(
+                HotelsApiSearchOrchestrator.Request(
+                    criteria = criteria(
+                        destination = "Cosmos ВДНХ",
+                        preferences = HotelSearchPreferences(
+                            breakfastIncludedRequired = true,
+                        ),
+                    ),
+                    language = HotelLocationResolutionRequest.Language.RU,
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                "/api/v1/hotels/provider-hotel-1",
+                "/api/v3/hotels/provider-hotel-1/rates",
+            ),
+            capturedRequests.map { request -> request.url.encodedPath },
+        )
+        capturedRequests.forEach { request ->
+            assertEquals("RU", request.headers["X-User-Language"])
+            assertNull(request.headers[HttpHeaders.Authorization])
+        }
+        val ratesBody = HotelsApiJson.codec.parseToJsonElement(
+            assertIs<TextContent>(capturedRequests.last().body).text,
+        ).jsonObject
+        assertEquals("2026-07-18", ratesBody.getValue("checkinDate").jsonPrimitive.content)
+        assertEquals("2026-07-19", ratesBody.getValue("checkoutDate").jsonPrimitive.content)
+        assertEquals(0, ratesBody.getValue("filters").jsonArray.size)
+        assertEquals("provider-hotel-1", assertNotNull(result.hotel).providerReference)
+        assertNull(result.location)
+        assertEquals(listOf("provider-hotel-1"), result.offers.map { it.providerReference })
+        assertEquals(true, result.offers.single().breakfastIncluded)
+        client.close()
+    }
 
     @Test
     fun `resolves one location performs one search and maps offers`() = runBlocking {
@@ -81,7 +146,7 @@ class HotelsApiSearchOrchestratorTest {
             body.getValue("guests").jsonArray.single().jsonObject
                 .getValue("childrenAge").jsonArray.map { it.jsonPrimitive.content },
         )
-        assertEquals(77, result.location.destinationId)
+        assertEquals(77, assertNotNull(result.location).destinationId)
         assertEquals(listOf("hotel-1"), result.offers.map { it.providerReference })
 
         client.close()
@@ -119,7 +184,7 @@ class HotelsApiSearchOrchestratorTest {
         ).jsonObject
         assertEquals(1, requestCount)
         assertEquals(77, body.getValue("destinationId").jsonPrimitive.content.toInt())
-        assertEquals(77, result.location.destinationId)
+        assertEquals(77, assertNotNull(result.location).destinationId)
         client.close()
     }
 
@@ -314,18 +379,22 @@ class HotelsApiSearchOrchestratorTest {
     private fun orchestrator(
         client: HttpClient,
         resolver: HotelLocationResolverBoundary,
-    ): HotelsApiSearchOrchestrator =
-        HotelsApiSearchOrchestrator(
-            locationResolver = resolver,
-            locationSelectionPolicy = ExactMatchHotelLocationCandidateSelectionPolicy(),
-            transport = PublicHotelsApiHttpTransport(
-                httpClient = client,
-                publicTarget = HotelsApiTargetConfig.public(
-                    baseUrl = "https://hotels.test/",
-                    timeoutMillis = 5_000,
-                ),
+    ): HotelsApiSearchOrchestrator {
+        val transport = PublicHotelsApiHttpTransport(
+            httpClient = client,
+            publicTarget = HotelsApiTargetConfig.public(
+                baseUrl = "https://hotels.test/",
+                timeoutMillis = 5_000,
             ),
         )
+        return HotelsApiSearchOrchestrator(
+            locationResolver = resolver,
+            locationSelectionPolicy = ExactMatchHotelLocationCandidateSelectionPolicy(),
+            hotelSelectionPolicy = ExactNamedHotelCandidateSelectionPolicy(),
+            exactHotelSearchOrchestrator = HotelsApiExactHotelSearchOrchestrator(transport),
+            transport = transport,
+        )
+    }
 
     private fun client(responseBody: (HttpRequestData) -> String): HttpClient =
         HttpClient(
@@ -354,13 +423,25 @@ class HotelsApiSearchOrchestratorTest {
             type = HotelLocationResolution.Type(code = "city", name = "Город"),
         )
 
+    private fun hotelCandidate(
+        providerReference: String,
+        name: String,
+    ): HotelLocationResolution.HotelCandidate =
+        HotelLocationResolution.HotelCandidate(
+            providerReference = providerReference,
+            name = name,
+            signature = "Отель • Россия, Москва",
+            type = HotelLocationResolution.Type(code = "hotel", name = "Отель"),
+        )
+
     private fun criteria(
+        destination: String = "Казань",
         childrenAges: List<Int> = emptyList(),
         rooms: Int? = 1,
         preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): HotelSearchCriteria =
         HotelSearchCriteria(
-            destination = "Казань",
+            destination = destination,
             checkInDate = LocalDate.parse("2026-07-18"),
             checkOutDate = LocalDate.parse("2026-07-19"),
             guests = HotelSearchCriteria.Guests(
@@ -370,6 +451,50 @@ class HotelsApiSearchOrchestratorTest {
             rooms = rooms,
             preferences = preferences,
         )
+
+    private fun exactHotelDetailsResponse(): String =
+        """
+            {
+              "payload": {
+                "hotelId": "provider-hotel-1",
+                "hotelName": "Cosmos Москва ВДНХ Отель",
+                "starRating": 5,
+                "areaLocation": {
+                  "countryName": "Россия",
+                  "destinationName": "Москва"
+                },
+                "images": ["https://images.test/hotel.jpg"]
+              }
+            }
+        """.trimIndent()
+
+    private fun exactHotelRatesResponse(): String =
+        """
+            {
+              "payload": {
+                "rates": [
+                  {
+                    "availableRoomsCount": 2,
+                    "cancellationPolicyRules": {
+                      "freeCancellationUntil": "2026-07-17T18:00:00+03:00"
+                    },
+                    "mealName": "Завтрак",
+                    "mealType": "breakfast",
+                    "paymentPlace": "hotel",
+                    "roomId": "room-1",
+                    "shownPrice": {"amount": 18000, "currency": "RUB"}
+                  }
+                ],
+                "rooms": [
+                  {
+                    "roomId": "room-1",
+                    "roomName": "Стандарт",
+                    "images": [{"url": "https://images.test/room.jpg"}]
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
 
     private fun preferences(): HotelSearchPreferences =
         HotelSearchPreferences(

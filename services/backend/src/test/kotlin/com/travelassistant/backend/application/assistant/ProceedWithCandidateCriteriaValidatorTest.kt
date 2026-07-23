@@ -145,6 +145,18 @@ class ProceedWithCandidateCriteriaValidatorTest {
     }
 
     @Test
+    fun rejectsMultipleRoomsAsUnsupported() {
+        val result = validateWithConstraints(
+            "rooms" to "2",
+        )
+
+        assertRejectedWith(
+            result,
+            ProceedWithCandidateValidationIssue.UNSUPPORTED_ROOM_COUNT,
+        )
+    }
+
+    @Test
     fun rejectsCandidateWithMissingRequiredFields() {
         val result = validator(
             proceedWithCandidate(

@@ -21,6 +21,7 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
                     ),
                     stars = setOf(5, 4),
                     freeCancellationRequired = true,
+                    breakfastIncludedRequired = true,
                     clear = setOf(
                         LlmHotelSearchPreferencesPatch.Field.MINIMUM_GUEST_RATING,
                     ),
@@ -38,6 +39,7 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
                 stars = HotelSearchPreferencePatch.Set(linkedSetOf(4, 5)),
                 minimumGuestRating = HotelSearchPreferencePatch.Clear,
                 freeCancellationRequired = HotelSearchPreferencePatch.Set(true),
+                breakfastIncludedRequired = HotelSearchPreferencePatch.Set(true),
             ),
             result.patch,
         )
@@ -69,6 +71,7 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
                     stars = setOf(4, 5),
                     minimumGuestRating = 8,
                     freeCancellationRequired = true,
+                    breakfastIncludedRequired = true,
                 ),
             ),
         ).patch
@@ -92,6 +95,7 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
         assertEquals(setOf(4, 5), applied.preferences.stars)
         assertEquals(null, applied.preferences.minimumGuestRating)
         assertEquals(true, applied.preferences.freeCancellationRequired)
+        assertEquals(true, applied.preferences.breakfastIncludedRequired)
         assertEquals("Казань", store.findBySession(sessionId)?.destination)
     }
 
@@ -107,6 +111,7 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
                     stars = setOf(4, 6),
                     minimumGuestRating = 10,
                     freeCancellationRequired = false,
+                    breakfastIncludedRequired = false,
                     clear = setOf(
                         LlmHotelSearchPreferencesPatch.Field.MINIMUM_GUEST_RATING,
                     ),
@@ -121,6 +126,7 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
                 MapLlmHotelSearchPreferencesPatchIssue.INVALID_STARS,
                 MapLlmHotelSearchPreferencesPatchIssue.INVALID_MINIMUM_GUEST_RATING,
                 MapLlmHotelSearchPreferencesPatchIssue.INVALID_FREE_CANCELLATION_REQUIREMENT,
+                MapLlmHotelSearchPreferencesPatchIssue.INVALID_BREAKFAST_REQUIREMENT,
                 MapLlmHotelSearchPreferencesPatchIssue.CONFLICTING_OPERATION,
             ),
             result.issues,

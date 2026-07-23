@@ -9,6 +9,8 @@ data class HotelSearchPreferencesPatch(
     val minimumGuestRating: HotelSearchPreferencePatch<Int> = HotelSearchPreferencePatch.Keep,
     val freeCancellationRequired: HotelSearchPreferencePatch<Boolean> =
         HotelSearchPreferencePatch.Keep,
+    val breakfastIncludedRequired: HotelSearchPreferencePatch<Boolean> =
+        HotelSearchPreferencePatch.Keep,
 ) {
     data class MaxTotalPriceInput(
         val amount: BigDecimal,

@@ -23,6 +23,9 @@ class PlanHotelNoOffersRefinementUseCase {
             preferences.freeCancellationRequired ->
                 HotelNoOffersRefinementPlan.Preference.FREE_CANCELLATION_REQUIRED
 
+            preferences.breakfastIncludedRequired ->
+                HotelNoOffersRefinementPlan.Preference.BREAKFAST_INCLUDED_REQUIRED
+
             preferences.maxTotalPrice != null ->
                 HotelNoOffersRefinementPlan.Preference.MAX_TOTAL_PRICE
 
@@ -47,6 +50,9 @@ class PlanHotelNoOffersRefinementUseCase {
 
             HotelNoOffersRefinementPlan.Preference.FREE_CANCELLATION_REQUIRED ->
                 "По текущим условиям предложения не найдены. Можно убрать требование бесплатной отмены и подтвердить новый поиск."
+
+            HotelNoOffersRefinementPlan.Preference.BREAKFAST_INCLUDED_REQUIRED ->
+                "По текущим условиям предложения не найдены. Можно убрать требование включённого завтрака и подтвердить новый поиск."
 
             HotelNoOffersRefinementPlan.Preference.MAX_TOTAL_PRICE ->
                 "По текущим условиям предложения не найдены. Можно убрать ограничение по общей стоимости и подтвердить новый поиск."

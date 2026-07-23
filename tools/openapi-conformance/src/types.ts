@@ -73,6 +73,7 @@ export interface AssistantContractShape {
   starRatingOptional: boolean;
   freeCancellationUntilOptional: boolean;
   imageUrlOptional: boolean;
+  breakfastIncludedOptional: boolean;
   appliedPreferencesOptional: boolean;
   appliedPreferencesFields: string[];
   appliedPreferencesAdditionalPropertiesForbidden: boolean;

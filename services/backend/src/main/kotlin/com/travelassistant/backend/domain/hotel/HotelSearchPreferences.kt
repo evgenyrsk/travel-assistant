@@ -7,12 +7,14 @@ data class HotelSearchPreferences(
     val stars: Set<Int> = emptySet(),
     val minimumGuestRating: MinimumGuestRating? = null,
     val freeCancellationRequired: Boolean = false,
+    val breakfastIncludedRequired: Boolean = false,
 ) {
     val isEmpty: Boolean
         get() = maxTotalPrice == null &&
             stars.isEmpty() &&
             minimumGuestRating == null &&
-            !freeCancellationRequired
+            !freeCancellationRequired &&
+            !breakfastIncludedRequired
 
     data class MaxTotalPrice internal constructor(
         val amount: BigDecimal,

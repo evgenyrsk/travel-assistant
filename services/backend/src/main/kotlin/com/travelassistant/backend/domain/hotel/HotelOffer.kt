@@ -19,6 +19,7 @@ data class HotelOffer(
     val starRating: Int? = null,
     val freeCancellationUntil: Instant? = null,
     val imageUrl: String? = null,
+    val breakfastIncluded: Boolean? = null,
 ) {
     enum class Availability(val apiValue: String) {
         AVAILABLE("available"),

@@ -26,6 +26,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
                         stars = HotelSearchPreferencePatch.Set(setOf(5, 4)),
                         minimumGuestRating = HotelSearchPreferencePatch.Set(8),
                         freeCancellationRequired = HotelSearchPreferencePatch.Set(true),
+                        breakfastIncludedRequired = HotelSearchPreferencePatch.Set(true),
                     ),
                 ),
             ),
@@ -39,6 +40,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
             result.preferences.minimumGuestRating,
         )
         assertEquals(true, result.preferences.freeCancellationRequired)
+        assertEquals(true, result.preferences.breakfastIncludedRequired)
         assertEquals(result.preferences, store.findBySession(sessionId)?.preferences)
     }
 
@@ -53,6 +55,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
                         stars = HotelSearchPreferencePatch.Clear,
                         minimumGuestRating = HotelSearchPreferencePatch.Set(9),
                         freeCancellationRequired = HotelSearchPreferencePatch.Clear,
+                        breakfastIncludedRequired = HotelSearchPreferencePatch.Clear,
                     ),
                 ),
             ),
@@ -65,6 +68,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
             result.preferences.minimumGuestRating,
         )
         assertEquals(false, result.preferences.freeCancellationRequired)
+        assertEquals(false, result.preferences.breakfastIncludedRequired)
     }
 
     @Test
@@ -84,6 +88,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
                         stars = HotelSearchPreferencePatch.Set(setOf(4, 6)),
                         minimumGuestRating = HotelSearchPreferencePatch.Set(10),
                         freeCancellationRequired = HotelSearchPreferencePatch.Set(false),
+                        breakfastIncludedRequired = HotelSearchPreferencePatch.Set(false),
                     ),
                 ),
             ),
@@ -96,6 +101,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
                 HotelSearchPreferencesPatchIssue.INVALID_STARS,
                 HotelSearchPreferencesPatchIssue.INVALID_MINIMUM_GUEST_RATING,
                 HotelSearchPreferencesPatchIssue.INVALID_FREE_CANCELLATION_REQUIREMENT,
+                HotelSearchPreferencesPatchIssue.INVALID_BREAKFAST_REQUIREMENT,
             ),
             result.issues,
         )
@@ -185,6 +191,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
                         stars = HotelSearchPreferencePatch.Set(setOf(4, 5)),
                         minimumGuestRating = HotelSearchPreferencePatch.Set(8),
                         freeCancellationRequired = HotelSearchPreferencePatch.Set(true),
+                        breakfastIncludedRequired = HotelSearchPreferencePatch.Set(true),
                     ),
                 ),
             ),

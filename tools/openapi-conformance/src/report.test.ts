@@ -330,8 +330,10 @@ function syntheticOpenApiInventory(
       starRatingOptional: true,
       freeCancellationUntilOptional: true,
       imageUrlOptional: true,
+      breakfastIncludedOptional: true,
       appliedPreferencesOptional: true,
       appliedPreferencesFields: [
+        "breakfastIncludedRequired",
         "freeCancellationRequired",
         "maxTotalPrice",
         "minimumGuestRating",
@@ -342,6 +344,7 @@ function syntheticOpenApiInventory(
       refinementSuggestionRequiredFields: ["message", "preference", "type"],
       refinementSuggestionTypeValues: ["relax_preference"],
       refinementSuggestionPreferenceValues: [
+        "breakfastIncludedRequired",
         "freeCancellationRequired",
         "maxTotalPrice",
         "minimumGuestRating",

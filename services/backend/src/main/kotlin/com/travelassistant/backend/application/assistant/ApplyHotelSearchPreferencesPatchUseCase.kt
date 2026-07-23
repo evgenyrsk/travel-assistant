@@ -31,6 +31,11 @@ class ApplyHotelSearchPreferencesPatchUseCase(
                 current = currentPreferences.freeCancellationRequired,
                 issues = issues,
             ),
+            breakfastIncludedRequired = command.patch.breakfastIncludedRequired
+                .applyBreakfastIncluded(
+                    current = currentPreferences.breakfastIncludedRequired,
+                    issues = issues,
+                ),
         )
 
         if (issues.isNotEmpty()) {
@@ -125,6 +130,22 @@ class ApplyHotelSearchPreferencesPatchUseCase(
                     true
                 } else {
                     issues += HotelSearchPreferencesPatchIssue.INVALID_FREE_CANCELLATION_REQUIREMENT
+                    current
+                }
+        }
+
+    private fun HotelSearchPreferencePatch<Boolean>.applyBreakfastIncluded(
+        current: Boolean,
+        issues: MutableSet<HotelSearchPreferencesPatchIssue>,
+    ): Boolean =
+        when (this) {
+            HotelSearchPreferencePatch.Keep -> current
+            HotelSearchPreferencePatch.Clear -> false
+            is HotelSearchPreferencePatch.Set ->
+                if (value) {
+                    true
+                } else {
+                    issues += HotelSearchPreferencesPatchIssue.INVALID_BREAKFAST_REQUIREMENT
                     current
                 }
         }

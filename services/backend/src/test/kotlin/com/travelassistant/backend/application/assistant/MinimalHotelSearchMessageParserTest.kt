@@ -30,9 +30,19 @@ class MinimalHotelSearchMessageParserTest {
             MinimalHotelSearchMessageParser.Result.Incomplete,
             parser.parse(
                 "hotel-search; destination=Rome; check-in=2026-07-01; " +
-                    "check-out=2026-07-04; adults=2",
+                    "adults=2",
             ),
         )
+    }
+
+    @Test
+    fun defaultsOmittedRoomCountToOne() {
+        val result = parser.parse(
+            "hotel-search; destination=Rome; check-in=2026-07-01; " +
+                "check-out=2026-07-04; adults=2",
+        ) as MinimalHotelSearchMessageParser.Result.Complete
+
+        assertEquals(1, result.criteria.rooms)
     }
 
     @Test

@@ -63,6 +63,9 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
 
             TransitionMessageKind.RESULTS_READY ->
                 RESULTS_READY_MESSAGE
+
+            TransitionMessageKind.NO_RESULTS ->
+                NO_RESULTS_MESSAGE
         }
 
     private companion object {
@@ -82,12 +85,15 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
             "Найдено несколько подходящих направлений. Уточните город или место."
 
         const val SEARCH_REQUEST_REJECTED_MESSAGE =
-            "Не удалось безопасно подготовить поиск. Проверьте направление, даты, состав гостей и количество номеров."
+            "Не удалось безопасно подготовить поиск. Проверьте направление, даты и состав гостей."
 
         const val TEMPORARY_FAILURE_MESSAGE =
             "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз."
 
         const val RESULTS_READY_MESSAGE =
             "Поиск завершён. Результат готов."
+
+        const val NO_RESULTS_MESSAGE =
+            "Поиск завершён, но подходящих вариантов не найдено."
     }
 }

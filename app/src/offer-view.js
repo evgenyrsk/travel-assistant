@@ -12,6 +12,7 @@ export function toOfferViewModel(offer) {
     rating: formatRating(offer.rating),
     starRating: formatStarRating(offer.starRating),
     freeCancellation: formatFreeCancellation(offer.freeCancellationUntil),
+    breakfast: formatBreakfast(offer.breakfastIncluded),
     availability: availabilityLabel(offer.availability),
     availabilityTone: offer.availability ?? "unknown",
   };
@@ -19,7 +20,7 @@ export function toOfferViewModel(offer) {
 
 export function renderOfferCardMarkup(offer) {
   const view = toOfferViewModel(offer);
-  const optionalFacts = [view.starRating, view.freeCancellation].filter(Boolean);
+  const optionalFacts = [view.starRating, view.breakfast, view.freeCancellation].filter(Boolean);
   const optionalFactsMarkup = optionalFacts.length === 0
     ? ""
     : `<div class="offer-card__tags">${optionalFacts
@@ -107,6 +108,9 @@ export function formatAppliedPreferences(preferences) {
     preferences.freeCancellationRequired === true
       ? "бесплатная отмена"
       : null,
+    preferences.breakfastIncludedRequired === true
+      ? "завтрак включён"
+      : null,
   ].filter(Boolean).join(" · ");
 }
 
@@ -160,6 +164,16 @@ function formatFreeCancellation(value) {
     timeStyle: "short",
   }).format(deadline);
   return `Бесплатная отмена до ${formatted}`;
+}
+
+function formatBreakfast(value) {
+  if (value === true) {
+    return "Завтрак включён";
+  }
+  if (value === false) {
+    return "Завтрак не включён";
+  }
+  return null;
 }
 
 function formatMaximumTotalPrice(price) {

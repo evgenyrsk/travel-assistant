@@ -4,6 +4,7 @@ import com.travelassistant.backend.domain.hotel.HotelOffer
 import com.travelassistant.backend.domain.hotel.HotelOfferCandidate
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
+import java.util.Locale
 
 internal object HotelsApiSearchResponseMapper {
 
@@ -124,6 +125,7 @@ internal object HotelsApiSearchResponseMapper {
                 starRating = hotel.starRating,
                 freeCancellationUntil = freeCancellationUntil,
                 imageUrl = HotelsApiSafeImageUrlPolicy.firstOrNull(hotel.images),
+                breakfastIncluded = hotel.rateForHotelsFeed.mealType.toBreakfastFact(),
             ),
         )
     }
@@ -154,9 +156,18 @@ internal object HotelsApiSearchResponseMapper {
     private fun HotelsApiSearchResponseDto.Review.isValid(): Boolean =
         rating.isFinite() && rating in MIN_RATING..MAX_RATING && ratingsCount >= 0
 
+    private fun String?.toBreakfastFact(): Boolean? =
+        when (this?.trim()?.lowercase(Locale.ROOT)) {
+            BREAKFAST_MEAL_TYPE -> true
+            NO_MEAL_TYPE -> false
+            else -> null
+        }
+
     private const val SOURCE = "tbank_hotels_api"
     private const val MIN_RATING = 0.0
     private const val MAX_RATING = 10.0
     private const val MIN_STAR_RATING = 0
     private const val MAX_STAR_RATING = 5
+    private const val BREAKFAST_MEAL_TYPE = "breakfast"
+    private const val NO_MEAL_TYPE = "nomeal"
 }

@@ -24,9 +24,9 @@ fun Route.assistantPlaceholderRoutes(
 ) {
     route("/assistant/sessions") {
         post {
-            val initialMessageText = when (val request = call.readAssistantMessageRequest()) {
+            val initialMessage = when (val request = call.readAssistantMessageRequest()) {
                 AssistantMessageRequestReadResult.NoBody -> null
-                is AssistantMessageRequestReadResult.Accepted -> request.message
+                is AssistantMessageRequestReadResult.Accepted -> request
                 is AssistantMessageRequestReadResult.Invalid -> {
                     call.respondValidationError(
                         field = request.field,
@@ -37,11 +37,12 @@ fun Route.assistantPlaceholderRoutes(
             }
 
             val session = createAssistantSession.createSession()
-            val response = if (initialMessageText != null) {
+            val response = if (initialMessage != null) {
                 val acceptedMessage = createAssistantSession.acceptUserMessage(
                     AcceptAssistantMessageCommand(
                         sessionId = session.id,
-                        message = initialMessageText,
+                        message = initialMessage.message,
+                        clientTimeZone = initialMessage.clientTimeZone,
                     ),
                 )
                 AssistantMessageResponse.fromAcceptedMessage(acceptedMessage)
@@ -56,7 +57,7 @@ fun Route.assistantPlaceholderRoutes(
         }
 
         post("/{sessionId}/messages") {
-            val messageText = when (val request = call.readAssistantMessageRequest()) {
+            val messageRequest = when (val request = call.readAssistantMessageRequest()) {
                 AssistantMessageRequestReadResult.NoBody -> {
                     call.respondValidationError(
                         field = "message",
@@ -65,7 +66,7 @@ fun Route.assistantPlaceholderRoutes(
                     return@post
                 }
 
-                is AssistantMessageRequestReadResult.Accepted -> request.message
+                is AssistantMessageRequestReadResult.Accepted -> request
                 is AssistantMessageRequestReadResult.Invalid -> {
                     call.respondValidationError(
                         field = request.field,
@@ -78,7 +79,8 @@ fun Route.assistantPlaceholderRoutes(
             val acceptedMessage = createAssistantSession.acceptUserMessage(
                 AcceptAssistantMessageCommand(
                     sessionId = AssistantSessionId(checkNotNull(call.parameters["sessionId"])),
-                    message = messageText,
+                    message = messageRequest.message,
+                    clientTimeZone = messageRequest.clientTimeZone,
                 ),
             )
 
@@ -129,7 +131,7 @@ data class AssistantMessageResponse(
 ) {
     companion object {
         private const val PLACEHOLDER_ASSISTANT_MESSAGE =
-            "Расскажите, куда и когда планируете поездку, кто едет и сколько номеров нужно."
+            "Расскажите, куда и когда планируете поездку и кто едет с вами."
 
         fun fromSession(session: AssistantSession): AssistantMessageResponse =
             AssistantMessageResponse(

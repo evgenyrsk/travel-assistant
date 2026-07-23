@@ -274,6 +274,9 @@ function inspectAssistantContractShape(
     imageUrlOptional:
       recordValue(hotelOfferProperties?.imageUrl) !== undefined &&
       !stringArray(hotelOfferSchema?.required).includes("imageUrl"),
+    breakfastIncludedOptional:
+      recordValue(hotelOfferProperties?.breakfastIncluded) !== undefined &&
+      !stringArray(hotelOfferSchema?.required).includes("breakfastIncluded"),
     appliedPreferencesOptional:
       stringValue(recordValue(offersProperties?.appliedPreferences)?.$ref) ===
         "#/components/schemas/AppliedHotelSearchPreferences" &&

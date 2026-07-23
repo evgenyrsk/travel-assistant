@@ -22,6 +22,8 @@ data class HotelOfferResponse(
     val freeCancellationUntil: String? = null,
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val imageUrl: String? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val breakfastIncluded: Boolean? = null,
     val availability: String,
     val source: String,
     val freshness: String,
@@ -102,18 +104,31 @@ data class HotelOfferResponse(
                 starRating = offer.starRating,
                 freeCancellationUntil = offer.freeCancellationUntil?.toString(),
                 imageUrl = offer.imageUrl,
+                breakfastIncluded = offer.breakfastIncluded,
                 availability = offer.availability.apiValue,
                 source = offer.source,
                 freshness = offer.freshness.apiValue,
                 matchSummary = rankedOffer.matchSummary,
-                providerFacts = listOf(
-                    ProviderFact(
-                        field = "availability",
-                        value = offer.availability.apiValue,
-                        source = offer.source,
-                        freshness = offer.freshness.apiValue,
-                    ),
-                ),
+                providerFacts = buildList {
+                    add(
+                        ProviderFact(
+                            field = "availability",
+                            value = offer.availability.apiValue,
+                            source = offer.source,
+                            freshness = offer.freshness.apiValue,
+                        ),
+                    )
+                    offer.breakfastIncluded?.let { value ->
+                        add(
+                            ProviderFact(
+                                field = "breakfastIncluded",
+                                value = value.toString(),
+                                source = offer.source,
+                                freshness = offer.freshness.apiValue,
+                            ),
+                        )
+                    }
+                },
             )
         }
     }

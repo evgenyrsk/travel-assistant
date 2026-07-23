@@ -83,7 +83,7 @@ class AssistantHotelSearchHandoffUseCase(
 
     private companion object {
         const val INCOMPLETE_SEARCH_MESSAGE =
-            "Укажите направление, даты заезда и выезда, количество взрослых и номеров."
+            "Укажите направление, даты заезда и выезда и количество взрослых."
 
         const val LOCATION_NOT_FOUND_MESSAGE =
             "Не удалось определить направление. Уточните город или место."
@@ -92,7 +92,7 @@ class AssistantHotelSearchHandoffUseCase(
             "Найдено несколько подходящих направлений. Уточните город или место."
 
         const val SEARCH_REQUEST_REJECTED_MESSAGE =
-            "Не удалось безопасно подготовить поиск. Проверьте направление, даты, состав гостей и количество номеров."
+            "Не удалось безопасно подготовить поиск. Проверьте направление, даты и состав гостей."
 
         const val SEARCH_TEMPORARILY_UNAVAILABLE_MESSAGE =
             "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз."

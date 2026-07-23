@@ -12,6 +12,7 @@ internal data class HotelsApiHotelDetailsResponseDto(
         val hotelName: String,
         val hotelChain: String? = null,
         val starRating: Int? = null,
+        val areaLocation: AreaLocation? = null,
         val hotelLocation: HotelLocation? = null,
         val description: List<DescriptionSection>? = null,
         val images: List<String>? = null,
@@ -19,6 +20,12 @@ internal data class HotelsApiHotelDetailsResponseDto(
         val checkInTime: String? = null,
         val checkOutTime: String? = null,
         val paymentMethods: List<String>? = null,
+    )
+
+    @Serializable
+    data class AreaLocation(
+        val countryName: String,
+        val destinationName: String,
     )
 
     @Serializable

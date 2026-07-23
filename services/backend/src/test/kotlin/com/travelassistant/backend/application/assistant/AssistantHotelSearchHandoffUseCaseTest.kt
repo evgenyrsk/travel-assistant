@@ -85,7 +85,7 @@ class AssistantHotelSearchHandoffUseCaseTest {
         assertEquals(AssistantNextAction.ASK_CLARIFICATION, incompleteMessage.nextAction)
         assertNull(incompleteMessage.hotelSearchId)
         assertEquals(
-            "Укажите направление, даты заезда и выезда, количество взрослых и номеров.",
+            "Укажите направление, даты заезда и выезда и количество взрослых.",
             incompleteMessage.assistantReply.message,
         )
         assertEquals("hotel-search-local-000001", completeMessage.hotelSearchId?.value)
@@ -99,7 +99,7 @@ class AssistantHotelSearchHandoffUseCaseTest {
             HotelOfferProviderResult.RequestRejected(
                 HotelOfferProviderResult.RequestRejectionReason.INVALID_OCCUPANCY,
             ) to
-                "Не удалось безопасно подготовить поиск. Проверьте направление, даты, состав гостей и количество номеров.",
+                "Не удалось безопасно подготовить поиск. Проверьте направление, даты и состав гостей.",
             HotelOfferProviderResult.ProviderUnavailable(
                 HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
             ) to

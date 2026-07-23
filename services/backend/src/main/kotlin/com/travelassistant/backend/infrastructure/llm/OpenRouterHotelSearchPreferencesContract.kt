@@ -16,10 +16,13 @@ internal object OpenRouterHotelSearchPreferencesContract {
             "Use max-total-price for the total stay; when currency is omitted, leave currency null " +
             "because the application treats it as RUB. For example, 'до 80 тысяч' means amount " +
             "80000 with null currency. Use stars for exact categories from 0 to 5. " +
+            "Russian phrases 'пятизвёздочный', 'пятизвездочный', and '5 звёзд' mean stars=[5]. " +
             "Use min-guest-rating only for exact thresholds 5, 6, 7, 8, or 9. " +
             "Values such as 8.5 or 10 and vague phrases such as a high rating require " +
             "NEEDS_CLARIFICATION and must not be rounded. Use free-cancellation=true only for an " +
-            "explicit requirement. Use clear for an explicitly removed preference, including " +
+            "explicit requirement. Use breakfast-included=true only when the user explicitly " +
+            "requires included breakfast. Requests for another meal plan are unsupported and " +
+            "require clarification. Use clear for an explicitly removed preference, including " +
             "phrases such as remove the rating restriction. Never set and clear the same field. " +
             "Existing preferences can be present in confirmedConstraints under the same canonical " +
             "keys; keep every preference that the user did not explicitly change or clear. " +
@@ -39,6 +42,10 @@ internal object OpenRouterHotelSearchPreferencesContract {
                         "free-cancellation",
                         nullableBooleanSchema(FREE_CANCELLATION_DESCRIPTION),
                     )
+                    put(
+                        "breakfast-included",
+                        nullableBooleanSchema(BREAKFAST_INCLUDED_DESCRIPTION),
+                    )
                     put("clear", clearedPreferencesSchema())
                 },
             )
@@ -49,6 +56,7 @@ internal object OpenRouterHotelSearchPreferencesContract {
                     "stars",
                     "min-guest-rating",
                     "free-cancellation",
+                    "breakfast-included",
                     "clear",
                 ),
             )
@@ -64,6 +72,8 @@ internal object OpenRouterHotelSearchPreferencesContract {
         val minimumGuestRating: Int?,
         @SerialName("free-cancellation")
         val freeCancellationRequired: Boolean?,
+        @SerialName("breakfast-included")
+        val breakfastIncludedRequired: Boolean?,
         val clear: List<String>,
     ) {
         fun toDomainPatch(): LlmHotelSearchPreferencesPatch? {
@@ -87,6 +97,7 @@ internal object OpenRouterHotelSearchPreferencesContract {
                 stars = stars?.toCollection(linkedSetOf()),
                 minimumGuestRating = minimumGuestRating,
                 freeCancellationRequired = freeCancellationRequired,
+                breakfastIncludedRequired = breakfastIncludedRequired,
                 clear = clearedFields,
             )
         }
@@ -204,6 +215,8 @@ internal object OpenRouterHotelSearchPreferencesContract {
         "Exact supported guest rating threshold: 5, 6, 7, 8, or 9; null when not changed."
     private const val FREE_CANCELLATION_DESCRIPTION =
         "True only when free cancellation is explicitly required; use clear to remove it."
+    private const val BREAKFAST_INCLUDED_DESCRIPTION =
+        "True only when included breakfast is explicitly required; use clear to remove it."
     private const val CLEARED_PREFERENCES_DESCRIPTION =
         "Preference keys that the user explicitly asked to remove; empty when none are removed."
 }

@@ -82,8 +82,14 @@ class ProceedWithCandidateCriteriaValidator {
             invalidIssue = ProceedWithCandidateValidationIssue.INVALID_ROOMS,
             issues = issues,
         )
-        if (rooms != null && rooms < 1) {
-            issues += ProceedWithCandidateValidationIssue.INVALID_ROOMS
+        if (rooms != null) {
+            when {
+                rooms < 1 ->
+                    issues += ProceedWithCandidateValidationIssue.INVALID_ROOMS
+
+                rooms != SUPPORTED_ROOM_COUNT ->
+                    issues += ProceedWithCandidateValidationIssue.UNSUPPORTED_ROOM_COUNT
+            }
         }
 
         if (issues.isNotEmpty()) {
@@ -202,5 +208,6 @@ class ProceedWithCandidateCriteriaValidator {
         const val ROOMS = "rooms"
         const val MIN_CHILD_AGE = 0
         const val MAX_CHILD_AGE = 17
+        const val SUPPORTED_ROOM_COUNT = 1
     }
 }

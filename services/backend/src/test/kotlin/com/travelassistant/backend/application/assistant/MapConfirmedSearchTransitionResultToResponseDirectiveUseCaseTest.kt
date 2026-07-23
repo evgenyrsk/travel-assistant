@@ -4,6 +4,7 @@ import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
 import com.travelassistant.backend.application.hotel.HotelLocationSuggestion
 import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import java.time.Instant
@@ -270,6 +271,7 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
             attempt = attempt(status = ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS),
             executionResult = ConfirmedSearchExecutionResult.SearchCreated(
                 searchId = searchId,
+                searchStatus = HotelSearch.Status.COMPLETED_WITH_OFFERS,
                 lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
                 executionPolicy = ConfirmedSearchExecutionPolicy(),
             ),
@@ -284,6 +286,33 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
 
         assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, directive.nextAction)
         assertEquals(TransitionMessageKind.RESULTS_READY, directive.messageKind)
+        assertEquals(searchId, directive.hotelSearchId)
+        assertEquals(true, directive.mayShowHotelResults)
+        assertEquals(true, directive.shouldConsumePendingConfirmation)
+    }
+
+    @Test
+    fun transitionedWithEmptySearchUsesNoResultsMessageKind() {
+        val searchId = HotelSearchId("hotel-search-local-empty-001")
+        val result = ExecuteConfirmedSearchTransitionResult.Transitioned(
+            attempt = attempt(status = ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS),
+            executionResult = ConfirmedSearchExecutionResult.SearchCreated(
+                searchId = searchId,
+                searchStatus = HotelSearch.Status.COMPLETED_NO_OFFERS,
+                lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+                executionPolicy = ConfirmedSearchExecutionPolicy(),
+            ),
+            pendingConsumptionDecision =
+                ExecuteConfirmedSearchTransitionResult.PendingConsumptionDecision
+                    .CONSUME_AFTER_SUCCESSFUL_RECORDING,
+            lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+            executionPolicy = ConfirmedSearchExecutionPolicy(),
+        )
+
+        val directive = mapper(result)
+
+        assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, directive.nextAction)
+        assertEquals(TransitionMessageKind.NO_RESULTS, directive.messageKind)
         assertEquals(searchId, directive.hotelSearchId)
         assertEquals(true, directive.mayShowHotelResults)
         assertEquals(true, directive.shouldConsumePendingConfirmation)

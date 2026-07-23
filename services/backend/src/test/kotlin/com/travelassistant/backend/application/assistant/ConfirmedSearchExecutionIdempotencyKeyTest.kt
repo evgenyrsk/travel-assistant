@@ -27,6 +27,7 @@ class ConfirmedSearchExecutionIdempotencyKeyTest {
                 minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
             ),
             HotelSearchPreferences(freeCancellationRequired = true),
+            HotelSearchPreferences(breakfastIncludedRequired = true),
         ).forEach { preferences ->
             assertNotEquals(baseline, keyFor(preferences))
         }

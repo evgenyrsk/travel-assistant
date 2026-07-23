@@ -82,6 +82,7 @@ test("frontend remains online-only without service worker or cache storage", asy
     "app.js",
     "chat-app.js",
     "chat-flow.js",
+    "client-context.js",
     "hotel-details-view.js",
     "offer-view.js",
   ];
@@ -143,6 +144,30 @@ test("chat page exposes bounded accessibility semantics", async () => {
   assert.match(styles, /button:focus-visible,[\s\S]*outline:\s*3px solid var\(--focus\)/);
   assert.match(styles, /button\s*\{[\s\S]*?min-height:\s*48px/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
+test("initial assistant message has no source-formatting whitespace", async () => {
+  const [chatPage, chatApp] = await Promise.all([
+    readFile(new URL("index.html", sourceUrl), "utf8"),
+    readFile(new URL("chat-app.js", sourceUrl), "utf8"),
+  ]);
+
+  assert.match(
+    chatPage,
+    /<p class="chat-message__content">Расскажите, куда и когда планируете поездку и кто едет с вами\. Я уточню недостающие детали и помогу выбрать отель\.<\/p>/,
+  );
+  assert.match(chatApp, /contentElement\.textContent = content\.trim\(\)/);
+});
+
+test("demo UI keeps the single-room invariant out of user-facing controls", async () => {
+  const [diagnosticPage, diagnosticApp] = await Promise.all([
+    readFile(new URL("diagnostic.html", sourceUrl), "utf8"),
+    readFile(new URL("app.js", sourceUrl), "utf8"),
+  ]);
+
+  assert.doesNotMatch(diagnosticPage, /id="rooms"|Комнаты/);
+  assert.match(diagnosticApp, /rooms:\s*1/);
+  assert.doesNotMatch(diagnosticApp, /querySelector\("#rooms"\)/);
 });
 
 test("hotel cards keep responsive image fallback and focus-safe details behavior", async () => {

@@ -41,8 +41,10 @@ class MinimalHotelSearchMessageParser {
         if (childrenAges.size != children) {
             return Result.Incomplete
         }
-        val rooms = fields["rooms"]?.toIntOrNull()?.takeIf { it >= 1 }
-            ?: return Result.Incomplete
+        val rooms = when (val rawRooms = fields["rooms"]) {
+            null -> DEFAULT_ASSISTANT_ROOM_COUNT
+            else -> rawRooms.toIntOrNull()?.takeIf { it >= 1 } ?: return Result.Incomplete
+        }
 
         if (!checkOutDate.isAfter(checkInDate)) {
             return Result.Incomplete

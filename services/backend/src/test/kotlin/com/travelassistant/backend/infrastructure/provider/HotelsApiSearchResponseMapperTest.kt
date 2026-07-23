@@ -22,6 +22,7 @@ class HotelsApiSearchResponseMapperTest {
                 ),
                 availableRoomsCount = 2,
                 freeCancellationUntil = "2026-07-17T21:00:00+00:00",
+                mealType = "breakfast",
                 images = listOf(
                     "http://example.invalid/insecure.jpg",
                     "https://images.example.invalid/first.jpg",
@@ -44,6 +45,7 @@ class HotelsApiSearchResponseMapperTest {
         assertEquals(Instant.parse("2026-07-17T21:00:00Z"), offer.freeCancellationUntil)
         assertEquals(HotelOffer.Availability.AVAILABLE, offer.availability)
         assertEquals("https://images.example.invalid/first.jpg", offer.imageUrl)
+        assertEquals(true, offer.breakfastIncluded)
         assertEquals("tbank_hotels_api", offer.source)
         assertEquals(HotelOffer.Freshness.UNKNOWN, offer.freshness)
     }
@@ -67,6 +69,19 @@ class HotelsApiSearchResponseMapperTest {
         assertEquals(5, offer.starRating)
         assertNull(offer.freeCancellationUntil)
         assertEquals(HotelOffer.Availability.UNKNOWN, offer.availability)
+    }
+
+    @Test
+    fun `maps only explicit breakfast and no-meal values and keeps other meal plans unknown`() {
+        val offers = listOf("breakfast", "nomeal", "half-board", null).map { mealType ->
+            assertIs<HotelsApiSearchResponseMapper.Result.Mapped>(
+                HotelsApiSearchResponseMapper.map(
+                    response(hotel(hotelId = "hotel-${mealType ?: "unknown"}", mealType = mealType)),
+                ),
+            ).offers.single()
+        }
+
+        assertEquals(listOf(true, false, null, null), offers.map { it.breakfastIncluded })
     }
 
     @Test
@@ -179,6 +194,7 @@ class HotelsApiSearchResponseMapperTest {
         ),
         availableRoomsCount: Int = 1,
         freeCancellationUntil: String? = null,
+        mealType: String? = null,
         images: List<String>? = null,
     ): HotelsApiSearchResponseDto.Hotel =
         HotelsApiSearchResponseDto.Hotel(
@@ -200,6 +216,7 @@ class HotelsApiSearchResponseMapperTest {
                 paymentPlace = "online",
                 shownPrice = shownPrice,
                 freeCancellationUntil = freeCancellationUntil,
+                mealType = mealType,
             ),
             images = images,
             review = review,

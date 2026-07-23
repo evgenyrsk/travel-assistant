@@ -24,8 +24,7 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
             """Проверьте параметры:
 Куда: Rome
 Даты: 1–4 июля 2026
-Гости: 2 взрослых, 1 ребёнок (7 лет)
-Номера: 1 номер""",
+Гости: 2 взрослых, 1 ребёнок (7 лет)""",
             confirmation.proposal.summary,
         )
         assertEquals(
@@ -51,7 +50,6 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
 Куда: Rome
 Даты: 1–4 июля 2026
 Гости: 2 взрослых, 1 ребёнок (7 лет)
-Номера: 1 номер
 Условия: 4–5 звёзд; рейтинг от 8; бесплатная отмена""",
             confirmation.proposal.summary,
         )
@@ -73,7 +71,7 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
             clarification.reason,
         )
         assertEquals(
-            "Уточните направление, даты, состав гостей и количество номеров, чтобы я подготовил подтверждение поиска.",
+            "Уточните направление, даты и состав гостей, чтобы я подготовил подтверждение поиска.",
             clarification.question,
         )
     }
@@ -109,6 +107,24 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
         assertEquals(
             ProceedWithCandidateConfirmationPlan.ClarificationReason.MISSING_OR_INVALID_CRITERIA,
             clarification.reason,
+        )
+    }
+
+    @Test
+    fun explainsSingleRoomBoundaryBeforeConfirmation() {
+        val plan = useCase(
+            proceedWithCandidate(
+                completeCandidate(
+                    constraints = completeConstraints() + ("rooms" to "2"),
+                ),
+            ),
+        )
+
+        val clarification = assertIs<ProceedWithCandidateConfirmationPlan.ClarificationRequired>(plan)
+        assertEquals(
+            "Сейчас я могу искать только один номер за раз. " +
+                "Укажите состав гостей для одного номера или выполните отдельный поиск для второго номера.",
+            clarification.question,
         )
     }
 

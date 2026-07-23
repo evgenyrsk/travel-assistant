@@ -20,6 +20,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import java.io.IOException
+import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -65,6 +66,7 @@ class OpenRouterLlmClientTest {
             userMessage = "Найди отель в Казани",
             confirmedConstraints = mapOf("adults" to "2", "destination" to "Казань"),
             missingRequiredFields = listOf("check-in", "check-out", "rooms"),
+            referenceDate = LocalDate.parse("2026-07-23"),
         )
 
         val result = client.generateCandidate(request)
@@ -117,10 +119,21 @@ class OpenRouterLlmClientTest {
         assertTrue(systemPrompt.contains("Use null, never an empty string"))
         assertTrue(systemPrompt.contains("For a complete consistent hotel request"))
         assertTrue(systemPrompt.contains("clarification question in Russian"))
+        assertTrue(systemPrompt.contains("Resolve today and tomorrow from referenceDate"))
+        assertTrue(systemPrompt.contains("do not resolve relative dates or infer a missing year"))
+        assertTrue(systemPrompt.contains("derive check-out by adding that many calendar days"))
+        assertTrue(systemPrompt.contains("confirmed stay-length-nights"))
+        assertTrue(systemPrompt.contains("count the user and that companion as two adults"))
+        assertTrue(systemPrompt.contains("exact hotel"))
+        assertTrue(systemPrompt.contains("do not ask for a city"))
         val promptPayload = Json.parseToJsonElement(
             messages[1].jsonObject.getValue("content").jsonPrimitive.content,
         ).jsonObject
         assertEquals(request.userMessage, promptPayload.getValue("userMessage").jsonPrimitive.content)
+        assertEquals(
+            "2026-07-23",
+            promptPayload.getValue("referenceDate").jsonPrimitive.content,
+        )
         assertEquals(
             request.confirmedConstraints,
             promptPayload.getValue("confirmedConstraints").jsonObject
@@ -184,7 +197,7 @@ class OpenRouterLlmClientTest {
                 candidateContract = OpenRouterCandidateContract.HOTEL_SEARCH_REFINEMENT,
             ).generateCandidate(
                 refinementRequest(
-                    "До 80 тысяч, только 4–5 звёзд и с бесплатной отменой; убери рейтинг",
+                    "До 80 тысяч, только 4–5 звёзд, с бесплатной отменой и завтраком; убери рейтинг",
                 ),
             ),
         )
@@ -197,6 +210,7 @@ class OpenRouterLlmClientTest {
                 ),
                 stars = linkedSetOf(4, 5),
                 freeCancellationRequired = true,
+                breakfastIncludedRequired = true,
                 clear = setOf(
                     LlmHotelSearchPreferencesPatch.Field.MINIMUM_GUEST_RATING,
                 ),
@@ -211,6 +225,8 @@ class OpenRouterLlmClientTest {
         assertTrue(systemPrompt.contains("Preferences are optional"))
         assertTrue(systemPrompt.contains("must not be rounded"))
         assertTrue(systemPrompt.contains("keep every preference"))
+        assertTrue(systemPrompt.contains("breakfast-included=true"))
+        assertTrue(systemPrompt.contains("пятизвёздочный"))
         assertTrue(systemPrompt.contains("Do not extract sorting preferences"))
 
         val schema = body.getValue("response_format").jsonObject
@@ -229,6 +245,7 @@ class OpenRouterLlmClientTest {
                 "stars",
                 "min-guest-rating",
                 "free-cancellation",
+                "breakfast-included",
                 "clear",
             ),
             preferencePatch.getValue("properties").jsonObject.keys,
@@ -773,6 +790,7 @@ class OpenRouterLlmClientTest {
                 }
                 put("min-guest-rating", JsonNull)
                 put("free-cancellation", true)
+                put("breakfast-included", true)
                 putJsonArray("clear") {
                     add("min-guest-rating")
                 }
@@ -785,6 +803,7 @@ class OpenRouterLlmClientTest {
             put("stars", JsonNull)
             put("min-guest-rating", JsonNull)
             put("free-cancellation", JsonNull)
+            put("breakfast-included", JsonNull)
             put("clear", buildJsonArray {})
         }
 

@@ -60,6 +60,15 @@ class PlanHotelNoOffersRefinementUseCaseTest {
                 stars = emptySet(),
                 freeCancellationRequired = false,
             ),
+            expected = HotelNoOffersRefinementPlan.Preference.BREAKFAST_INCLUDED_REQUIRED,
+        )
+        assertSuggestion(
+            preferences = allPreferences().copy(
+                minimumGuestRating = null,
+                stars = emptySet(),
+                freeCancellationRequired = false,
+                breakfastIncludedRequired = false,
+            ),
             expected = HotelNoOffersRefinementPlan.Preference.MAX_TOTAL_PRICE,
         )
     }
@@ -95,6 +104,7 @@ class PlanHotelNoOffersRefinementUseCaseTest {
             stars = linkedSetOf(4, 5),
             minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
             freeCancellationRequired = true,
+            breakfastIncludedRequired = true,
         )
 
     private fun search(

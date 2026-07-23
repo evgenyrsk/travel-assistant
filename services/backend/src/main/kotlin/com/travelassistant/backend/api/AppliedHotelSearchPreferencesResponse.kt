@@ -16,6 +16,8 @@ data class AppliedHotelSearchPreferencesResponse(
     val minimumGuestRating: Int? = null,
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val freeCancellationRequired: Boolean? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val breakfastIncludedRequired: Boolean? = null,
 ) {
     @Serializable
     data class MaximumTotalPrice(
@@ -42,6 +44,11 @@ data class AppliedHotelSearchPreferencesResponse(
                         ?.sorted(),
                     minimumGuestRating = preferences.minimumGuestRating?.value,
                     freeCancellationRequired = if (preferences.freeCancellationRequired) {
+                        true
+                    } else {
+                        null
+                    },
+                    breakfastIncludedRequired = if (preferences.breakfastIncludedRequired) {
                         true
                     } else {
                         null

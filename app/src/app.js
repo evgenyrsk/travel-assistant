@@ -8,7 +8,6 @@ const elements = {
   checkInDate: document.querySelector("#check-in-date"),
   checkOutDate: document.querySelector("#check-out-date"),
   adults: document.querySelector("#adults"),
-  rooms: document.querySelector("#rooms"),
   submit: document.querySelector("#submit-search"),
   status: document.querySelector("#status"),
   error: document.querySelector("#error-message"),
@@ -34,7 +33,7 @@ elements.form.addEventListener("submit", async (event) => {
         adults: Number.parseInt(elements.adults.value, 10),
         children: 0,
       },
-      rooms: Number.parseInt(elements.rooms.value, 10),
+      rooms: 1,
     });
     const offers = await api.getHotelOffers(search.searchId);
 

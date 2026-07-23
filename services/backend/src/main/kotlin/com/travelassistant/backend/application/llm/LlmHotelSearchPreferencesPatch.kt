@@ -5,6 +5,7 @@ data class LlmHotelSearchPreferencesPatch(
     val stars: Set<Int>? = null,
     val minimumGuestRating: Int? = null,
     val freeCancellationRequired: Boolean? = null,
+    val breakfastIncludedRequired: Boolean? = null,
     val clear: Set<Field> = emptySet(),
 ) {
     val isEmpty: Boolean
@@ -12,6 +13,7 @@ data class LlmHotelSearchPreferencesPatch(
             stars == null &&
             minimumGuestRating == null &&
             freeCancellationRequired == null &&
+            breakfastIncludedRequired == null &&
             clear.isEmpty()
 
     data class MaxTotalPrice(
@@ -26,6 +28,7 @@ data class LlmHotelSearchPreferencesPatch(
         STARS("stars"),
         MINIMUM_GUEST_RATING("min-guest-rating"),
         FREE_CANCELLATION("free-cancellation"),
+        BREAKFAST_INCLUDED("breakfast-included"),
         ;
 
         companion object {

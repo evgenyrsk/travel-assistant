@@ -56,6 +56,24 @@ class RealHotelOfferProviderAdapterTest {
         assertEquals(listOf("city", "city"), required.suggestions.map { it.typeCode })
         assertEquals(false, required.toString().contains("1001"))
         assertEquals(false, required.toString().contains("1002"))
+
+        val hotelSelection = adapter {
+            HotelsApiSearchOrchestrator.Result.HotelSelectionRequired(
+                candidates = listOf(
+                    HotelLocationResolution.HotelCandidate(
+                        providerReference = "provider-sensitive-hotel-id",
+                        name = "Первый отель",
+                        signature = "Отель, Москва",
+                        type = HotelLocationResolution.Type("hotel", "Отель"),
+                    ),
+                ),
+            )
+        }.search(criteria())
+        val hotelRequired = assertIs<HotelOfferProviderResult.LocationSelectionRequired>(
+            hotelSelection,
+        )
+        assertEquals(listOf("Первый отель"), hotelRequired.suggestions.map { it.name })
+        assertEquals(false, hotelRequired.toString().contains("provider-sensitive-hotel-id"))
     }
 
     @Test

@@ -57,6 +57,7 @@ test("renders a compact hotel offer with safe lazy image and without repeated su
     },
     starRating: 4,
     freeCancellationUntil: "2026-08-09T18:00:00Z",
+    breakfastIncluded: true,
     imageUrl: "https://images.example.test/hotel.jpg",
     availability: "available",
     matchSummary: repeatedSummary,
@@ -66,6 +67,7 @@ test("renders a compact hotel offer with safe lazy image and without repeated su
   assert.match(markup, /Доступно/);
   assert.match(markup, /4 звезды/);
   assert.match(markup, /Бесплатная отмена до/);
+  assert.match(markup, /Завтрак включён/);
   assert.match(markup, /src="https:\/\/images\.example\.test\/hotel\.jpg"/);
   assert.match(markup, /loading="lazy"/);
   assert.match(markup, /decoding="async"/);
@@ -126,12 +128,14 @@ test("formats only active applied preferences", () => {
     stars: [5, 4, 4],
     minimumGuestRating: 8,
     freeCancellationRequired: true,
+    breakfastIncludedRequired: true,
   });
 
   assert.match(summary, /до.*80[\s\u00a0]?000,5.*₽.*за поездку/u);
   assert.match(summary, /4, 5 звёзд/);
   assert.match(summary, /рейтинг от 8/);
   assert.match(summary, /бесплатная отмена/);
+  assert.match(summary, /завтрак включён/);
   assert.equal(formatAppliedPreferences(undefined), "");
 });
 
@@ -157,9 +161,24 @@ test("renders an offer without rating as an unknown rating", () => {
   assert.equal(view.rating, "Нет рейтинга");
   assert.equal(view.starRating, null);
   assert.equal(view.freeCancellation, null);
+  assert.equal(view.breakfast, null);
   assert.match(markup, /Нет рейтинга/);
   assert.doesNotMatch(markup, /0\.0 \/ 10/);
   assert.doesNotMatch(markup, /Бесплатная отмена/);
+  assert.doesNotMatch(markup, /Завтрак/);
+});
+
+test("renders explicit provider no-breakfast fact without inventing meal details", () => {
+  const markup = renderOfferCardMarkup({
+    offerId: "provider-offer-without-breakfast",
+    hotelName: "Отель без завтрака",
+    location: { city: "Казань", country: "Россия" },
+    price: { amount: 12000, currency: "RUB" },
+    breakfastIncluded: false,
+    availability: "available",
+  });
+
+  assert.match(markup, /Завтрак не включён/);
 });
 
 test("does not render zero star category as zero stars", () => {

@@ -216,6 +216,31 @@ class GenerateLlmCandidateUseCaseTest {
     }
 
     @Test
+    fun preservesSemanticRejectionWhenRetryReturnsEmptyContent() = runBlocking {
+        val invalidCandidate = LlmCandidate(
+            outcome = LlmCandidate.Outcome.INTERPRETED,
+            intent = LlmCandidate.Intent.HOTEL_SEARCH,
+            extractedConstraints = mapOf("destination" to " "),
+        )
+        val responses = listOf(
+            LlmClientResponse.Candidate(invalidCandidate),
+            LlmClientResponse.Empty,
+        )
+        var requestCount = 0
+        val useCase = GenerateLlmCandidateUseCase(
+            llmClient = LlmClient { responses[requestCount++] },
+            retryPolicy = LlmCandidateRetryPolicy.SINGLE_RETRY,
+        )
+
+        val rejected = assertIs<LlmCandidateValidationResult.Rejected>(
+            useCase(safeRequest()),
+        )
+
+        assertEquals(LlmCandidateValidationResult.Reason.INVALID_CANDIDATE, rejected.reason)
+        assertEquals(2, requestCount)
+    }
+
+    @Test
     fun stopsAfterTwoRetryableFailures() = runBlocking {
         var requestCount = 0
         val useCase = GenerateLlmCandidateUseCase(

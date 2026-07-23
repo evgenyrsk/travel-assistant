@@ -117,7 +117,7 @@ class CreateAssistantSessionUseCaseTest {
         assertEquals(initialHotelRequirementsCoveragePlan, acceptedMessage.hotelRequirementsCoveragePlan)
         assertEquals("clarification", acceptedMessage.assistantReply.type.apiValue)
         assertEquals(
-            "Расскажите, куда и когда планируете поездку, кто едет и сколько номеров нужно.",
+            "Расскажите, куда и когда планируете поездку и кто едет с вами.",
             acceptedMessage.assistantReply.message,
         )
         assertEquals(AssistantNextAction.ASK_CLARIFICATION, acceptedMessage.nextAction)

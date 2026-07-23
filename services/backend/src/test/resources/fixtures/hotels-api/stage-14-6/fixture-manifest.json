@@ -1,0 +1,61 @@
+{
+  "observedAt": "2026-07-23",
+  "sanitized": true,
+  "automaticRetries": false,
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/api/v1/hotels/search",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "attemptCount": 1
+    },
+    {
+      "method": "POST",
+      "path": "/search-api/v1/hotels/getHotelStaticInfo",
+      "status": 200,
+      "contentType": "application/json",
+      "attemptCount": 1
+    }
+  ],
+  "observation": {
+    "searchHotelsCount": 20,
+    "searchHotelIdsAreNumericStrings": true,
+    "searchImagesAreHttpsStringTemplates": true,
+    "searchImageCountRange": {
+      "min": 21,
+      "max": 160
+    },
+    "staticInfoHotelsCount": 2,
+    "staticInfoImagesAreHttpsStringTemplates": true,
+    "unresolvedTemplate": {
+      "status": 403,
+      "providerErrorCode": "AccessDenied"
+    },
+    "resolvedTemplate": {
+      "size": "1024x768",
+      "status": 200,
+      "contentType": "image/jpeg"
+    }
+  },
+  "fixture": {
+    "file": "search-image-template.json",
+    "sha256": "498cde78f1042629adc6736b42d6cafa3fd7046786cf2f4d5b5427200a0681be"
+  },
+  "redactions": [
+    "destination identifier",
+    "hotel identifiers and names",
+    "location names and address",
+    "coordinates",
+    "image object identifiers",
+    "response headers"
+  ],
+  "excluded": [
+    "authorization",
+    "cookies",
+    "session metadata",
+    "device metadata",
+    "tracing metadata",
+    "raw responses"
+  ]
+}

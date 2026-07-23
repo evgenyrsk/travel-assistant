@@ -46,7 +46,7 @@ class HotelsApiSearchRequestMapperTest {
     }
 
     @Test
-    fun `maps four preferences to exact provider filters in deterministic order`() {
+    fun `maps supported preferences to exact provider filters in deterministic order`() {
         val preferences = HotelSearchPreferences(
             maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
                 amount = BigDecimal("80000.50"),
@@ -55,6 +55,7 @@ class HotelsApiSearchRequestMapperTest {
             stars = linkedSetOf(5, 4),
             minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
             freeCancellationRequired = true,
+            breakfastIncludedRequired = true,
         )
 
         val mapped = assertIs<HotelsApiSearchRequestMapper.Result.Mapped>(
@@ -69,7 +70,13 @@ class HotelsApiSearchRequestMapperTest {
         val filters = body.getValue("filters").jsonArray.map { it.jsonObject }
 
         assertEquals(
-            listOf("price", "stars", "review_rating", "free_cancellation_allowed"),
+            listOf(
+                "price",
+                "stars",
+                "review_rating",
+                "free_cancellation_allowed",
+                "meal_types",
+            ),
             filters.map { it.getValue("filterId").jsonPrimitive.content },
         )
         assertEquals("range", filters[0].getValue("\$objectType").jsonPrimitive.content)
@@ -85,6 +92,11 @@ class HotelsApiSearchRequestMapperTest {
         assertEquals("8", filters[2].getValue("value").jsonPrimitive.content)
         assertEquals("boolean", filters[3].getValue("\$objectType").jsonPrimitive.content)
         assertEquals("true", filters[3].getValue("value").jsonPrimitive.content)
+        assertEquals("array", filters[4].getValue("\$objectType").jsonPrimitive.content)
+        assertEquals(
+            listOf("breakfast"),
+            filters[4].getValue("values").jsonArray.map { it.jsonPrimitive.content },
+        )
         assertFalse("sort" in body)
     }
 

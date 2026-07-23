@@ -375,6 +375,7 @@ class OpenRouterRuntimeIntegrationTest {
                 put("stars", null as String?)
                 put("min-guest-rating", null as String?)
                 put("free-cancellation", null as String?)
+                put("breakfast-included", null as String?)
                 putJsonArray("clear") {}
             }
             put("missingRequiredFields", buildJsonArray {

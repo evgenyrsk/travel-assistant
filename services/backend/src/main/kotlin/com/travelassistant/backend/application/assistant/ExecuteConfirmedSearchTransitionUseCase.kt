@@ -164,6 +164,7 @@ class ExecuteConfirmedSearchTransitionUseCase(
 
         val executionResult = ConfirmedSearchExecutionResult.SearchCreated(
             searchId = createdSearch.id,
+            searchStatus = createdSearch.status,
             lifecyclePolicy = planningResult.lifecyclePolicy,
             executionPolicy = planningResult.executionPolicy,
         )

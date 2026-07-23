@@ -83,6 +83,21 @@ class HotelsApiProviderFixtureContractTest {
         val mappedOffer = offers.single { it.providerReference == differentRatings.hotelId }
         assertEquals(differentRatings.review?.rating, mappedOffer.rating)
         assertNotEquals(differentRatings.starRating.toDouble(), mappedOffer.rating)
+
+        val breakfastHotel = response.payload.hotels.first { hotel ->
+            hotel.rateForHotelsFeed.mealType == "breakfast"
+        }
+        val noMealHotel = response.payload.hotels.first { hotel ->
+            hotel.rateForHotelsFeed.mealType == "nomeal"
+        }
+        assertEquals(
+            true,
+            offers.single { it.providerReference == breakfastHotel.hotelId }.breakfastIncluded,
+        )
+        assertEquals(
+            false,
+            offers.single { it.providerReference == noMealHotel.hotelId }.breakfastIncluded,
+        )
     }
 
     @Test

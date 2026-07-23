@@ -26,6 +26,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
@@ -258,6 +259,10 @@ internal class OpenRouterLlmClient(
         buildJsonObject {
             put("userMessage", request.userMessage)
             put(
+                "referenceDate",
+                request.referenceDate?.let { date -> JsonPrimitive(date.toString()) } ?: JsonNull,
+            )
+            put(
                 "confirmedConstraints",
                 buildJsonObject {
                     request.confirmedConstraints.toSortedMap().forEach { (key, value) ->
@@ -404,7 +409,9 @@ internal class OpenRouterLlmClient(
         )
 
         val CONSTRAINT_DESCRIPTIONS = mapOf(
-            "destination" to "Destination name from the user, or null when absent.",
+            "destination" to
+                "Destination city, district, or exact hotel name from the user; preserve an explicitly " +
+                    "named hotel verbatim, or use null when absent.",
             "check-in" to "Check-in date as YYYY-MM-DD, or null when absent.",
             "check-out" to "Check-out date as YYYY-MM-DD, or null when absent.",
             "adults" to "Adult count as a decimal string, or null when absent.",
@@ -435,6 +442,18 @@ internal class OpenRouterLlmClient(
                 "Use confirmed constraints as context and never invent missing values. " +
                 "Use null, never an empty string, for absent constraint values and for an absent " +
                 "clarification question. Dates use YYYY-MM-DD. Counts use decimal strings. " +
+                "referenceDate is the current date in the user's client timezone when present. " +
+                "Resolve today and tomorrow from referenceDate. For a day and month without a year, " +
+                "use the first occurrence that is not before referenceDate. Never return a check-in " +
+                "before referenceDate. When referenceDate is null, do not resolve relative dates or " +
+                "infer a missing year; ask the user for day, month, and year instead. " +
+                "When the user gives a check-in date and a stay length in nights, derive check-out " +
+                "by adding that many calendar days. A confirmed stay-length-nights value is an " +
+                "auxiliary duration: use it to derive check-out after a later check-in is supplied, " +
+                "but never list it as a missing required field. When the user says they travel with a spouse " +
+                "or partner and names no other adults, count the user and that companion as two adults. " +
+                "The destination may be a city, district, or an exact hotel. When the user explicitly " +
+                "names a hotel, preserve that hotel name as destination and do not ask for a city. " +
                 "Use children-ages as comma-separated ages only when children is greater than zero. " +
                 "For a complete consistent hotel request return INTERPRETED and HOTEL_SEARCH, " +
                 "with empty missingRequiredFields, conflicts, and warnings, and null " +

@@ -244,6 +244,7 @@ function buildPlatformClientChecks(
     ["starRating remains optional", shape.starRatingOptional],
     ["freeCancellationUntil remains optional", shape.freeCancellationUntilOptional],
     ["imageUrl remains optional", shape.imageUrlOptional],
+    ["breakfastIncluded remains optional", shape.breakfastIncludedOptional],
     ["appliedPreferences remains optional", shape.appliedPreferencesOptional],
     [
       "applied preferences reject unknown fields",
@@ -353,6 +354,7 @@ function buildPlatformClientChecks(
     [
       "applied preference fields match runtime",
       sameValues(shape.appliedPreferencesFields, [
+        "breakfastIncludedRequired",
         "freeCancellationRequired",
         "maxTotalPrice",
         "minimumGuestRating",
@@ -374,6 +376,7 @@ function buildPlatformClientChecks(
     [
       "refinement suggestion preferences match runtime",
       sameValues(shape.refinementSuggestionPreferenceValues, [
+        "breakfastIncludedRequired",
         "freeCancellationRequired",
         "maxTotalPrice",
         "minimumGuestRating",

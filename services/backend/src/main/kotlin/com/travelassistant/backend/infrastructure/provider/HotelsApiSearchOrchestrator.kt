@@ -1,5 +1,7 @@
 package com.travelassistant.backend.infrastructure.provider
 
+import com.travelassistant.backend.application.hotel.HotelCandidateSelectionPolicy
+import com.travelassistant.backend.application.hotel.HotelCandidateSelectionResult
 import com.travelassistant.backend.application.hotel.HotelLocationCandidateSelectionPolicy
 import com.travelassistant.backend.application.hotel.HotelLocationCandidateSelectionResult
 import com.travelassistant.backend.application.hotel.HotelLocationResolution
@@ -14,6 +16,8 @@ import kotlinx.serialization.encodeToString
 internal class HotelsApiSearchOrchestrator(
     private val locationResolver: HotelLocationResolverBoundary,
     private val locationSelectionPolicy: HotelLocationCandidateSelectionPolicy,
+    private val hotelSelectionPolicy: HotelCandidateSelectionPolicy,
+    private val exactHotelSearchOrchestrator: HotelsApiExactHotelSearchOrchestrator,
     private val transport: PublicHotelsApiHttpTransport,
 ) {
 
@@ -24,6 +28,26 @@ internal class HotelsApiSearchOrchestrator(
                 language = request.language,
             ),
         )
+
+        when (
+            val selection = hotelSelectionPolicy.select(
+                query = request.criteria.destination,
+                candidates = resolution.hotelCandidates,
+                hasLocationCandidates = resolution.candidates.isNotEmpty(),
+            )
+        ) {
+            is HotelCandidateSelectionResult.Selected ->
+                return exactHotelSearchOrchestrator.search(
+                    candidate = selection.candidate,
+                    criteria = request.criteria,
+                    language = request.language,
+                ).toSearchResult(selection.candidate)
+
+            is HotelCandidateSelectionResult.SelectionRequired ->
+                return Result.HotelSelectionRequired(selection.candidates)
+
+            HotelCandidateSelectionResult.NotSelected -> Unit
+        }
 
         val location = when (
             val selection = locationSelectionPolicy.select(
@@ -80,6 +104,21 @@ internal class HotelsApiSearchOrchestrator(
             )
         }
 
+    private fun HotelsApiExactHotelSearchOrchestrator.Result.toSearchResult(
+        hotel: HotelLocationResolution.HotelCandidate,
+    ): Result =
+        when (this) {
+            is HotelsApiExactHotelSearchOrchestrator.Result.Success ->
+                Result.Success(
+                    hotel = hotel,
+                    offers = offers,
+                )
+            is HotelsApiExactHotelSearchOrchestrator.Result.RequestRejected ->
+                Result.RequestRejected(error)
+            is HotelsApiExactHotelSearchOrchestrator.Result.ResponseRejected ->
+                Result.ResponseRejected(listOf(error))
+        }
+
     data class Request(
         val criteria: HotelSearchCriteria,
         val language: HotelLocationResolutionRequest.Language? = null,
@@ -87,7 +126,8 @@ internal class HotelsApiSearchOrchestrator(
 
     sealed interface Result {
         data class Success(
-            val location: HotelLocationResolution.Candidate,
+            val location: HotelLocationResolution.Candidate? = null,
+            val hotel: HotelLocationResolution.HotelCandidate? = null,
             val offers: List<HotelOfferCandidate>,
         ) : Result
 
@@ -95,6 +135,10 @@ internal class HotelsApiSearchOrchestrator(
 
         data class LocationSelectionRequired(
             val candidates: List<HotelLocationResolution.Candidate>,
+        ) : Result
+
+        data class HotelSelectionRequired(
+            val candidates: List<HotelLocationResolution.HotelCandidate>,
         ) : Result
 
         data class RequestRejected(

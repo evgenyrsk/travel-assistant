@@ -24,4 +24,5 @@ enum class TransitionMessageKind {
     SEARCH_REQUEST_REJECTED,
     TEMPORARY_FAILURE,
     RESULTS_READY,
+    NO_RESULTS,
 }

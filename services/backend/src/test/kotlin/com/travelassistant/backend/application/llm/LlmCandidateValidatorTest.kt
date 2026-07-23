@@ -53,6 +53,7 @@ class LlmCandidateValidatorTest {
             LlmHotelSearchPreferencesPatch(stars = setOf(4, 6)),
             LlmHotelSearchPreferencesPatch(minimumGuestRating = 10),
             LlmHotelSearchPreferencesPatch(freeCancellationRequired = false),
+            LlmHotelSearchPreferencesPatch(breakfastIncludedRequired = false),
             LlmHotelSearchPreferencesPatch(
                 minimumGuestRating = 8,
                 clear = setOf(LlmHotelSearchPreferencesPatch.Field.MINIMUM_GUEST_RATING),

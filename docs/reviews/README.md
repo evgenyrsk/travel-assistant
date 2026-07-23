@@ -517,6 +517,12 @@
 204. `docs/reviews/stage-14-1a-hotel-details-safety-and-confirmation-copy.md`
 205. `docs/reviews/stage-14-1b-hotel-offer-image-contract.md`
 206. `docs/reviews/stage-14-1c-compact-hotel-results-demo-redesign.md`
+207. `docs/reviews/stage-14-2-client-timezone-and-date-safety.md`
+208. `docs/reviews/stage-14-3-breakfast-filter-and-offer-fact.md`
+209. `docs/reviews/stage-14-4-safe-llm-diagnostics-and-fallback-messages.md`
+210. `docs/reviews/stage-14-5-explicit-star-refinement-and-image-source-diagnosis.md`
+211. `docs/reviews/stage-14-6-provider-image-template-resolution.md`
+212. `docs/reviews/stage-14-7-named-hotel-search-and-conversation-resilience.md`
 
 ## Historical / superseded документы
 

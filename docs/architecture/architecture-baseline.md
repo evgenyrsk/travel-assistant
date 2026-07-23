@@ -17,9 +17,10 @@
 
 ## 2. Текущий статус архитектуры
 
-- Stage 0–14.0 завершены в границах рабочего `demo-ready MVP`; Stage 14.1a и
-  Stage 14.1b завершены, Stage 14.1c остаётся открытым; подробные
-  статусы находятся в `docs/roadmap/roadmap.md`.
+- Stage 0–14.6 завершены в границах рабочего `demo-ready MVP`; Stage 14.7
+  реализован, full gates пройдены, ожидается ручная REAL-перепроверка; Stage 14.1c
+  закрыт после подтверждения provider image template; подробные статусы находятся в
+  `docs/roadmap/roadmap.md`.
 - Backend использует Kotlin + Ktor и сохраняет разделение domain, application, infrastructure и API слоев.
 - `LlmClient` и `HotelOfferProviderBoundary` реализованы как application-owned асинхронные границы.
 - OpenRouter и публичный Hotels API имеют opt-in adapters и отдельные `HttpClient`; оба режима по умолчанию остаются `FAKE`.
@@ -57,11 +58,43 @@
   официальный S2S SLA или generated-client readiness.
 - Stage 14.1a и Stage 14.1b добавили fail-closed фильтрацию description
   sections, общую проверку безопасных HTTPS image URL и optional
-  provider-neutral image contract без details lookup или N+1. Кандидат Stage
-  14.1c ограничен responsive presentation и fallback; live provider image
-  branch пока не подтверждён.
+  provider-neutral image contract без details lookup или N+1. Stage 14.1c
+  ограничен responsive presentation и fallback, а Stage 14.6 безопасно
+  разрешает подтверждённый `{size}` только для provider CDN.
+- Stage 14.2 сохранил platform-neutral message contract и начал использовать
+  существующий optional `clientContext.timezone` как IANA timezone hint.
+  Backend-owned `Clock` остаётся источником текущего instant; client timestamp
+  не принимается. Отсутствующая или некорректная timezone переводит
+  относительные и не содержащие год даты в clarification, а past dates
+  отклоняются до confirmation и provider search. Assistant constraints имеют
+  один номер по умолчанию; явно запрошенное большее количество очищается как
+  неподдерживаемое до confirmation. Агрегированная модель гостей не имитирует
+  распределение по нескольким номерам и не передаёт такой запрос provider.
+  Внутренний `rooms=1` не переносится в обычный confirmation или demo controls.
+- Stage 14.3 расширил прежнюю provider-neutral preference boundary включённым
+  завтраком. Infrastructure mapping знает `meal_types=breakfast`, domain/API
+  хранят только nullable breakfast fact, а неизвестные meal plans не
+  интерпретируются.
+- Stage 14.4 подключил к существующим observer boundaries безопасный локальный
+  logger фиксированных OpenRouter/application категорий. User messages,
+  prompts, raw responses, secrets, model slug и идентификаторы не логируются;
+  это не заменяет будущий промышленный observability stack.
+- Stage 14.5 добавил узкую application-policy для точной одиночной категории
+  звёзд. Она дополняет семантический пропуск LLM, но не интерпретирует
+  диапазоны, сравнения, отрицания или снятие фильтров. Stage 14.6 подтвердил,
+  что search уже содержит image templates; пакетный источник и N+1 не нужны.
+- Stage 14.7 сохраняет autocomplete locations и hotels разными внутренними
+  типами. Обычный поиск использует numeric `destinationId`; exact-hotel ветка
+  использует opaque provider reference только внутри infrastructure и после
+  confirmation выполняет bounded details + v3 rates orchestration. Public API
+  сохраняет application-owned `hotelSearchId`/`offerId`; room IDs, provider
+  search ID и `bookHash` не моделируются и не раскрываются. До накопления
+  критериев application может консервативно дополнить отсутствующий destination
+  из явно названного отеля; transport, provider IDs и raw LLM data в эту policy
+  не входят.
 
-Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap.
+После закрытия Stage 14.7 следующая задача реализации может начаться только
+через отдельную явную задачу, согласованную с roadmap.
 
 Chat-first demo shell использует Assistant routes и загружает результаты только по
 полученному `hotelSearchId`. Диагностическая форма Stage 7.51 вызывает

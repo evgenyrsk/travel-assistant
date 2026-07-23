@@ -11,6 +11,7 @@ import com.travelassistant.backend.domain.assistant.HotelRequirementsState
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import java.time.Clock
 import java.time.Instant
+import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -29,6 +30,7 @@ interface AssistantSessionBoundary {
 data class AcceptAssistantMessageCommand(
     val sessionId: AssistantSessionId,
     val message: String,
+    val clientTimeZone: ZoneId? = null,
 )
 
 data class AcceptedAssistantMessage(
@@ -119,7 +121,7 @@ class CreateAssistantSessionUseCase(
             hotelRequirementsCoveragePlan = updatedSession.hotelRequirementsCoveragePlan,
             assistantReply = AssistantReply(
                 type = AssistantReplyType.CLARIFICATION,
-                message = "Расскажите, куда и когда планируете поездку, кто едет и сколько номеров нужно.",
+                message = "Расскажите, куда и когда планируете поездку и кто едет с вами.",
             ),
             nextAction = AssistantResponseSemantics.nextActionFor(
                 updatedSession.hotelRequirementsCoveragePlan,

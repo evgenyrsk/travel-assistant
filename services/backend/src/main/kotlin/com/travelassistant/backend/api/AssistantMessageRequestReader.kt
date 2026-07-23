@@ -4,6 +4,7 @@ import io.ktor.http.ContentType
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.contentType
 import io.ktor.server.request.receiveText
+import java.time.ZoneId
 import kotlinx.serialization.decodeFromString
 
 internal const val ASSISTANT_MESSAGE_MAX_CODE_POINTS = 4_000
@@ -13,6 +14,7 @@ internal sealed interface AssistantMessageRequestReadResult {
 
     data class Accepted(
         val message: String,
+        val clientTimeZone: ZoneId?,
     ) : AssistantMessageRequestReadResult
 
     data class Invalid(
@@ -49,8 +51,17 @@ internal suspend fun ApplicationCall.readAssistantMessageRequest(): AssistantMes
         )
     }
 
-    return AssistantMessageRequestReadResult.Accepted(message)
+    return AssistantMessageRequestReadResult.Accepted(
+        message = message,
+        clientTimeZone = request.clientContext?.timezone.toZoneIdOrNull(),
+    )
 }
+
+private fun String?.toZoneIdOrNull(): ZoneId? =
+    this
+        ?.trim()
+        ?.takeIf(String::isNotEmpty)
+        ?.let { value -> runCatching { ZoneId.of(value) }.getOrNull() }
 
 private fun invalidBody(): AssistantMessageRequestReadResult.Invalid =
     AssistantMessageRequestReadResult.Invalid(

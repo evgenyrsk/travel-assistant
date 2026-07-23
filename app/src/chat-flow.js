@@ -2,6 +2,7 @@ export const MAX_PRESENTED_OFFERS = 5;
 
 export function createChatFlow({
   api,
+  getClientContext = () => undefined,
   onUserMessage = () => {},
   onAssistantMessage = () => {},
   onStatus = () => {},
@@ -19,10 +20,11 @@ export function createChatFlow({
 
       onUserMessage(message);
       onStatus("Ассистент обрабатывает сообщение...", "loading");
+      const clientContext = getClientContext();
 
       const response = sessionId
-        ? await api.sendAssistantMessage(sessionId, message)
-        : await api.createAssistantSession(message);
+        ? await api.sendAssistantMessage(sessionId, message, clientContext)
+        : await api.createAssistantSession(message, clientContext);
 
       sessionId ??= response?.session?.sessionId;
       if (!sessionId) {
@@ -104,6 +106,7 @@ function toRefinementSuggestion(value) {
     "minimumGuestRating",
     "stars",
     "freeCancellationRequired",
+    "breakfastIncludedRequired",
     "maxTotalPrice",
   ]);
   const message = typeof value?.message === "string" ? value.message.trim() : "";

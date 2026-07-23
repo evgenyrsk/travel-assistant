@@ -1,6 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
+import com.travelassistant.backend.domain.hotel.HotelSearch
 
 class MapConfirmedSearchTransitionResultToResponseDirectiveUseCase {
 
@@ -59,7 +60,13 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCase {
         if (executionResult is ConfirmedSearchExecutionResult.SearchCreated) {
             return ConfirmedSearchTransitionResponseDirective(
                 nextAction = InternalTransitionNextAction.SHOW_HOTEL_RESULTS,
-                messageKind = TransitionMessageKind.RESULTS_READY,
+                messageKind = when (executionResult.searchStatus) {
+                    HotelSearch.Status.COMPLETED_WITH_OFFERS ->
+                        TransitionMessageKind.RESULTS_READY
+
+                    HotelSearch.Status.COMPLETED_NO_OFFERS ->
+                        TransitionMessageKind.NO_RESULTS
+                },
                 hotelSearchId = executionResult.searchId,
                 mayShowHotelResults = true,
                 shouldConsumePendingConfirmation = true,
