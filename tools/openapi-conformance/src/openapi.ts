@@ -157,6 +157,7 @@ function inspectAssistantContractShape(
   const sessionSchema = recordValue(schemas?.AssistantSession);
   const messageResponseSchema = recordValue(schemas?.AssistantMessage);
   const offersSchema = recordValue(schemas?.HotelOffersResponse);
+  const detailsSchema = recordValue(schemas?.HotelDetailsResponse);
   const searchSchema = recordValue(schemas?.HotelSearchResponse);
   const metadataSchema = recordValue(schemas?.SearchResultMetadata);
   const hotelOfferSchema = recordValue(schemas?.HotelOffer);
@@ -168,6 +169,7 @@ function inspectAssistantContractShape(
   );
   const searchProperties = recordValue(searchSchema?.properties);
   const offersProperties = recordValue(offersSchema?.properties);
+  const detailsProperties = recordValue(detailsSchema?.properties);
   const hotelOfferProperties = recordValue(hotelOfferSchema?.properties);
   const appliedPreferencesProperties = recordValue(
     appliedPreferencesSchema?.properties,
@@ -179,6 +181,11 @@ function inspectAssistantContractShape(
   const offersOperation = operationValue(
     paths,
     "/hotel-searches/{searchId}/offers",
+    "get",
+  );
+  const detailsOperation = operationValue(
+    paths,
+    "/hotel-searches/{searchId}/offers/{offerId}/details",
     "get",
   );
 
@@ -223,6 +230,20 @@ function inspectAssistantContractShape(
     offersRequiredFields: stringArray(offersSchema?.required).sort(),
     offersAdditionalPropertiesForbidden:
       offersSchema?.additionalProperties === false,
+    detailsOperationPresent: detailsOperation !== undefined,
+    detailsNotFoundResponsePresent:
+      responseRef(detailsOperation, "404") ===
+      "#/components/responses/HotelDetailsSelectionNotFound",
+    detailsInvalidResponsePresent:
+      responseRef(detailsOperation, "502") ===
+      "#/components/responses/ProviderResponseInvalid",
+    detailsUnavailableResponsePresent:
+      responseRef(detailsOperation, "503") ===
+      "#/components/responses/ProviderUnavailable",
+    detailsRequiredFields: stringArray(detailsSchema?.required).sort(),
+    detailsFields: Object.keys(detailsProperties ?? {}).sort(),
+    detailsAdditionalPropertiesForbidden:
+      detailsSchema?.additionalProperties === false,
     searchRequiredFields: stringArray(searchSchema?.required).sort(),
     searchStatusValues: stringArray(
       recordValue(searchProperties?.status)?.enum,

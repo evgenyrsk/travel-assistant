@@ -196,6 +196,7 @@ function buildPlatformClientChecks(
     "POST /api/v1/assistant/sessions",
     "POST /api/v1/assistant/sessions/{sessionId}/messages",
     "GET /api/v1/hotel-searches/{searchId}/offers",
+    "GET /api/v1/hotel-searches/{searchId}/offers/{offerId}/details",
   ];
   const endpointIssues = expectedEndpoints.filter((expected) => {
     const [method, path] = expected.split(" ", 2);
@@ -230,6 +231,11 @@ function buildPlatformClientChecks(
     ["offers operation present", shape.offersOperationPresent],
     ["offers 404 response present", shape.offersNotFoundResponsePresent],
     ["offers response rejects unknown fields", shape.offersAdditionalPropertiesForbidden],
+    ["details operation present", shape.detailsOperationPresent],
+    ["details 404 response present", shape.detailsNotFoundResponsePresent],
+    ["details 502 response present", shape.detailsInvalidResponsePresent],
+    ["details 503 response present", shape.detailsUnavailableResponsePresent],
+    ["details response rejects unknown fields", shape.detailsAdditionalPropertiesForbidden],
     ["search response rejects unknown fields", shape.searchAdditionalPropertiesForbidden],
     ["metadata rejects unknown fields", shape.metadataAdditionalPropertiesForbidden],
     ["hotel offer rejects unknown fields", shape.hotelOfferAdditionalPropertiesForbidden],
@@ -287,6 +293,26 @@ function buildPlatformClientChecks(
         "providerFacts",
         "searchId",
         "status",
+      ]),
+    ],
+    [
+      "HotelDetailsResponse required fields match runtime",
+      sameValues(shape.detailsRequiredFields, ["hotelName", "metadata"]),
+    ],
+    [
+      "HotelDetailsResponse fields match runtime",
+      sameValues(shape.detailsFields, [
+        "amenityGroups",
+        "checkInTime",
+        "checkOutTime",
+        "descriptionSections",
+        "hotelChain",
+        "hotelName",
+        "imageUrls",
+        "location",
+        "metadata",
+        "paymentMethods",
+        "starRating",
       ]),
     ],
     [
@@ -385,7 +411,7 @@ function buildPlatformClientChecks(
         status: endpointIssues.length === 0 ? "passed" : "failed",
         summary:
           endpointIssues.length === 0
-            ? "All three bounded platform-client endpoints are present in OpenAPI and runtime inventories."
+            ? "All four bounded platform-client endpoints are present in OpenAPI and runtime inventories."
             : `Platform-client endpoint issues: ${endpointIssues.join(", ")}.`,
       },
       {
@@ -393,7 +419,7 @@ function buildPlatformClientChecks(
         status: shapeIssues.length === 0 ? "passed" : "failed",
         summary:
           shapeIssues.length === 0
-            ? "The bounded assistant/search/offers schemas match the current runtime contract."
+            ? "The bounded assistant/search/offers/details schemas match the current runtime contract."
             : `Platform-client schema issues: ${shapeIssues.join(", ")}.`,
       },
       {

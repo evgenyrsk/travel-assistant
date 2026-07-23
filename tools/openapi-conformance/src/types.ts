@@ -53,6 +53,13 @@ export interface AssistantContractShape {
   offersNotFoundResponsePresent: boolean;
   offersRequiredFields: string[];
   offersAdditionalPropertiesForbidden: boolean;
+  detailsOperationPresent: boolean;
+  detailsNotFoundResponsePresent: boolean;
+  detailsInvalidResponsePresent: boolean;
+  detailsUnavailableResponsePresent: boolean;
+  detailsRequiredFields: string[];
+  detailsFields: string[];
+  detailsAdditionalPropertiesForbidden: boolean;
   searchRequiredFields: string[];
   searchStatusValues: string[];
   searchAdditionalPropertiesForbidden: boolean;

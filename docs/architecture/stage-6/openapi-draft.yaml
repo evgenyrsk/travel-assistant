@@ -4,10 +4,10 @@ info:
   summary: Draft frontend/backend API contract for the hotel-only MVP.
   version: 0.2.0-draft
   description: >
-    Draft Travel Assistant MVP v1 contract. Stage 10.3 aligns the bounded
-    chat-first subset with runtime behavior without promoting the whole
-    OpenAPI document to generated-client readiness. The API is hotel-only and
-    provider-neutral.
+    Draft Travel Assistant MVP v1 contract. Stage 13.5 extends the bounded
+    chat-first subset with on-demand selected-hotel details without promoting
+    the whole OpenAPI document to generated-client readiness. The API is
+    hotel-only and provider-neutral.
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 servers:
   - url: /api/v1
@@ -154,6 +154,36 @@ paths:
           $ref: "#/components/responses/ValidationError"
         "404":
           $ref: "#/components/responses/HotelSearchNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /hotel-searches/{searchId}/offers/{offerId}/details:
+    get:
+      tags:
+        - Hotel Search
+      summary: Get details for one selected hotel offer.
+      description: >
+        Resolves an opaque offerId only inside the specified opaque searchId
+        and loads bounded provider-neutral hotel details on demand. The
+        response contains neither the provider hotel identifier nor provider
+        DTO fields.
+      operationId: getHotelOfferDetails
+      parameters:
+        - $ref: "#/components/parameters/SearchId"
+        - $ref: "#/components/parameters/OfferId"
+      responses:
+        "200":
+          description: Bounded details for the selected hotel offer.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HotelDetailsResponse"
+        "404":
+          $ref: "#/components/responses/HotelDetailsSelectionNotFound"
+        "502":
+          $ref: "#/components/responses/ProviderResponseInvalid"
+        "503":
+          $ref: "#/components/responses/ProviderUnavailable"
         "500":
           $ref: "#/components/responses/InternalError"
 
@@ -324,6 +354,52 @@ components:
               value:
                 code: HOTEL_OFFER_NOT_FOUND
                 message: Hotel offer was not found.
+                requestId: req_123
+    HotelDetailsSelectionNotFound:
+      description: Hotel search, selected offer, or provider details were not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            hotelSearchNotFound:
+              value:
+                code: HOTEL_SEARCH_NOT_FOUND
+                message: Hotel search was not found.
+                requestId: req_123
+            hotelOfferNotFound:
+              value:
+                code: HOTEL_OFFER_NOT_FOUND
+                message: Hotel offer was not found.
+                requestId: req_123
+            hotelDetailsNotFound:
+              value:
+                code: HOTEL_DETAILS_NOT_FOUND
+                message: Hotel details were not found.
+                requestId: req_123
+    ProviderResponseInvalid:
+      description: Provider response could not be accepted safely.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            providerResponseInvalid:
+              value:
+                code: PROVIDER_RESPONSE_INVALID
+                message: Hotel details response could not be accepted.
+                requestId: req_123
+    ProviderUnavailable:
+      description: Provider is temporarily unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            providerUnavailable:
+              value:
+                code: PROVIDER_UNAVAILABLE
+                message: Hotel details are temporarily unavailable.
                 requestId: req_123
     SessionOrHotelOfferNotFound:
       description: Assistant session or hotel offer was not found.
@@ -726,6 +802,133 @@ components:
         refinementSuggestion:
           $ref: "#/components/schemas/HotelSearchRefinementSuggestion"
           description: Omitted unless a completed empty search has one active preference that can be relaxed.
+      additionalProperties: false
+
+    HotelDetailsResponse:
+      type: object
+      required:
+        - hotelName
+        - metadata
+      properties:
+        hotelName:
+          type: string
+          minLength: 1
+        hotelChain:
+          type: string
+          minLength: 1
+          description: Omitted when the hotel chain is unknown.
+        starRating:
+          type: integer
+          minimum: 0
+          maximum: 5
+          description: Omitted when the hotel category is unknown.
+        location:
+          $ref: "#/components/schemas/HotelDetailsLocation"
+        descriptionSections:
+          type: array
+          items:
+            $ref: "#/components/schemas/HotelDescriptionSection"
+        imageUrls:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            format: uri
+          description: Safe HTTPS image URLs only; omitted when unknown.
+        amenityGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/HotelAmenityGroup"
+        checkInTime:
+          type: string
+          pattern: "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+          description: Local provider time in HH:mm form; omitted when unknown.
+        checkOutTime:
+          type: string
+          pattern: "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+          description: Local provider time in HH:mm form; omitted when unknown.
+        paymentMethods:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+              - cash
+              - card
+        metadata:
+          $ref: "#/components/schemas/HotelDetailsMetadata"
+      additionalProperties: false
+
+    HotelDetailsLocation:
+      type: object
+      properties:
+        address:
+          type: string
+          minLength: 1
+        coordinates:
+          $ref: "#/components/schemas/HotelDetailsCoordinates"
+      additionalProperties: false
+
+    HotelDetailsCoordinates:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+      additionalProperties: false
+
+    HotelDescriptionSection:
+      type: object
+      required:
+        - paragraphs
+      properties:
+        title:
+          type: string
+          minLength: 1
+        paragraphs:
+          type: array
+          items:
+            type: string
+            minLength: 1
+      additionalProperties: false
+
+    HotelAmenityGroup:
+      type: object
+      required:
+        - amenities
+      properties:
+        name:
+          type: string
+          minLength: 1
+        amenities:
+          type: array
+          items:
+            type: string
+            minLength: 1
+      additionalProperties: false
+
+    HotelDetailsMetadata:
+      type: object
+      required:
+        - source
+        - freshness
+      properties:
+        source:
+          type: string
+          enum:
+            - provider
+        freshness:
+          type: string
+          enum:
+            - unknown
       additionalProperties: false
 
     HotelSearchCriteriaResponse:
@@ -1260,6 +1463,9 @@ components:
             - SESSION_NOT_FOUND
             - HOTEL_SEARCH_NOT_FOUND
             - HOTEL_OFFER_NOT_FOUND
+            - HOTEL_DETAILS_NOT_FOUND
+            - PROVIDER_RESPONSE_INVALID
+            - PROVIDER_UNAVAILABLE
             - SHORTLIST_ITEM_NOT_FOUND
             - INTERNAL_ERROR
         message:

@@ -1,6 +1,8 @@
 package com.travelassistant.backend.api
 
 import com.travelassistant.backend.application.assistant.AssistantSessionNotFoundException
+import com.travelassistant.backend.application.hotel.HotelDetailsNotFoundException
+import com.travelassistant.backend.application.hotel.HotelOfferNotFoundException
 import com.travelassistant.backend.application.hotel.HotelSearchNotFoundException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -36,6 +38,28 @@ fun Application.configureErrorHandling() {
                     details = mapOf(
                         "searchId" to JsonPrimitive(error.searchId.value),
                     ),
+                ),
+            )
+        }
+
+        exception<HotelOfferNotFoundException> { call, _ ->
+            call.respond(
+                HttpStatusCode.NotFound,
+                ErrorResponse(
+                    code = ErrorCode.HOTEL_OFFER_NOT_FOUND,
+                    message = "Hotel offer was not found.",
+                    requestId = call.requestIdOrNull(),
+                ),
+            )
+        }
+
+        exception<HotelDetailsNotFoundException> { call, _ ->
+            call.respond(
+                HttpStatusCode.NotFound,
+                ErrorResponse(
+                    code = ErrorCode.HOTEL_DETAILS_NOT_FOUND,
+                    message = "Hotel details were not found.",
+                    requestId = call.requestIdOrNull(),
                 ),
             )
         }

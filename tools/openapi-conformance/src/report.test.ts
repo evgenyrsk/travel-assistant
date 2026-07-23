@@ -22,7 +22,7 @@ describe("Platform-client conformance", () => {
     assert.equal(report.status, "not_ready");
     assert.equal(report.readinessClaim, false);
     assert.deepEqual(report.endpointClassificationSummary.byClassification, {
-      platform_client_candidate: 3,
+      platform_client_candidate: 4,
       operational: 1,
       diagnostic_excluded: 1,
       placeholder_excluded: 4,
@@ -69,7 +69,7 @@ describe("Platform-client conformance", () => {
     );
     assert.match(
       report.manifestValidation.endpointReferenceValidation.summary,
-      /Validated 9 manifest endpoint references/,
+      /Validated 10 manifest endpoint references/,
     );
     assert.equal(report.readinessClaim, false);
   });
@@ -237,6 +237,13 @@ function syntheticOpenApiInventory(
         fullPath: "/api/v1/hotel-searches/{searchId}/offers",
         operationId: "getHotelOffers",
       },
+      {
+        method: "get",
+        path: "/hotel-searches/{searchId}/offers/{offerId}/details",
+        fullPath:
+          "/api/v1/hotel-searches/{searchId}/offers/{offerId}/details",
+        operationId: "getHotelOfferDetails",
+      },
     ],
     assistantContractShape: {
       createSessionRequestBodyOptional: true,
@@ -270,6 +277,25 @@ function syntheticOpenApiInventory(
         "status",
       ],
       offersAdditionalPropertiesForbidden: true,
+      detailsOperationPresent: true,
+      detailsNotFoundResponsePresent: true,
+      detailsInvalidResponsePresent: true,
+      detailsUnavailableResponsePresent: true,
+      detailsRequiredFields: ["hotelName", "metadata"],
+      detailsFields: [
+        "amenityGroups",
+        "checkInTime",
+        "checkOutTime",
+        "descriptionSections",
+        "hotelChain",
+        "hotelName",
+        "imageUrls",
+        "location",
+        "metadata",
+        "paymentMethods",
+        "starRating",
+      ],
+      detailsAdditionalPropertiesForbidden: true,
       searchRequiredFields: [
         "criteria",
         "metadata",
@@ -345,6 +371,12 @@ function syntheticRuntimeRoutes(): RuntimeRoute[] {
       path: "/api/v1/hotel-searches/{searchId}/offers",
       sourceFile: "HotelSearchRoutes.kt",
       line: 3,
+    },
+    {
+      method: "get",
+      path: "/api/v1/hotel-searches/{searchId}/offers/{offerId}/details",
+      sourceFile: "HotelDetailsRoutes.kt",
+      line: 4,
     },
   ];
 }

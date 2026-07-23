@@ -10,8 +10,8 @@ validationStatus:
   endpointReferenceValidation: "passed"
   generatedClientCompile: "not_run"
   runtimeContractValidation: "covered_by_backend_test"
-  lastValidatedBy: "Stage 10.4 client ownership quality gates"
-  lastValidatedAt: "2026-07-21"
+  lastValidatedBy: "Stage 13.5 hotel details API quality gates"
+  lastValidatedAt: "2026-07-23"
 includedEndpoints:
   - method: "POST"
     path: "/api/v1/assistant/sessions"
@@ -46,6 +46,18 @@ includedEndpoints:
     requiredChecks:
       - "openapi_runtime_reference_match"
       - "platform_client_contract_test"
+    unresolvedBlockers:
+      - "external_client_handoff_not_verified"
+      - "whole_openapi_not_finalized"
+  - method: "GET"
+    path: "/api/v1/hotel-searches/{searchId}/offers/{offerId}/details"
+    operationId: "getHotelOfferDetails"
+    classification: "platform_client_candidate"
+    readiness: "not_ready"
+    inclusionReason: "bounded_selected_hotel_details_loading"
+    requiredChecks:
+      - "openapi_runtime_reference_match"
+      - "hotel_details_contract_test"
     unresolvedBlockers:
       - "external_client_handoff_not_verified"
       - "whole_openapi_not_finalized"

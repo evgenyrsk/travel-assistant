@@ -34,6 +34,16 @@ const EXPLICIT_CLASSIFICATIONS = new Map<string, ExplicitClassification>([
     },
   ],
   [
+    endpointKey(
+      "get",
+      "/api/v1/hotel-searches/{searchId}/offers/{offerId}/details",
+    ),
+    {
+      classification: "platform_client_candidate",
+      reason: "bounded_selected_hotel_details_loading",
+    },
+  ],
+  [
     endpointKey("get", "/api/v1/health"),
     {
       classification: "operational",
