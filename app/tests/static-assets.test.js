@@ -120,7 +120,7 @@ test("API client remains independent from browser state and provider contracts",
   for (const source of frontendSources) {
     assert.doesNotMatch(
       source,
-      /openrouter\.ai|hotels\.tbank\.ru|OPENROUTER_API_KEY|HOTELS_API_|LlmCandidate|HotelsApi|bookHash|shownPrice/,
+      /openrouter\.ai|hotels\.tbank\.ru|OPENROUTER_API_KEY|HOTELS_API_|LlmCandidate|LlmClient|OpenRouterCandidateContract|HotelsApi|bookHash|shownPrice|HotelSearchRequest|HotelOfferResponse|HotelDetailsResponse|AssistantMessageResponse|RankHotelOffersUseCase|HotelOfferRankingPolicy|ProceedWithCandidate|PendingProceedWithCandidateConfirmation|CreateHotelSearchUseCase|HotelSearchCriteria|HotelSearchPreferences/,
     );
   }
 

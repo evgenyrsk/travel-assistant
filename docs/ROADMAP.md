@@ -135,3 +135,10 @@
 - Зафиксировать статус `demo-ready MVP` без заявления production readiness.
 - Остановить функциональное расширение до отдельного нового product/roadmap
   решения.
+
+## Этап 15 — портируемый backend и эксплуатационная наблюдаемость
+
+- Подтвердить backend-owned business logic и deployment-neutral Java 17 process.
+- Закрепить layering guards и single-instance ограничение process-local stores.
+- Добавить safe request correlation, JSON operational events, liveness, readiness и OpenMetrics.
+- Описать deployment-neutral operational contract без vendor-specific infrastructure.

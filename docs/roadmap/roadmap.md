@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 15.0 — архитектурная и deployment-проверка портируемого backend |
-| Последний завершенный этап | Stage 14.7 — поиск конкретного отеля и устойчивость уточнений |
-| Следующий планируемый шаг | Зафиксировать backend/client responsibility map, single-instance ограничение и source-level layering guards Stage 15.0 |
+| Текущий этап | Stage 15.1–15.2 — request correlation и структурированные operational events |
+| Последний завершенный этап | Stage 15.0 — архитектурная и deployment-проверка портируемого backend |
+| Следующий планируемый шаг | Добавить safe `X-Request-ID`, application-owned `OperationalEventSink` и JSON Lines с безопасным context |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -65,6 +65,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
 | Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
+| Stage 15 | Активен | Stage 15.0 подтвердил backend/client responsibility map, deployment portability и single-instance constraint; Stage 15.1–15.4 добавляют deployment-neutral observability. |
 
 ## 2. Правила управления roadmap
 
@@ -986,6 +987,21 @@ classifier для словесных room counts. После regression-испр
 multi-room блокировку, сохранение destination, дат и гостей, новое confirmation и один успешный
 exact-hotel details/rates flow. Автоматический live retry не выполнялся. Stage 14.7 завершён;
 общий room/rates browsing и booking flow остаются вне MVP.
+
+### Stage 15 — Портируемый backend и эксплуатационная наблюдаемость
+
+**Статус:** Stage 15.0 завершён. Stage 15.1–15.2 активны.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 15.0 | Архитектурная и deployment-проверка | Завершён; responsibility map и source-level guards подтверждают backend-owned business logic, а process-local stores явно ограничивают deployment одним instance |
+| Stage 15.1–15.2 | Request correlation и структурированные operational events | Активен; safe `X-Request-ID`, application-owned sink и JSON Lines без sensitive payload |
+| Stage 15.3 | Liveness, readiness и OpenMetrics | Запланирован после стабилизации operational event contract |
+| Stage 15.4 | Operational contract, conformance и runbook | Запланирован после backend behavior и endpoints |
+
+Stage 15 не меняет business behavior, ranking, provider mapping и product success
+responses. Durable storage, multi-instance coordination, distributed tracing, raw conversation
+capture, auth, CORS, deployment manifests и monitoring vendor остаются вне этапа.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

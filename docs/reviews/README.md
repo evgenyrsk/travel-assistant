@@ -523,6 +523,7 @@
 210. `docs/reviews/stage-14-5-explicit-star-refinement-and-image-source-diagnosis.md`
 211. `docs/reviews/stage-14-6-provider-image-template-resolution.md`
 212. `docs/reviews/stage-14-7-named-hotel-search-and-conversation-resilience.md`
+213. `docs/reviews/stage-15-0-backend-portability-and-layering-verification.md`
 
 ## Historical / superseded документы
 
