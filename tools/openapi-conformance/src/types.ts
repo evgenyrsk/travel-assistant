@@ -70,8 +70,17 @@ export interface AssistantContractShape {
   offersStatusValues: string[];
   metadataRequiredFields: string[];
   metadataAdditionalPropertiesForbidden: boolean;
+  analysisOptional: boolean;
+  analysisRequiredFields: string[];
+  analysisStatusValues: string[];
+  analysisAdditionalPropertiesForbidden: boolean;
   hotelOfferRequiredFields: string[];
   hotelOfferAdditionalPropertiesForbidden: boolean;
+  semanticMatchOptional: boolean;
+  semanticMatchRequiredFields: string[];
+  semanticMatchVerdictValues: string[];
+  semanticMatchEvidenceValues: string[];
+  semanticMatchAdditionalPropertiesForbidden: boolean;
   ratingOptional: boolean;
   amenitiesOptional: boolean;
   starRatingOptional: boolean;
@@ -80,6 +89,7 @@ export interface AssistantContractShape {
   breakfastIncludedOptional: boolean;
   appliedPreferencesOptional: boolean;
   appliedPreferencesFields: string[];
+  accommodationConceptValues: string[];
   appliedPreferencesAdditionalPropertiesForbidden: boolean;
   refinementSuggestionOptional: boolean;
   refinementSuggestionRequiredFields: string[];

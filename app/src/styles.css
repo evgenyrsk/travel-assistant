@@ -827,6 +827,19 @@ button:disabled {
   line-height: 1.25;
 }
 
+.offer-card__semantic {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  align-items: baseline;
+  color: #53645e;
+  font-size: 0.88rem;
+}
+
+.offer-card__semantic strong {
+  color: var(--brand-strong);
+}
+
 .offer-card__actions {
   display: flex;
   justify-content: flex-end;

@@ -1,6 +1,7 @@
 package com.travelassistant.backend.api
 
 import com.travelassistant.backend.application.hotel.HotelNoOffersRefinementPlan
+import com.travelassistant.backend.domain.hotel.AccommodationAnalysisMetadata
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -25,6 +26,8 @@ data class HotelOffersResponse(
         val freshness: String,
         val providerState: String,
         val warnings: List<String>,
+        @EncodeDefault(EncodeDefault.Mode.NEVER)
+        val analysis: AccommodationAnalysisResponse? = null,
     )
 
     @Serializable
@@ -47,10 +50,21 @@ data class HotelOffersResponse(
                 status = search.status.apiValue,
                 offers = offers,
                 metadata = Metadata(
-                    resultCompleteness = "complete",
+                    resultCompleteness = if (
+                        search.analysis?.status == AccommodationAnalysisMetadata.Status.PARTIAL
+                    ) {
+                        "partial"
+                    } else {
+                        "complete"
+                    },
                     freshness = "fresh",
-                    providerState = "available",
+                    providerState = if (search.status == HotelSearch.Status.FAILED) {
+                        "failed"
+                    } else {
+                        "available"
+                    },
                     warnings = emptyList(),
+                    analysis = search.analysis?.let(AccommodationAnalysisResponse::from),
                 ),
                 providerFacts = offers.flatMap { it.providerFacts },
                 appliedPreferences = AppliedHotelSearchPreferencesResponse.from(

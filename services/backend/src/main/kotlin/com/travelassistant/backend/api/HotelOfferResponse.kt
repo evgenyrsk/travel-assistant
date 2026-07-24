@@ -29,6 +29,8 @@ data class HotelOfferResponse(
     val freshness: String,
     val matchSummary: String,
     val providerFacts: List<ProviderFact>,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val semanticMatch: SemanticMatch? = null,
 ) {
     @Serializable
     data class Location(
@@ -65,6 +67,13 @@ data class HotelOfferResponse(
         val value: String,
         val source: String,
         val freshness: String,
+    )
+
+    @Serializable
+    data class SemanticMatch(
+        val concept: String,
+        val verdict: String,
+        val evidenceSources: List<String>,
     )
 
     companion object {
@@ -128,6 +137,15 @@ data class HotelOfferResponse(
                             ),
                         )
                     }
+                },
+                semanticMatch = rankedOffer.semanticMatch?.let { semanticMatch ->
+                    SemanticMatch(
+                        concept = semanticMatch.concept.code,
+                        verdict = semanticMatch.verdict.apiValue,
+                        evidenceSources = semanticMatch.evidenceSources
+                            .sortedBy { evidence -> evidence.ordinal }
+                            .map { evidence -> evidence.apiValue },
+                    )
                 },
             )
         }

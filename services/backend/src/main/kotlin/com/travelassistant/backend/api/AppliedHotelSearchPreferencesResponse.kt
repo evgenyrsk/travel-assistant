@@ -18,6 +18,8 @@ data class AppliedHotelSearchPreferencesResponse(
     val freeCancellationRequired: Boolean? = null,
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val breakfastIncludedRequired: Boolean? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val accommodationConcept: String? = null,
 ) {
     @Serializable
     data class MaximumTotalPrice(
@@ -53,6 +55,7 @@ data class AppliedHotelSearchPreferencesResponse(
                     } else {
                         null
                     },
+                    accommodationConcept = preferences.accommodationConcept?.code,
                 )
             }
     }

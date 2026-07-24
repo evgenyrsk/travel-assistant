@@ -85,6 +85,137 @@ test("loads and presents no more than five ranked offers", async () => {
   assert.equal(offerViews[0].refinementSuggestion, undefined);
 });
 
+test("polls a semantic search with bounded backoff until a terminal result", async () => {
+  let currentTime = 0;
+  const pollDelays = [];
+  const statuses = [];
+  const offerViews = [];
+  const responses = [
+    {
+      status: "searching",
+      offers: [],
+      metadata: { analysis: { status: "searching", pollAfterMillis: 500 } },
+    },
+    {
+      status: "searching",
+      offers: [],
+      metadata: { analysis: { status: "searching", pollAfterMillis: 1000 } },
+    },
+    {
+      status: "completed_with_offers",
+      offers: [{ offerId: "glamping-1" }],
+      metadata: {
+        analysis: {
+          status: "completed",
+          analyzedCount: 8,
+          deepAnalyzedCount: 3,
+          matchCount: 1,
+          probableCount: 0,
+        },
+      },
+    },
+  ];
+  const flow = createChatFlow({
+    api: {
+      async createAssistantSession() {
+        return assistantResponse("Начинаю semantic-поиск.", {
+          nextAction: "show_hotel_results",
+          hotelSearchId: "semantic-search-1",
+        });
+      },
+      async getHotelOffers() {
+        return responses.shift();
+      },
+    },
+    wait: async (milliseconds) => {
+      pollDelays.push(milliseconds);
+      currentTime += milliseconds;
+    },
+    now: () => currentTime,
+    onStatus: (message) => statuses.push(message),
+    onOffers: offerViews.push.bind(offerViews),
+  });
+
+  await flow.submit("Да, ищи глемпинг");
+
+  assert.deepEqual(pollDelays, [1000, 1500]);
+  assert.equal(statuses.filter((message) => message.includes("Анализирую")).length, 2);
+  assert.equal(offerViews.length, 1);
+  assert.equal(offerViews[0].searchStatus, "completed_with_offers");
+  assert.equal(offerViews[0].analysis.matchCount, 1);
+});
+
+test("stops semantic polling after 120 seconds", async () => {
+  let currentTime = 0;
+  let offerRequests = 0;
+  let renderedResults = 0;
+  const flow = createChatFlow({
+    api: {
+      async createAssistantSession() {
+        return assistantResponse("Начинаю semantic-поиск.", {
+          nextAction: "show_hotel_results",
+          hotelSearchId: "semantic-search-timeout",
+        });
+      },
+      async getHotelOffers() {
+        offerRequests += 1;
+        return {
+          status: "searching",
+          offers: [],
+          metadata: { analysis: { status: "searching", pollAfterMillis: 3000 } },
+        };
+      },
+    },
+    wait: async (milliseconds) => {
+      currentTime += milliseconds;
+    },
+    now: () => currentTime,
+    onOffers: () => {
+      renderedResults += 1;
+    },
+  });
+
+  await assert.rejects(
+    () => flow.submit("Да, ищи глемпинг"),
+    /не завершился за 120 секунд/,
+  );
+  assert.ok(offerRequests > 1);
+  assert.equal(renderedResults, 0);
+});
+
+test("renders semantic failure without offering ordinary hotel fallback", async () => {
+  const offerViews = [];
+  const statuses = [];
+  const flow = createChatFlow({
+    api: {
+      async createAssistantSession() {
+        return assistantResponse("Начинаю semantic-поиск.", {
+          nextAction: "show_hotel_results",
+          hotelSearchId: "semantic-search-failed",
+        });
+      },
+      async getHotelOffers() {
+        return {
+          status: "failed",
+          offers: [],
+          metadata: { analysis: { status: "failed" } },
+        };
+      },
+    },
+    onStatus: (message, tone) => statuses.push([message, tone]),
+    onOffers: offerViews.push.bind(offerViews),
+  });
+
+  await flow.submit("Да, ищи глемпинг");
+
+  assert.equal(offerViews[0].searchStatus, "failed");
+  assert.deepEqual(offerViews[0].offers, []);
+  assert.deepEqual(statuses.at(-1), [
+    "Semantic-анализ недоступен. Обычные отели не показаны.",
+    "error",
+  ]);
+});
+
 test("shows one safe refinement suggestion for a completed empty search", async () => {
   const calls = [];
   const assistantMessages = [];

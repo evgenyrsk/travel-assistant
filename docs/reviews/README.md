@@ -533,6 +533,7 @@
 220. `docs/reviews/stage-16-3-semantic-accommodation-multimodal-adapter.md`
 221. `docs/reviews/stage-16-4-semantic-accommodation-async-lifecycle.md`
 222. `docs/reviews/stage-16-5-semantic-accommodation-two-pass-orchestration.md`
+223. `docs/reviews/stage-16-6-semantic-accommodation-public-contract-and-demo.md`
 
 ## Historical / superseded документы
 

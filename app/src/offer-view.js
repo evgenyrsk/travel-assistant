@@ -2,6 +2,10 @@ export const OFFER_RANKING_EXPLANATION =
   "Сначала показаны доступные варианты с известным более высоким рейтингом; " +
   "при равном рейтинге — с меньшей общей ценой.";
 
+export const SEMANTIC_OFFER_RANKING_EXPLANATION =
+  "Сначала показаны варианты «Подходит», затем «Вероятно подходит»; " +
+  "внутри группы сохраняется ранжирование по рейтингу и общей цене.";
+
 export function toOfferViewModel(offer) {
   return {
     id: offer.offerId,
@@ -15,6 +19,7 @@ export function toOfferViewModel(offer) {
     breakfast: formatBreakfast(offer.breakfastIncluded),
     availability: availabilityLabel(offer.availability),
     availabilityTone: offer.availability ?? "unknown",
+    semanticMatch: toSemanticMatchView(offer.semanticMatch),
   };
 }
 
@@ -27,6 +32,12 @@ export function renderOfferCardMarkup(offer) {
       .map((fact) => `<span class="offer-card__tag">${escapeHtml(fact)}</span>`)
       .join("")}</div>`;
   const hasImage = Boolean(view.imageUrl);
+  const semanticMarkup = view.semanticMatch
+    ? `<div class="offer-card__semantic" data-verdict="${escapeHtml(view.semanticMatch.verdict)}">
+        <strong>${escapeHtml(view.semanticMatch.label)}</strong>
+        <span>${escapeHtml(view.semanticMatch.evidence)}</span>
+      </div>`
+    : "";
   const imageMarkup = hasImage
     ? `<img
         class="offer-card__image"
@@ -73,6 +84,7 @@ export function renderOfferCardMarkup(offer) {
         </span>
       </div>
       ${optionalFactsMarkup}
+      ${semanticMarkup}
       <div class="offer-card__actions">
         <button
           class="offer-card__details-button"
@@ -110,6 +122,9 @@ export function formatAppliedPreferences(preferences) {
       : null,
     preferences.breakfastIncludedRequired === true
       ? "завтрак включён"
+      : null,
+    preferences.accommodationConcept === "glamping"
+      ? "тип размещения — глемпинг"
       : null,
   ].filter(Boolean).join(" · ");
 }
@@ -230,6 +245,30 @@ function availabilityLabel(availability) {
     default:
       return "Доступность неизвестна";
   }
+}
+
+function toSemanticMatchView(value) {
+  if (value?.concept !== "glamping" || !["match", "probable"].includes(value?.verdict)) {
+    return null;
+  }
+
+  const sourceLabels = {
+    name: "название",
+    description: "описание",
+    amenities: "удобства",
+    image: "изображение",
+  };
+  const sources = Array.isArray(value.evidenceSources)
+    ? [...new Set(value.evidenceSources.map((source) => sourceLabels[source]).filter(Boolean))]
+    : [];
+
+  return {
+    verdict: value.verdict,
+    label: value.verdict === "match" ? "Подходит" : "Вероятно подходит",
+    evidence: sources.length > 0
+      ? `Основания: ${sources.join(", ")}`
+      : "Основания не указаны",
+  };
 }
 
 function safeImageUrl(value) {
