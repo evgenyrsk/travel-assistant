@@ -86,6 +86,45 @@ describe("Platform-client conformance", () => {
     );
   });
 
+  it("rejects unresolved response references without request correlation", () => {
+    const root = makeTempRepositoryRoot();
+    const sourcePath = "openapi.yaml";
+    fs.writeFileSync(
+      path.join(root, sourcePath),
+      `openapi: 3.1.0
+servers:
+  - url: /api/v1
+paths:
+  /health:
+    get:
+      responses:
+        "200":
+          $ref: "#/components/responses/MissingResponse"
+components:
+  headers:
+    RequestId:
+      schema:
+        type: string
+        pattern: "^[A-Za-z0-9._-]{1,128}$"
+  responses:
+    KnownResponse:
+      description: Known response.
+      headers:
+        X-Request-ID:
+          $ref: "#/components/headers/RequestId"
+  schemas: {}
+`,
+      "utf8",
+    );
+
+    const inventory = loadOpenApiInventory(root, sourcePath);
+
+    assert.equal(
+      inventory.assistantContractShape?.productResponseRequestIdHeadersPresent,
+      false,
+    );
+  });
+
   it("validates every repository manifest endpoint against OpenAPI and runtime inventories", () => {
     const report = repositoryReport();
 

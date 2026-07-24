@@ -349,10 +349,32 @@ function allProductResponsesHaveRequestIdHeader(
       return Object.values(responses).every((response) => {
         const responseRecord = recordValue(response);
         if (!responseRecord) return false;
-        return responseRecord.$ref !== undefined || responseHasRequestIdHeader(responseRecord);
+        const responseReference = stringValue(responseRecord.$ref);
+        if (responseReference) {
+          return referencedResponseHasRequestIdHeader(
+            responseReference,
+            componentResponses,
+          );
+        }
+        return responseHasRequestIdHeader(responseRecord);
       });
     });
   });
+}
+
+function referencedResponseHasRequestIdHeader(
+  reference: string,
+  componentResponses: Record<string, unknown>,
+): boolean {
+  const componentResponsePrefix = "#/components/responses/";
+  if (!reference.startsWith(componentResponsePrefix)) {
+    return false;
+  }
+
+  const responseName = reference.slice(componentResponsePrefix.length);
+  return responseHasRequestIdHeader(
+    recordValue(componentResponses[responseName]),
+  );
 }
 
 function responseHasRequestIdHeader(
