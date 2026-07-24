@@ -49,10 +49,10 @@
   дополнить только отсутствующий destination без угадывания произвольного
   текста.
 - Stage 15 - завершён; operational observability не изменила product behavior.
-- Stage 16 - реализован в разрешённом FAKE scope и ожидает финального backend
-  regression gate. Единственный активный concept — `GLAMPING`; REAL vision
-  rollout остаётся заблокированным до подтверждения прав на provider content,
-  controlled model/ZDR probe и прохождения quality gate.
+- Stage 16 - завершён в разрешённом FAKE scope после полного regression gate.
+  Единственный активный concept — `GLAMPING`; REAL vision rollout остаётся
+  заблокированным до подтверждения прав на provider content, controlled
+  model/ZDR probe и прохождения quality gate.
 
 Stage 7 сформировал process-local hotel-only основу. Stage 8 добавил явное
 подтверждение до поиска. Stage 9 добавил opt-in adapters для Hotels API и

@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 16.7 — observability, evaluation и closure verification |
-| Последний завершенный этап | Stage 16.6 — public contract и demo polling |
-| Следующий планируемый шаг | Повторить полный backend regression gate; REAL activation отдельно требует provider-content approval, controlled model/ZDR probe и пройденный quality dataset |
+| Текущий этап | Нет активного implementation stage; Stage 16 завершён в разрешённом FAKE scope |
+| Последний завершенный этап | Stage 16.7 — observability, evaluation harness и closure |
+| Следующий планируемый шаг | Не назначен; REAL activation требует отдельной явной задачи, provider-content approval, controlled model/ZDR probe и пройденный quality dataset |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -66,7 +66,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
 | Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
 | Stage 15 | Завершен | Подтверждены backend-owned business logic и Java 17 portability; добавлены layering guards, correlation, stdout JSON events, probes, OpenMetrics и operational runbook. |
-| Stage 16 | Активен | Provider-neutral async two-pass semantic-анализ `GLAMPING`, public polling, observability и evaluation harness реализованы в FAKE scope; closure ожидает повторного backend regression gate, REAL vision rollout закрыт внешними policy/model/quality gates. |
+| Stage 16 | Завершен в FAKE scope | Provider-neutral async two-pass semantic-анализ `GLAMPING`, public polling, observability и evaluation harness прошли regression gates; REAL vision rollout закрыт внешними policy/model/quality gates. |
 
 ## 2. Правила управления roadmap
 
@@ -1010,8 +1010,7 @@ OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 з�
 
 ### Stage 16 — Semantic-анализ типа размещения
 
-**Статус:** Stage 16.7 implementation завершена; closure verification ожидает
-повторного полного backend regression gate. REAL rollout не активирован.
+**Статус:** завершён в разрешённом FAKE scope. REAL rollout не активирован.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
@@ -1022,7 +1021,7 @@ OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 з�
 | Stage 16.4 | Async lifecycle | Завершён; semantic search сначала сохраняется как `searching`, application-owned scheduler ограничивает job 45 секундами, не допускает duplicate launch, атомарно публикует terminal state и отменяется при shutdown |
 | Stage 16.5 | Two-pass orchestration | Завершён; coarse до 20, deep до 6, concurrency 3/2, 45-second lifecycle budget, partial fallback, bounded details cache и FAKE-default runtime composition покрыты tests |
 | Stage 16.6 | Public contract и demo shell | Завершён; response/OpenAPI/conformance расширены async status, bounded analysis/semantic fields, demo polling 1–3 секунды с лимитом 120 секунд и безопасным evidence presentation |
-| Stage 16.7 | Observability, evaluation и closure | Implementation завершена; bounded semantic search/dependency events и metrics, rights-safe evaluation harness/schema и aggregate report добавлены. Closure ожидает повторного backend `./gradlew test`: production compilation прошла, но финальный test run заблокирован лимитом approval-среды. REAL smoke не выполнялся, потому что provider-content approval, ZDR/model probe и dataset quality gates не закрыты |
+| Stage 16.7 | Observability, evaluation и closure | Завершён; bounded semantic search/dependency events и metrics, rights-safe evaluation harness/schema и aggregate report добавлены, полный backend regression gate пройден. REAL smoke не выполнялся, потому что provider-content approval, ZDR/model probe и dataset quality gates не закрыты |
 
 Первый и единственный активный semantic concept — `GLAMPING`. Он охватывает
 оборудованные tents, domes, yurts, safari tents, tiny houses и отдельные cabins
@@ -1050,9 +1049,8 @@ reviewer. Изображения не коммитятся без подтвер
 
 Evaluation harness находится в `tools/semantic-evaluation/`; текущий aggregate
 report имеет статус `NOT_RUN`, поскольку одобренный dataset не предоставлен.
-Это блокирует REAL vision rollout, но не deterministic FAKE flow. Новый этап
-или REAL activation не разрешены автоматически; Stage 16 closure дополнительно
-требует успешного повторного backend regression gate.
+Это блокирует REAL vision rollout, но не завершённый deterministic FAKE flow.
+Новый этап или REAL activation не разрешены автоматически.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

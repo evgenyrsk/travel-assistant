@@ -2,8 +2,7 @@
 
 ## Статус
 
-Implementation завершена в разрешённом FAKE scope. Closure verification
-ожидает повторного полного backend test gate. REAL rollout не активирован.
+Завершён в разрешённом FAKE scope. REAL rollout не активирован.
 
 ## Scope
 
@@ -38,10 +37,7 @@ Implementation завершена в разрешённом FAKE scope. Closure 
 ## Проверки
 
 - [x] Semantic evaluation harness `npm test`.
-- [x] Backend production `compileKotlin`/`compileTestKotlin` — passed до
-  добавления финальных test assertions; production telemetry code compiled.
-- [ ] Backend `./gradlew test` — повторный запуск заблокирован исчерпанием
-  approval quota среды; не заявляется как passed.
+- [x] Backend `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew test` — passed после финальных telemetry assertions.
 - [x] Frontend `npm test`, `npm run lint`, `npm run build`.
 - [x] OpenAPI conformance `npm test`, `npm run check`.
 - [x] `git diff --check`.
