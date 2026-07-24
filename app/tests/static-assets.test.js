@@ -87,15 +87,19 @@ test("frontend remains online-only without service worker or cache storage", asy
     "offer-view.js",
   ];
   const scripts = await Promise.all(scriptNames.map((name) => readFile(new URL(name, sourceUrl), "utf8")));
-  const server = await readFile(new URL("../server.mjs", import.meta.url), "utf8");
+  const [server, proxyHeaders] = await Promise.all([
+    readFile(new URL("../server.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../proxy-headers.mjs", import.meta.url), "utf8"),
+  ]);
 
   for (const source of scripts) {
     assert.doesNotMatch(source, /serviceWorker|caches\.(?:open|match|put)/);
   }
   assert.match(server, /\["\.png", "image\/png"\]/);
   assert.match(server, /\["\.webmanifest", "application\/manifest\+json; charset=utf-8"\]/);
-  assert.match(server, /responseHeaders\["cache-control"\] = "no-store"/);
   assert.match(server, /"cache-control": "no-store"/);
+  assert.match(proxyHeaders, /"cache-control": "no-store"/);
+  assert.match(proxyHeaders, /responseHeaders\["x-request-id"\] = requestId/);
 });
 
 test("API client remains independent from browser state and provider contracts", async () => {

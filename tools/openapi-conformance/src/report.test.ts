@@ -23,7 +23,7 @@ describe("Platform-client conformance", () => {
     assert.equal(report.readinessClaim, false);
     assert.deepEqual(report.endpointClassificationSummary.byClassification, {
       platform_client_candidate: 4,
-      operational: 1,
+      operational: 4,
       diagnostic_excluded: 1,
       placeholder_excluded: 4,
       runtime_only: 0,
@@ -38,6 +38,33 @@ describe("Platform-client conformance", () => {
           check.summary === "Generated-client compile proof has not run.",
       ),
     );
+  });
+
+  it("keeps root probes and metrics operational and outside product contracts", () => {
+    const report = repositoryReport();
+    const rootOperationalPaths = ["/health/live", "/health/ready", "/metrics"];
+
+    for (const endpointPath of rootOperationalPaths) {
+      const endpoint = report.endpoints.find(
+        ({ method, path: candidatePath }) =>
+          method === "get" && candidatePath === endpointPath,
+      );
+      assert.ok(endpoint);
+      assert.equal(endpoint.inRuntime, true);
+      assert.equal(endpoint.inOpenApi, false);
+      assert.equal(endpoint.classification, "operational");
+    }
+
+    const manifest = fs.readFileSync(
+      path.resolve(
+        process.cwd(),
+        "../../docs/architecture/stage-7/generated-client-ready-subset.yaml",
+      ),
+      "utf8",
+    );
+    for (const endpointPath of rootOperationalPaths) {
+      assert.equal(manifest.includes(`path: "${endpointPath}"`), false);
+    }
   });
 
   it("validates the exact bounded platform-client schema shape", () => {
@@ -76,6 +103,8 @@ describe("Platform-client conformance", () => {
 
   it("reports platform-client schema drift as blocking", () => {
     const inventory = syntheticOpenApiInventory({
+      productResponseRequestIdHeadersPresent: false,
+      errorResponseRequestIdRequired: false,
       nextActionValues: ["ask_clarification", "future_action"],
       hotelSearchIdConditional: false,
       appliedPreferencesOptional: false,
@@ -92,6 +121,8 @@ describe("Platform-client conformance", () => {
       report.blockingFindings.some(
         (finding) =>
           finding.code === "PLATFORM_CLIENT_CONTRACT_SHAPE_MISMATCH" &&
+          finding.message.includes("all product responses expose X-Request-ID") &&
+          finding.message.includes("ErrorResponse.requestId required") &&
           finding.message.includes("nextAction values match runtime") &&
           finding.message.includes("hotelSearchId conditional enforced") &&
           finding.message.includes("appliedPreferences remains optional") &&
@@ -246,6 +277,10 @@ function syntheticOpenApiInventory(
       },
     ],
     assistantContractShape: {
+      requestIdHeaderPatternPresent: true,
+      productResponseRequestIdHeadersPresent: true,
+      errorResponseRequestIdRequired: true,
+      validationErrorResponseRequestIdRequired: true,
       createSessionRequestBodyOptional: true,
       continueSessionRequestBodyRequired: true,
       messagePropertyPresent: true,

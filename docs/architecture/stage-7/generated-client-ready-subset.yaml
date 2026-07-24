@@ -10,8 +10,8 @@ validationStatus:
   endpointReferenceValidation: "passed"
   generatedClientCompile: "not_run"
   runtimeContractValidation: "covered_by_backend_test"
-  lastValidatedBy: "Stage 13.5 hotel details API quality gates"
-  lastValidatedAt: "2026-07-23"
+  lastValidatedBy: "Stage 15.4 operational correlation contract gates"
+  lastValidatedAt: "2026-07-24"
 includedEndpoints:
   - method: "POST"
     path: "/api/v1/assistant/sessions"
@@ -140,4 +140,6 @@ notes:
   - "This manifest classifies a platform-client candidate subset; it is not a readiness certificate."
   - "OpenAPI status and readinessClaim remain not_ready/false."
   - "Stage 10.4 intentionally leaves platform SDK selection to a future integrating team."
+  - "Root /health/live, /health/ready, and /metrics routes are operational and intentionally absent from this product-client subset."
+  - "Every product response exposes X-Request-ID; every error body requires the matching requestId."
   - "SDK generation, CORS activation, auth, and durable storage remain outside this manifest state."

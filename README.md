@@ -45,6 +45,7 @@ README является входной картой проекта: он пом�
 - `docs/ROADMAP.md` — краткая навигационная карта этапов без текущих статусов; не конкурирует с основным roadmap.
 - `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, ограничений и безопасного рефакторинга документации.
 - `docs/guides/local-mvp-demo.md` — воспроизводимый локальный запуск demo shell и backend в явных `FAKE`/`REAL` профилях.
+- `docs/guides/backend-operations-runbook.md` — deployment-neutral запуск Java 17 backend, probes, stdout events, metrics и стартовые alert-рекомендации.
 - `docs/reviews/README.md` — индекс отчетов о проверках и правила чтения исторических и текущих отчетов.
 - `docs/reviews/*.md` — исторический журнал проверок и чисток; читать через `docs/reviews/README.md`.
 - `docs/decisions/README.md` — индекс принятых ADR и правила ведения архитектурных решений.

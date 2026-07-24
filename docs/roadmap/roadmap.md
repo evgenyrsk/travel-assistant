@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 15.4 — operational contract, conformance и runbook |
-| Последний завершенный этап | Stage 15.3 — liveness, readiness и OpenMetrics |
-| Следующий планируемый шаг | Синхронизировать `X-Request-ID`, error schema, demo proxy, conformance classification и deployment-neutral runbook |
+| Текущий этап | Stage 15 завершён; следующий этап не активирован |
+| Последний завершенный этап | Stage 15.4 — operational contract, conformance и runbook |
+| Следующий планируемый шаг | Выбрать отдельную явную roadmap-aligned задачу без автоматической активации нового этапа |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -65,7 +65,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
 | Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
-| Stage 15 | Активен | Stage 15.0 подтвердил backend/client responsibility map, deployment portability и single-instance constraint; Stage 15.1–15.4 добавляют deployment-neutral observability. |
+| Stage 15 | Завершен | Подтверждены backend-owned business logic и Java 17 portability; добавлены layering guards, correlation, stdout JSON events, probes, OpenMetrics и operational runbook. |
 
 ## 2. Правила управления roadmap
 
@@ -990,18 +990,22 @@ exact-hotel details/rates flow. Автоматический live retry не в�
 
 ### Stage 15 — Портируемый backend и эксплуатационная наблюдаемость
 
-**Статус:** Stage 15.0–15.3 завершены. Stage 15.4 активен.
+**Статус:** завершён.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
 | Stage 15.0 | Архитектурная и deployment-проверка | Завершён; responsibility map и source-level guards подтверждают backend-owned business logic, а process-local stores явно ограничивают deployment одним instance |
 | Stage 15.1–15.2 | Request correlation и структурированные operational events | Завершён; safe `X-Request-ID`, application-owned sink, stdout JSON Lines и bounded service/HTTP/business/dependency/error events покрыты tests |
 | Stage 15.3 | Liveness, readiness и OpenMetrics | Завершён; root probes и OpenMetrics 1.0 работают без upstream polling, IDs/raw paths в labels и self-scrape noise |
-| Stage 15.4 | Operational contract, conformance и runbook | Активен; product OpenAPI/client subset не расширяется operational routes |
+| Stage 15.4 | Operational contract, conformance и runbook | Завершён; `X-Request-ID` и error contract синхронизированы, proxy/conformance защищены tests, root operational routes исключены из product clients, runbook зафиксирован |
 
 Stage 15 не меняет business behavior, ranking, provider mapping и product success
 responses. Durable storage, multi-instance coordination, distributed tracing, raw conversation
 capture, auth, CORS, deployment manifests и monitoring vendor остаются вне этапа.
+
+Итоговые quality gates подтвердили backend tests, frontend tests/lint/build,
+OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 закрыт без
+заявления multi-instance/HA или полной production readiness.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

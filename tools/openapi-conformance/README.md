@@ -1,6 +1,8 @@
 # OpenAPI Conformance Skeleton
 
-`tools/openapi-conformance/` содержит локальный read-only skeleton для будущего generated-client/OpenAPI conformance gate.
+`tools/openapi-conformance/` содержит локальный read-only инструмент
+классификации OpenAPI/runtime routes и проверки bounded product-client
+contract.
 
 Инструмент не генерирует clients, не запускает backend server, не выполняет HTTP requests, не меняет OpenAPI draft и не подключается к CI/Gradle. Текущий статус отчета всегда остается `not_ready`.
 
@@ -32,7 +34,7 @@ npm run build
 
 | Поле | Интерпретация |
 |---|---|
-| `status: "not_ready"` | Ожидаемое состояние текущего Stage 7, а не ошибка команды. Tool намеренно не подтверждает readiness. |
+| `status: "not_ready"` | Ожидаемое состояние generated-client/OpenAPI contract, а не ошибка команды. Tool намеренно не подтверждает readiness. |
 | `readinessClaim: false` | Generated-client readiness, manifest expansion readiness и final Stage 7 readiness не заявлены. |
 | `blockingFindings` | Static/schema/manifest drift, который требует отдельного решения или исправления. Наличие finding не меняет `status` на `ready` и само по себе не делает tool CI gate. |
 | `advisoryFindings` | Наблюдения и ограничения текущего read-only/static режима. Они не являются blocking findings. |
@@ -41,12 +43,15 @@ npm run build
 
 Успешный exit code `0` означает, что JSON report сформирован. Он не означает generated-client readiness или завершение Stage 7. Для текущего repository state ожидаются `blockingFindings: []`, `status: "not_ready"` и `readinessClaim: false`.
 
-### Assistant checks
+### Product-client checks
 
-- `assistant_endpoint_candidate_inventory` — enforced static check наличия и classification двух Assistant foundation candidates в OpenAPI/static Ktor inventories; runtime behavior не проверяет.
-- `assistant_endpoint_contract_shape` — enforced bounded static check request/response shape, включая presence и required status для `message`/`nextAction`, optional `clientContext` и `404` contract response.
-- `assistant_endpoint_runtime_semantics` — advisory-only observation. `clientContext` behavior, empty-object validation, malformed/unknown JSON и `message.maxLength` runtime enforcement не проверяются.
-- `ASSISTANT_RUNTIME_SEMANTICS_NOT_CHECKED` в `advisoryFindings` явно напоминает, что static tool не делает runtime validation.
+- `platform_client_endpoint_inventory` — enforced static check четырёх
+  assistant/offers/details candidates в OpenAPI и Ktor inventories.
+- `platform_client_contract_shape` — enforced bounded static check актуальных
+  assistant/search/offers/details schemas, обязательного error `requestId` и
+  `X-Request-ID` response headers.
+- `platform_client_runtime_semantics` — advisory-only observation; runtime
+  HTTP behavior подтверждается backend tests.
 
 Enforced static checks могут добавить finding в `blockingFindings`. Advisory checks и observations остаются advisory и не должны трактоваться как runtime failure или readiness evidence.
 
@@ -72,10 +77,14 @@ Enforced static checks могут добавить finding в `blockingFindings`
 - если manifest существует, выполняется skeleton-level `manifestValidation`: YAML parse, минимальная проверка Stage 7 schema contract и guardrails против преждевременного readiness promotion;
 - если manifest отсутствует, `manifestValidation` остается `not_run`, а report сохраняет `status: "not_ready"` и `readinessClaim: false`;
 - placeholder endpoints остаются видимыми как excluded/foundation-only;
-- выводится `endpointClassificationSummary` с количеством `foundation_candidate`, `placeholder_excluded`, `runtime_only` и `unclassified` endpoints;
-- статически проверяется presence/classification двух Assistant foundation candidates в OpenAPI и Ktor route inventories;
-- статически проверяется bounded Assistant contract shape: request-body required/optional semantics, presence и required status для `message`/`nextAction`, optional `clientContext` и наличие `404` response на message endpoint;
-- runtime semantics для `clientContext`, empty-object validation, malformed/unknown JSON и `message.maxLength` enforcement остаются advisory и не проверяются через HTTP;
+- выводится `endpointClassificationSummary` для
+  `platform_client_candidate`, `operational`, `diagnostic_excluded`,
+  `placeholder_excluded`, `runtime_only` и `unclassified` endpoints;
+- root `/health/live`, `/health/ready` и `/metrics` видимы как operational
+  runtime routes и намеренно отсутствуют в product OpenAPI/client subset;
+- статически проверяются presence/classification четырёх bounded
+  product-client candidates и актуальный contract shape, включая correlation;
+- runtime semantics остаются advisory и подтверждаются backend HTTP tests;
 - generated-client compile checks и runtime HTTP contract tests выводятся как `future_only` / `not_run`.
 
 ## Поведение manifest
@@ -105,7 +114,7 @@ docs/architecture/stage-7/generated-client-ready-subset.yaml
 - проверяются обязательные top-level fields Stage 7 на skeleton depth;
 - `readinessClaim: true`, `status: "ready"`, endpoint-level `readiness: "ready"` и readiness-like true gates в `readinessCriteria` считаются blocking findings в текущем scope;
 - invalid YAML или schema issues попадают в structured findings;
-- endpoint reference validation остается `future_only`;
+- endpoint references проверяются против OpenAPI и runtime inventories;
 - passing validation не является generated-client readiness.
 
 Текущий candidate manifest:
@@ -134,7 +143,9 @@ cd tools/openapi-conformance
 npm test
 ```
 
-Тесты проверяют tool-local report semantics и не запускают backend server, HTTP requests, generated-client generation или OpenAPI finalization.
+Тесты проверяют report semantics, bounded contract drift и operational route
+classification. Они не запускают backend server, HTTP requests,
+generated-client generation или OpenAPI finalization.
 
 ## Exit codes
 

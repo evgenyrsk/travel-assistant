@@ -29,6 +29,8 @@ node scripts/local-demo.mjs --real
 
 Подробности находятся в
 [`docs/guides/local-mvp-demo.md`](../../docs/guides/local-mvp-demo.md).
+Deployment-neutral operational contract описан в
+[`docs/guides/backend-operations-runbook.md`](../../docs/guides/backend-operations-runbook.md).
 
 ## Provider modes
 
@@ -65,7 +67,7 @@ provider `hotelId`, room ID или `bookHash`.
 
 ## Активный HTTP-контракт
 
-Все пути находятся под `/api/v1`.
+Все product API пути находятся под `/api/v1`.
 
 Основной platform-neutral client flow:
 
@@ -76,9 +78,18 @@ provider `hotelId`, room ID или `bookHash`.
 
 Дополнительно:
 
-- `GET /health` — operational endpoint;
+- `GET /health` — legacy operational endpoint внутри `/api/v1`;
 - `POST /hotel-searches` — диагностический endpoint;
 - shortlist и explanation routes — `501 Not Implemented` placeholders.
+
+Root operational endpoints находятся вне product API и generated clients:
+
+- `GET /health/live`;
+- `GET /health/ready`;
+- `GET /metrics`.
+
+Каждый HTTP response содержит безопасный `X-Request-ID`. Error body обязательно
+содержит тот же `requestId`.
 
 `hotelSearchId` появляется только вместе с
 `nextAction=show_hotel_results`. `offerId` является opaque process-local
@@ -136,21 +147,18 @@ provider `hotelId`, room ID или `bookHash`.
 Stores остаются process-local. CORS не установлен: default policy — deny, без
 wildcard и credentials.
 
-## Безопасная диагностика LLM
+## Эксплуатационная наблюдаемость
 
-При opt-in OpenRouter runtime выводит только категориальные события:
+Backend выводит operational events как JSON Lines в stdout. Базовый контракт:
 
-```text
-component=llm source=openrouter event=<FIXED_ENUM>
-component=llm source=assistant event=<FIXED_ENUM>
+```json
+{"schema_version":"1","timestamp":"2026-07-24T10:00:00Z","level":"info","service":"travel-assistant-backend","version":"0.1.0","event":"service.lifecycle","component":"service","operation":"service_startup","outcome":"started"}
 ```
 
-Первая строка отражает transport/decoder outcome, вторая — итоговый fallback
-после application validation или confirmation planning. Prompt, текст
-пользователя, raw response, API key, model slug, URL, session/search IDs и
-provider metadata не записываются. Успех имеет уровень `INFO`, ошибки —
-`WARNING`. Для retryable failure существующая `SINGLE_RETRY` policy может дать
-два последовательных события; дополнительный retry не выполняется.
+Request correlation, допустимые поля, sensitive-data запреты, probes, полный
+metrics contract и alert-рекомендации описаны в operational runbook. Логи
+передаются только через stdout; collector/retention определяет внутренняя
+инфраструктура.
 
 ## Проверка
 
@@ -172,4 +180,4 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 - публичный room/rates flow, deeplink, shortlist, comparison и chat-команды
   выбора карточки;
 - booking, payment, flights и combined itinerary;
-- production SLA, observability и security hardening.
+- production SLA, distributed tracing и broader security hardening.

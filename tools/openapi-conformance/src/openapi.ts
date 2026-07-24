@@ -143,6 +143,14 @@ function inspectAssistantContractShape(
   const paths = recordValue(document.paths);
   const components = recordValue(document.components);
   const schemas = recordValue(components?.schemas);
+  const componentHeaders = recordValue(components?.headers);
+  const componentResponses = recordValue(components?.responses);
+  const requestIdHeader = recordValue(componentHeaders?.RequestId);
+  const requestIdHeaderSchema = recordValue(requestIdHeader?.schema);
+  const errorResponseSchema = recordValue(schemas?.ErrorResponse);
+  const validationErrorResponseSchema = recordValue(
+    schemas?.ValidationErrorResponse,
+  );
   const createSession = operationValue(paths, "/assistant/sessions", "post");
   const continueSession = operationValue(
     paths,
@@ -190,6 +198,15 @@ function inspectAssistantContractShape(
   );
 
   return {
+    requestIdHeaderPatternPresent:
+      requestIdHeaderSchema?.type === "string" &&
+      requestIdHeaderSchema?.pattern === "^[A-Za-z0-9._-]{1,128}$",
+    productResponseRequestIdHeadersPresent:
+      allProductResponsesHaveRequestIdHeader(paths, componentResponses),
+    errorResponseRequestIdRequired:
+      stringArray(errorResponseSchema?.required).includes("requestId"),
+    validationErrorResponseRequestIdRequired:
+      stringArray(validationErrorResponseSchema?.required).includes("requestId"),
     createSessionRequestBodyOptional:
       recordValue(createSession?.requestBody)?.required === false,
     continueSessionRequestBodyRequired:
@@ -302,6 +319,50 @@ function inspectAssistantContractShape(
     refinementSuggestionAdditionalPropertiesForbidden:
       refinementSuggestionSchema?.additionalProperties === false,
   };
+}
+
+function allProductResponsesHaveRequestIdHeader(
+  paths: Record<string, unknown> | undefined,
+  componentResponses: Record<string, unknown> | undefined,
+): boolean {
+  if (!paths || !componentResponses) {
+    return false;
+  }
+
+  const reusableResponsesHaveHeader = Object.values(componentResponses).every(
+    (response) => responseHasRequestIdHeader(recordValue(response)),
+  );
+  if (!reusableResponsesHaveHeader) {
+    return false;
+  }
+
+  return Object.values(paths).every((pathItem) => {
+    const pathRecord = recordValue(pathItem);
+    if (!pathRecord) return true;
+
+    return OPENAPI_METHODS.every((method) => {
+      const operation = recordValue(pathRecord[method]);
+      if (!operation) return true;
+      const responses = recordValue(operation.responses);
+      if (!responses) return false;
+
+      return Object.values(responses).every((response) => {
+        const responseRecord = recordValue(response);
+        if (!responseRecord) return false;
+        return responseRecord.$ref !== undefined || responseHasRequestIdHeader(responseRecord);
+      });
+    });
+  });
+}
+
+function responseHasRequestIdHeader(
+  response: Record<string, unknown> | undefined,
+): boolean {
+  const headers = recordValue(response?.headers);
+  return (
+    stringValue(recordValue(headers?.["X-Request-ID"])?.$ref) ===
+    "#/components/headers/RequestId"
+  );
 }
 
 function hasHotelSearchIdConditional(

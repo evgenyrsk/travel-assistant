@@ -526,6 +526,7 @@
 213. `docs/reviews/stage-15-0-backend-portability-and-layering-verification.md`
 214. `docs/reviews/stage-15-1-15-2-request-correlation-and-operational-events.md`
 215. `docs/reviews/stage-15-3-health-and-openmetrics.md`
+216. `docs/reviews/stage-15-4-operational-contract-and-runbook.md`
 
 ## Historical / superseded документы
 

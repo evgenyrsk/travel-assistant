@@ -51,6 +51,27 @@ const EXPLICIT_CLASSIFICATIONS = new Map<string, ExplicitClassification>([
     },
   ],
   [
+    endpointKey("get", "/health/live"),
+    {
+      classification: "operational",
+      reason: "root_liveness_probe_not_product_client_flow",
+    },
+  ],
+  [
+    endpointKey("get", "/health/ready"),
+    {
+      classification: "operational",
+      reason: "root_readiness_probe_not_product_client_flow",
+    },
+  ],
+  [
+    endpointKey("get", "/metrics"),
+    {
+      classification: "operational",
+      reason: "root_metrics_scrape_not_product_client_flow",
+    },
+  ],
+  [
     endpointKey("post", "/api/v1/hotel-searches"),
     {
       classification: "diagnostic_excluded",

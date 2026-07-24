@@ -32,6 +32,10 @@ export interface OpenApiInventory {
 }
 
 export interface AssistantContractShape {
+  requestIdHeaderPatternPresent: boolean;
+  productResponseRequestIdHeadersPresent: boolean;
+  errorResponseRequestIdRequired: boolean;
+  validationErrorResponseRequestIdRequired: boolean;
   createSessionRequestBodyOptional: boolean;
   continueSessionRequestBodyRequired: boolean;
   messagePropertyPresent: boolean;
