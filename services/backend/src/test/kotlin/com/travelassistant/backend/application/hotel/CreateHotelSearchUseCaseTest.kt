@@ -10,6 +10,8 @@ import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchId
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import com.travelassistant.backend.infrastructure.provider.FakeHotelOfferProvider
 import java.time.LocalDate
 import kotlinx.coroutines.runBlocking
@@ -19,6 +21,49 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class CreateHotelSearchUseCaseTest {
+
+    @Test
+    fun semanticSearchIsSavedAsSearchingBeforeBackgroundLaunchWithoutProviderCall() = runBlocking {
+        val sessionStore = InMemoryAssistantSessionStateStore()
+        val session = CreateAssistantSessionUseCase(sessionStateStore = sessionStore).createSession()
+        val searchStore = InMemoryHotelSearchStateStore()
+        var providerCallCount = 0
+        var launchedSearch: HotelSearch? = null
+        val events = mutableListOf<OperationalEvent>()
+        val useCase = CreateHotelSearchUseCase(
+            assistantSessionStateStore = sessionStore,
+            hotelOfferProvider = HotelOfferProviderBoundary {
+                providerCallCount += 1
+                HotelOfferProviderResult.SearchCompleted(emptyList())
+            },
+            hotelSearchStateStore = searchStore,
+            idGenerator = HotelSearchIdGenerator { HotelSearchId("semantic-search-000001") },
+            semanticSearchLauncher = SemanticHotelSearchLauncher { search, _ ->
+                launchedSearch = searchStore.findById(search.id)
+                true
+            },
+            eventSink = OperationalEventSink(events::add),
+        )
+
+        val result = assertIs<CreateHotelSearchResult.Created>(
+            useCase.createSearch(
+                command(
+                    session.id,
+                    HotelSearchPreferences(
+                        accommodationConcept = AccommodationConcept.GLAMPING,
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(HotelSearch.Status.SEARCHING, result.search.status)
+        assertEquals(HotelSearch.Status.SEARCHING, launchedSearch?.status)
+        assertTrue(result.search.offers.isEmpty())
+        assertEquals(1_000L, result.search.analysis?.pollAfterMillis)
+        assertEquals(0, providerCallCount)
+        assertEquals(OperationalEventName.HOTEL_SEARCH_STARTED, events.single().name)
+        assertEquals(OperationalOutcome.STARTED, events.single().outcome)
+    }
 
     @Test
     fun recordsBoundedNoOffersAndProviderFailureOutcomes() = runBlocking {
@@ -198,6 +243,7 @@ class CreateHotelSearchUseCaseTest {
 
     private fun command(
         sessionId: AssistantSessionId,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): CreateHotelSearchCommand =
         CreateHotelSearchCommand(
             sessionId = sessionId,
@@ -210,6 +256,7 @@ class CreateHotelSearchUseCaseTest {
                     childrenAges = emptyList(),
                 ),
                 rooms = 1,
+                preferences = preferences,
             ),
         )
 
@@ -223,5 +270,21 @@ class CreateHotelSearchUseCaseTest {
 
         override fun findById(searchId: HotelSearchId): HotelSearch? =
             savedSearches.firstOrNull { it.id == searchId }
+
+        override fun updateIfStatus(
+            searchId: HotelSearchId,
+            expectedStatus: HotelSearch.Status,
+            update: (HotelSearch) -> HotelSearch,
+        ): HotelSearchStateTransitionResult {
+            val index = savedSearches.indexOfFirst { search -> search.id == searchId }
+            if (index < 0) return HotelSearchStateTransitionResult.NotFound
+            val current = savedSearches[index]
+            if (current.status != expectedStatus) {
+                return HotelSearchStateTransitionResult.UnexpectedStatus(current)
+            }
+            val updated = update(current)
+            savedSearches[index] = updated
+            return HotelSearchStateTransitionResult.Updated(updated)
+        }
     }
 }

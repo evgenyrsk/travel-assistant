@@ -15,6 +15,7 @@ import kotlin.math.max
 class LoadSelectedHotelDetailsUseCase(
     private val resolveSelectedOffer: ResolveSelectedHotelOfferUseCase,
     private val hotelDetailsProvider: HotelDetailsProviderBoundary,
+    private val detailsCache: HotelDetailsCache = HotelDetailsCache.NONE,
     private val eventSink: OperationalEventSink = OperationalEventSink.NONE,
 ) {
     suspend operator fun invoke(
@@ -44,6 +45,9 @@ class LoadSelectedHotelDetailsUseCase(
         providerReference: String,
         hotelSearchId: String,
     ): LoadSelectedHotelDetailsResult {
+        detailsCache.find(providerReference)?.let { cached ->
+            return LoadSelectedHotelDetailsResult.Loaded(cached)
+        }
         val startedAt = System.nanoTime()
         val providerResult = try {
             hotelDetailsProvider.load(providerReference)
@@ -66,8 +70,10 @@ class LoadSelectedHotelDetailsUseCase(
         )
 
         return when (providerResult) {
-            is HotelDetailsProviderResult.Loaded ->
+            is HotelDetailsProviderResult.Loaded -> {
+                detailsCache.save(providerReference, providerResult.details)
                 LoadSelectedHotelDetailsResult.Loaded(providerResult.details)
+            }
             HotelDetailsProviderResult.NotFound ->
                 LoadSelectedHotelDetailsResult.DetailsNotFound
             is HotelDetailsProviderResult.ResponseRejected ->

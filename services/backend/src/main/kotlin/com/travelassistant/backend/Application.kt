@@ -23,6 +23,9 @@ import com.travelassistant.backend.application.hotel.CreateHotelSearchUseCase
 import com.travelassistant.backend.application.hotel.InMemoryHotelSearchStateStore
 import com.travelassistant.backend.application.hotel.LoadSelectedHotelDetailsUseCase
 import com.travelassistant.backend.application.hotel.ResolveSelectedHotelOfferUseCase
+import com.travelassistant.backend.application.hotel.InMemoryHotelDetailsCache
+import com.travelassistant.backend.application.hotel.SemanticHotelSearchScheduler
+import com.travelassistant.backend.application.hotel.TwoPassSemanticHotelSearchJob
 import com.travelassistant.backend.application.llm.GenerateLlmCandidateUseCase
 import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRetryPolicy
@@ -45,6 +48,8 @@ import com.travelassistant.backend.infrastructure.llm.LlmProviderFactory
 import com.travelassistant.backend.infrastructure.llm.OpenRouterDiagnosticObserver
 import com.travelassistant.backend.infrastructure.llm.SafeLlmDiagnosticLogger
 import com.travelassistant.backend.infrastructure.llm.createProductionOpenRouterHttpClient
+import com.travelassistant.backend.infrastructure.accommodation.AccommodationAnalysisProviderConfig
+import com.travelassistant.backend.infrastructure.accommodation.AccommodationAnalysisProviderFactory
 import com.travelassistant.backend.infrastructure.observability.JsonOperationalEventSink
 import com.travelassistant.backend.infrastructure.observability.CompositeOperationalEventSink
 import com.travelassistant.backend.infrastructure.observability.PrometheusOperationalMetrics
@@ -85,6 +90,8 @@ fun Application.module() {
         moduleWithProviderConfigs(
             llmProviderConfig = LlmProviderConfig.fromEnvironment(),
             providerConfig = HotelProviderConfig.fromEnvironment(),
+            accommodationAnalysisProviderConfig =
+                AccommodationAnalysisProviderConfig.fromEnvironment(),
             eventSink = eventSink,
             metricsExporter = metrics,
             readiness = readiness,
@@ -111,10 +118,14 @@ fun Application.module() {
 internal fun Application.moduleWithProviderConfigs(
     llmProviderConfig: LlmProviderConfig = LlmProviderConfig(),
     providerConfig: HotelProviderConfig = HotelProviderConfig(),
+    accommodationAnalysisProviderConfig: AccommodationAnalysisProviderConfig =
+        AccommodationAnalysisProviderConfig(),
     pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
     hotelConstraintsStore: AssistantHotelConstraintsStore = InMemoryAssistantHotelConstraintsStore(),
     clock: Clock = Clock.systemUTC(),
     openRouterHttpClientFactory: () -> HttpClient = ::createProductionOpenRouterHttpClient,
+    accommodationAnalysisHttpClientFactory: () -> HttpClient =
+        ::createProductionOpenRouterHttpClient,
     openRouterDiagnosticObserver: OpenRouterDiagnosticObserver? = null,
     assistantLlmDiagnosticObserver: AssistantLlmDiagnosticObserver? = null,
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
@@ -138,12 +149,14 @@ internal fun Application.moduleWithProviderConfigs(
             llmClient = llmProviderRuntime.client,
             llmCandidateRetryPolicy = llmProviderRuntime.candidateRetryPolicy,
             providerConfig = providerConfig,
+            accommodationAnalysisProviderConfig = accommodationAnalysisProviderConfig,
             pendingConfirmationStore = pendingConfirmationStore,
             hotelConstraintsStore = hotelConstraintsStore,
             clock = clock,
             assistantLlmDiagnosticObserver =
                 assistantLlmDiagnosticObserver ?: safeLlmDiagnosticLogger,
             realHotelHttpClientFactory = realHotelHttpClientFactory,
+            accommodationAnalysisHttpClientFactory = accommodationAnalysisHttpClientFactory,
             eventSink = eventSink,
             metricsExporter = metricsExporter,
             readiness = readiness,
@@ -186,10 +199,14 @@ internal fun Application.moduleWithAssistantLlm(
     llmClient: LlmClient,
     llmCandidateRetryPolicy: LlmCandidateRetryPolicy = LlmCandidateRetryPolicy.NO_RETRY,
     providerConfig: HotelProviderConfig = HotelProviderConfig(),
+    accommodationAnalysisProviderConfig: AccommodationAnalysisProviderConfig =
+        AccommodationAnalysisProviderConfig(),
     pendingConfirmationStore: PendingConfirmationStore = InMemoryPendingConfirmationStore(),
     hotelConstraintsStore: AssistantHotelConstraintsStore = InMemoryAssistantHotelConstraintsStore(),
     clock: Clock = Clock.systemUTC(),
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
+    accommodationAnalysisHttpClientFactory: () -> HttpClient =
+        ::createProductionOpenRouterHttpClient,
     assistantLlmDiagnosticObserver: AssistantLlmDiagnosticObserver =
         AssistantLlmDiagnosticObserver.NONE,
     eventSink: OperationalEventSink = OperationalEventSink.NONE,
@@ -205,10 +222,33 @@ internal fun Application.moduleWithAssistantLlm(
         hotelProviderRuntime.close()
     }
     val hotelSearchStateStore = InMemoryHotelSearchStateStore()
+    val detailsCache = InMemoryHotelDetailsCache()
+    val accommodationAnalysisRuntime = AccommodationAnalysisProviderFactory.create(
+        config = accommodationAnalysisProviderConfig,
+        openRouterHttpClientFactory = accommodationAnalysisHttpClientFactory,
+    )
+    environment.monitor.subscribe(ApplicationStopped) {
+        accommodationAnalysisRuntime.close()
+    }
+    val semanticSearchScheduler = SemanticHotelSearchScheduler(
+        stateStore = hotelSearchStateStore,
+        semanticJob = TwoPassSemanticHotelSearchJob(
+            hotelOfferProvider = hotelProviderRuntime.provider,
+            hotelDetailsProvider = hotelProviderRuntime.detailsProvider,
+            analysisClient = accommodationAnalysisRuntime.client,
+            detailsCache = detailsCache,
+            eventSink = eventSink,
+        ),
+        eventSink = eventSink,
+    )
+    environment.monitor.subscribe(ApplicationStopping) {
+        semanticSearchScheduler.close()
+    }
     val hotelSearchBoundary = CreateHotelSearchUseCase(
         assistantSessionStateStore = assistantSessionStateStore,
         hotelOfferProvider = hotelProviderRuntime.provider,
         hotelSearchStateStore = hotelSearchStateStore,
+        semanticSearchLauncher = semanticSearchScheduler,
         eventSink = eventSink,
     )
     val assistantHotelSearchHandoffBoundary = AssistantHotelSearchHandoffUseCase(
@@ -250,6 +290,7 @@ internal fun Application.moduleWithAssistantLlm(
         loadSelectedHotelDetails = LoadSelectedHotelDetailsUseCase(
             resolveSelectedOffer = ResolveSelectedHotelOfferUseCase(hotelSearchStateStore),
             hotelDetailsProvider = hotelProviderRuntime.detailsProvider,
+            detailsCache = detailsCache,
             eventSink = eventSink,
         ),
         eventSink = eventSink,

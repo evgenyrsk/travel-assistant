@@ -4,6 +4,7 @@ import {
   formatAppliedPreferences,
   OFFER_RANKING_EXPLANATION,
   renderOfferCardMarkup,
+  SEMANTIC_OFFER_RANKING_EXPLANATION,
   toErrorMessage,
   toOfferViewModel,
 } from "../src/offer-view.js";
@@ -79,6 +80,27 @@ test("renders a compact hotel offer with safe lazy image and without repeated su
   assert.match(markup, /data-role="hotel-details"/);
 });
 
+test("renders only bounded semantic verdict and evidence labels", () => {
+  const markup = renderOfferCardMarkup({
+    offerId: "glamping-1",
+    hotelName: "Forest Dome",
+    location: { city: "Kazan", country: "Russia" },
+    price: { amount: 12000, currency: "RUB" },
+    availability: "available",
+    semanticMatch: {
+      concept: "glamping",
+      verdict: "probable",
+      evidenceSources: ["image", "description", "unknown", "image"],
+      rationale: "raw model rationale must not be rendered",
+    },
+  });
+
+  assert.match(markup, /Вероятно подходит/);
+  assert.match(markup, /Основания: изображение, описание/);
+  assert.doesNotMatch(markup, /raw model rationale/);
+  assert.doesNotMatch(markup, /unknown/);
+});
+
 test("renders a neutral placeholder for missing or unsafe images", () => {
   const baseOffer = {
     offerId: "offer-without-safe-image",
@@ -116,6 +138,7 @@ test("provides one shared ranking explanation outside individual cards", () => {
     "Сначала показаны доступные варианты с известным более высоким рейтингом; " +
       "при равном рейтинге — с меньшей общей ценой.",
   );
+  assert.match(SEMANTIC_OFFER_RANKING_EXPLANATION, /«Подходит»/);
   assert.doesNotMatch(markup, /Сначала показаны доступные варианты/);
 });
 
@@ -129,6 +152,7 @@ test("formats only active applied preferences", () => {
     minimumGuestRating: 8,
     freeCancellationRequired: true,
     breakfastIncludedRequired: true,
+    accommodationConcept: "glamping",
   });
 
   assert.match(summary, /до.*80[\s\u00a0]?000,5.*₽.*за поездку/u);
@@ -136,6 +160,7 @@ test("formats only active applied preferences", () => {
   assert.match(summary, /рейтинг от 8/);
   assert.match(summary, /бесплатная отмена/);
   assert.match(summary, /завтрак включён/);
+  assert.match(summary, /тип размещения — глемпинг/);
   assert.equal(formatAppliedPreferences(undefined), "");
 });
 

@@ -46,6 +46,10 @@ class MapLlmHotelSearchPreferencesPatchUseCase {
                     field = LlmHotelSearchPreferencesPatch.Field.BREAKFAST_INCLUDED,
                     value = source.breakfastIncludedRequired,
                 ),
+                accommodationConcept = source.operationFor(
+                    field = LlmHotelSearchPreferencesPatch.Field.ACCOMMODATION_CONCEPT,
+                    value = source.accommodationConcept,
+                ),
             ),
         )
     }
@@ -101,6 +105,9 @@ class MapLlmHotelSearchPreferencesPatchUseCase {
             }
             if (breakfastIncludedRequired != null) {
                 add(LlmHotelSearchPreferencesPatch.Field.BREAKFAST_INCLUDED)
+            }
+            if (accommodationConcept != null) {
+                add(LlmHotelSearchPreferencesPatch.Field.ACCOMMODATION_CONCEPT)
             }
         }
         if (setFields.any(clear::contains)) {

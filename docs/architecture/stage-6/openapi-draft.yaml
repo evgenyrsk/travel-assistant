@@ -4,11 +4,10 @@ info:
   summary: Draft frontend/backend API contract for the hotel-only MVP.
   version: 0.3.0-draft
   description: >
-    Draft Travel Assistant MVP v1 contract. Stage 15.4 adds safe response
-    correlation to the existing bounded chat-first and selected-hotel details
-    contract without promoting the whole OpenAPI document to generated-client
-    readiness. Root health/metrics endpoints remain outside this product
-    document. The API is hotel-only and provider-neutral.
+    Draft Travel Assistant MVP v1 contract. Stage 16.6 adds the bounded semantic
+    accommodation search lifecycle without promoting the whole OpenAPI document
+    to generated-client readiness. Root health/metrics endpoints remain outside
+    this product document. The API is hotel-only and provider-neutral.
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 servers:
   - url: /api/v1
@@ -842,8 +841,11 @@ components:
         status:
           type: string
           enum:
+            - searching
             - completed_with_offers
             - completed_no_offers
+            - completed_no_semantic_matches
+            - failed
         criteria:
           $ref: "#/components/schemas/HotelSearchCriteriaResponse"
         metadata:
@@ -864,8 +866,11 @@ components:
         status:
           type: string
           enum:
+            - searching
             - completed_with_offers
             - completed_no_offers
+            - completed_no_semantic_matches
+            - failed
         offers:
           type: array
           items:
@@ -1081,6 +1086,10 @@ components:
           type: boolean
           enum:
             - true
+        accommodationConcept:
+          type: string
+          enum:
+            - glamping
       additionalProperties: false
 
     MaximumTotalPricePreference:
@@ -1192,6 +1201,37 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProviderFact"
+        semanticMatch:
+          $ref: "#/components/schemas/AccommodationSemanticMatch"
+          description: Omitted for ordinary searches and for offers without an accepted semantic verdict.
+      additionalProperties: false
+
+    AccommodationSemanticMatch:
+      type: object
+      required:
+        - concept
+        - verdict
+        - evidenceSources
+      properties:
+        concept:
+          type: string
+          enum:
+            - glamping
+        verdict:
+          type: string
+          enum:
+            - match
+            - probable
+        evidenceSources:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+              - name
+              - description
+              - amenities
+              - image
       additionalProperties: false
 
     SearchResultMetadata:
@@ -1226,6 +1266,48 @@ components:
           type: array
           items:
             type: string
+        analysis:
+          $ref: "#/components/schemas/AccommodationAnalysisMetadata"
+          description: Omitted for searches without an accommodation semantic concept.
+      additionalProperties: false
+
+    AccommodationAnalysisMetadata:
+      type: object
+      required:
+        - status
+        - analyzedCount
+        - deepAnalyzedCount
+        - matchCount
+        - probableCount
+      properties:
+        status:
+          type: string
+          enum:
+            - searching
+            - completed
+            - partial
+            - failed
+        analyzedCount:
+          type: integer
+          minimum: 0
+          maximum: 20
+        deepAnalyzedCount:
+          type: integer
+          minimum: 0
+          maximum: 6
+        matchCount:
+          type: integer
+          minimum: 0
+          maximum: 20
+        probableCount:
+          type: integer
+          minimum: 0
+          maximum: 20
+        pollAfterMillis:
+          type: integer
+          minimum: 1000
+          maximum: 3000
+          description: Present only while status is searching.
       additionalProperties: false
 
     HotelSearchFailure:

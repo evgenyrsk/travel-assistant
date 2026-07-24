@@ -3,6 +3,7 @@ package com.travelassistant.backend.application.assistant
 import com.travelassistant.backend.application.llm.LlmHotelSearchPreferencesPatch
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,6 +23,7 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
                     stars = setOf(5, 4),
                     freeCancellationRequired = true,
                     breakfastIncludedRequired = true,
+                    accommodationConcept = AccommodationConcept.GLAMPING,
                     clear = setOf(
                         LlmHotelSearchPreferencesPatch.Field.MINIMUM_GUEST_RATING,
                     ),
@@ -40,6 +42,9 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
                 minimumGuestRating = HotelSearchPreferencePatch.Clear,
                 freeCancellationRequired = HotelSearchPreferencePatch.Set(true),
                 breakfastIncludedRequired = HotelSearchPreferencePatch.Set(true),
+                accommodationConcept = HotelSearchPreferencePatch.Set(
+                    AccommodationConcept.GLAMPING,
+                ),
             ),
             result.patch,
         )
@@ -72,6 +77,7 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
                     minimumGuestRating = 8,
                     freeCancellationRequired = true,
                     breakfastIncludedRequired = true,
+                    accommodationConcept = AccommodationConcept.GLAMPING,
                 ),
             ),
         ).patch
@@ -96,7 +102,22 @@ class MapLlmHotelSearchPreferencesPatchUseCaseTest {
         assertEquals(null, applied.preferences.minimumGuestRating)
         assertEquals(true, applied.preferences.freeCancellationRequired)
         assertEquals(true, applied.preferences.breakfastIncludedRequired)
+        assertEquals(AccommodationConcept.GLAMPING, applied.preferences.accommodationConcept)
         assertEquals("Казань", store.findBySession(sessionId)?.destination)
+
+        val clearConcept = assertIs<MapLlmHotelSearchPreferencesPatchResult.Mapped>(
+            mapper(
+                LlmHotelSearchPreferencesPatch(
+                    clear = setOf(
+                        LlmHotelSearchPreferencesPatch.Field.ACCOMMODATION_CONCEPT,
+                    ),
+                ),
+            ),
+        ).patch
+        val conceptCleared = assertIs<ApplyHotelSearchPreferencesPatchResult.Applied>(
+            applyPatch(ApplyHotelSearchPreferencesPatchCommand(sessionId, clearConcept)),
+        )
+        assertEquals(null, conceptCleared.preferences.accommodationConcept)
     }
 
     @Test

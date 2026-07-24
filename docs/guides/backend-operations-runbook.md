@@ -23,12 +23,21 @@ HOST=0.0.0.0 PORT=8080 \
 | `PORT` | `8080` | HTTP port; нечисловое значение заменяется default |
 | `LLM_PROVIDER_MODE` | `FAKE` | `FAKE` или явно включённый `OPENROUTER` |
 | `HOTEL_PROVIDER_MODE` | `FAKE` | `FAKE` или явно включённый `REAL` |
+| `ACCOMMODATION_ANALYSIS_MODE` | `FAKE` | `FAKE` или policy-gated `OPENROUTER` |
 
 Для `OPENROUTER` требуются `OPENROUTER_API_KEY` и `OPENROUTER_MODEL`; target и
 timeout задаются `OPENROUTER_BASE_URL` и `OPENROUTER_TIMEOUT_MS`. Для Hotels API
 используются `HOTELS_API_PUBLIC_BASE_URL`, `HOTELS_API_PUBLIC_TIMEOUT_MS` и
 необязательный `HOTELS_API_USER_LANGUAGE`. REAL-режимы требуют исходящего HTTPS
 доступа к настроенным target. Health checks никогда не вызывают эти зависимости.
+
+Semantic `OPENROUTER` mode использует тот же `OPENROUTER_API_KEY`, отдельные
+`ACCOMMODATION_ANALYSIS_MODEL`, `ACCOMMODATION_ANALYSIS_BASE_URL`,
+`ACCOMMODATION_ANALYSIS_TIMEOUT_MS`, `ACCOMMODATION_ANALYSIS_BATCH_SIZE` и
+exact-host `ACCOMMODATION_ANALYSIS_IMAGE_HOSTS`. Startup требует
+`ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED=true`. Этот flag не заменяет
+согласование provider content, controlled ZDR/model probe и quality evaluation;
+без них production operator обязан оставить `FAKE`.
 
 Секреты передаются через environment внутренней инфраструктуры и не должны
 записываться в image, command line, логи или metrics.
@@ -76,6 +85,11 @@ retention, access control и доставка stdout принадлежат вн
 содержать только `exception_class`, не более четырёх `cause_classes` и не более
 восьми ограниченных `stack_frames` без exception message.
 
+Terminal semantic search дополнительно может содержать только агрегированные
+`analyzed_count`, `deep_analyzed_count`, `match_count` и `probable_count`.
+Dependency events используют bounded operations `accommodation_coarse_analysis`
+и `accommodation_deep_analysis` с dependency `accommodation_analyzer`.
+
 Запрещено записывать `offerId`, provider IDs, текст сообщений, destination или
 hotel names, значения criteria, request/response bodies, headers, URL, model
 slug, secrets и raw exception messages. Ошибка stdout writer не должна менять
@@ -109,6 +123,10 @@ Application series используют только bounded labels `operation`,
 `status_class`, `dependency`, `outcome`. Request/session/search IDs, raw paths,
 user text и provider data не являются labels. JVM/process gauges labels не
 имеют.
+
+Semantic analysis не создаёт ID labels: его calls видны в общих dependency
+series по bounded `dependency=accommodation_analyzer` и operation coarse/deep;
+terminal search виден как `operation=semantic_hotel_search`.
 
 ## Как проверить observability локально
 
@@ -255,6 +273,12 @@ sum(increase(travel_assistant_dependency_calls_total{
   outcome=~"timeout|rate_limited|unavailable"
 }[10m]))
 
+sum by (operation, outcome) (
+  increase(travel_assistant_dependency_calls_total{
+    dependency="accommodation_analyzer"
+  }[10m])
+)
+
 sum by (operation) (
   rate(travel_assistant_http_request_duration_seconds_sum[5m])
 )
@@ -282,6 +306,7 @@ metrics и логов.
 - количество `4xx`/`5xx` и долю `5xx`;
 - assistant/search/details outcomes;
 - provider/LLM timeout, rate-limit, unavailable, auth и credit outcomes;
+- semantic coarse/deep outcomes и terminal no-semantic-matches/partial/failed;
 - unexpected errors, JVM memory, GC и threads;
 - последние `service.lifecycle` и `error.unhandled` log events.
 
@@ -314,6 +339,9 @@ Prometheus alert rules могут передаваться в Alertmanager ил�
   за 5 минут;
 - `warning`: не меньше пяти provider/LLM outcomes `timeout`, `rate_limited` или
   `unavailable` суммарно за 10 минут.
+- `warning`: не меньше пяти `accommodation_analyzer` outcomes `timeout`,
+  `rate_limited` или `unavailable` за 10 минут; `failed` semantic search не
+  должен автоматически переключать выдачу на обычные отели.
 
 До включения alert необходимо согласовать routing, maintenance windows и
 ответственных операторов во внутренней инфраструктуре.
@@ -324,9 +352,13 @@ Prometheus alert rules могут передаваться в Alertmanager ил�
 2. Найти `request_id` из error response/header в stdout events.
 3. Проверить `http.request.completed`, затем соответствующие assistant,
    search/details и `dependency.call.completed` outcomes.
-4. Для неожиданной ошибки использовать `exception_class`, `cause_classes` и
+4. Для semantic search проверить terminal `hotel.search.completed`, затем
+   `accommodation_coarse_analysis`, `accommodation_deep_analysis` и bounded
+   aggregate counts; отсутствие deep events допустимо при пустом provider
+   result или недоступных details.
+5. Для неожиданной ошибки использовать `exception_class`, `cause_classes` и
    bounded `stack_frames`; raw exception text намеренно отсутствует.
-5. При restart считать прежние session/search IDs недействительными и начать
+6. При restart считать прежние session/search IDs недействительными и начать
    новую session.
 
 ## Вне этого runbook
@@ -334,4 +366,4 @@ Prometheus alert rules могут передаваться в Alertmanager ил�
 Docker/Kubernetes manifests, готовая collector configuration/deployment,
 retention policy, готовый dashboard, vendor-specific alert configuration,
 distributed tracing, raw conversation capture, durable storage, multi-instance
-coordination, auth и CORS не входят в Stage 15.
+coordination, auth и CORS не входят в Stage 15–16.

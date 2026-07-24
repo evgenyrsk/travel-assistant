@@ -527,6 +527,16 @@
 214. `docs/reviews/stage-15-1-15-2-request-correlation-and-operational-events.md`
 215. `docs/reviews/stage-15-3-health-and-openmetrics.md`
 216. `docs/reviews/stage-15-4-operational-contract-and-runbook.md`
+217. `docs/reviews/stage-16-0-semantic-accommodation-feasibility-and-policy.md`
+218. `docs/reviews/stage-16-1-semantic-accommodation-conversation-model.md`
+219. `docs/reviews/stage-16-2-semantic-accommodation-classification-core.md`
+220. `docs/reviews/stage-16-3-semantic-accommodation-multimodal-adapter.md`
+221. `docs/reviews/stage-16-4-semantic-accommodation-async-lifecycle.md`
+222. `docs/reviews/stage-16-5-semantic-accommodation-two-pass-orchestration.md`
+223. `docs/reviews/stage-16-6-semantic-accommodation-public-contract-and-demo.md`
+224. `docs/reviews/stage-16-7-semantic-accommodation-quality-evaluation-report.md`
+225. `docs/reviews/stage-16-7-semantic-accommodation-observability-and-closure.md`
+226. `docs/reviews/stage-16-8-semantic-runtime-safety-plan.md`
 
 ## Historical / superseded документы
 

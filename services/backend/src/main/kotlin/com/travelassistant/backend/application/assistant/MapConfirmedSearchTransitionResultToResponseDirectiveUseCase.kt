@@ -61,11 +61,19 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCase {
             return ConfirmedSearchTransitionResponseDirective(
                 nextAction = InternalTransitionNextAction.SHOW_HOTEL_RESULTS,
                 messageKind = when (executionResult.searchStatus) {
+                    HotelSearch.Status.SEARCHING ->
+                        TransitionMessageKind.PROCESSING
+
                     HotelSearch.Status.COMPLETED_WITH_OFFERS ->
                         TransitionMessageKind.RESULTS_READY
 
-                    HotelSearch.Status.COMPLETED_NO_OFFERS ->
+                    HotelSearch.Status.COMPLETED_NO_OFFERS,
+                    HotelSearch.Status.COMPLETED_NO_SEMANTIC_MATCHES,
+                    ->
                         TransitionMessageKind.NO_RESULTS
+
+                    HotelSearch.Status.FAILED ->
+                        TransitionMessageKind.TEMPORARY_FAILURE
                 },
                 hotelSearchId = executionResult.searchId,
                 mayShowHotelResults = true,

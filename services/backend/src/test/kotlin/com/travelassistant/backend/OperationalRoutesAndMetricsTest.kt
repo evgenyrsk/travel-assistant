@@ -93,6 +93,16 @@ class OperationalRoutesAndMetricsTest {
         )
         metrics.record(
             OperationalEvent(
+                name = OperationalEventName.DEPENDENCY_CALL_COMPLETED,
+                component = OperationalComponent.ACCOMMODATION_ANALYSIS,
+                dependency = OperationalDependency.ACCOMMODATION_ANALYZER,
+                operation = OperationalOperation.ACCOMMODATION_COARSE_ANALYSIS,
+                outcome = OperationalOutcome.SUCCEEDED,
+                durationMillis = 90,
+            ),
+        )
+        metrics.record(
+            OperationalEvent(
                 name = OperationalEventName.HOTEL_SEARCH_COMPLETED,
                 component = OperationalComponent.HOTEL_SEARCH,
                 sessionId = "session-id-must-not-be-a-label",
@@ -147,6 +157,8 @@ class OperationalRoutesAndMetricsTest {
         assertTrue(scrape.contains("travel_assistant_hotel_search_duration_seconds_count"))
         assertTrue(scrape.contains("travel_assistant_hotel_details_total"))
         assertTrue(scrape.contains("travel_assistant_dependency_calls_total"))
+        assertTrue(scrape.contains("dependency=\"accommodation_analyzer\""))
+        assertTrue(scrape.contains("operation=\"accommodation_coarse_analysis\""))
         assertTrue(scrape.contains("travel_assistant_unexpected_errors_total 1.0"))
         assertTrue(scrape.contains("travel_assistant_readiness 1.0"))
         assertTrue(scrape.contains("travel_assistant_build_info 1.0"))

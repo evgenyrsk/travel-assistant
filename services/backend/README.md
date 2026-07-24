@@ -65,6 +65,19 @@ exact-hotel details/rates и on-demand details делят один application-o
 `HttpClient`. Browser-клиенты не обращаются к Hotels API напрямую и не получают
 provider `hotelId`, room ID или `bookHash`.
 
+### Semantic accommodation analysis
+
+`ACCOMMODATION_ANALYSIS_MODE=FAKE` является default и не выполняет network
+calls. Opt-in `OPENROUTER` использует существующий `OPENROUTER_API_KEY`, но
+дополнительно требует `ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED=true`,
+`ACCOMMODATION_ANALYSIS_MODEL` и exact-host allowlist
+`ACCOMMODATION_ANALYSIS_IMAGE_HOSTS`. Timeout и batch задаются
+`ACCOMMODATION_ANALYSIS_TIMEOUT_MS` и `ACCOMMODATION_ANALYSIS_BATCH_SIZE`.
+
+Approval flag является только техническим interlock: оператор не должен
+включать его без подтверждённых прав на provider content, controlled ZDR/model
+probe и пройденного quality report из `../../tools/semantic-evaluation/`.
+
 ## Активный HTTP-контракт
 
 Все product API пути находятся под `/api/v1`.
@@ -98,9 +111,13 @@ Root operational endpoints находятся вне product API и generated cl
 
 ## Текущее поведение MVP
 
-- LLM извлекает обязательные hotel constraints и пять необязательных
+- LLM извлекает обязательные hotel constraints и шесть необязательных
   preference: максимальную общую стоимость, звёзды, минимальный гостевой
   рейтинг, бесплатную отмену и включённый завтрак.
+- Управляемый concept `GLAMPING` сохраняется между уточнениями и после
+  confirmation запускает async two-pass анализ: coarse до 20 кандидатов и deep
+  до 6. Demo shell опрашивает offers endpoint до terminal state; обычные отели
+  не показываются при classifier failure или отсутствии semantic matches.
 - Явная точная одиночная категория звёзд (`пятизвёздочный`, `5 звёзд`) проходит
   дополнительную детерминированную application-проверку, если LLM не заполнил
   `stars`; диапазоны и команды снятия ограничения по-прежнему не угадываются.
@@ -159,6 +176,10 @@ Request correlation, допустимые поля, sensitive-data запрет�
 metrics contract и alert-рекомендации описаны в operational runbook. Логи
 передаются только через stdout; collector/retention определяет внутренняя
 инфраструктура.
+
+Semantic flow добавляет bounded operations `semantic_hotel_search`,
+`accommodation_coarse_analysis` и `accommodation_deep_analysis`. Hotel names,
+descriptions, amenities, image URL и model output в events/metrics не попадают.
 
 ## Проверка
 

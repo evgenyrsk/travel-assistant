@@ -10,7 +10,7 @@ validationStatus:
   endpointReferenceValidation: "passed"
   generatedClientCompile: "not_run"
   runtimeContractValidation: "covered_by_backend_test"
-  lastValidatedBy: "Stage 15.4 operational correlation contract gates"
+  lastValidatedBy: "Stage 16.6 semantic accommodation contract gates"
   lastValidatedAt: "2026-07-24"
 includedEndpoints:
   - method: "POST"
@@ -142,4 +142,5 @@ notes:
   - "Stage 10.4 intentionally leaves platform SDK selection to a future integrating team."
   - "Root /health/live, /health/ready, and /metrics routes are operational and intentionally absent from this product-client subset."
   - "Every product response exposes X-Request-ID; every error body requires the matching requestId."
+  - "Semantic accommodation search reuses the offers endpoint with bounded polling metadata; no endpoint was added to the product-client subset."
   - "SDK generation, CORS activation, auth, and durable storage remain outside this manifest state."

@@ -142,3 +142,20 @@
 - Закрепить layering guards и single-instance ограничение process-local stores.
 - Добавить safe request correlation, JSON operational events, liveness, readiness и OpenMetrics.
 - Описать deployment-neutral operational contract без vendor-specific infrastructure.
+
+## Этап 16 — semantic-анализ типа размещения
+
+- Добавить управляемое предпочтение `GLAMPING` без превращения произвольного
+  пользовательского текста в свободный classifier prompt.
+- Классифицировать ограниченный provider result через отдельную
+  provider-neutral multimodal boundary и показывать только `MATCH` и
+  `PROBABLE` с ограниченным набором evidence sources.
+- Сохранить обычный hotel search неизменным, а semantic search выполнять через
+  bounded async lifecycle и двухпроходный coarse/deep анализ.
+- Не выдавать пользовательские semantic verdict из deterministic `FAKE`-анализатора
+  поверх REAL provider data; такой смешанный runtime должен завершаться
+  fail-closed.
+- Различать первоначальный async-запуск и duplicate confirmation в сообщениях,
+  а в локальной диагностике явно показывать режимы LLM, Hotels и semantic analysis.
+- Оставить REAL vision opt-in и заблокированным до подтверждения прав на
+  provider content, privacy routing и quality gate.

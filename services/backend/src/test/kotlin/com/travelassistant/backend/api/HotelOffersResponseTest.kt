@@ -2,6 +2,8 @@ package com.travelassistant.backend.api
 
 import com.travelassistant.backend.application.hotel.HotelNoOffersRefinementPlan
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.hotel.AccommodationAnalysisMetadata
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchId
@@ -40,6 +42,7 @@ class HotelOffersResponseTest {
             minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
             freeCancellationRequired = true,
             breakfastIncludedRequired = true,
+            accommodationConcept = AccommodationConcept.GLAMPING,
         )
 
         val encoded = json.encodeToString(HotelOffersResponse.from(search(preferences)))
@@ -55,6 +58,7 @@ class HotelOffersResponseTest {
                 "minimumGuestRating",
                 "freeCancellationRequired",
                 "breakfastIncludedRequired",
+                "accommodationConcept",
             ),
             applied.keys,
         )
@@ -73,6 +77,56 @@ class HotelOffersResponseTest {
         assertEquals(8, applied.getValue("minimumGuestRating").jsonPrimitive.content.toInt())
         assertTrue(applied.getValue("freeCancellationRequired").jsonPrimitive.content.toBoolean())
         assertTrue(applied.getValue("breakfastIncludedRequired").jsonPrimitive.content.toBoolean())
+        assertEquals("glamping", applied.getValue("accommodationConcept").jsonPrimitive.content)
+    }
+
+    @Test
+    fun `exposes searching analysis metadata and poll interval`() {
+        val encoded = json.encodeToString(
+            HotelOffersResponse.from(
+                search(
+                    preferences = HotelSearchPreferences(
+                        accommodationConcept = AccommodationConcept.GLAMPING,
+                    ),
+                    status = HotelSearch.Status.SEARCHING,
+                    analysis = AccommodationAnalysisMetadata.searching(pollAfterMillis = 1_500),
+                ),
+            ),
+        )
+        val response = Json.parseToJsonElement(encoded).jsonObject
+        val analysis = response.getValue("metadata").jsonObject
+            .getValue("analysis").jsonObject
+
+        assertEquals("searching", response.getValue("status").jsonPrimitive.content)
+        assertEquals("searching", analysis.getValue("status").jsonPrimitive.content)
+        assertEquals(0, analysis.getValue("analyzedCount").jsonPrimitive.content.toInt())
+        assertEquals(1_500, analysis.getValue("pollAfterMillis").jsonPrimitive.content.toInt())
+    }
+
+    @Test
+    fun `marks partial semantic analysis without changing terminal success shape`() {
+        val encoded = json.encodeToString(
+            HotelOffersResponse.from(
+                search(
+                    preferences = HotelSearchPreferences(
+                        accommodationConcept = AccommodationConcept.GLAMPING,
+                    ),
+                    status = HotelSearch.Status.COMPLETED_NO_SEMANTIC_MATCHES,
+                    analysis = AccommodationAnalysisMetadata(
+                        status = AccommodationAnalysisMetadata.Status.PARTIAL,
+                        analyzedCount = 12,
+                        deepAnalyzedCount = 4,
+                        matchCount = 0,
+                        probableCount = 0,
+                    ),
+                ),
+            ),
+        )
+        val metadata = Json.parseToJsonElement(encoded).jsonObject
+            .getValue("metadata").jsonObject
+
+        assertEquals("partial", metadata.getValue("resultCompleteness").jsonPrimitive.content)
+        assertFalse(metadata.getValue("analysis").jsonObject.containsKey("pollAfterMillis"))
     }
 
     @Test
@@ -108,6 +162,8 @@ class HotelOffersResponseTest {
 
     private fun search(
         preferences: HotelSearchPreferences = HotelSearchPreferences(),
+        status: HotelSearch.Status = HotelSearch.Status.COMPLETED_NO_OFFERS,
+        analysis: AccommodationAnalysisMetadata? = null,
     ): HotelSearch =
         HotelSearch(
             id = HotelSearchId("hotel-search-test"),
@@ -120,7 +176,8 @@ class HotelOffersResponseTest {
                 rooms = 1,
                 preferences = preferences,
             ),
-            status = HotelSearch.Status.COMPLETED_NO_OFFERS,
+            status = status,
             offers = emptyList(),
+            analysis = analysis,
         )
 }

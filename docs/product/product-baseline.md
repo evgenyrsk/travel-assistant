@@ -48,6 +48,11 @@
   candidate пропустил достаточно явно названный отель, application может
   дополнить только отсутствующий destination без угадывания произвольного
   текста.
+- Stage 15 - завершён; operational observability не изменила product behavior.
+- Stage 16 - завершён в разрешённом FAKE scope после полного regression gate.
+  Единственный активный concept — `GLAMPING`; REAL vision rollout остаётся
+  заблокированным до подтверждения прав на provider content, controlled
+  model/ZDR probe и прохождения quality gate.
 
 Stage 7 сформировал process-local hotel-only основу. Stage 8 добавил явное
 подтверждение до поиска. Stage 9 добавил opt-in adapters для Hotels API и
@@ -114,6 +119,14 @@ Stage 14.7 различает направление и конкретный о�
 подходящий тариф. Консервативное дополнение явно названного отеля выполняется
 до накопления критериев и не раскрывает provider identity; публичного
 room/rates contract или booking lifecycle нет.
+
+Stage 16 расширяет hotel-only подбор semantic preference `GLAMPING`. Широкое
+определение включает оборудованные tents, domes, yurts, safari tents, tiny
+houses и отдельные cabins в природном формате. Обычные hotel rooms, apartment
+blocks, пустые camping pitches и стандартные cottages без соответствующих
+признаков исключаются. Semantic verdict — объяснимая оценка ассистента, а не
+provider fact; booking и payment по-прежнему не выполняются. `APARTMENT` не
+активирован.
 
 ## 3. Границы MVP v1
 

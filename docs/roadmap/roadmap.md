@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 15 завершён; следующий этап не активирован |
-| Последний завершенный этап | Stage 15.4 — operational contract, conformance и runbook |
-| Следующий планируемый шаг | Выбрать отдельную явную roadmap-aligned задачу без автоматической активации нового этапа |
+| Текущий этап | Нет активного implementation stage; Stage 16.8 выбран как следующий safety follow-up, реализация не начата |
+| Последний завершенный этап | Stage 16.7 — observability, evaluation harness и closure |
+| Следующий планируемый шаг | Stage 16.8a — запретить пользовательские semantic verdict из `FAKE`-анализатора поверх REAL provider data и завершать такой поиск fail-closed |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -66,6 +66,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
 | Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
 | Stage 15 | Завершен | Подтверждены backend-owned business logic и Java 17 portability; добавлены layering guards, correlation, stdout JSON events, probes, OpenMetrics и operational runbook. |
+| Stage 16 | Stage 16.0–16.7 завершены в FAKE scope; Stage 16.8 запланирован | Provider-neutral async two-pass semantic-анализ `GLAMPING`, public polling, observability и evaluation harness прошли regression gates; ручная проверка выявила необходимость fail-closed защиты смешанного REAL/FAKE runtime до любого REAL vision rollout. |
 
 ## 2. Правила управления roadmap
 
@@ -1006,6 +1007,62 @@ capture, auth, CORS, deployment manifests и monitoring vendor остаются 
 Итоговые quality gates подтвердили backend tests, frontend tests/lint/build,
 OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 закрыт без
 заявления multi-instance/HA или полной production readiness.
+
+### Stage 16 — Semantic-анализ типа размещения
+
+**Статус:** Stage 16.0–16.7 завершены в разрешённом FAKE scope. По результатам
+ручной проверки 24 июля 2026 года Stage 16.8 выбран как следующий safety
+follow-up; implementation ещё не начат. REAL rollout не активирован.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 16.0 | Feasibility, taxonomy и policy gates | Завершён; широкое определение `GLAMPING`, границы provider facts/semantic assessment и критерии quality evaluation закреплены. Право передавать provider descriptions/images внешней модели и совместимость выбранного ZDR endpoint не подтверждены, поэтому REAL vision не активирован и controlled probe не выполнялся |
+| Stage 16.1 | Conversation model | Завершён; managed `GLAMPING` извлекается и снимается детерминированно и через strict LLM schema, сохраняется между уточнениями, входит в confirmation/idempotency и сопровождается booking-boundary copy |
+| Stage 16.2 | Classification core | Завершён; application-owned port, typed verdict/evidence/signals, fail-closed batch validation, merge/selection policy и deterministic network-free FAKE implementation покрыты tests |
+| Stage 16.3 | Multimodal adapter | Завершён; opt-in OpenRouter adapter, strict schema, exact-host URL policy, privacy routing, batching и typed failures проверены только через MockEngine; REAL activation отсутствует |
+| Stage 16.4 | Async lifecycle | Завершён; semantic search сначала сохраняется как `searching`, application-owned scheduler ограничивает job 45 секундами, не допускает duplicate launch, атомарно публикует terminal state и отменяется при shutdown |
+| Stage 16.5 | Two-pass orchestration | Завершён; coarse до 20, deep до 6, concurrency 3/2, 45-second lifecycle budget, partial fallback, bounded details cache и FAKE-default runtime composition покрыты tests |
+| Stage 16.6 | Public contract и demo shell | Завершён; response/OpenAPI/conformance расширены async status, bounded analysis/semantic fields, demo polling 1–3 секунды с лимитом 120 секунд и безопасным evidence presentation |
+| Stage 16.7 | Observability, evaluation и closure | Завершён; bounded semantic search/dependency events и metrics, rights-safe evaluation harness/schema и aggregate report добавлены, полный backend regression gate пройден. REAL smoke не выполнялся, потому что provider-content approval, ZDR/model probe и dataset quality gates не закрыты |
+| Stage 16.8a | Backend semantic runtime safety | Следующий разрешённый implementation step; `FAKE`-анализатор остаётся только deterministic test/demo implementation и не формирует пользовательские `MATCH`/`PROBABLE` поверх REAL provider data. Смешанный REAL Hotels + FAKE semantic flow завершается существующим `failed` status без показа обычных отелей |
+| Stage 16.8b | Async UX и прозрачность режимов | Запланирован только после 16.8a; первоначальный `searching` получает текст запуска без семантики duplicate, terminal UI не сообщает, что результаты не готовы, когда карточки уже показаны, а launcher/diagnostics явно различают LLM, Hotels и semantic modes |
+| Stage 16.8c | Regression и closure | Запланирован только после 16.8b; negative fixtures закрывают ложные совпадения `город`, `городской`, `домашний` и аналогичные слова, полные backend/frontend/conformance gates и отдельный review подтверждают fail-closed behavior без REAL vision call |
+| Stage 16.9 | REAL semantic activation gate | Future / blocked; не является активным backlog. Требует отдельной явной задачи, разрешения на передачу provider descriptions/images конкретному внешнему endpoint, exact-host allowlist, controlled ZDR/model probe и пройденного quality dataset |
+
+Диагноз, границы исправления и критерии приёмки Stage 16.8 зафиксированы в
+`docs/reviews/stage-16-8-semantic-runtime-safety-plan.md`. Stage 16.8 не меняет
+taxonomy, ranking, provider mapping или обычный hotel search. Backend safety,
+frontend/demo изменения и closure выполняются отдельными commits и review
+reports.
+
+Первый и единственный активный semantic concept — `GLAMPING`. Он охватывает
+оборудованные tents, domes, yurts, safari tents, tiny houses и отдельные cabins
+в природном формате. Обычные hotel rooms, apartment blocks, пустые camping
+pitches и стандартные cottages без признаков glamping исключаются. `APARTMENT`
+не активирован и требует отдельного определения и quality evaluation.
+
+Semantic verdict является assessment ассистента, а не provider fact. Provider
+остаётся источником availability, цены, рейтинга, amenities, descriptions и
+изображений. Booking и payment не входят в Stage 16; запрос «забронировать
+глемпинг» запускает подбор с явным сообщением этой границы.
+
+До закрытия внешнего policy gate разрешены conversation slice, provider-neutral
+classification core, FAKE mode, тестовые fixtures и evaluation harness без
+provider content. Передача provider descriptions/images во внешнюю модель,
+REAL vision activation и controlled live probe запрещены, пока владелец данных
+не подтвердит такое использование, а выбранные model/provider endpoint —
+совместимость с `require_parameters=true`, `data_collection=deny` и `zdr=true`.
+
+Quality gate перед REAL rollout требует не менее 100 вручную размеченных
+кандидатов из нескольких направлений, precision `MATCH` не ниже 90%, precision
+`MATCH + PROBABLE` не ниже 80%, recall не ниже 70% и false-positive rate для
+обычных отелей не выше 5%. Пограничная часть размечается двумя независимыми
+reviewer. Изображения не коммитятся без подтверждённых прав.
+
+Evaluation harness находится в `tools/semantic-evaluation/`; текущий aggregate
+report имеет статус `NOT_RUN`, поскольку одобренный dataset не предоставлен.
+Это блокирует REAL vision rollout, но не завершённый deterministic FAKE flow.
+Новый этап или REAL activation не разрешены автоматически.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

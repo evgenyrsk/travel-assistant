@@ -50,6 +50,10 @@ class JsonOperationalEventSink(
                 diagnostic?.let { put("diagnostic", JsonPrimitive(it.wireValue)) }
                 durationMillis?.let { put("duration_ms", JsonPrimitive(it)) }
                 offerCount?.let { put("offer_count", JsonPrimitive(it)) }
+                analyzedCount?.let { put("analyzed_count", JsonPrimitive(it)) }
+                deepAnalyzedCount?.let { put("deep_analyzed_count", JsonPrimitive(it)) }
+                matchCount?.let { put("match_count", JsonPrimitive(it)) }
+                probableCount?.let { put("probable_count", JsonPrimitive(it)) }
                 error?.let { operationalError ->
                     put("exception_class", JsonPrimitive(operationalError.exceptionType))
                     put(

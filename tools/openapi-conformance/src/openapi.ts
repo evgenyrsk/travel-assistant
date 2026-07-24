@@ -168,7 +168,9 @@ function inspectAssistantContractShape(
   const detailsSchema = recordValue(schemas?.HotelDetailsResponse);
   const searchSchema = recordValue(schemas?.HotelSearchResponse);
   const metadataSchema = recordValue(schemas?.SearchResultMetadata);
+  const analysisSchema = recordValue(schemas?.AccommodationAnalysisMetadata);
   const hotelOfferSchema = recordValue(schemas?.HotelOffer);
+  const semanticMatchSchema = recordValue(schemas?.AccommodationSemanticMatch);
   const appliedPreferencesSchema = recordValue(
     schemas?.AppliedHotelSearchPreferences,
   );
@@ -179,6 +181,9 @@ function inspectAssistantContractShape(
   const offersProperties = recordValue(offersSchema?.properties);
   const detailsProperties = recordValue(detailsSchema?.properties);
   const hotelOfferProperties = recordValue(hotelOfferSchema?.properties);
+  const metadataProperties = recordValue(metadataSchema?.properties);
+  const analysisProperties = recordValue(analysisSchema?.properties);
+  const semanticMatchProperties = recordValue(semanticMatchSchema?.properties);
   const appliedPreferencesProperties = recordValue(
     appliedPreferencesSchema?.properties,
   );
@@ -273,9 +278,32 @@ function inspectAssistantContractShape(
     metadataRequiredFields: stringArray(metadataSchema?.required).sort(),
     metadataAdditionalPropertiesForbidden:
       metadataSchema?.additionalProperties === false,
+    analysisOptional:
+      stringValue(recordValue(metadataProperties?.analysis)?.$ref) ===
+        "#/components/schemas/AccommodationAnalysisMetadata" &&
+      !stringArray(metadataSchema?.required).includes("analysis"),
+    analysisRequiredFields: stringArray(analysisSchema?.required).sort(),
+    analysisStatusValues: stringArray(
+      recordValue(analysisProperties?.status)?.enum,
+    ).sort(),
+    analysisAdditionalPropertiesForbidden:
+      analysisSchema?.additionalProperties === false,
     hotelOfferRequiredFields: stringArray(hotelOfferSchema?.required).sort(),
     hotelOfferAdditionalPropertiesForbidden:
       hotelOfferSchema?.additionalProperties === false,
+    semanticMatchOptional:
+      stringValue(recordValue(hotelOfferProperties?.semanticMatch)?.$ref) ===
+        "#/components/schemas/AccommodationSemanticMatch" &&
+      !stringArray(hotelOfferSchema?.required).includes("semanticMatch"),
+    semanticMatchRequiredFields: stringArray(semanticMatchSchema?.required).sort(),
+    semanticMatchVerdictValues: stringArray(
+      recordValue(semanticMatchProperties?.verdict)?.enum,
+    ).sort(),
+    semanticMatchEvidenceValues: stringArray(
+      recordValue(recordValue(semanticMatchProperties?.evidenceSources)?.items)?.enum,
+    ).sort(),
+    semanticMatchAdditionalPropertiesForbidden:
+      semanticMatchSchema?.additionalProperties === false,
     ratingOptional:
       recordValue(hotelOfferProperties?.rating) !== undefined &&
       !stringArray(hotelOfferSchema?.required).includes("rating"),
@@ -300,6 +328,9 @@ function inspectAssistantContractShape(
       !stringArray(offersSchema?.required).includes("appliedPreferences"),
     appliedPreferencesFields: Object.keys(
       appliedPreferencesProperties ?? {},
+    ).sort(),
+    accommodationConceptValues: stringArray(
+      recordValue(appliedPreferencesProperties?.accommodationConcept)?.enum,
     ).sort(),
     appliedPreferencesAdditionalPropertiesForbidden:
       appliedPreferencesSchema?.additionalProperties === false,
