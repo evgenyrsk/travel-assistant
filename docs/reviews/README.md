@@ -529,6 +529,7 @@
 216. `docs/reviews/stage-15-4-operational-contract-and-runbook.md`
 217. `docs/reviews/stage-16-0-semantic-accommodation-feasibility-and-policy.md`
 218. `docs/reviews/stage-16-1-semantic-accommodation-conversation-model.md`
+219. `docs/reviews/stage-16-2-semantic-accommodation-classification-core.md`
 
 ## Historical / superseded документы
 
