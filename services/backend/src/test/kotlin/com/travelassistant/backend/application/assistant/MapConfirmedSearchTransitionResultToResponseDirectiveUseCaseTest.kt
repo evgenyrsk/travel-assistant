@@ -1,7 +1,10 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
+import com.travelassistant.backend.application.hotel.HotelLocationSuggestion
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import java.time.Instant
@@ -120,6 +123,49 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
     }
 
     @Test
+    fun notCreatedOutcomesMapToSafeClarificationWithoutSearchId() {
+        val cases = listOf(
+            HotelOfferProviderResult.LocationNotFound to TransitionMessageKind.LOCATION_NOT_FOUND,
+            HotelOfferProviderResult.LocationSelectionRequired(
+                suggestions = listOf(
+                    HotelLocationSuggestion(
+                        name = "Rome",
+                        signature = "City, Italy",
+                        typeCode = "city",
+                        typeName = "City",
+                    ),
+                ),
+            ) to TransitionMessageKind.LOCATION_SELECTION_REQUIRED,
+            HotelOfferProviderResult.RequestRejected(
+                HotelOfferProviderResult.RequestRejectionReason.INVALID_DESTINATION,
+            ) to TransitionMessageKind.SEARCH_REQUEST_REJECTED,
+            HotelOfferProviderResult.ResponseRejected(
+                HotelOfferProviderResult.ResponseRejectionReason.INVALID_PAYLOAD,
+            ) to TransitionMessageKind.TEMPORARY_FAILURE,
+            HotelOfferProviderResult.ProviderUnavailable(
+                HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+            ) to TransitionMessageKind.TEMPORARY_FAILURE,
+        )
+
+        cases.forEach { (outcome, expectedMessageKind) ->
+            val result = ExecuteConfirmedSearchTransitionResult.SearchNotCreated(
+                attempt = attempt(status = ConfirmedSearchExecutionAttemptStatus.FAILED),
+                outcome = outcome,
+                lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+                executionPolicy = ConfirmedSearchExecutionPolicy(),
+            )
+
+            val directive = mapper(result)
+
+            assertEquals(InternalTransitionNextAction.ASK_CLARIFICATION, directive.nextAction)
+            assertEquals(expectedMessageKind, directive.messageKind)
+            assertNull(directive.hotelSearchId)
+            assertFalse(directive.mayShowHotelResults)
+            assertFalse(directive.shouldConsumePendingConfirmation)
+        }
+    }
+
+    @Test
     fun noMapperOutputContainsRawShowHotelResults() {
         val results = listOf(
             ExecuteConfirmedSearchTransitionResult.Transitioned(
@@ -152,6 +198,14 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
             ),
             ExecuteConfirmedSearchTransitionResult.StoreRejected(
                 reason = ConfirmedSearchExecutionAttemptStoreResult.RejectionReason.ATTEMPT_NOT_FOUND,
+                lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+                executionPolicy = ConfirmedSearchExecutionPolicy(),
+            ),
+            ExecuteConfirmedSearchTransitionResult.SearchNotCreated(
+                attempt = attempt(status = ConfirmedSearchExecutionAttemptStatus.FAILED),
+                outcome = HotelOfferProviderResult.ProviderUnavailable(
+                    HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+                ),
                 lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
                 executionPolicy = ConfirmedSearchExecutionPolicy(),
             ),
@@ -217,6 +271,7 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
             attempt = attempt(status = ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS),
             executionResult = ConfirmedSearchExecutionResult.SearchCreated(
                 searchId = searchId,
+                searchStatus = HotelSearch.Status.COMPLETED_WITH_OFFERS,
                 lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
                 executionPolicy = ConfirmedSearchExecutionPolicy(),
             ),
@@ -231,6 +286,33 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
 
         assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, directive.nextAction)
         assertEquals(TransitionMessageKind.RESULTS_READY, directive.messageKind)
+        assertEquals(searchId, directive.hotelSearchId)
+        assertEquals(true, directive.mayShowHotelResults)
+        assertEquals(true, directive.shouldConsumePendingConfirmation)
+    }
+
+    @Test
+    fun transitionedWithEmptySearchUsesNoResultsMessageKind() {
+        val searchId = HotelSearchId("hotel-search-local-empty-001")
+        val result = ExecuteConfirmedSearchTransitionResult.Transitioned(
+            attempt = attempt(status = ConfirmedSearchExecutionAttemptStatus.IN_PROGRESS),
+            executionResult = ConfirmedSearchExecutionResult.SearchCreated(
+                searchId = searchId,
+                searchStatus = HotelSearch.Status.COMPLETED_NO_OFFERS,
+                lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+                executionPolicy = ConfirmedSearchExecutionPolicy(),
+            ),
+            pendingConsumptionDecision =
+                ExecuteConfirmedSearchTransitionResult.PendingConsumptionDecision
+                    .CONSUME_AFTER_SUCCESSFUL_RECORDING,
+            lifecyclePolicy = ConfirmedSearchCreationLifecyclePolicy(),
+            executionPolicy = ConfirmedSearchExecutionPolicy(),
+        )
+
+        val directive = mapper(result)
+
+        assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, directive.nextAction)
+        assertEquals(TransitionMessageKind.NO_RESULTS, directive.messageKind)
         assertEquals(searchId, directive.hotelSearchId)
         assertEquals(true, directive.mayShowHotelResults)
         assertEquals(true, directive.shouldConsumePendingConfirmation)
@@ -309,7 +391,7 @@ class MapConfirmedSearchTransitionResultToResponseDirectiveUseCaseTest {
                     destination = "Rome",
                     checkInDate = LocalDate.parse("2026-07-01"),
                     checkOutDate = LocalDate.parse("2026-07-04"),
-                    guests = HotelSearchCriteria.Guests(adults = 2, children = 0),
+                    guests = HotelSearchCriteria.Guests(adults = 2),
                     rooms = 1,
                 ),
             ),

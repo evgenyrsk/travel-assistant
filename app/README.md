@@ -1,19 +1,131 @@
-# Travel Assistant Frontend
+# Локальная demo shell Travel Assistant
 
-Минимальный frontend-сценарий Stage 7.51 без внешних зависимостей, с отдельной формой поиска отелей.
+Легковесная chat-first оболочка для локальной демонстрации hotel-only MVP без
+внешних зависимостей и сгенерированных клиентов. Это не будущий продуктовый
+web-клиент: его UI, SDK и lifecycle будет определять отдельная интеграционная
+команда.
 
-Текущая форма является временной технической оболочкой для ручной проверки hotel-search потока и локальных backend endpoints. Она не является целевым главным экраном Travel Assistant и не заменяет задуманный chat-first интерфейс. Форма временно сохраняется как diagnostic/demo shell до отдельной задачи Stage 8, которая определит и реализует чатовый пользовательский путь.
+Главная страница начинает пользовательский сценарий с естественного сообщения:
+
+1. первое сообщение создаёт Assistant session;
+2. следующие сообщения продолжают ту же локальную session;
+3. `ask_clarification` и `show_boundary_message` отображаются в истории диалога;
+4. подтверждение отправляется обычным сообщением;
+5. при `show_hotel_results` frontend загружает предложения по `hotelSearchId`;
+6. область результатов показывает первые пять предложений в порядке backend-ранжирования;
+7. активные условия поиска и доступные факты о звёздах, бесплатной отмене и
+   включённом завтраке отображаются без подстановки неизвестных значений;
+8. детали загружаются только после явного выбора кнопки «Подробнее» для одной
+   карточки.
+
+Карточки компактны и адаптивны: горизонтальны на desktop и вертикальны на
+mobile. Общее правило ранжирования показано один раз над списком, а
+повторяющийся `matchSummary` не выводится в каждой карточке.
+
+История диалога хранится только в памяти текущей страницы. OpenRouter и Hotels API
+не вызываются из браузера: demo shell обращается только к Travel Assistant
+backend через `/api/v1/**`.
+
+При каждом сообщении demo shell передаёт необязательные `locale` и IANA
+`timezone`, полученные из browser runtime. Клиентское время или timestamp не
+передаются: backend объединяет timezone со своим `Clock`. Если timezone
+недоступен или некорректен, относительные и не содержащие год даты не
+угадываются — ассистент просит указать день, месяц и год.
+
+Интерфейс адаптируется к desktop и mobile, сохраняет заметный keyboard focus и
+учитывает `prefers-reduced-motion`. Внешние web fonts и frontend dependencies
+не используются. Первое изображение offer загружается из нормализованного
+backend значения `imageUrl` только по HTTPS, с `referrerpolicy=no-referrer`;
+подтверждённый provider template заранее разрешается backend, а при неизвестном
+изображении или ошибке загрузки показывается нейтральный placeholder.
+Дополнительные изображения появляются только после явного запроса details
+выбранного отеля.
+
+Stage 10.1 добавил ограниченную PWA foundation: web app manifest, локальные
+installability icons, standalone/mobile metadata и safe-area layout. Клиент
+остается online-only: service worker отсутствует, а frontend server возвращает
+`Cache-Control: no-store` для локальных assets и проксируемых `/api/v1/**`
+responses. Transcript, hotel offers и provider data не кэшируются.
+
+Прежняя структурированная форма сохранена как диагностическая страница:
+
+```text
+http://127.0.0.1:4173/diagnostic.html
+```
+
+Она вызывает hotel-search route напрямую и не является основным
+демонстрационным сценарием.
 
 ## Запуск
 
-Backend должен быть доступен локально на `http://127.0.0.1:8080`. Локальный frontend-сервер проксирует `/api/v1/**` в backend, поэтому изменения CORS не нужны.
+Backend должен быть доступен локально на `http://127.0.0.1:8080`. Frontend
+server проксирует `/api/v1/**`, поэтому для текущего same-origin web/PWA flow
+изменение CORS не требуется.
 
 ```bash
 cd app
 npm run dev
 ```
 
-По умолчанию UI доступен на `http://127.0.0.1:4173`. Другой backend можно указать через `BACKEND_URL`, другой порт frontend — через `PORT`.
+По умолчанию frontend доступен на `http://127.0.0.1:4173`. Другой backend можно
+указать через `BACKEND_URL`, другой frontend port — через `PORT`.
+
+Для совместного запуска backend и demo shell используйте корневой launcher и
+runbook [`docs/guides/local-mvp-demo.md`](../docs/guides/local-mvp-demo.md):
+
+```bash
+node scripts/local-demo.mjs --fake
+node scripts/local-demo.mjs --real
+```
+
+## Кроссплатформенная граница
+
+Demo shell использует platform-neutral JSON/HTTP API Travel Assistant. API client
+поддерживает внедрение абсолютного `baseUrl` и не зависит от DOM, cookies,
+browser storage или provider contracts. Это позволяет отдельным web, iOS,
+Android и desktop clients переиспользовать `/api/v1/**`, не дублируя
+provider/LLM orchestration и business rules.
+
+Ограниченный продуктовый контракт состоит из четырёх endpoint:
+
+- `POST /api/v1/assistant/sessions`;
+- `POST /api/v1/assistant/sessions/{sessionId}/messages`;
+- `GET /api/v1/hotel-searches/{searchId}/offers`;
+- `GET /api/v1/hotel-searches/{searchId}/offers/{offerId}/details`.
+
+`hotelSearchId` присутствует только при `nextAction=show_hotel_results`.
+Assistant message содержит от 1 до 4000 Unicode code points; malformed JSON и
+unknown fields отклоняются безопасным `VALIDATION_ERROR`. Прямой
+`POST /api/v1/hotel-searches` остается endpoint диагностической страницы и не
+входит в основной клиентский контракт.
+
+Необязательный `clientContext.timezone` является платформонезависимой подсказкой
+для относительных дат. Любой будущий клиент может передать IANA timezone; при
+его отсутствии backend сохраняет fail-closed поведение и запрашивает абсолютные
+даты. `clientContext.locale` пока не меняет поведение.
+
+Ответ offers может содержать необязательные `imageUrl`, `starRating`,
+`freeCancellationUntil`, `breakfastIncluded` и `appliedPreferences`. Отсутствие этих полей означает
+неизвестный или неактивный факт, а не нулевое значение. Demo shell только
+отображает эти данные и не повторяет provider filtering или ranking.
+
+`offerId` является opaque идентификатором Travel Assistant. Demo shell не знает
+provider `hotelId`: она передаёт пару `searchId + offerId` в details endpoint и
+показывает только доступные provider-neutral сведения. Другие карточки не
+загружаются автоматически; повторное открытие уже загруженного блока использует
+данные текущей страницы без нового запроса.
+
+При успешном `completed_no_offers` backend может вернуть один
+`refinementSuggestion`. Demo shell показывает его следующей репликой, но не
+снимает preference и не отправляет новый поиск автоматически.
+
+Текущий server обслуживает локальную same-origin demo shell через proxy. Для
+будущего cross-origin продуктового web-клиента понадобится configurable CORS
+allowlist; native clients не ограничиваются browser CORS. Product UI, native
+SDK, generated clients, auth, durable session resume и cross-device sync в этом
+репозитории не реализуются без отдельной задачи.
+CORS остается выключенным по умолчанию; wildcard и credentialed origins не
+разрешены.
 
 ## Проверки
 
@@ -23,6 +135,10 @@ npm run lint
 npm run build
 ```
 
-Frontend использует ручной клиент на `fetch`. Generated clients не создаются и не используются.
+Автоматические тесты проверяют API paths, продолжение session, безопасные
+clarification/boundary outcomes, ограничение presentation-слоя пятью уже
+ранжированными предложениями, безопасный image fallback, компактный responsive
+layout и on-demand загрузку деталей только выбранной карточки.
 
-Текущий клиент напрямую вызывает Assistant session и hotel-search endpoints для проверки связности Stage 7. Целевой продуктовый поток должен начинаться с естественного сообщения пользователя, проходить через Assistant/LLM orchestration и показывать структурированные результаты рядом с чатом или под ним.
+Frontend не реализует ranking, pagination, booking, payment, durable transcript
+storage или прямые provider calls.

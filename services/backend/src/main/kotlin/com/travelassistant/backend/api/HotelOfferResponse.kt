@@ -1,17 +1,29 @@
 package com.travelassistant.backend.api
 
 import com.travelassistant.backend.domain.hotel.RankedHotelOffer
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class HotelOfferResponse(
     val offerId: String,
-    val providerOfferRef: String,
     val hotelName: String,
     val location: Location,
     val price: Price,
-    val rating: Rating,
-    val amenities: List<Amenity>,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val rating: Rating? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val amenities: List<Amenity>? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val starRating: Int? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val freeCancellationUntil: String? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val imageUrl: String? = null,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val breakfastIncluded: Boolean? = null,
     val availability: String,
     val source: String,
     val freshness: String,
@@ -61,7 +73,6 @@ data class HotelOfferResponse(
 
             return HotelOfferResponse(
                 offerId = offer.id,
-                providerOfferRef = offer.providerReference,
                 hotelName = offer.hotelName,
                 location = Location(
                     city = offer.city,
@@ -74,30 +85,50 @@ data class HotelOfferResponse(
                     includesTaxesAndFees = "unknown",
                     providerFreshness = offer.freshness.apiValue,
                 ),
-                rating = Rating(
-                    value = offer.rating,
-                    scale = 10.0,
-                    reviewCount = offer.reviewCount,
-                    source = offer.source,
-                ),
-                amenities = offer.amenities.map {
+                rating = offer.rating?.let { rating ->
+                    offer.reviewCount?.let { reviewCount ->
+                        Rating(
+                            value = rating,
+                            scale = 10.0,
+                            reviewCount = reviewCount,
+                            source = offer.source,
+                        )
+                    }
+                },
+                amenities = offer.amenities?.map {
                     Amenity(
                         name = it,
                         source = "provider_fact",
                     )
                 },
+                starRating = offer.starRating,
+                freeCancellationUntil = offer.freeCancellationUntil?.toString(),
+                imageUrl = offer.imageUrl,
+                breakfastIncluded = offer.breakfastIncluded,
                 availability = offer.availability.apiValue,
                 source = offer.source,
                 freshness = offer.freshness.apiValue,
                 matchSummary = rankedOffer.matchSummary,
-                providerFacts = listOf(
-                    ProviderFact(
-                        field = "availability",
-                        value = offer.availability.apiValue,
-                        source = offer.source,
-                        freshness = offer.freshness.apiValue,
-                    ),
-                ),
+                providerFacts = buildList {
+                    add(
+                        ProviderFact(
+                            field = "availability",
+                            value = offer.availability.apiValue,
+                            source = offer.source,
+                            freshness = offer.freshness.apiValue,
+                        ),
+                    )
+                    offer.breakfastIncluded?.let { value ->
+                        add(
+                            ProviderFact(
+                                field = "breakfastIncluded",
+                                value = value.toString(),
+                                source = offer.source,
+                                freshness = offer.freshness.apiValue,
+                            ),
+                        )
+                    }
+                },
             )
         }
     }

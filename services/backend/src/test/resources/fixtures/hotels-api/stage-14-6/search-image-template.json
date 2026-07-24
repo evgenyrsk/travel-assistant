@@ -1,0 +1,44 @@
+{
+  "payload": {
+    "filteredHotelsCount": 1,
+    "hotels": [
+      {
+        "hotelId": "hotel-image-template-fixture-1",
+        "hotelName": "Тестовый отель с изображением",
+        "starRating": 5,
+        "areaLocation": {
+          "countryName": "Тестовая страна",
+          "destinationId": 1001,
+          "destinationName": "Тестовый город",
+          "signature": "Тестовый город, Тестовая страна"
+        },
+        "hotelLocation": {
+          "address": "Тестовая улица, 1",
+          "coordinates": {
+            "latitude": 55.01,
+            "longitude": 37.01
+          }
+        },
+        "images": [
+          "https://extranet-cdn.tinkoff.ru/b2b/extranet/{size}/1001/image-fixture.jpg"
+        ],
+        "rateForHotelsFeed": {
+          "availableRoomsCount": 2,
+          "isCreditCardDataRequired": false,
+          "paymentPlace": "now",
+          "shownPrice": {
+            "amount": 42000,
+            "currency": "RUB"
+          }
+        },
+        "review": {
+          "rating": 9.1,
+          "ratingsCount": 120
+        }
+      }
+    ],
+    "hotelsTotalCount": 1,
+    "isLoadingCompleted": true,
+    "nextOffset": null
+  }
+}

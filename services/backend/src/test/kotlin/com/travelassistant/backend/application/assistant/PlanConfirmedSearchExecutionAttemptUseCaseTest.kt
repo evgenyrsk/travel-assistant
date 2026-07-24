@@ -73,6 +73,34 @@ class PlanConfirmedSearchExecutionAttemptUseCaseTest {
     }
 
     @Test
+    fun idempotencyTreatsPermutedChildAgesAsEquivalent() {
+        val sessionId = AssistantSessionId("assistant-session-local-000123")
+        val firstPlan = commandReadyPlan(
+            sessionId = sessionId,
+            criteria = hotelSearchCriteria(
+                guests = HotelSearchCriteria.Guests(
+                    adults = 2,
+                    childrenAges = listOf(0, 17),
+                ),
+            ),
+        )
+        val secondPlan = commandReadyPlan(
+            sessionId = sessionId,
+            criteria = hotelSearchCriteria(
+                guests = HotelSearchCriteria.Guests(
+                    adults = 2,
+                    childrenAges = listOf(17, 0),
+                ),
+            ),
+        )
+
+        assertEquals(
+            ConfirmedSearchExecutionIdempotencyKey.from(firstPlan),
+            ConfirmedSearchExecutionIdempotencyKey.from(secondPlan),
+        )
+    }
+
+    @Test
     fun duplicateInProgressAttemptIsDetectedAndBlocked() {
         val guardResult = allowedGuardResult()
         val existingAttempt = attempt(
@@ -334,7 +362,7 @@ class PlanConfirmedSearchExecutionAttemptUseCaseTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: ProceedWithCandidateCriteria.Guests = ProceedWithCandidateCriteria.Guests(
             adults = 2,
-            children = 0,
+            childrenAges = emptyList(),
         ),
         rooms: Int = 1,
     ): ProceedWithCandidateCriteria =
@@ -352,7 +380,7 @@ class PlanConfirmedSearchExecutionAttemptUseCaseTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: HotelSearchCriteria.Guests = HotelSearchCriteria.Guests(
             adults = 2,
-            children = 0,
+            childrenAges = emptyList(),
         ),
         rooms: Int = 1,
     ): HotelSearchCriteria =

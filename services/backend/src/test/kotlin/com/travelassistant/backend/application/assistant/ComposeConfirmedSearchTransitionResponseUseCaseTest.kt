@@ -1,6 +1,8 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
+import com.travelassistant.backend.application.hotel.CreateHotelSearchResult
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
 import com.travelassistant.backend.application.hotel.HotelSearchBoundary
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearch
@@ -8,6 +10,7 @@ import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import java.time.Instant
 import java.time.LocalDate
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -19,7 +22,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     private val now = Instant.parse("2026-06-25T10:00:00Z")
 
     @Test
-    fun successfulTransitionComposesShowHotelResultsDirective() {
+    fun successfulTransitionComposesShowHotelResultsDirective() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
@@ -34,7 +37,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
         assertEquals(InternalTransitionNextAction.SHOW_HOTEL_RESULTS, result.responseDirective.nextAction)
         assertEquals(TransitionMessageKind.RESULTS_READY, result.responseDirective.messageKind)
         assertEquals(
-            "The search is ready. Hotel results are available.",
+            "Поиск завершён. Результат готов.",
             result.messageText,
         )
         assertEquals(
@@ -45,7 +48,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
-    fun successfulTransitionIncludesHotelSearchId() {
+    fun successfulTransitionIncludesHotelSearchId() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
@@ -62,7 +65,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
-    fun successfulTransitionRequestsHotelResults() {
+    fun successfulTransitionRequestsHotelResults() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
@@ -78,7 +81,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
-    fun successfulTransitionRequestsPendingConsume() {
+    fun successfulTransitionRequestsPendingConsume() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
@@ -97,7 +100,44 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
-    fun duplicateSucceededComposesShowHotelResultsWithExistingSearchId() {
+    fun emptySuccessfulSearchUsesClearNoResultsMessage() = runBlocking {
+        val emptySearch = HotelSearch(
+            id = HotelSearchId("hotel-search-local-empty-compose-001"),
+            sessionId = AssistantSessionId("assistant-session-local-000123"),
+            criteria = HotelSearchCriteria(
+                destination = "Rome",
+                checkInDate = LocalDate.parse("2026-07-01"),
+                checkOutDate = LocalDate.parse("2026-07-04"),
+                guests = HotelSearchCriteria.Guests(
+                    adults = 2,
+                    childrenAges = emptyList(),
+                ),
+                rooms = 1,
+            ),
+            status = HotelSearch.Status.COMPLETED_NO_OFFERS,
+            offers = emptyList(),
+        )
+        val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
+            executeTransition = ExecuteConfirmedSearchTransitionUseCase(
+                attemptStore = InMemoryConfirmedSearchExecutionAttemptStore(),
+                hotelSearchBoundary = TestHotelSearchBoundary(
+                    result = CreateHotelSearchResult.Created(emptySearch),
+                ),
+            ),
+        )
+
+        val result = useCase(compositionRequest())
+
+        assertEquals(TransitionMessageKind.NO_RESULTS, result.responseDirective.messageKind)
+        assertEquals(
+            "Поиск завершён, но подходящих вариантов не найдено.",
+            result.messageText,
+        )
+        assertNotNull(result.hotelSearchId)
+    }
+
+    @Test
+    fun duplicateSucceededComposesShowHotelResultsWithExistingSearchId() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
@@ -126,7 +166,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
-    fun guardRejectedComposesConfirmationRejectedMessageWithoutConsume() {
+    fun guardRejectedComposesConfirmationRejectedMessageWithoutConsume() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
@@ -142,7 +182,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
         assertIs<ExecuteConfirmedSearchTransitionResult.GuardRejected>(result.transitionResult)
         assertEquals(TransitionMessageKind.CONFIRMATION_REJECTED, result.responseDirective.messageKind)
         assertEquals(
-            "I could not proceed with the current confirmation state.",
+            "Не удалось продолжить поиск с текущим подтверждением.",
             result.messageText,
         )
         assertEquals(
@@ -152,7 +192,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
-    fun compositionDoesNotRequireCreateHotelSearchUseCase() {
+    fun compositionDoesNotRequireCreateHotelSearchUseCase() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
@@ -167,7 +207,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
-    fun compositionDoesNotMutatePendingConfirmationStore() {
+    fun compositionDoesNotMutatePendingConfirmationStore() = runBlocking {
         val pendingStore = InMemoryPendingConfirmationStore()
         val pendingConfirmation = pendingStore.save(pendingConfirmation())
         val attemptStore = InMemoryConfirmedSearchExecutionAttemptStore()
@@ -194,7 +234,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
-    fun composedResultDoesNotExposeForbiddenTokens() {
+    fun composedResultDoesNotExposeForbiddenTokens() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
             executeTransition = ExecuteConfirmedSearchTransitionUseCase(
@@ -219,7 +259,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
     }
 
     @Test
-    fun duplicateSucceededWithSearchIdComposesShowHotelResultsDirective() {
+    fun duplicateSucceededWithSearchIdComposesShowHotelResultsDirective() = runBlocking {
         val store = InMemoryConfirmedSearchExecutionAttemptStore()
         val criteria = proceedCriteria()
         val commandPlan = ConfirmedSearchCreationCommandPlan.CommandReady(
@@ -231,7 +271,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
                     checkOutDate = criteria.checkOutDate,
                     guests = HotelSearchCriteria.Guests(
                         adults = criteria.guests.adults,
-                        children = criteria.guests.children,
+                        childrenAges = criteria.guests.childrenAges,
                     ),
                     rooms = criteria.rooms,
                 ),
@@ -279,9 +319,39 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
             result.pendingConsumeInstruction,
         )
         assertEquals(
-            "The search is ready. Hotel results are available.",
+            "Поиск завершён. Результат готов.",
             result.messageText,
         )
+    }
+
+    @Test
+    fun providerUnavailableComposesSafeClarificationWithoutSearchIdOrConsume() = runBlocking {
+        val outcome = HotelOfferProviderResult.ProviderUnavailable(
+            HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+        )
+        val useCase = ComposeConfirmedSearchTransitionResponseUseCase(
+            executeTransition = ExecuteConfirmedSearchTransitionUseCase(
+                attemptStore = InMemoryConfirmedSearchExecutionAttemptStore(),
+                hotelSearchBoundary = TestHotelSearchBoundary(
+                    result = CreateHotelSearchResult.NotCreated(outcome),
+                ),
+            ),
+        )
+
+        val result = useCase(compositionRequest())
+
+        assertIs<ExecuteConfirmedSearchTransitionResult.SearchNotCreated>(result.transitionResult)
+        assertEquals(InternalTransitionNextAction.ASK_CLARIFICATION, result.responseDirective.nextAction)
+        assertEquals(TransitionMessageKind.TEMPORARY_FAILURE, result.responseDirective.messageKind)
+        assertEquals(
+            "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз.",
+            result.messageText,
+        )
+        assertEquals(
+            PendingConsumeInstruction.DO_NOT_CONSUME_PENDING_CONFIRMATION,
+            result.pendingConsumeInstruction,
+        )
+        assertEquals(null, result.hotelSearchId)
     }
 
     private fun compositionRequest(
@@ -335,7 +405,7 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: ProceedWithCandidateCriteria.Guests = ProceedWithCandidateCriteria.Guests(
             adults = 2,
-            children = 0,
+            childrenAges = emptyList(),
         ),
         rooms: Int = 1,
     ): ProceedWithCandidateCriteria =
@@ -348,14 +418,18 @@ class ComposeConfirmedSearchTransitionResponseUseCaseTest {
         )
 }
 
-private class TestHotelSearchBoundary : HotelSearchBoundary {
-    override fun createSearch(command: CreateHotelSearchCommand): HotelSearch =
-        HotelSearch(
-            id = HotelSearchId("hotel-search-local-test-compose-001"),
-            sessionId = command.sessionId,
-            criteria = command.criteria,
-            status = HotelSearch.Status.COMPLETED_WITH_OFFERS,
-            offers = emptyList(),
+private class TestHotelSearchBoundary(
+    private val result: CreateHotelSearchResult? = null,
+) : HotelSearchBoundary {
+    override suspend fun createSearch(command: CreateHotelSearchCommand): CreateHotelSearchResult =
+        result ?: CreateHotelSearchResult.Created(
+            HotelSearch(
+                id = HotelSearchId("hotel-search-local-test-compose-001"),
+                sessionId = command.sessionId,
+                criteria = command.criteria,
+                status = HotelSearch.Status.COMPLETED_WITH_OFFERS,
+                offers = emptyList(),
+            ),
         )
 
     override fun getSearch(searchId: HotelSearchId): HotelSearch =

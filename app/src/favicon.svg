@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Travel Assistant">
+  <rect width="64" height="64" rx="18" fill="#176447"/>
+  <path d="M32 12c1.9 10.2 9.8 18.1 20 20-10.2 1.9-18.1 9.8-20 20-1.9-10.2-9.8-18.1-20-20 10.2-1.9 18.1-9.8 20-20Z" fill="#fff"/>
+  <circle cx="47" cy="17" r="4" fill="#bdebd8"/>
+</svg>

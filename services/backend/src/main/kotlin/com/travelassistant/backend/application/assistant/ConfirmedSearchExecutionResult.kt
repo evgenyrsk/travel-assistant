@@ -1,5 +1,6 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 
 sealed interface ConfirmedSearchExecutionResult {
@@ -15,6 +16,7 @@ sealed interface ConfirmedSearchExecutionResult {
 
     data class SearchCreated(
         val searchId: HotelSearchId,
+        val searchStatus: HotelSearch.Status,
         override val lifecyclePolicy: ConfirmedSearchCreationLifecyclePolicy,
         override val executionPolicy: ConfirmedSearchExecutionPolicy,
     ) : ConfirmedSearchExecutionResult

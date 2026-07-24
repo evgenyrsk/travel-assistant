@@ -2,9 +2,13 @@ package com.travelassistant.backend.api
 
 import com.travelassistant.backend.application.assistant.InMemoryPendingConfirmationStore
 import com.travelassistant.backend.application.assistant.PendingConfirmationStatus
+import com.travelassistant.backend.application.assistant.AssistantLlmDiagnosticEvent
+import com.travelassistant.backend.application.assistant.AssistantLlmDiagnosticObserver
 import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmClient
 import com.travelassistant.backend.application.llm.LlmClientResponse
+import com.travelassistant.backend.application.llm.LlmHotelSearchPreferencesPatch
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.module
@@ -53,7 +57,7 @@ class AssistantSessionRoutesTest {
         assertEquals("collecting_requirements", session?.get("status")?.jsonPrimitive?.content)
         assertEquals("assistant", assistantMessage?.get("role")?.jsonPrimitive?.content)
         assertEquals(
-            "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+            "Расскажите, куда и когда планируете поездку и кто едет с вами.",
             assistantMessage?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
@@ -100,7 +104,7 @@ class AssistantSessionRoutesTest {
         assertEquals("collecting_requirements", session?.get("status")?.jsonPrimitive?.content)
         assertEquals("assistant", assistantMessage?.get("role")?.jsonPrimitive?.content)
         assertEquals(
-            "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+            "Уточните точные даты заезда и выезда.",
             assistantMessage?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
@@ -146,7 +150,7 @@ class AssistantSessionRoutesTest {
         assertEquals("show_hotel_results", assistantBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals("hotel-search-local-000001", hotelSearchId)
         assertEquals(
-            "Hotel search created. Ranked offers are ready.",
+            "Поиск завершён. Результат готов.",
             assistantBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
 
@@ -155,9 +159,13 @@ class AssistantSessionRoutesTest {
         val offers = offersBody["offers"]?.jsonArray.orEmpty()
 
         assertEquals(HttpStatusCode.OK, offersResponse.status)
-        assertEquals("fake-offer-rome-001", offers.first().jsonObject["offerId"]?.jsonPrimitive?.content)
         assertEquals(
-            "Available; ranked by rating, total stay price, then offer ID.",
+            "hotel-offer-local-000002",
+            offers.first().jsonObject["offerId"]?.jsonPrimitive?.content,
+        )
+        assertEquals(false, offers.first().jsonObject.containsKey("providerOfferRef"))
+        assertEquals(
+            "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
             offers.first().jsonObject["matchSummary"]?.jsonPrimitive?.content,
         )
     }
@@ -229,7 +237,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "What are your stay dates?",
+            "Уточните точные даты заезда и выезда.",
             body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, body.containsKey("hotelSearchId"))
@@ -246,12 +254,15 @@ class AssistantSessionRoutesTest {
     @Test
     fun llmFallbackPathReturnsSafePublicOutcomeWithoutRawReason() = testApplication {
         val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+        val diagnosticEvents = mutableListOf<AssistantLlmDiagnosticEvent>()
 
         application {
             moduleWithAssistantLlm(
                 FakeLlmClient(LlmClientResponse.Empty),
                 pendingConfirmationStore = pendingConfirmationStore,
                 clock = routeClock,
+                assistantLlmDiagnosticObserver =
+                    AssistantLlmDiagnosticObserver(diagnosticEvents::add),
             )
         }
 
@@ -267,8 +278,17 @@ class AssistantSessionRoutesTest {
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("show_boundary_message", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "Не удалось обработать сообщение из-за временного сбоя. " +
+                "Попробуйте отправить его ещё раз.",
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
         assertEquals(false, body.containsKey("hotelSearchId"))
         assertEquals(false, body.containsKey("fallbackReason"))
+        assertEquals(
+            listOf(AssistantLlmDiagnosticEvent.CANDIDATE_EMPTY_RESPONSE),
+            diagnosticEvents,
+        )
         body.assertNoRawLlmFields()
         assertEquals(
             null,
@@ -304,9 +324,12 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 0; номера: 1. " +
-                "Проверить отели по этим параметрам?",
+            """Проверьте параметры:
+Куда: Rome
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, без детей
+
+Найти отели по этим параметрам?""",
             body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, body.containsKey("hotelSearchId"))
@@ -328,8 +351,10 @@ class AssistantSessionRoutesTest {
         assertEquals(routeNow, pendingConfirmation?.updatedAt)
         assertEquals(routeNow.plusSeconds(900), pendingConfirmation?.expiresAt)
         assertEquals(
-            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 0; номера: 1.",
+            """Проверьте параметры:
+Куда: Rome
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, без детей""",
             pendingConfirmation?.proposal?.summary,
         )
         listOf(
@@ -373,7 +398,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Please confirm the destination, dates, guests, and rooms before I prepare a hotel search confirmation.",
+            "Уточните точные даты заезда и выезда.",
             body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, body.containsKey("hotelSearchId"))
@@ -393,12 +418,15 @@ class AssistantSessionRoutesTest {
     @Test
     fun unsafeProceedCandidateReturnsSafeFallbackWithoutRawReason() = testApplication {
         val pendingConfirmationStore = InMemoryPendingConfirmationStore()
+        val diagnosticEvents = mutableListOf<AssistantLlmDiagnosticEvent>()
 
         application {
             moduleWithAssistantLlm(
                 FakeLlmClient(LlmClientResponse.Candidate(warningInterpretedHotelSearchCandidate())),
                 pendingConfirmationStore = pendingConfirmationStore,
                 clock = routeClock,
+                assistantLlmDiagnosticObserver =
+                    AssistantLlmDiagnosticObserver(diagnosticEvents::add),
             )
         }
 
@@ -414,8 +442,17 @@ class AssistantSessionRoutesTest {
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("show_boundary_message", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "В параметрах поездки осталось противоречие. " +
+                "Переформулируйте запрос или уточните спорное условие.",
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
         assertEquals(false, body.containsKey("hotelSearchId"))
         assertEquals(false, body.containsKey("fallbackReason"))
+        assertEquals(
+            listOf(AssistantLlmDiagnosticEvent.CONFIRMATION_CONFLICTS_OR_WARNINGS),
+            diagnosticEvents,
+        )
         body.assertNoRawLlmFields()
         assertEquals(
             false,
@@ -521,7 +558,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("show_hotel_results", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "The search is ready. Hotel results are available.",
+            "Поиск завершён. Результат готов.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertTrue(hotelSearchId.isNotBlank())
@@ -565,7 +602,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "What are your stay dates?",
+            "Уточните точные даты заезда и выезда.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))
@@ -617,7 +654,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Please confirm clearly, cancel, or share corrected hotel search criteria.",
+            "Подтвердите параметры, отмените поиск или пришлите исправленные условия.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))
@@ -667,7 +704,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Okay, I will not start a hotel search. You can share new hotel criteria when ready.",
+            "Хорошо, поиск отелей не запущен. Когда будете готовы, сообщите новые параметры.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))
@@ -679,7 +716,7 @@ class AssistantSessionRoutesTest {
     }
 
     @Test
-    fun correctionConfirmationReplyConsumesPendingStateWithoutCreatingHotelSearch() = testApplication {
+    fun correctionConfirmationReplyReplacesPendingStateWithoutCreatingHotelSearch() = testApplication {
         val pendingConfirmationStore = InMemoryPendingConfirmationStore()
         var llmResponse: LlmClientResponse =
             LlmClientResponse.Candidate(interpretedHotelSearchCandidate())
@@ -701,7 +738,11 @@ class AssistantSessionRoutesTest {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             setBody("""{"message":"Find a hotel in Rome for two adults"}""")
         }
-        llmResponse = LlmClientResponse.Empty
+        llmResponse = LlmClientResponse.Candidate(
+            interpretedHotelSearchCandidate().copy(
+                extractedConstraints = mapOf("destination" to "Paris"),
+            ),
+        )
 
         val replyResponse = client.post("/api/v1/assistant/sessions/$sessionId/messages") {
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
@@ -716,12 +757,17 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "Please share the corrected destination, dates, guests, and rooms before I continue.",
+            """Проверьте параметры:
+Куда: Paris
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, без детей
+
+Найти отели по этим параметрам?""",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))
         replyBody.assertNoRawLlmFields()
-        assertEquals(null, activePendingAfterReply)
+        assertEquals("Paris", activePendingAfterReply?.criteria?.destination)
 
         val offersResponse = client.get("/api/v1/hotel-searches/hotel-search-local-000001/offers")
         assertEquals(HttpStatusCode.NotFound, offersResponse.status)
@@ -769,7 +815,7 @@ class AssistantSessionRoutesTest {
         assertEquals(HttpStatusCode.OK, replyResponse.status)
         assertEquals("ask_clarification", replyBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "I could not match that reply to the pending confirmation. Please confirm, cancel, or share corrected criteria.",
+            "Не удалось распознать ответ на подтверждение. Подтвердите параметры, отмените поиск или пришлите исправленные условия.",
             replyBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertEquals(false, replyBody.containsKey("hotelSearchId"))
@@ -782,7 +828,7 @@ class AssistantSessionRoutesTest {
     }
 
     @Test
-    fun createAssistantSessionAcceptsOptionalClientContextAsBehaviorNeutralInput() = testApplication {
+    fun createAssistantSessionAcceptsOptionalClientContextWithoutEchoingIt() = testApplication {
         application {
             module()
         }
@@ -814,7 +860,7 @@ class AssistantSessionRoutesTest {
     }
 
     @Test
-    fun acceptAssistantMessageAcceptsOptionalClientContextAndKeepsNextActionRequired() = testApplication {
+    fun acceptAssistantMessageAcceptsOptionalClientContextWithoutEchoingIt() = testApplication {
         application {
             module()
         }
@@ -851,6 +897,262 @@ class AssistantSessionRoutesTest {
         assertEquals(false, body.containsKey("clientContext"))
         assertEquals(false, body.containsKey("hotelSearchRequest"))
         assertEquals(false, body.containsKey("searchIntentSummary"))
+    }
+
+    @Test
+    fun clientTimezoneProvidesCurrentReferenceDateAndOmittedRoomsDefaultToOne() = testApplication {
+        val clientNow = Instant.parse("2026-07-22T22:30:00Z")
+        var capturedRequest: LlmCandidateRequest? = null
+        val testLlmClient = LlmClient { request ->
+            capturedRequest = request
+            LlmClientResponse.Candidate(
+                LlmCandidate(
+                    outcome = LlmCandidate.Outcome.INTERPRETED,
+                    intent = LlmCandidate.Intent.HOTEL_SEARCH,
+                    extractedConstraints = mapOf(
+                        "destination" to "Москва",
+                        "check-in" to "2026-07-23",
+                        "check-out" to "2026-07-24",
+                        "adults" to "2",
+                        "children" to "0",
+                    ),
+                ),
+            )
+        }
+
+        application {
+            moduleWithAssistantLlm(
+                testLlmClient,
+                clock = Clock.fixed(clientNow, ZoneOffset.UTC),
+            )
+        }
+
+        val response = client.post("/api/v1/assistant/sessions") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """
+                {
+                  "message": "Хочу в Москву сегодня до завтра с супругой вдвоём",
+                  "clientContext": {
+                    "locale": "ru-RU",
+                    "timezone": "Europe/Moscow"
+                  }
+                }
+                """.trimIndent(),
+            )
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals(LocalDate.parse("2026-07-23"), capturedRequest?.referenceDate)
+        assertEquals("1", capturedRequest?.confirmedConstraints?.get("rooms"))
+        assertEquals(false, capturedRequest?.missingRequiredFields?.contains("rooms"))
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertTrue(
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content
+                ?.contains("Даты: 23–24 июля 2026") == true,
+        )
+        assertTrue(
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content
+                ?.contains("Гости: 2 взрослых, без детей") == true,
+        )
+        assertEquals(
+            false,
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content
+                ?.contains("Номера:") == true,
+        )
+        assertEquals(false, body.containsKey("hotelSearchId"))
+    }
+
+    @Test
+    fun spouseTomorrowOneNightAndBreakfastReachReadableConfirmation() = testApplication {
+        val clientNow = Instant.parse("2026-07-23T08:00:00Z")
+        var capturedRequest: LlmCandidateRequest? = null
+        val testLlmClient = LlmClient { request ->
+            capturedRequest = request
+            LlmClientResponse.Candidate(
+                LlmCandidate(
+                    outcome = LlmCandidate.Outcome.INTERPRETED,
+                    intent = LlmCandidate.Intent.HOTEL_SEARCH,
+                    extractedConstraints = mapOf(
+                        "destination" to "Москва",
+                        "check-in" to "2026-07-24",
+                        "check-out" to "2026-07-25",
+                        "adults" to "2",
+                        "children" to "0",
+                        "rooms" to "1",
+                    ),
+                    preferencePatch = LlmHotelSearchPreferencesPatch(
+                        breakfastIncludedRequired = true,
+                    ),
+                ),
+            )
+        }
+
+        application {
+            moduleWithAssistantLlm(
+                testLlmClient,
+                clock = Clock.fixed(clientNow, ZoneOffset.UTC),
+            )
+        }
+
+        val response = client.post("/api/v1/assistant/sessions") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """
+                {
+                  "message": "Хочу в Москву с супругой на завтра на одну ночь в отель с завтраками",
+                  "clientContext": {
+                    "locale": "ru-RU",
+                    "timezone": "Europe/Moscow"
+                  }
+                }
+                """.trimIndent(),
+            )
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+        val reply = body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals(LocalDate.parse("2026-07-23"), capturedRequest?.referenceDate)
+        assertEquals("1", capturedRequest?.confirmedConstraints?.get("rooms"))
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            """Проверьте параметры:
+Куда: Москва
+Даты: 24–25 июля 2026
+Гости: 2 взрослых, без детей
+Условия: завтрак включён
+
+Найти отели по этим параметрам?""",
+            reply,
+        )
+        assertEquals(false, body.containsKey("hotelSearchId"))
+    }
+
+    @Test
+    fun relativeDatesWithoutClientTimezoneRequireAbsoluteDateClarification() = testApplication {
+        val testLlmClient = LlmClient {
+            LlmClientResponse.Candidate(
+                LlmCandidate(
+                    outcome = LlmCandidate.Outcome.INTERPRETED,
+                    intent = LlmCandidate.Intent.HOTEL_SEARCH,
+                    extractedConstraints = mapOf(
+                        "destination" to "Москва",
+                        "check-in" to "2026-07-23",
+                        "check-out" to "2026-07-24",
+                        "adults" to "2",
+                    ),
+                ),
+            )
+        }
+
+        application {
+            moduleWithAssistantLlm(testLlmClient, clock = routeClock)
+        }
+
+        val response = client.post("/api/v1/assistant/sessions") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("""{"message":"Хочу в Москву сегодня до завтра с супругой вдвоём"}""")
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "Уточните даты поездки, указав день, месяц и год.",
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
+        assertEquals(false, body.containsKey("hotelSearchId"))
+    }
+
+    @Test
+    fun relativeDatesWithInvalidClientTimezoneRequireAbsoluteDateClarification() = testApplication {
+        val testLlmClient = LlmClient {
+            LlmClientResponse.Candidate(
+                LlmCandidate(
+                    outcome = LlmCandidate.Outcome.INTERPRETED,
+                    intent = LlmCandidate.Intent.HOTEL_SEARCH,
+                    extractedConstraints = mapOf(
+                        "destination" to "Москва",
+                        "check-in" to "2026-07-23",
+                        "check-out" to "2026-07-24",
+                        "adults" to "2",
+                    ),
+                ),
+            )
+        }
+
+        application {
+            moduleWithAssistantLlm(testLlmClient, clock = routeClock)
+        }
+
+        val response = client.post("/api/v1/assistant/sessions") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """
+                {
+                  "message": "Хочу в Москву сегодня до завтра с супругой вдвоём",
+                  "clientContext": {"timezone": "not-a-timezone"}
+                }
+                """.trimIndent(),
+            )
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "Уточните даты поездки, указав день, месяц и год.",
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
+        assertEquals(false, body.containsKey("hotelSearchId"))
+    }
+
+    @Test
+    fun pastYearFromLlmIsRejectedBeforeConfirmation() = testApplication {
+        val testLlmClient = LlmClient {
+            LlmClientResponse.Candidate(
+                LlmCandidate(
+                    outcome = LlmCandidate.Outcome.INTERPRETED,
+                    intent = LlmCandidate.Intent.HOTEL_SEARCH,
+                    extractedConstraints = mapOf(
+                        "destination" to "Москва",
+                        "check-in" to "2025-08-10",
+                        "check-out" to "2025-08-14",
+                        "adults" to "2",
+                    ),
+                ),
+            )
+        }
+
+        application {
+            moduleWithAssistantLlm(
+                testLlmClient,
+                clock = Clock.fixed(Instant.parse("2026-07-23T10:00:00Z"), ZoneOffset.UTC),
+            )
+        }
+
+        val response = client.post("/api/v1/assistant/sessions") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """
+                {
+                  "message": "Москва с 10 по 14 августа 2025 года для двоих",
+                  "clientContext": {"timezone": "Europe/Moscow"}
+                }
+                """.trimIndent(),
+            )
+        }
+        val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        assertEquals("ask_clarification", body["nextAction"]?.jsonPrimitive?.content)
+        assertEquals(
+            "Уточните даты поездки, указав день, месяц и год.",
+            body["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
+        )
+        assertEquals(false, body.containsKey("hotelSearchId"))
     }
 
     @Test
@@ -999,7 +1301,7 @@ class AssistantSessionRoutesTest {
         assertEquals(false, promptBody.containsKey("hotelSearchId"))
         assertEquals("show_hotel_results", confirmBody["nextAction"]?.jsonPrimitive?.content)
         assertEquals(
-            "The search is ready. Hotel results are available.",
+            "Поиск завершён. Результат готов.",
             confirmBody["assistantMessage"]?.jsonObject?.get("content")?.jsonPrimitive?.content,
         )
         assertTrue(hotelSearchId.isNotBlank())

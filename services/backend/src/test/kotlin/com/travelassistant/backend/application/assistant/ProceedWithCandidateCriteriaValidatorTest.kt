@@ -1,6 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,7 +22,21 @@ class ProceedWithCandidateCriteriaValidatorTest {
         assertEquals(LocalDate.parse("2026-07-04"), accepted.criteria.checkOutDate)
         assertEquals(2, accepted.criteria.guests.adults)
         assertEquals(1, accepted.criteria.guests.children)
+        assertEquals(listOf(7), accepted.criteria.guests.childrenAges)
         assertEquals(1, accepted.criteria.rooms)
+    }
+
+    @Test
+    fun carriesApplicationOwnedPreferencesIntoAcceptedCriteria() {
+        val preferences = HotelSearchPreferences(
+            stars = setOf(4, 5),
+            minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+        )
+
+        val result = validator(proceedWithCandidate(), preferences)
+
+        val accepted = assertIs<ProceedWithCandidateValidationResult.Accepted>(result)
+        assertEquals(preferences, accepted.criteria.preferences)
     }
 
     @Test
@@ -61,6 +76,58 @@ class ProceedWithCandidateCriteriaValidatorTest {
     }
 
     @Test
+    fun acceptsChildAgeBoundariesAndPreservesOrder() {
+        val result = validateWithConstraints(
+            "children" to "2",
+            "children-ages" to "17,0",
+        )
+
+        val accepted = assertIs<ProceedWithCandidateValidationResult.Accepted>(result)
+        assertEquals(listOf(17, 0), accepted.criteria.guests.childrenAges)
+    }
+
+    @Test
+    fun rejectsChildrenWithoutCompleteAges() {
+        val result = validator(
+            proceedWithCandidate(
+                completeCandidate(
+                    constraints = completeConstraints() - "children-ages",
+                ),
+            ),
+        )
+
+        assertRejectedWith(result, ProceedWithCandidateValidationIssue.MISSING_CHILDREN_AGES)
+    }
+
+    @Test
+    fun rejectsOutOfRangeOrInvalidChildAges() {
+        val outOfRange = validateWithConstraints(
+            "children" to "2",
+            "children-ages" to "-1,18",
+        )
+        val invalid = validateWithConstraints(
+            "children" to "2",
+            "children-ages" to "7,unknown",
+        )
+
+        assertRejectedWith(outOfRange, ProceedWithCandidateValidationIssue.INVALID_CHILDREN_AGES)
+        assertRejectedWith(invalid, ProceedWithCandidateValidationIssue.INVALID_CHILDREN_AGES)
+    }
+
+    @Test
+    fun rejectsChildCountAndAgesMismatch() {
+        val result = validateWithConstraints(
+            "children" to "2",
+            "children-ages" to "7",
+        )
+
+        assertRejectedWith(
+            result,
+            ProceedWithCandidateValidationIssue.CHILDREN_AGES_COUNT_MISMATCH,
+        )
+    }
+
+    @Test
     fun rejectsMissingOrInvalidRooms() {
         val missingRooms = validator(
             proceedWithCandidate(
@@ -75,6 +142,18 @@ class ProceedWithCandidateCriteriaValidatorTest {
 
         assertRejectedWith(missingRooms, ProceedWithCandidateValidationIssue.MISSING_ROOMS)
         assertRejectedWith(invalidRooms, ProceedWithCandidateValidationIssue.INVALID_ROOMS)
+    }
+
+    @Test
+    fun rejectsMultipleRoomsAsUnsupported() {
+        val result = validateWithConstraints(
+            "rooms" to "2",
+        )
+
+        assertRejectedWith(
+            result,
+            ProceedWithCandidateValidationIssue.UNSUPPORTED_ROOM_COUNT,
+        )
     }
 
     @Test
@@ -243,6 +322,7 @@ class ProceedWithCandidateCriteriaValidatorTest {
             "check-out" to "2026-07-04",
             "adults" to "2",
             "children" to "1",
+            "children-ages" to "7",
             "rooms" to "1",
         )
 

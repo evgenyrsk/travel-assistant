@@ -1,0 +1,180 @@
+{
+  "payload": {
+    "popularFilters": [
+      {
+        "$objectType": "array",
+        "values": ["hotel"],
+        "filterId": "accommodation_types"
+      },
+      {
+        "$objectType": "array",
+        "values": ["breakfast"],
+        "filterId": "meal_types"
+      },
+      {
+        "$objectType": "array",
+        "values": ["apartment"],
+        "filterId": "accommodation_types"
+      },
+      {
+        "$objectType": "radio",
+        "values": ["8"],
+        "filterId": "review_rating"
+      },
+      {
+        "$objectType": "array",
+        "values": ["4"],
+        "filterId": "stars"
+      },
+      {
+        "$objectType": "array",
+        "values": ["parking"],
+        "filterId": "hotel_facilities"
+      },
+      {
+        "$objectType": "array",
+        "values": ["pets_allowed"],
+        "filterId": "hotel_facilities"
+      },
+      {
+        "$objectType": "boolean",
+        "value": true,
+        "filterId": "free_cancellation_allowed"
+      },
+      {
+        "$objectType": "array",
+        "values": ["hotel"],
+        "filterId": "payment_places"
+      }
+    ],
+    "filters": [
+      {
+        "$objectType": "range",
+        "filterId": "price"
+      },
+      {
+        "$objectType": "array",
+        "values": ["5", "4", "3", "2", "1", "0"],
+        "filterId": "stars"
+      },
+      {
+        "$objectType": "array",
+        "values": [
+          "hotel",
+          "apartment",
+          "hostel",
+          "apart_hotel",
+          "boutique_and_design",
+          "mini_hotel",
+          "guesthouse",
+          "resort",
+          "villas_and_bungalows",
+          "sanatorium",
+          "cottages_and_houses",
+          "camping",
+          "bnb",
+          "glamping",
+          "castle",
+          "farm"
+        ],
+        "filterId": "accommodation_types"
+      },
+      {
+        "$objectType": "array",
+        "values": [
+          "24_hour_reception",
+          "pets_allowed",
+          "adults_only",
+          "bank",
+          "accessibility",
+          "family_kid_friendly",
+          "parking",
+          "shuttle",
+          "luggage_storage_service",
+          "additional_measures_against_covid_19",
+          "pool",
+          "beach",
+          "soundproof_rooms",
+          "conference_equipment",
+          "internet",
+          "gym"
+        ],
+        "filterId": "hotel_facilities"
+      },
+      {
+        "$objectType": "boolean",
+        "filterId": "photos_available"
+      },
+      {
+        "$objectType": "array",
+        "values": [
+          "all-inclusive",
+          "half-board",
+          "half-board-lunch",
+          "breakfast",
+          "half-board-dinner",
+          "full-board"
+        ],
+        "filterId": "meal_types"
+      },
+      {
+        "$objectType": "radio",
+        "values": ["9", "8", "7", "6", "5"],
+        "filterId": "review_rating"
+      },
+      {
+        "$objectType": "boolean",
+        "filterId": "free_cancellation_allowed"
+      },
+      {
+        "$objectType": "boolean",
+        "filterId": "payment_card_not_required"
+      },
+      {
+        "$objectType": "array",
+        "values": ["now", "hotel"],
+        "filterId": "payment_places"
+      },
+      {
+        "$objectType": "array",
+        "filterId": "chains"
+      },
+      {
+        "$objectType": "array",
+        "values": [
+          "bar",
+          "casino",
+          "bike_rental",
+          "restaurant",
+          "leisure",
+          "beauty_services",
+          "spa"
+        ],
+        "filterId": "hotel_entertainments"
+      },
+      {
+        "$objectType": "array",
+        "values": [
+          "balcony",
+          "clothes_care",
+          "coffee_or_tea",
+          "internet",
+          "kitchen",
+          "private_bathroom",
+          "air-conditioning",
+          "hairdryer",
+          "mini-bar",
+          "safe",
+          "soundproofing",
+          "tv"
+        ],
+        "filterId": "room_facilities"
+      },
+      {
+        "$objectType": "array",
+        "values": ["double", "twin"],
+        "filterId": "bed_types"
+      }
+    ]
+  }
+}

@@ -1,8 +1,11 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+
 class PlanProceedWithCandidateConfirmationUseCase private constructor(
     private val validateCriteria: (
         AssistantCandidateDecision.ProceedWithCandidate,
+        HotelSearchPreferences,
     ) -> ProceedWithCandidateValidationResult,
     private val buildProposal: (
         ProceedWithCandidateValidationResult.Accepted,
@@ -15,14 +18,17 @@ class PlanProceedWithCandidateConfirmationUseCase private constructor(
         proposalBuilder: BuildProceedWithCandidateConfirmationProposalUseCase =
             BuildProceedWithCandidateConfirmationProposalUseCase(),
     ) : this(
-        validateCriteria = criteriaValidator::invoke,
+        validateCriteria = { decision, preferences ->
+            criteriaValidator(decision, preferences)
+        },
         buildProposal = proposalBuilder::invoke,
     )
 
     operator fun invoke(
         decision: AssistantCandidateDecision.ProceedWithCandidate,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): ProceedWithCandidateConfirmationPlan =
-        when (val validationResult = validateCriteria(decision)) {
+        when (val validationResult = validateCriteria(decision, preferences)) {
             is ProceedWithCandidateValidationResult.Accepted ->
                 ProceedWithCandidateConfirmationPlan.ConfirmationRequired(
                     criteria = validationResult.criteria,
@@ -36,6 +42,14 @@ class PlanProceedWithCandidateConfirmationUseCase private constructor(
     private fun planRejected(
         rejected: ProceedWithCandidateValidationResult.Rejected,
     ): ProceedWithCandidateConfirmationPlan {
+        if (ProceedWithCandidateValidationIssue.UNSUPPORTED_ROOM_COUNT in rejected.issues) {
+            return ProceedWithCandidateConfirmationPlan.ClarificationRequired(
+                question = SINGLE_ROOM_ONLY_CLARIFICATION_MESSAGE,
+                reason = ProceedWithCandidateConfirmationPlan.ClarificationReason
+                    .MISSING_OR_INVALID_CRITERIA,
+            )
+        }
+
         if (ProceedWithCandidateValidationIssue.UNSUPPORTED_INTENT in rejected.issues) {
             return ProceedWithCandidateConfirmationPlan.Fallback(
                 ProceedWithCandidateConfirmationPlan.FallbackReason.UNSUPPORTED_INTENT,
@@ -78,6 +92,6 @@ class PlanProceedWithCandidateConfirmationUseCase private constructor(
 
     private companion object {
         const val DEFAULT_CLARIFICATION_QUESTION =
-            "Please confirm the destination, dates, guests, and rooms before I prepare a hotel search confirmation."
+            "Уточните направление, даты и состав гостей, чтобы я подготовил подтверждение поиска."
     }
 }

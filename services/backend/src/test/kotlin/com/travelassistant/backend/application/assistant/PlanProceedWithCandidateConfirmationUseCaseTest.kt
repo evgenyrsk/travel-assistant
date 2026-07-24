@@ -1,6 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -20,13 +21,37 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
         assertEquals(1, confirmation.criteria.guests.children)
         assertEquals(1, confirmation.criteria.rooms)
         assertEquals(
-            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 1; номера: 1.",
+            """Проверьте параметры:
+Куда: Rome
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, 1 ребёнок (7 лет)""",
             confirmation.proposal.summary,
         )
         assertEquals(
-            "Проверить отели по этим параметрам?",
+            "Найти отели по этим параметрам?",
             confirmation.proposal.confirmationQuestion,
+        )
+    }
+
+    @Test
+    fun includesCurrentPreferencesInCriteriaAndConfirmation() {
+        val preferences = HotelSearchPreferences(
+            stars = setOf(4, 5),
+            minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+            freeCancellationRequired = true,
+        )
+
+        val plan = useCase(proceedWithCandidate(), preferences)
+
+        val confirmation = assertIs<ProceedWithCandidateConfirmationPlan.ConfirmationRequired>(plan)
+        assertEquals(preferences, confirmation.criteria.preferences)
+        assertEquals(
+            """Проверьте параметры:
+Куда: Rome
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, 1 ребёнок (7 лет)
+Условия: 4–5 звёзд; рейтинг от 8; бесплатная отмена""",
+            confirmation.proposal.summary,
         )
     }
 
@@ -46,7 +71,7 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
             clarification.reason,
         )
         assertEquals(
-            "Please confirm the destination, dates, guests, and rooms before I prepare a hotel search confirmation.",
+            "Уточните направление, даты и состав гостей, чтобы я подготовил подтверждение поиска.",
             clarification.question,
         )
     }
@@ -65,6 +90,41 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
         assertEquals(
             ProceedWithCandidateConfirmationPlan.ClarificationReason.MISSING_OR_INVALID_CRITERIA,
             clarification.reason,
+        )
+    }
+
+    @Test
+    fun asksForChildAgesBeforeConfirmation() {
+        val plan = useCase(
+            proceedWithCandidate(
+                completeCandidate(
+                    constraints = completeConstraints() - "children-ages",
+                ),
+            ),
+        )
+
+        val clarification = assertIs<ProceedWithCandidateConfirmationPlan.ClarificationRequired>(plan)
+        assertEquals(
+            ProceedWithCandidateConfirmationPlan.ClarificationReason.MISSING_OR_INVALID_CRITERIA,
+            clarification.reason,
+        )
+    }
+
+    @Test
+    fun explainsSingleRoomBoundaryBeforeConfirmation() {
+        val plan = useCase(
+            proceedWithCandidate(
+                completeCandidate(
+                    constraints = completeConstraints() + ("rooms" to "2"),
+                ),
+            ),
+        )
+
+        val clarification = assertIs<ProceedWithCandidateConfirmationPlan.ClarificationRequired>(plan)
+        assertEquals(
+            "Сейчас я могу искать только один номер за раз. " +
+                "Укажите состав гостей для одного номера или выполните отдельный поиск для второго номера.",
+            clarification.question,
         )
     }
 
@@ -238,6 +298,7 @@ class PlanProceedWithCandidateConfirmationUseCaseTest {
             "check-out" to "2026-07-04",
             "adults" to "2",
             "children" to "1",
+            "children-ages" to "7",
             "rooms" to "1",
         )
 }

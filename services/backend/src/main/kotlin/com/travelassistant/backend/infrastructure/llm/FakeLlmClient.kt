@@ -8,5 +8,5 @@ class FakeLlmClient(
     private val response: LlmClientResponse,
 ) : LlmClient {
 
-    override fun generateCandidate(request: LlmCandidateRequest): LlmClientResponse = response
+    override suspend fun generateCandidate(request: LlmCandidateRequest): LlmClientResponse = response
 }

@@ -1,0 +1,127 @@
+export const MAX_PRESENTED_OFFERS = 5;
+
+export function createChatFlow({
+  api,
+  getClientContext = () => undefined,
+  onUserMessage = () => {},
+  onAssistantMessage = () => {},
+  onStatus = () => {},
+  onOffers = () => {},
+}) {
+  let sessionId;
+  let activeHotelSearchId;
+
+  return {
+    async submit(rawMessage) {
+      const message = String(rawMessage ?? "").trim();
+      if (!message) {
+        throw new Error("Введите сообщение.");
+      }
+
+      onUserMessage(message);
+      onStatus("Ассистент обрабатывает сообщение...", "loading");
+      const clientContext = getClientContext();
+
+      const response = sessionId
+        ? await api.sendAssistantMessage(sessionId, message, clientContext)
+        : await api.createAssistantSession(message, clientContext);
+
+      sessionId ??= response?.session?.sessionId;
+      if (!sessionId) {
+        throw new Error("Не удалось создать сессию ассистента.");
+      }
+
+      const assistantMessage = response?.assistantMessage?.content?.trim();
+      if (!assistantMessage) {
+        throw new Error("Не удалось получить ответ ассистента.");
+      }
+
+      onAssistantMessage(assistantMessage);
+      await handleNextAction(response);
+      return response;
+    },
+
+    getSessionId() {
+      return sessionId;
+    },
+
+    async loadOfferDetails(offerId) {
+      if (!activeHotelSearchId || !offerId) {
+        throw new Error("Не удалось определить выбранное предложение.");
+      }
+
+      return api.getHotelOfferDetails(activeHotelSearchId, offerId);
+    },
+  };
+
+  async function handleNextAction(response) {
+    switch (response.nextAction) {
+      case "show_hotel_results":
+        await loadOffers(response.hotelSearchId);
+        break;
+      case "ask_clarification":
+        onStatus("Продолжите диалог или подтвердите параметры обычным сообщением.", "idle");
+        break;
+      case "show_boundary_message":
+        onStatus("Ассистент не запустил поиск. Можно уточнить запрос на поиск отелей.", "idle");
+        break;
+      default:
+        onStatus("Ответ ассистента получен.", "success");
+    }
+  }
+
+  async function loadOffers(hotelSearchId) {
+    if (!hotelSearchId) {
+      throw new Error("Не удалось загрузить предложения.");
+    }
+
+    onStatus("Загружаю предложения отелей...", "loading");
+    const result = await api.getHotelOffers(hotelSearchId);
+    const allOffers = Array.isArray(result?.offers) ? result.offers : [];
+    const offers = allOffers.slice(0, MAX_PRESENTED_OFFERS);
+    const refinementSuggestion = toRefinementSuggestion(result?.refinementSuggestion);
+    activeHotelSearchId = hotelSearchId;
+
+    onOffers({
+      offers,
+      totalCount: allOffers.length,
+      hotelSearchId,
+      appliedPreferences: result?.appliedPreferences,
+      refinementSuggestion,
+    });
+    if (allOffers.length === 0 && refinementSuggestion) {
+      onAssistantMessage(refinementSuggestion.message);
+    }
+    onStatus(
+      allOffers.length === 0
+        ? "Поиск завершён без предложений."
+        : `Показано предложений: ${offers.length}.`,
+      allOffers.length === 0 ? "idle" : "success",
+    );
+  }
+}
+
+function toRefinementSuggestion(value) {
+  const supportedPreferences = new Set([
+    "minimumGuestRating",
+    "stars",
+    "freeCancellationRequired",
+    "breakfastIncludedRequired",
+    "maxTotalPrice",
+  ]);
+  const message = typeof value?.message === "string" ? value.message.trim() : "";
+
+  if (
+    value?.type !== "relax_preference" ||
+    !supportedPreferences.has(value?.preference) ||
+    !message
+  ) {
+    return undefined;
+  }
+
+  return {
+    type: value.type,
+    preference: value.preference,
+    message,
+  };
+}

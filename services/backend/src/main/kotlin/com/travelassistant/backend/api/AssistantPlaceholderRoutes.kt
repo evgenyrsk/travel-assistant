@@ -8,7 +8,6 @@ import com.travelassistant.backend.domain.assistant.AssistantSession
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.request.receiveNullable
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
@@ -25,25 +24,25 @@ fun Route.assistantPlaceholderRoutes(
 ) {
     route("/assistant/sessions") {
         post {
-            val request = runCatching {
-                call.receiveNullable<AssistantMessageRequest>()
-            }.getOrNull()
-            val initialMessageText = request?.message
-
-            if (request != null && initialMessageText.isNullOrBlank()) {
-                call.respondValidationError(
-                    field = "message",
-                    message = "Message text must be present and not blank.",
-                )
-                return@post
+            val initialMessage = when (val request = call.readAssistantMessageRequest()) {
+                AssistantMessageRequestReadResult.NoBody -> null
+                is AssistantMessageRequestReadResult.Accepted -> request
+                is AssistantMessageRequestReadResult.Invalid -> {
+                    call.respondValidationError(
+                        field = request.field,
+                        message = request.message,
+                    )
+                    return@post
+                }
             }
 
             val session = createAssistantSession.createSession()
-            val response = if (initialMessageText != null) {
+            val response = if (initialMessage != null) {
                 val acceptedMessage = createAssistantSession.acceptUserMessage(
                     AcceptAssistantMessageCommand(
                         sessionId = session.id,
-                        message = initialMessageText,
+                        message = initialMessage.message,
+                        clientTimeZone = initialMessage.clientTimeZone,
                     ),
                 )
                 AssistantMessageResponse.fromAcceptedMessage(acceptedMessage)
@@ -58,23 +57,30 @@ fun Route.assistantPlaceholderRoutes(
         }
 
         post("/{sessionId}/messages") {
-            val request = runCatching {
-                call.receiveNullable<AssistantMessageRequest>()
-            }.getOrNull()
-            val messageText = request?.message
+            val messageRequest = when (val request = call.readAssistantMessageRequest()) {
+                AssistantMessageRequestReadResult.NoBody -> {
+                    call.respondValidationError(
+                        field = "message",
+                        message = "Message text must be present and not blank.",
+                    )
+                    return@post
+                }
 
-            if (messageText.isNullOrBlank()) {
-                call.respondValidationError(
-                    field = "message",
-                    message = "Message text must be present and not blank.",
-                )
-                return@post
+                is AssistantMessageRequestReadResult.Accepted -> request
+                is AssistantMessageRequestReadResult.Invalid -> {
+                    call.respondValidationError(
+                        field = request.field,
+                        message = request.message,
+                    )
+                    return@post
+                }
             }
 
             val acceptedMessage = createAssistantSession.acceptUserMessage(
                 AcceptAssistantMessageCommand(
                     sessionId = AssistantSessionId(checkNotNull(call.parameters["sessionId"])),
-                    message = messageText,
+                    message = messageRequest.message,
+                    clientTimeZone = messageRequest.clientTimeZone,
                 ),
             )
 
@@ -125,7 +131,7 @@ data class AssistantMessageResponse(
 ) {
     companion object {
         private const val PLACEHOLDER_ASSISTANT_MESSAGE =
-            "I received your hotel request. Please share destination, dates, guests, and budget so I can continue."
+            "Расскажите, куда и когда планируете поездку и кто едет с вами."
 
         fun fromSession(session: AssistantSession): AssistantMessageResponse =
             AssistantMessageResponse(

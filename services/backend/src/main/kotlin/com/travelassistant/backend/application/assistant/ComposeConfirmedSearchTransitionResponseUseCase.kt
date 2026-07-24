@@ -6,7 +6,7 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
         MapConfirmedSearchTransitionResultToResponseDirectiveUseCase(),
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         request: ComposeConfirmedSearchTransitionResponseRequest,
     ): ComposeConfirmedSearchTransitionResponseResult {
         val transitionResult = executeTransition(
@@ -49,27 +49,51 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
             TransitionMessageKind.CONFIRMATION_REJECTED ->
                 CONFIRMATION_REJECTED_MESSAGE
 
+            TransitionMessageKind.LOCATION_NOT_FOUND ->
+                LOCATION_NOT_FOUND_MESSAGE
+
+            TransitionMessageKind.LOCATION_SELECTION_REQUIRED ->
+                LOCATION_SELECTION_REQUIRED_MESSAGE
+
+            TransitionMessageKind.SEARCH_REQUEST_REJECTED ->
+                SEARCH_REQUEST_REJECTED_MESSAGE
+
             TransitionMessageKind.TEMPORARY_FAILURE ->
                 TEMPORARY_FAILURE_MESSAGE
 
             TransitionMessageKind.RESULTS_READY ->
                 RESULTS_READY_MESSAGE
+
+            TransitionMessageKind.NO_RESULTS ->
+                NO_RESULTS_MESSAGE
         }
 
     private companion object {
         const val PROCESSING_MESSAGE =
-            "I am preparing that search, but results are not available yet."
+            "Поиск уже выполняется, результаты пока не готовы."
 
         const val ALREADY_PROCESSING_MESSAGE =
-            "That search is already being prepared."
+            "Этот поиск уже выполняется."
 
         const val CONFIRMATION_REJECTED_MESSAGE =
-            "I could not proceed with the current confirmation state."
+            "Не удалось продолжить поиск с текущим подтверждением."
+
+        const val LOCATION_NOT_FOUND_MESSAGE =
+            "Не удалось определить направление. Уточните город или место."
+
+        const val LOCATION_SELECTION_REQUIRED_MESSAGE =
+            "Найдено несколько подходящих направлений. Уточните город или место."
+
+        const val SEARCH_REQUEST_REJECTED_MESSAGE =
+            "Не удалось безопасно подготовить поиск. Проверьте направление, даты и состав гостей."
 
         const val TEMPORARY_FAILURE_MESSAGE =
-            "I could not record the search transition. Please try again."
+            "Сейчас не удалось завершить поиск отелей. Попробуйте ещё раз."
 
         const val RESULTS_READY_MESSAGE =
-            "The search is ready. Hotel results are available."
+            "Поиск завершён. Результат готов."
+
+        const val NO_RESULTS_MESSAGE =
+            "Поиск завершён, но подходящих вариантов не найдено."
     }
 }

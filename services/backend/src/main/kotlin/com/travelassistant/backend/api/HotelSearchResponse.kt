@@ -30,9 +30,7 @@ data class HotelSearchResponse(
                     resultCompleteness = "complete",
                     freshness = "fresh",
                     providerState = "available",
-                    warnings = listOf(
-                        "Results are deterministic local fake-provider data.",
-                    ),
+                    warnings = emptyList(),
                 ),
             )
     }

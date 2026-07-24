@@ -6,6 +6,7 @@ import com.travelassistant.backend.domain.assistant.RequirementSlotStatus
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -81,7 +82,7 @@ class CreateAssistantSessionUseCaseTest {
     }
 
     @Test
-    fun acceptsUserMessageAsLocalIntakeOnlyAndUpdatesClarificationStateWithoutFillingSlots() {
+    fun acceptsUserMessageAsLocalIntakeOnlyAndUpdatesClarificationStateWithoutFillingSlots() = runBlocking {
         val fixedInstant = Instant.parse("2026-06-04T00:00:00Z")
         val sessionStateStore = InMemoryAssistantSessionStateStore()
         val useCase = CreateAssistantSessionUseCase(
@@ -116,7 +117,7 @@ class CreateAssistantSessionUseCaseTest {
         assertEquals(initialHotelRequirementsCoveragePlan, acceptedMessage.hotelRequirementsCoveragePlan)
         assertEquals("clarification", acceptedMessage.assistantReply.type.apiValue)
         assertEquals(
-            "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+            "Расскажите, куда и когда планируете поездку и кто едет с вами.",
             acceptedMessage.assistantReply.message,
         )
         assertEquals(AssistantNextAction.ASK_CLARIFICATION, acceptedMessage.nextAction)
@@ -130,7 +131,7 @@ class CreateAssistantSessionUseCaseTest {
     }
 
     @Test
-    fun countsMultipleValidUserMessagesForSameLocalSession() {
+    fun countsMultipleValidUserMessagesForSameLocalSession() = runBlocking {
         val fixedInstant = Instant.parse("2026-06-04T00:00:00Z")
         val sessionStateStore = InMemoryAssistantSessionStateStore()
         val useCase = CreateAssistantSessionUseCase(
@@ -164,7 +165,7 @@ class CreateAssistantSessionUseCaseTest {
     }
 
     @Test
-    fun rejectsUserMessageForUnknownLocalSession() {
+    fun rejectsUserMessageForUnknownLocalSession() = runBlocking {
         val fixedInstant = Instant.parse("2026-06-04T00:00:00Z")
         val useCase = CreateAssistantSessionUseCase(
             clock = Clock.fixed(fixedInstant, ZoneOffset.UTC),

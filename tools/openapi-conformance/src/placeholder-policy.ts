@@ -1,35 +1,89 @@
-import type { EndpointReport, HttpMethod, OpenApiOperation, RuntimeRoute } from "./types.js";
+import type {
+  EndpointClassification,
+  EndpointReport,
+  HttpMethod,
+  OpenApiOperation,
+  RuntimeRoute,
+} from "./types.js";
 
-const FOUNDATION_CANDIDATES = new Set([
-  endpointKey("get", "/api/v1/health"),
-  endpointKey("post", "/api/v1/assistant/sessions"),
-  endpointKey("post", "/api/v1/assistant/sessions/{sessionId}/messages"),
-]);
+interface ExplicitClassification {
+  classification: EndpointClassification;
+  reason: string;
+}
 
-const PLACEHOLDER_EXCLUSIONS = new Map<string, string>([
+const EXPLICIT_CLASSIFICATIONS = new Map<string, ExplicitClassification>([
   [
-    endpointKey("post", "/api/v1/hotel-searches"),
-    "placeholder_501_not_implemented_hotel_search",
+    endpointKey("post", "/api/v1/assistant/sessions"),
+    {
+      classification: "platform_client_candidate",
+      reason: "bounded_chat_first_session_creation",
+    },
+  ],
+  [
+    endpointKey("post", "/api/v1/assistant/sessions/{sessionId}/messages"),
+    {
+      classification: "platform_client_candidate",
+      reason: "bounded_chat_first_session_continuation",
+    },
   ],
   [
     endpointKey("get", "/api/v1/hotel-searches/{searchId}/offers"),
-    "placeholder_501_not_implemented_hotel_offers",
+    {
+      classification: "platform_client_candidate",
+      reason: "bounded_chat_first_offer_loading",
+    },
+  ],
+  [
+    endpointKey(
+      "get",
+      "/api/v1/hotel-searches/{searchId}/offers/{offerId}/details",
+    ),
+    {
+      classification: "platform_client_candidate",
+      reason: "bounded_selected_hotel_details_loading",
+    },
+  ],
+  [
+    endpointKey("get", "/api/v1/health"),
+    {
+      classification: "operational",
+      reason: "operational_health_check_not_product_client_flow",
+    },
+  ],
+  [
+    endpointKey("post", "/api/v1/hotel-searches"),
+    {
+      classification: "diagnostic_excluded",
+      reason: "direct_hotel_search_diagnostic_not_chat_first_contract",
+    },
   ],
   [
     endpointKey("get", "/api/v1/assistant/sessions/{sessionId}/shortlist"),
-    "placeholder_501_not_implemented_shortlist_read",
+    {
+      classification: "placeholder_excluded",
+      reason: "placeholder_501_not_implemented_shortlist_read",
+    },
   ],
   [
     endpointKey("put", "/api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}"),
-    "placeholder_501_not_implemented_shortlist_upsert",
+    {
+      classification: "placeholder_excluded",
+      reason: "placeholder_501_not_implemented_shortlist_upsert",
+    },
   ],
   [
     endpointKey("delete", "/api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}"),
-    "placeholder_501_not_implemented_shortlist_delete",
+    {
+      classification: "placeholder_excluded",
+      reason: "placeholder_501_not_implemented_shortlist_delete",
+    },
   ],
   [
     endpointKey("post", "/api/v1/assistant/sessions/{sessionId}/explanations"),
-    "placeholder_501_not_implemented_explanation",
+    {
+      classification: "placeholder_excluded",
+      reason: "placeholder_501_not_implemented_explanation",
+    },
   ],
 ]);
 
@@ -56,7 +110,7 @@ export function buildEndpointReports(
       const matchingRoutes = runtimeRoutes.filter(
         (candidate) => candidate.method === method && candidate.path === path,
       );
-      const placeholderReason = PLACEHOLDER_EXCLUSIONS.get(key);
+      const explicit = EXPLICIT_CLASSIFICATIONS.get(key);
 
       return {
         method,
@@ -67,31 +121,13 @@ export function buildEndpointReports(
         runtimeSourceFiles: Array.from(
           new Set(matchingRoutes.map((route) => route.sourceFile)),
         ),
-        classification: classifyEndpoint(key, placeholderReason, matchingRoutes),
-        placeholderReason,
+        classification:
+          explicit?.classification ??
+          (matchingRoutes.length > 0 ? "runtime_only" : "unclassified"),
+        classificationReason: explicit?.reason,
         readiness: "not_ready",
       };
     });
-}
-
-function classifyEndpoint(
-  key: string,
-  placeholderReason: string | undefined,
-  matchingRoutes: RuntimeRoute[],
-): EndpointReport["classification"] {
-  if (placeholderReason) {
-    return "placeholder_excluded";
-  }
-
-  if (FOUNDATION_CANDIDATES.has(key)) {
-    return "foundation_candidate";
-  }
-
-  if (matchingRoutes.length > 0) {
-    return "runtime_only";
-  }
-
-  return "unclassified";
 }
 
 function endpointKey(method: HttpMethod, path: string): string {

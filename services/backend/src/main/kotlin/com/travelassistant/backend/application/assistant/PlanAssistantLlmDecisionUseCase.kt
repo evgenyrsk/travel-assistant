@@ -3,9 +3,10 @@ package com.travelassistant.backend.application.assistant
 import com.travelassistant.backend.application.llm.GenerateLlmCandidateUseCase
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmCandidateValidationResult
+import kotlinx.coroutines.CancellationException
 
 class PlanAssistantLlmDecisionUseCase private constructor(
-    private val generateCandidate: (LlmCandidateRequest) -> LlmCandidateValidationResult,
+    private val generateCandidate: suspend (LlmCandidateRequest) -> LlmCandidateValidationResult,
     private val planDecision: (LlmCandidateValidationResult) -> AssistantCandidateDecision,
 ) {
 
@@ -18,10 +19,12 @@ class PlanAssistantLlmDecisionUseCase private constructor(
         planDecision = planAssistantCandidateDecisionUseCase::invoke,
     )
 
-    operator fun invoke(request: LlmCandidateRequest): AssistantCandidateDecision =
+    suspend operator fun invoke(request: LlmCandidateRequest): AssistantCandidateDecision =
         try {
             val validationResult = generateCandidate(request)
             planDecision(validationResult)
+        } catch (error: CancellationException) {
+            throw error
         } catch (failure: RuntimeException) {
             safeFallback()
         }
@@ -33,7 +36,7 @@ class PlanAssistantLlmDecisionUseCase private constructor(
 
     companion object {
         internal fun fromSteps(
-            generateCandidate: (LlmCandidateRequest) -> LlmCandidateValidationResult,
+            generateCandidate: suspend (LlmCandidateRequest) -> LlmCandidateValidationResult,
             planDecision: (LlmCandidateValidationResult) -> AssistantCandidateDecision,
         ): PlanAssistantLlmDecisionUseCase =
             PlanAssistantLlmDecisionUseCase(

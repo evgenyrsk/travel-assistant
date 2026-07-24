@@ -1,6 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,7 +22,7 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
                 checkOutDate = LocalDate.parse("2026-07-04"),
                 guests = HotelSearchCriteria.Guests(
                     adults = 2,
-                    children = 1,
+                    childrenAges = listOf(7),
                 ),
                 rooms = 1,
             ),
@@ -48,7 +49,7 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
             completeCriteria(
                 guests = ProceedWithCandidateCriteria.Guests(
                     adults = 3,
-                    children = 0,
+                    childrenAges = emptyList(),
                 ),
                 rooms = 2,
             ),
@@ -56,6 +57,7 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
 
         assertEquals(3, result.guests.adults)
         assertEquals(0, result.guests.children)
+        assertEquals(emptyList(), result.guests.childrenAges)
         assertEquals(2, result.rooms)
     }
 
@@ -68,6 +70,19 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
         )
 
         assertEquals("Rome Centro", result.destination)
+    }
+
+    @Test
+    fun preservesProviderNeutralPreferencesWithoutProviderMapping() {
+        val preferences = HotelSearchPreferences(
+            stars = setOf(4, 5),
+            minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+            freeCancellationRequired = true,
+        )
+
+        val result = mapper(completeCriteria(preferences = preferences))
+
+        assertEquals(preferences, result.preferences)
     }
 
     @Test
@@ -106,9 +121,10 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: ProceedWithCandidateCriteria.Guests = ProceedWithCandidateCriteria.Guests(
             adults = 2,
-            children = 1,
+            childrenAges = listOf(7),
         ),
         rooms: Int = 1,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): ProceedWithCandidateCriteria =
         ProceedWithCandidateCriteria(
             destination = destination,
@@ -116,5 +132,6 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapperTest {
             checkOutDate = checkOutDate,
             guests = guests,
             rooms = rooms,
+            preferences = preferences,
         )
 }

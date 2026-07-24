@@ -11,8 +11,9 @@ class ProceedWithCandidateCriteriaToHotelSearchCriteriaMapper {
             checkOutDate = criteria.checkOutDate,
             guests = HotelSearchCriteria.Guests(
                 adults = criteria.guests.adults,
-                children = criteria.guests.children,
+                childrenAges = criteria.guests.childrenAges,
             ),
             rooms = criteria.rooms,
+            preferences = criteria.preferences,
         )
 }

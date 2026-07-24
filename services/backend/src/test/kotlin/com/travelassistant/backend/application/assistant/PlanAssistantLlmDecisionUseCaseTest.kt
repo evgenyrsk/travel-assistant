@@ -6,14 +6,17 @@ import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmCandidateValidationResult
 import com.travelassistant.backend.application.llm.LlmClientResponse
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 class PlanAssistantLlmDecisionUseCaseTest {
 
     @Test
-    fun returnsProceedDecisionForValidCandidate() {
+    fun returnsProceedDecisionForValidCandidate() = runBlocking {
         val candidate = interpretedHotelSearchCandidate()
         val pipeline = pipelineFor(LlmClientResponse.Candidate(candidate))
 
@@ -26,7 +29,7 @@ class PlanAssistantLlmDecisionUseCaseTest {
     }
 
     @Test
-    fun returnsAskClarificationDecisionForClarificationCandidate() {
+    fun returnsAskClarificationDecisionForClarificationCandidate() = runBlocking {
         val candidate = LlmCandidate(
             outcome = LlmCandidate.Outcome.NEEDS_CLARIFICATION,
             intent = LlmCandidate.Intent.HOTEL_SEARCH,
@@ -38,13 +41,16 @@ class PlanAssistantLlmDecisionUseCaseTest {
         val decision = pipeline(safeRequest())
 
         assertEquals(
-            AssistantCandidateDecision.AskClarification("What are your stay dates?"),
+            AssistantCandidateDecision.AskClarification(
+                question = "What are your stay dates?",
+                candidate = candidate,
+            ),
             decision,
         )
     }
 
     @Test
-    fun returnsSafeFallbackForInvalidCandidate() {
+    fun returnsSafeFallbackForInvalidCandidate() = runBlocking {
         val invalidCandidate = LlmCandidate(
             outcome = LlmCandidate.Outcome.INTERPRETED,
             intent = LlmCandidate.Intent.HOTEL_SEARCH,
@@ -61,7 +67,7 @@ class PlanAssistantLlmDecisionUseCaseTest {
     }
 
     @Test
-    fun returnsSafeFallbackForEmptyCandidateResponse() {
+    fun returnsSafeFallbackForEmptyCandidateResponse() = runBlocking {
         val pipeline = pipelineFor(LlmClientResponse.Empty)
 
         val decision = pipeline(safeRequest())
@@ -73,7 +79,7 @@ class PlanAssistantLlmDecisionUseCaseTest {
     }
 
     @Test
-    fun returnsSafeFallbackForFakeLlmFailure() {
+    fun returnsSafeFallbackForFakeLlmFailure() = runBlocking {
         val pipeline = pipelineFor(LlmClientResponse.Failure)
 
         val decision = pipeline(safeRequest())
@@ -85,7 +91,7 @@ class PlanAssistantLlmDecisionUseCaseTest {
     }
 
     @Test
-    fun keepsUnexpectedInternalExceptionInsideSafeFallback() {
+    fun keepsUnexpectedInternalExceptionInsideSafeFallback() = runBlocking {
         val pipeline = PlanAssistantLlmDecisionUseCase.fromSteps(
             generateCandidate = {
                 LlmCandidateValidationResult.Accepted(interpretedHotelSearchCandidate())
@@ -103,7 +109,23 @@ class PlanAssistantLlmDecisionUseCaseTest {
     }
 
     @Test
-    fun remainsDeterministicWithFakeLlmClient() {
+    fun cancellationFromGenerationIsPropagated() = runBlocking {
+        val pipeline = PlanAssistantLlmDecisionUseCase.fromSteps(
+            generateCandidate = {
+                throw CancellationException("LLM decision planning cancelled")
+            },
+            planDecision = {
+                error("Decision planning must not run after cancellation")
+            },
+        )
+
+        assertFailsWith<CancellationException> {
+            pipeline(safeRequest())
+        }
+    }
+
+    @Test
+    fun remainsDeterministicWithFakeLlmClient() = runBlocking {
         val candidate = interpretedHotelSearchCandidate()
         val pipeline = pipelineFor(LlmClientResponse.Candidate(candidate))
 
@@ -114,7 +136,7 @@ class PlanAssistantLlmDecisionUseCaseTest {
     }
 
     @Test
-    fun plansDecisionWithoutExternalDependencies() {
+    fun plansDecisionWithoutExternalDependencies() = runBlocking {
         val pipeline = pipelineFor(LlmClientResponse.Empty)
 
         val decision = pipeline(safeRequest())

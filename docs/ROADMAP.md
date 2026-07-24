@@ -89,6 +89,49 @@
 
 ## Этап 10 — кроссплатформенное расширение
 
-- Расширить продукт за пределы первой платформы.
-- Поддержать mobile iOS/Android или другие интерфейсы.
-- Сохранить общую продуктовую и доменную логику.
+- Подтвердить платформонезависимую сервисную границу.
+- Отделить локальную demo shell от будущих product web/mobile clients.
+- Сохранить business logic, provider и LLM orchestration в backend.
+
+## Этап 11 — готовность локальной демонстрации MVP
+
+- Обеспечить воспроизводимый локальный запуск demo shell и backend.
+- Проверить явные `FAKE` и `REAL` профили без изменения безопасных defaults.
+- Подтвердить полный chat-first hotel flow одним контролируемым REAL smoke.
+
+## Этап 12 — итеративное уточнение hotel search
+
+- Получать первичные hotel offers без требования заранее задать необязательные
+  фильтры.
+- Принимать уточнения четырёх проверенных фильтров через platform-neutral chat
+  API; пользовательскую сортировку оставить отложенной до поддержки provider.
+- Повторно показывать полный набор критериев и запрашивать подтверждение перед
+  каждым новым provider search.
+- Сохранять provider-neutral preferences и изолировать wire-контракты Hotels
+  API в infrastructure layer.
+- Оставить details, shortlist, comparison, booking и payment отдельными
+  направлениями расширения.
+
+## Этап 13 — детали выбранного hotel offer
+
+- Разрешать запрос details только после явного выбора сохранённого offer.
+- Использовать opaque `hotelSearchId` и `offerId`, не раскрывая provider
+  `hotelId` клиенту или LLM.
+- Проверить `GET /api/v1/hotels/{hotelId}` отдельно до создания DTO и runtime
+  wiring.
+- Не выполнять N+1-загрузку деталей для всей выдачи.
+- Оставить rates, deeplink, booking и payment отдельными будущими решениями.
+
+## Этап 14 — закрытие рабочего hotel-only MVP
+
+- Подтвердить полный chat-first flow: требования, confirmation, offers,
+  refinement и details выбранного offer.
+- Проверить отсутствие provider IDs, secrets и raw provider/LLM errors в
+  публичной границе.
+- Выполнить полные quality gates и один контролируемый REAL browser smoke без
+  автоматического retry.
+- После smoke стабилизировать безопасность details, текст confirmation и
+  responsive presentation карточек без изменения продуктового scope.
+- Зафиксировать статус `demo-ready MVP` без заявления production readiness.
+- Остановить функциональное расширение до отдельного нового product/roadmap
+  решения.

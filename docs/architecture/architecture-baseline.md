@@ -4,7 +4,10 @@
 
 ## 1. Назначение документа
 
-Этот документ фиксирует актуальную архитектурную основу Travel Assistant после завершения Stage 5, исправления стека backend и синхронизации документации. Текущий статус этапов, последний завершенный шаг и следующий разрешенный шаг фиксируются только в `docs/roadmap/roadmap.md`.
+Этот документ фиксирует актуальную архитектурную основу Travel Assistant после
+закрытия рабочего hotel-only MVP в Stage 14.0. Текущий статус этапов и любое
+будущее разрешённое расширение фиксируются только в
+`docs/roadmap/roadmap.md`.
 
 Он нужен как компактная точка входа в текущее архитектурное состояние: какие границы подтверждены, где находится conceptual architecture baseline и какие Stage 5 artifacts являются исходными источниками.
 
@@ -14,19 +17,91 @@
 
 ## 2. Текущий статус архитектуры
 
-- Stage 5 - завершен.
-- Stage 6 - завершен как этап контрактов и документации.
-- Stage 7 - завершен в границах ограниченной hotel-only основы; подробности закрытия и перенесенные пункты находятся в `docs/roadmap/roadmap.md`.
-- Архитектурная основа сформирована на концептуальном уровне и дополнена документированным решением о стеке backend.
-- Kotlin + Ktor backend foundation с process-local Assistant/hotel-search boundaries существует в `services/backend/`.
-- Ограниченный поиск через fake provider, детерминированное ранжирование и минимальный frontend существуют; real provider, DB/storage, generated clients и промышленная реализация не создавались.
-- API/OpenAPI contract draft создан в Stage 6 как documentation-level frontend/backend boundary; существует только local `FakeHotelOfferProvider`, real provider adapters не создавались.
-- Auth/security/DevOps/testing backlog еще не создавался.
-- Stage 8 и любая будущая интеграционная или промышленная работа начинаются только через отдельные задачи, согласованные с roadmap.
+- Stage 0–14.6 завершены в границах рабочего `demo-ready MVP`; Stage 14.7
+  реализован, full gates пройдены, ожидается ручная REAL-перепроверка; Stage 14.1c
+  закрыт после подтверждения provider image template; подробные статусы находятся в
+  `docs/roadmap/roadmap.md`.
+- Backend использует Kotlin + Ktor и сохраняет разделение domain, application, infrastructure и API слоев.
+- `LlmClient` и `HotelOfferProviderBoundary` реализованы как application-owned асинхронные границы.
+- OpenRouter и публичный Hotels API имеют opt-in adapters и отдельные `HttpClient`; оба режима по умолчанию остаются `FAKE`.
+- Confirmation lifecycle не запускает hotel search до явного подтверждения и не создает `hotelSearchId` при отказе provider flow.
+- Assistant, constraints, pending confirmation, execution attempt и hotel search stores остаются process-local.
+- Локальная demo shell является chat-first; структурированная форма Stage 7.51 сохранена отдельной диагностической страницей.
+- Public API/OpenAPI boundary сохранена; generated clients, durable storage, auth и промышленная инфраструктура не созданы.
+- Stage 10.0 первоначально выбрал responsive web/PWA как первый
+  cross-platform срез, а Stage 10.1 добавил online-only
+  manifest/icons/mobile foundation без изменения backend/domain boundaries.
+- Stage 10.2 подтвердил same-origin web/PWA и platform-neutral JSON/HTTP
+  boundary; native/desktop остаются архитектурно совместимыми без готового SDK,
+  а cross-origin web требует отдельной CORS policy.
+- Stage 10.3 закрепил ограниченный chat-first API subset; Stage 13.5 дополнил
+  его on-demand details выбранного opaque offer. Весь OpenAPI и generated
+  clients по-прежнему имеют статус `not_ready`.
+- Stage 10.4 закрепил Travel Assistant как самостоятельный backend-сервис, а
+  текущий web/PWA — как локальную demo shell, не являющуюся будущим продуктовым
+  клиентом. Web, Android, iOS и другие platform UI/SDK принадлежат отдельным
+  интеграционным командам.
+- Stage 11.0 добавил только локальный launcher/runbook и подтвердил полный REAL
+  demo flow. Backend layers, public API, provider boundaries и runtime defaults
+  при этом не изменились.
+- Stage 12 реализовал итеративное уточнение в application orchestration:
+  provider-neutral preferences накапливаются в session context, каждое
+  изменение provider request требует нового подтверждения, hard filters
+  передаются одним новым provider search, а пустая выдача не запускает
+  автоматическое ослабление или retry.
+- Stage 13 добавил provider-neutral details model, fixture-driven mapping,
+  selected-offer resolution, transport adapter, platform-neutral endpoint,
+  opt-in REAL wiring и явную кнопку demo shell. Provider `hotelId` остаётся
+  внутри backend; массовая N+1-загрузка отсутствует.
+- Stage 14.0 подтвердил полный flow одним REAL browser smoke и остановил
+  функциональное расширение MVP. Это не подтверждает production readiness,
+  официальный S2S SLA или generated-client readiness.
+- Stage 14.1a и Stage 14.1b добавили fail-closed фильтрацию description
+  sections, общую проверку безопасных HTTPS image URL и optional
+  provider-neutral image contract без details lookup или N+1. Stage 14.1c
+  ограничен responsive presentation и fallback, а Stage 14.6 безопасно
+  разрешает подтверждённый `{size}` только для provider CDN.
+- Stage 14.2 сохранил platform-neutral message contract и начал использовать
+  существующий optional `clientContext.timezone` как IANA timezone hint.
+  Backend-owned `Clock` остаётся источником текущего instant; client timestamp
+  не принимается. Отсутствующая или некорректная timezone переводит
+  относительные и не содержащие год даты в clarification, а past dates
+  отклоняются до confirmation и provider search. Assistant constraints имеют
+  один номер по умолчанию; явно запрошенное большее количество очищается как
+  неподдерживаемое до confirmation. Агрегированная модель гостей не имитирует
+  распределение по нескольким номерам и не передаёт такой запрос provider.
+  Внутренний `rooms=1` не переносится в обычный confirmation или demo controls.
+- Stage 14.3 расширил прежнюю provider-neutral preference boundary включённым
+  завтраком. Infrastructure mapping знает `meal_types=breakfast`, domain/API
+  хранят только nullable breakfast fact, а неизвестные meal plans не
+  интерпретируются.
+- Stage 14.4 подключил к существующим observer boundaries безопасный локальный
+  logger фиксированных OpenRouter/application категорий. User messages,
+  prompts, raw responses, secrets, model slug и идентификаторы не логируются;
+  это не заменяет будущий промышленный observability stack.
+- Stage 14.5 добавил узкую application-policy для точной одиночной категории
+  звёзд. Она дополняет семантический пропуск LLM, но не интерпретирует
+  диапазоны, сравнения, отрицания или снятие фильтров. Stage 14.6 подтвердил,
+  что search уже содержит image templates; пакетный источник и N+1 не нужны.
+- Stage 14.7 сохраняет autocomplete locations и hotels разными внутренними
+  типами. Обычный поиск использует numeric `destinationId`; exact-hotel ветка
+  использует opaque provider reference только внутри infrastructure и после
+  confirmation выполняет bounded details + v3 rates orchestration. Public API
+  сохраняет application-owned `hotelSearchId`/`offerId`; room IDs, provider
+  search ID и `bookHash` не моделируются и не раскрываются. До накопления
+  критериев application может консервативно дополнить отсутствующий destination
+  из явно названного отеля; transport, provider IDs и raw LLM data в эту policy
+  не входят.
 
-Следующая задача реализации может начаться только через отдельную явную задачу, согласованную с roadmap. Эта архитектурная основа не активирует Stage 8 или другую будущую реализацию.
+После закрытия Stage 14.7 следующая задача реализации может начаться только
+через отдельную явную задачу, согласованную с roadmap.
 
-Текущая frontend-форма Stage 7.51 напрямую использует session/search API как диагностическая оболочка. Она не меняет архитектурное направление: целевой frontend остается chat-first, backend/application сохраняет orchestration boundary, LLM в будущем интерпретирует запрос и формирует уточнения через provider-independent boundary, а provider API остается источником hotel facts за `HotelOfferProviderBoundary`.
+Chat-first demo shell использует Assistant routes и загружает результаты только по
+полученному `hotelSearchId`. Диагностическая форма Stage 7.51 вызывает
+hotel-search API напрямую и не является основным продуктовым сценарием.
+Backend/application сохраняет orchestration boundary: LLM интерпретирует запрос
+через `LlmClient`, а provider API остается источником hotel facts за
+`HotelOfferProviderBoundary`.
 
 ## 3. Backend stack baseline
 
@@ -59,7 +134,18 @@ Java/Spring Boot не является принятым backend stack для Tra
 
 Пользователь взаимодействует с AI-assisted travel assistant через chat-first, not chat-only experience.
 
-MVP v1 ориентирован на hotel-only flow: пользователь уточняет запрос, получает hotel options, объяснения, сравнение и current-session shortlist.
+Текущий демонстрационный MVP ориентирован на hotel-only flow: пользователь
+уточняет обязательные критерии, подтверждает поиск, получает hotel options и
+может следующей репликой изменить необязательные фильтры для нового
+подтвержденного provider search. Затем пользователь может явно запросить
+provider-backed details одной сохранённой карточки. Пользовательская сортировка
+отложена, потому что наблюдаемый Hotels API runtime ее не принимает.
+
+Успешная пустая выдача моделируется как сохранённый `COMPLETED_NO_OFFERS`, а
+provider failure не создаёт search resource. Чистая application policy может
+выбрать одно provider-neutral preference для явного ослабления; API только
+отображает typed suggestion. Policy не изменяет criteria, не вызывает provider
+и не подключает `search-filters-availability`.
 
 External provider layer отвечает за hotel facts: цены, availability, location, amenities, policies, ratings, source/freshness and related data, если эти данные доступны из provider/source.
 
@@ -69,7 +155,15 @@ Backend/application/orchestration conceptually координирует flow м�
 
 UI остается conceptual/product-driven: Stage 5 не создает frontend implementation, component props, API endpoints или production screens.
 
-Stage 8 должен сначала отдельно определить границу `LlmClient`, разрешенные данные, fallback и test strategy. Реальное LLM-подключение, выбор SDK/model provider и интеграция предоставленного real provider API contract не выводятся автоматически из этой архитектурной основы.
+Stage 8 определил границу `LlmClient`, разрешенные данные и fallback. Stage 9
+добавил opt-in OpenRouter adapter и Hotels API adapter через отдельные runtime
+factories. Выбор конкретной модели остается configuration-only, секреты не
+передаются frontend, а provider DTO не выходят за infrastructure layer.
+
+Текущий легковесный frontend используется как локальная online-only PWA demo
+shell. Она обращается только к Travel Assistant `/api/v1/**` и не кэширует
+transcript, API responses или provider facts. Будущие продуктовые web/native
+клиенты, cross-device sync и offline hotel search требуют отдельных решений.
 
 ## 6. Основные архитектурные границы
 
@@ -78,10 +172,41 @@ Stage 8 должен сначала отдельно определить гра
 - Product boundary: MVP v1 остается hotel-only.
 - Provider boundary: provider layer является источником hotel facts.
 - LLM boundary: LLM не создает provider facts и не заменяет provider data.
-- Data boundary: current-session shortlist не является account history, persistent saved trips или cross-device sync.
+- Data boundary: session context и предыдущие search results остаются
+  process-local и не являются account history, persistent saved trips или
+  cross-device sync.
 - Integration boundary: provider abstractions являются conceptual boundaries, а не API contracts.
+- Client boundary: любой platform client использует Travel Assistant
+  `/api/v1/**`; provider/LLM orchestration, secrets, business validation и
+  ranking не дублируются на web, iOS, Android или desktop.
+- Platform contract boundary: продуктовые клиенты используют только
+  `POST /assistant/sessions`, `POST /assistant/sessions/{sessionId}/messages`,
+  `GET /hotel-searches/{searchId}/offers` и
+  `GET /hotel-searches/{searchId}/offers/{offerId}/details` под `/api/v1`.
+  Health является operational endpoint, прямое создание hotel search —
+  diagnostic-only.
+- Selected-details boundary: public `offerId` назначается application layer и
+  не содержит provider reference. Backend разрешает offer только внутри
+  указанного search, а provider `hotelId` передаётся исключительно details
+  adapter.
+- Provider-content safety boundary: description sections проходят allowlist и
+  content-фильтрацию до application/public model; служебные certification,
+  registry, owner и contact данные не доходят до API. Optional offer image
+  допускается только как HTTPS URL без credentials и не влияет на принятие
+  offer.
+- Cross-origin boundary: CORS по умолчанию не включён. Будущая web allowlist
+  должна содержать точные origin со scheme/host/port, без wildcard и
+  credentials, и требует отдельного этапа активации.
+- External client boundary: web, Android, iOS и другие продуктовые клиенты
+  создаются только отдельными командами и задачами. Текущий `app/` остается
+  локальной demo shell. Сервис предоставляет versioned HTTP API, OpenAPI и
+  integration guidance, но не выбирает UI/SDK/toolchain и не передает
+  backend/domain modules. Решение зафиксировано в
+  [`ADR-0001`](../decisions/adr-0001-service-core-and-client-integration-boundary.md).
 - Stack boundary: backend implementation использует Kotlin + Ktor, если только будущий ADR явно не меняет это решение.
-- Implementation boundary: Stage 7 завершил bounded process-local foundation; production implementation, real integrations и durable infrastructure не активированы.
+- Implementation boundary: Stage 7–14 завершили process-local рабочий MVP и
+  opt-in real integrations; durable infrastructure и production hardening не
+  активированы.
 
 Future flights, combined itinerary, booking, payment, account history и full auth остаются outside MVP v1.
 
@@ -94,9 +219,16 @@ Application orchestration на conceptual level отвечает за управ
 - задать уточняющий вопрос, когда данных недостаточно;
 - сформировать или обновить Search Intent Summary;
 - подготовить hotel search intent для provider layer;
+- накопить необязательные preferences в provider-neutral модели отдельно от
+  provider DTO;
+- применить одно сообщение как явное изменение одного или нескольких
+  preferences, сохранив неизмененные значения;
+- повторно запросить подтверждение полного search intent после каждого
+  изменения provider request;
 - получить и сохранить разделение provider facts, user-provided constraints, assistant assumptions и unknown data;
-- передать данные в LLM для объяснения, сравнения, ранжирования и резюмирования;
-- координировать assistant conversation, results view и current-session shortlist.
+- передать данные в LLM для интерпретации уточнения, объяснения, ранжирования и
+  резюмирования;
+- координировать assistant conversation, новый provider search и results view.
 
 Это не code design, не state machine specification, не endpoint design и не implementation plan.
 
@@ -116,7 +248,15 @@ Stage 5 зафиксировал conceptual domain areas:
 - Hotel Comparison;
 - Current-session Shortlist.
 
-Hotel Offer, Search Intent Summary, current-session shortlist и recommendation explanation существуют на conceptual level. Они не являются DTO, database schema, API payload, frontend props или implementation classes.
+Stage 7–9 реализовали ограниченные application/domain модели Assistant session,
+hotel search и hotel offer. Более широкий Search Intent Summary,
+current-session shortlist и comparison остаются продуктовыми понятиями, а не
+разрешением создавать database schema или новые public contracts.
+
+Для Stage 12 зафиксирована граница: предпочтения представлены через
+provider-neutral domain/application model. Идентификаторы и polymorphic filter
+values Hotels API остаются в infrastructure mapping. Повторный поиск создает
+новый `hotelSearchId`, а предыдущий process-local search не мутируется.
 
 Storage boundaries остаются conceptual. Stage 5 не создает DB schema, ERD, migrations, tables, fields, indexes, retention policy или storage technology choice.
 
@@ -124,21 +264,18 @@ Account history, persistent saved trips, full user profile, full auth, booking r
 
 ## 9. Integration baseline
 
-Provider abstraction нужна как conceptual boundary между Travel Assistant и hotel offer sources.
+`HotelOfferProviderBoundary` отделяет Travel Assistant от hotel offer sources.
+Stage 9 реализовал `FakeHotelOfferProvider` и opt-in adapter публичного Hotels
+API; provider DTO и transport остаются в infrastructure layer, а application
+получает typed provider-independent outcomes.
 
-Provider facts приходят извне: из provider/source data или future internal company API, когда соответствующий contract будет предоставлен и отдельно разобран.
+`LlmClient` аналогично отделяет application flow от LLM provider. OpenRouter
+adapter включается только явно и использует отдельный runtime client, поэтому
+его `Authorization` не может попасть в Hotels API transport.
 
-Provider abstraction не является API/OpenAPI contract. Stage 5 не создает:
-
-- concrete endpoints;
-- request/response schemas;
-- OpenAPI specs;
-- provider SDK design;
-- provider adapter implementation;
-- DTO mapping tables;
-- provider-specific error taxonomy.
-
-Любые API contracts требуют отдельного explicit roadmap step и должны уважать provider-agnostic boundary.
+Provider abstraction не является публичным API/OpenAPI contract. Изменения
+внешнего provider contract требуют отдельной сверки и не должны менять domain
+модель напрямую.
 
 ## 10. NFR / quality attributes baseline
 
@@ -195,10 +332,11 @@ Roadmap остается source of truth по статусам и progression.
 - сохранить provider-agnostic hotel boundary;
 - сохранить chat-first, not chat-only UX;
 - сохранить Search Intent Summary как UX/domain bridge;
-- не превращать current-session shortlist в account history;
+- не превращать session context, предыдущие search results или будущий
+  shortlist в account history;
 - не возвращать flight, combined itinerary, booking или payment в MVP v1;
 - сохранить source/freshness uncertainty as visible concept;
-- получить existing hotel provider/API contract до concrete API mapping;
+- подтверждать изменения Hotels API contract и официальный server-to-server статус отдельно от наблюдаемого публичного web-flow;
 - решать storage, auth, telemetry, security и provider hardening только через отдельные future decisions.
 
 Перенесенные темы не являются активным списком задач, списком Stage 6 или планом реализации.

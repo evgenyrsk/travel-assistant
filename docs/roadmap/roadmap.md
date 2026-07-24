@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 8 завершен (backend confirmation lifecycle); Stage 9 не начат |
-| Последний завершенный этап | Stage 8.57 — Stage 8 closure and readiness gate |
-| Следующий планируемый шаг | Stage 9 planning/readiness review, только через отдельную явную planning-only задачу |
+| Текущий этап | Stage 14.7 — поиск конкретного отеля и устойчивость уточнений; exact-hotel flow подтверждён вручную, исправлена поздняя проверка нескольких номеров, ожидается финальная ручная REAL-перепроверка |
+| Последний завершенный этап | Stage 14.6 — разрешение provider image template |
+| Следующий планируемый шаг | Ручная перепроверка диалога с явно названным отелем; автоматический live retry не выполнять |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -45,7 +45,7 @@ Roadmap не является трекером задач, продуктово�
 | Готовность generated clients/OpenAPI | Не заявлена |
 | Generated-client-ready subset / generated clients | Создан manifest-кандидат без заявления готовности; готовый subset и generated clients не созданы |
 | Full conformance gate | Не реализован |
-| Hotel search / broader implementation | Минимальный fake-provider backend flow, deterministic foundation ranking, bounded Assistant handoff и ручной frontend-сценарий реализованы; real provider, DB/storage, personalization и production implementation не начаты |
+| Hotel search / broader implementation | Opt-in Hotels API и OpenRouter runtime, confirmation lifecycle и chat-first frontend реализованы; happy path и ограниченная pilot-матрица Stage 9.23 подтверждены, `FAKE` остается default, stores process-local |
 
 | Этап | Статус | Краткое описание |
 |---|---|---|
@@ -57,10 +57,14 @@ Roadmap не является трекером задач, продуктово�
 | Stage 4.1 | Завершен | Visual design consistency review и небольшая правка формулировок. |
 | Stage 5 | Завершен | Conceptual technical architecture, границы, decision inventory, summary и completion audit. |
 | Stage 6 | Завершен | API Contracts / OpenAPI / Integration Boundary; Stage 6.1 OpenAPI draft, Stage 6.2 contract review, Stage 6.3 contract fixes, Stage 6.4 post-fix review, Stage 6.5 provider boundary / mapping notes, Stage 6.6 navigation/status cleanup, Stage 6.7 completion review, Stage 6.8 pre-implementation decisions cleanup и Stage 6.9 final closure / handoff завершены. |
-| Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Целевой chat-first flow и LLM orchestration не завершены. |
+| Stage 7 | Завершен | Ограниченная основа hotel-only MVP закрыта Stage 7.53: backend, поиск, fake provider, ранжирование, передача от Assistant и временная frontend-оболочка завершены в заявленных границах. Chat-first flow и LLM orchestration были вне Stage 7 и реализованы позднее в Stage 8-9. |
 | Stage 8 | Завершен | Backend confirmation lifecycle: LLM orchestration boundary, confirmation flow, local search execution, consume-after-success. Закрыт с carryover (InMemory stores, fake LLM/provider). |
-| Stage 9 | Запланирован | Укрепление real provider/API integration после предоставления и активации provider/API contracts. |
-| Stage 10 | Запланирован | Cross-platform expansion после стабилизации core product и architecture. |
+| Stage 9 | Завершен | Opt-in Hotels API и OpenRouter runtime, chat-first frontend и внутренний MVP-пилот закрыты в ограниченных границах; production readiness не заявлена. |
+| Stage 10 | Завершен | Stage 10.0–10.4 укрепили bounded platform-neutral API subset и закрепили текущий web/PWA только как локальную demo shell; product clients принадлежат будущим интеграционным командам. |
+| Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
+| Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
+| Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
+| Stage 14 | Активен | Stage 14.0–14.6 завершены; Stage 14.7 добавляет подтверждённую проверку конкретного hotel candidate через details/rates и исправляет накопление длительности без заявления production readiness. |
 
 ## 2. Правила управления roadmap
 
@@ -87,10 +91,14 @@ Roadmap не является трекером задач, продуктово�
 
 MVP v1 остается hotel-only:
 
-- AI-assisted hotel search and selection;
-- hotel request на естественном языке и уточнение запроса;
-- hotel results, ranking, comparison и explanation;
-- только current-session shortlist;
+- AI-assisted hotel search по естественному запросу;
+- уточнение обязательных критериев и явное подтверждение до provider search;
+- первичная provider-backed выдача без обязательных дополнительных фильтров;
+- итеративное изменение необязательных предпочтений в чате с новым
+  подтверждением и новым provider search;
+- максимальная общая стоимость, звезды, минимальный гостевой рейтинг,
+  обязательная бесплатная отмена и включённый завтрак в пределах
+  подтвержденного Hotels API contract; пользовательская сортировка отложена;
 - явное разделение provider facts, assistant assumptions и unknowns.
 
 Явно вне MVP v1:
@@ -105,15 +113,31 @@ MVP v1 остается hotel-only:
 
 Provider/API data является source of truth для travel facts. LLM может интерпретировать, объяснять, ранжировать, резюмировать и уточнять, но не должна выдумывать цены, доступность, рейтинги, amenities или другие provider facts.
 
-## 5. Открытые решения и перенесенные пункты
+## 5. Принятые решения и перенесенные ограничения
 
-Эти пункты перенесены как входные данные для будущих решений и не являются активным списком задач:
+Stage 10.0 первоначально закрыл внутренние решения для PWA-среза, а Stage 10.4
+уточнил его роль:
 
-- Provider-backed open destination discovery для hotel search, если это потребуется для MVP v1.
-- Сроки и формат предоставления existing travel API contract.
-- Deferred technical decisions: adapter design, provider error taxonomy, reliability и production-hardening.
-- Session persistence, resume behaviour, long-term history, authorization и account-level storage.
-- Следующий implementation step или remaining cleanup task должны быть выбраны отдельной явной задачей.
+- responsive web/PWA используется как локальная demo shell, а не как будущий
+  продуктовый клиент;
+- `shownPrice` отображается как provider total за выбранный период без
+  перерасчета и без заявления о включенных taxes/fees;
+- `LIMITED` не определяется эвристически;
+- demo shell не обещает resume, account history или cross-device sync и не
+  требует durable storage/auth.
+
+До публичного rollout остаются внешние gates: официальный server-to-server
+статус, долгосрочная стабильность, SLA и rate limits Hotels API, а также
+production security, observability и deployment boundaries. Неизвестные
+provider source/freshness facts нельзя заполнять предположениями.
+
+Hotel details, current-session shortlist и отдельный интерактивный
+explanation/comparison flow остаются направлениями hotel-only расширения. Они
+не являются обязательными для текущего демонстрационного MVP и не блокируют
+итеративное уточнение поиска Stage 12.
+
+Перенесенные ограничения не являются активным списком задач. Следующий шаг
+активируется только отдельной явной roadmap-aligned задачей.
 
 ## 6. Завершенные этапы
 
@@ -151,7 +175,9 @@ Provider/API data является source of truth для travel facts. LLM мо
 - `docs/product/stage-1/stage-1-summary.md`
 - `docs/product/stage-1/stage-1-consistency-review.md`
 
-**Заметка о завершении:** Booking и payment исключены из MVP. Более ранние flight и combined recommendations superseded для MVP v1; flight search является следующим расширением после hotel flow, а combined flow — более поздним расширением после flight flow.
+**Заметка о завершении:** Booking и payment исключены из MVP. Более ранние
+flight и combined recommendations superseded для MVP v1; оба направления
+остаются future candidates и требуют отдельного product/roadmap decision.
 
 **Carryover:** точный existing travel API contract, provider-backed discovery, recommendation criteria, persistence/authorization и язык uncertainty/provider-error остаются входными данными для будущих решений.
 
@@ -538,15 +564,425 @@ Provider/API data является source of truth для travel facts. LLM мо
 
 ### Stage 9 — Real Provider/API Integration Hardening
 
-**Статус:** Запланирован.
+**Статус:** завершен Stage 9.23c. Один контролируемый chat-first happy path прошел цепочку OpenRouter → confirmation → REAL Hotels → 5 карточек из пула 20 предложений; clarification, отказные и data-integrity сценарии закрыты детерминированными проверками. `FAKE` остается режимом по умолчанию для обоих providers.
 
-**Границы:** adapter design, provider-specific error handling, reliability и production-hardening вокруг реального provider/API после предоставления и активации нужных контрактов.
+**Planning:**
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 9.0 | Documentation audit и Stage 9 planning readiness review | Завершен |
+| Stage 9.1 | Hotel provider boundary review и adapter design | Завершен |
+| Stage 9.2 | Provider result contract и domain mapping | Завершен |
+| Stage 9.3 | Provider adapter skeleton и fake-vs-real seam | Завершен |
+| Stage 9.4 | Provider error taxonomy и error handling | Завершен |
+| Stage 9.5 | Provider integration verification | Завершен |
+| Stage 9.6 | Real provider selection background comparison и configuration design | Завершен |
+| Stage 9.7 | Selected Hotels API contract reconciliation и implementation plan | Завершен |
+| Stage 9.8 | Hotels API configuration skeleton без HTTP | Завершен |
+| Stage 9.8a | Hotels API authentication configuration reconciliation без HTTP/JWT signing | Завершен |
+| Stage 9.9 | HTTP-транспорт публичного Hotels API без авторизации, проверяемый через `MockEngine` | Завершен; расхождение с auth в Swagger остается риском sandbox |
+| Stage 9.10 | Autocomplete/location contract boundary, provider DTO и location mapper | Завершен без transport/runtime wiring; response fixture проверен в Stage 9.14 |
+| Stage 9.11a | DTO поиска по Swagger без преобразования доменных моделей | Завершен; использован синтетический fixture |
+| Stage 9.11b | Provider target and mapping policy readiness gate | Завершен; внутренний API и `https://hotels.tbank.ru/` подтверждены, public web orchestration не активирована |
+| Stage 9.11b1 | Configuration-only public base URL reconciliation | Завершен; default URL изменен на `https://hotels.tbank.ru/` без transport/runtime wiring |
+| Stage 9.11b2 | Guest occupancy contract | Завершен: канонический `childrenAges`, совместимость с `children`, clarification и idempotency rules |
+| Stage 9.11b3 | Partial `HotelOffer` facts contract | Завершен: nullable rating/review/amenities и ranking без выдуманных provider facts |
+| Stage 9.11b4 | Public contract alignment | Завершен: OpenAPI `childrenAges`, optional facts и frontend regression test |
+| Stage 9.11c | Преобразование search DTO выбранного API в доменные модели | Завершен как mapper-only implementation без transport/runtime wiring |
+| Stage 9.12 | Internal orchestration resolver → один search call → mapper без runtime wiring | Завершен; только `MockEngine`, REAL adapter не подключен |
+| Stage 9.13 | Single-page candidate window без pagination | Завершен; один запрос, до 20 уникальных кандидатов, только `MockEngine` |
+| Stage 9.14 | Sanitized fixture contract verification | Завершен; provider-derived responses совместимы с текущими response DTO и mapper policy |
+| Stage 9.15 | Sandbox readiness gate | Завершен; выбран direct search call, обязательный preflight вынесен в Stage 9.15a |
+| Stage 9.15a | Mock-only QA transport preflight | Завершен; test-scoped engine и opt-in harness проверены только через `MockEngine`, live call отсутствует |
+| Stage 9.16 | Первый контролируемый QA call через проектный transport | Завершен; один request, `200`, 20 hotels/offers, без runtime wiring |
+| Stage 9.17 | REAL runtime wiring readiness gate | Завершен; фактическое подключение заблокировано границами async/result/resolver/configuration |
+| Stage 9.17a | Async provider/result contract reconciliation | Завершен как review/design-only этап; согласованы `suspend`, typed outcomes и state creation policy |
+| Stage 9.17a1 | Backend-only async/result contract migration | Завершен; `suspend`, typed outcomes и state creation policy реализованы без REAL runtime wiring |
+| Stage 9.17b | Autocomplete resolver transport adapter | Завершен; отдельный `input` DTO, `MockEngine`, без runtime wiring |
+| Stage 9.17c | Opt-in REAL runtime wiring с FAKE default | Завершен; public-only config, production client lifecycle и typed adapter composition |
+| Stage 9.18 | Integration closure verification | Завершен после Stage 9.18a: regression/failure matrix и повторный runtime smoke пройдены |
+| Stage 9.18a | Deterministic location candidate selection | Завершен; exact match по нормализованным `name`/`signature`, без first-result fallback |
+| Stage 9.19a | Накопление контекста диалога | Завершен; process-local canonical hotel constraints, correction и child-age clarification по assistant session |
+| Stage 9.19b | Асинхронная LLM-граница | Завершен; сквозной `suspend`, безопасный fallback и проброс cancellation без изменения public API |
+| Stage 9.20 | OpenRouter adapter без runtime wiring | Завершен; typed config, strict JSON Schema и safe response mapping проверены только через `MockEngine` |
+| Stage 9.21 | Opt-in OpenRouter runtime и QA | Завершен; отдельный `HttpClient`, fail-closed wiring и контролируемый confirmation QA подтверждены, `FAKE` остается default |
+| Stage 9.21a | Безопасная диагностика результатов OpenRouter | Завершен; ограниченные внутренние категории и runtime observer проверены через `MockEngine`, повторный live-вызов отсутствует |
+| Stage 9.21b | Диагностический QA-повтор | Завершен; один вызов вернул `200`, `ask_clarification`, confirmation prompt и `CANDIDATE_DECODED` без `hotelSearchId` |
+| Stage 9.21c | Ограниченная политика повторов OpenRouter | Завершен; максимум две одинаковые попытки только для временных, пустых или некорректных результатов, без смены модели и live QA |
+| Stage 9.22 | Chat-first frontend | Завершен; одна Assistant session, clarification/boundary в transcript, до пяти уже ранжированных offers и отдельная diagnostic page |
+| Stage 9.23 | Внутренний пилот chat-first MVP | Завершен; один REAL happy path и детерминированная pilot-матрица подтверждены без production-readiness claim |
+| Stage 9.23a | Усиление семантического контракта OpenRouter candidate | Завершен; descriptions полей схемы, правила outcome и нормализация пустых nullable-значений без повторного live QA |
+| Stage 9.23b | Сквозная проверка успешного chat-first сценария | Завершен; confirmation, явное «Да», REAL Hotels и 5 карточек из пула 20 предложений подтверждены |
+| Stage 9.23c | Pilot-матрица и стабилизация пользовательского текста | Завершен; clarification, отказные и data-integrity ветки проверены, русскоязычный текст и favicon исправлены |
+
+**Границы:** выбранный public flow использует `/search-api/search/autocomplete` и `POST /api/v1/hotels/search` на `https://hotels.tbank.ru/`. Его анонимный вызов подтвержден технически, но официальный server-to-server статус и долгосрочная стабильность не подтверждены. `REAL` включается только явно, `FAKE` остается default. Повтор OpenRouter не применяется при ошибках аутентификации, недостатке средств, `429`, некорректном request и неизвестных отказах; задержка, `Retry-After` и смена модели отсутствуют. Booking/payment/cancellation, durable storage и production-hardening не входят в текущий slice.
+
+**Следующий шаг:** Stage 10 не активирован. Перед cross-platform expansion нужна отдельная planning/readiness задача, которая выберет первый ограниченный клиентский сценарий и подтвердит, что он не расширяет hotel-only MVP без решения владельца. Booking, payment, pagination, durable storage и production readiness не следуют автоматически из закрытия Stage 9.
 
 ### Stage 10 — Cross-platform Expansion
 
-**Статус:** Запланирован.
+**Статус:** завершен. Stage 10.0–10.4 подтвердили платформонезависимую границу
+сервиса и отделили локальную demo shell от будущих продуктовых клиентов.
 
-**Границы:** расширение за пределы первой платформы без переписывания product и domain logic.
+**Границы:** подтверждение платформонезависимой сервисной границы без
+реализации будущих продуктовых клиентов и без переноса business logic из
+backend.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 10.0 | Cross-platform readiness и сверка открытых вопросов | Завершен; первым target выбран устанавливаемый responsive web/PWA |
+| Stage 10.1 | Bounded PWA foundation для проверенного chat-first hotel flow | Завершен; manifest, локальные icons, standalone/mobile metadata, safe-area и `no-store` boundary |
+| Stage 10.2 | Cross-platform client contract и accessibility verification | Завершен; same-origin web/PWA проверен, native/desktop API-совместимы архитектурно, OpenAPI остается `not_ready` |
+| Stage 10.3 | Platform-neutral API contract hardening | Завершен; три chat-first endpoint согласованы с runtime, строгая message validation и manifest reference checks добавлены, весь OpenAPI остается `not_ready` |
+| Stage 10.4 | Service integration boundary и client ownership | Завершен; web/PWA остается локальной demo shell, product UI/SDK принадлежат будущим интеграционным командам |
+
+**Принятые решения Stage 10.0:** первый клиентский срез остается online-only и
+обращается только к Travel Assistant API. Он не кэширует API responses,
+transcript или provider facts. Native iOS/Android clients, auth, durable storage
+и cross-device sync не входят в Stage 10.1. Неизвестные SLA, rate limits и
+официальный server-to-server статус Hotels API не блокируют локальную PWA
+foundation, но остаются обязательными внешними gates перед публичным rollout.
+
+`shownPrice` отображается как provider total за выбранный период без
+перерасчета и без утверждения о включенных taxes/fees. `LIMITED` не выводится
+эвристически. Hotel details, current-session shortlist и отдельный
+explanation/comparison flow пока не реализованы: это не блокирует PWA
+  foundation, но блокирует заявление о полной реализации MVP v1.
+
+Stage 10.2 подтвердил desktop/mobile browser matrix, keyboard/focus semantics,
+live regions, touch targets и отсутствие horizontal overflow. Любой клиент
+должен использовать Travel Assistant `/api/v1/**`; provider/LLM orchestration и
+business rules остаются в backend. Same-origin web/PWA поддерживается,
+cross-origin web требует будущей CORS allowlist, а native/desktop SDK и
+resume/cross-device пока не реализованы.
+
+Stage 10.3 закрепил платформенный subset из создания Assistant session,
+продолжения диалога и чтения offers по opaque `searchId`. `GET /health`
+классифицирован как operational, прямой `POST /hotel-searches` — как
+diagnostic-only, shortlist/explanation — как placeholders. Message body
+проверяется на строгий JSON и длину 1–4000 Unicode code points. CORS остается
+default-deny: wildcard и credentials не разрешены; будущая allowlist может
+содержать только точные origin со scheme/host/port. OpenAPI в целом и generated
+clients остаются `not_ready`.
+
+Stage 10.4 закрепил backend как самостоятельный сервис и web/PWA как локальную
+demo shell MVP. Product web, Android, iOS и другие UI будут создаваться позже
+отдельными командами и задачами. Сервис предоставляет три chat-first endpoint и
+OpenAPI, но не выбирает заранее platform SDK, toolchain или UI architecture.
+Backend/domain logic, provider DTO и secrets не передаются клиентам. Решение
+зафиксировано в `ADR-0001`; OpenAPI/SDK readiness не заявлена. CORS остается
+default-deny, auth, durable storage, resume и cross-device sync — вне текущего
+среза.
+
+### Stage 11 — Local MVP Demonstration Readiness
+
+**Статус:** завершен Stage 11.0. Следующим активирован Stage 12.
+
+**Границы:** воспроизводимая локальная демонстрация уже реализованного
+chat-first hotel flow. Stage не создает product web/mobile clients, deployment,
+auth, durable storage, booking или новые продуктовые сценарии.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 11.0 | Local REAL MVP demo readiness | Завершен; launcher, runbook, deterministic FAKE preflight и один контролируемый REAL browser smoke с 5 карточками из provider pool 20 |
+
+Основной демонстрационный профиль использует opt-in `OPENROUTER` и `REAL`
+Hotels API. `FAKE` сохраняется как default production configuration и как
+детерминированный preflight/fallback. Успех локального демо не означает
+production readiness или готовность к внешнему rollout.
+
+Stage 11.0 добавил безопасный launcher, который читает игнорируемый `.env` как
+данные, проверяет Java 17/Node.js/configuration/ports, запускает backend и demo
+shell и завершает их совместно. Контролируемый REAL browser smoke подтвердил
+confirmation до поиска, отсутствие карточек до «Да», получение 20 REAL offers
+и отображение первых 5. Raw provider/LLM data и secrets не публиковались.
+
+Stage 12 завершил функциональный MVP итеративного уточнения hotel search.
+Deployment, product clients и production hardening по-прежнему требуют
+отдельных roadmap-решений. Текущим отдельным решением активирован только
+on-demand details-срез Stage 13.
+
+### Stage 12 — Итеративное уточнение hotel search
+
+**Статус:** завершен Stage 12.8; production readiness не заявлена.
+
+**Цель:** позволить пользователю получить первичные предложения, уточнить
+необязательные предпочтения в чате, подтвердить полный обновленный набор
+критериев и выполнить новый ограниченный provider search.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 12.0 | MVP и roadmap reconciliation | Завершен; итеративное уточнение принято как текущий функциональный MVP, shortlist/details/comparison перенесены в расширение |
+| Stage 12.1 | Filter contract verification | Завершен с contract drift: catalog вернул `review_rating` как `radio` со значениями `9..5`, а не как ожидаемый `range`; availability и filtered search не вызывались |
+| Stage 12.1a | Reconciliation семантики минимального гостевого рейтинга | Завершен; разрешены только дискретные пороги `5`, `6`, `7`, `8`, `9`, без округления |
+| Stage 12.1b | Controlled filter request verification | Завершен; availability endpoint принял четыре filter shape и вернул пустой payload, filtered search отклонил `sort` с `sorting_is_not_allowed_yet`; пользовательские sort preferences отложены |
+| Stage 12.1c | Filtered search verification without sort | Завершен; один запрос без `sort` вернул `200` и 20 предложений, соответствующих price/stars/rating/cancellation facts |
+| Stage 12.2 | Provider-neutral preference model | Завершен; четыре preferences, атомарный session patch, confirmation и idempotency support без provider/runtime wiring |
+| Stage 12.3 | LLM extraction для уточнений | Завершен; typed `SET`/`CLEAR`, строгая refinement schema и fail-closed core runtime без provider execution |
+| Stage 12.4 | Hotels API filter mapping | Завершен; четыре preferences детерминированно преобразуются в проверенные filters, offer facts дополнены stars/cancellation без runtime refinement |
+| Stage 12.5 | Refinement runtime flow | Завершен; typed patch сохраняется в session context, полный confirmation предшествует одному новому provider search |
+| Stage 12.6 | Platform-neutral response alignment | Завершен; offers response содержит только активные preferences и подтверждённые nullable stars/cancellation facts |
+| Stage 12.7 | No-results refinement | Завершен; один provider-neutral совет без автоматического изменения preferences или нового поиска |
+| Stage 12.8 | MVP verification | Завершен; regression, safe empty/failure outcomes и один отдельно разрешенный REAL smoke пройдены |
+
+Принятые продуктовые правила Stage 12.0:
+
+- необязательные фильтры не задерживают первый поиск;
+- бюджет без валюты трактуется как RUB, автоматическая конвертация не
+  выполняется;
+- цена означает provider total за весь период;
+- каждое изменение provider request требует нового подтверждения;
+- фильтры применяются новым provider search, а не только к сохраненному
+  пулу из 20 предложений;
+- успешное уточнение создает новый `hotelSearchId`, предыдущий process-local
+  search остается доступен;
+- pagination, filter panel, auth, durable storage, booking и payment не входят
+  в Stage 12.
+
+Контрактная основа для проверки Stage 12.1:
+
+- `POST /search-api/search/autocomplete` — разрешение destination;
+- `POST /api/v1/hotels/search` — основной поиск с `filters` и `sort`;
+- `GET /api/v2/hotels/search-filters` — каталог значений фильтров provider;
+- `POST /api/v1/hotels/search-filters-availability` — возможное будущее
+  объяснение доступных или ослабляемых фильтров.
+
+Stage 12.1b выполнил два отдельно разрешенных вызова без retries. Availability
+endpoint принял четыре filter shape, но вернул пустой payload, а filtered search
+запретил `sort`. Stage 12.1c затем выполнил один запрос без `sort` и получил
+`200` с 20 предложениями, фактически соответствующими price, stars,
+review-rating и free-cancellation условиям. Пользовательские sort preferences и
+filter availability остаются отложенными. Это разблокировало Stage 12.2,
+который добавил внутреннюю модель четырех provider-neutral preferences,
+атомарные операции `KEEP`/`SET`/`CLEAR`, session-bound накопление и учет в
+confirmation/idempotency без LLM extraction, provider mapping или runtime
+search. Stage 12.3 добавил отдельный strict structured-output профиль для
+typed preference patch и его чистое преобразование в `KEEP`/`SET`/`CLEAR`.
+Stage 12.4 добавил точные provider filter DTO/mapping, сохранил один request с
+`offset=0`, `limit=20`, не добавил `sort` и сохранил подтвержденные
+`starRating` и `freeCancellationUntil` как внутренние facts. Stage 12.5 затем
+активировал strict refinement-профиль OpenRouter, session-bound применение
+typed patch и полный повторный confirmation. До ответа «Да» provider не
+вызывается; успешное уточнение выполняет один новый поиск, а предыдущий
+`hotelSearchId` остается доступным. Stage 12.6 добавил в прежний offers
+endpoint необязательные `starRating`, `freeCancellationUntil` и
+`appliedPreferences`, согласовал OpenAPI/conformance и показ этих данных в
+локальной demo shell. Неизвестные факты отсутствуют в JSON, provider DTO не
+раскрываются. Stage 12.7 разделил успешную пустую выдачу и provider failure,
+добавил одну typed-рекомендацию ослабить активное preference в порядке
+`minimumGuestRating` → `stars` → `freeCancellationRequired` → `maxTotalPrice`.
+Backend и demo shell не применяют совет автоматически: пользовательская
+реплика проходит прежний confirmation flow и только затем может создать новый
+поиск. `search-filters-availability` не подключён. Stage 12.8 подтвердил
+regression-сценариями и одним REAL browser smoke, что initial search и
+refinement выполняются только после отдельных подтверждений, refinement
+создаёт новый `hotelSearchId`, предыдущий поиск остаётся доступен, а пустой
+успешный результат и provider failure не смешиваются. Пул из 20 предложений
+сохраняется на backend, demo shell показывает первые 5. Stage 12 завершён;
+Stage 13 активирован отдельной задачей и не меняет границы закрытого MVP.
+
+### Stage 13 — Детали выбранного hotel offer
+
+**Статус:** завершён Stage 13.7; следующий шаг — Stage 14.0.
+
+**Цель:** позволить пользователю явно выбрать предложение из сохранённого
+поиска и запросить дополнительные provider-backed facts без N+1-загрузки,
+раскрытия provider `hotelId` или перехода к booking/rates lifecycle.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 13.0 | Selected hotel details readiness и open-question reconciliation | Завершен; выбран `GET /api/v1/hotels/{hotelId}` как первый contract candidate |
+| Stage 13.1 | Controlled hotel details contract verification | Завершен; search и details вернули `200`, строковый search `hotelId` принят details path, добавлен sanitized fixture |
+| Stage 13.2 | Provider-neutral details model и mapping | Завершен; bounded domain model, tolerant DTO и fixture-driven typed mapping без HTTP |
+| Stage 13.3 | Opaque offer identity и selected-offer resolution | Завершен; provider candidates не назначают ID, public `providerOfferRef` удалён, resolve ограничен указанным search |
+| Stage 13.4 | Details transport и provider adapter | Завершен; safe GET, host/path protection, typed outcomes и mapping через `MockEngine`, без wiring |
+| Stage 13.5 | Platform-neutral details API | Завершен; typed details endpoint, safe errors и четвёртый `platform_client_candidate`, OpenAPI остаётся `not_ready` |
+| Stage 13.6 | Opt-in REAL details runtime wiring | Завершен; search/details используют один runtime и общий Hotels API client, `FAKE` остаётся default |
+| Stage 13.7 | Selected hotel details demo flow | Завершен; явная кнопка загружает details выбранного opaque offer без N+1 и chat selection commands |
+
+Stage 13.0 закрыл сортировку и `search-filters-availability` как осознанно
+отложенные возможности текущего MVP. Taxes/fees в `shownPrice` остаются
+unknown без перерасчёта. Официальный S2S-статус, SLA и rate limits остаются
+внешними rollout gates, но не блокируют один контролируемый contract probe.
+Details разрешены только on demand после явного выбора пользователя; массовая
+загрузка для всех 20 offers запрещена. Rates, deeplink, shortlist, comparison,
+booking и payment не активированы.
+
+Stage 13.1 выполнил один prerequisite search и один details request без auth,
+redirect или retry. Оба вернули `200 application/json`; строковый `hotelId` из
+search response принят `GET /api/v1/hotels/{hotelId}`. Обезличенный fixture
+подтвердил `payload` с location, images, facilities, rules, payment methods и
+certification data. Одно наблюдение не доказывает universal requiredness,
+официальную S2S-поддержку или error semantics. Поэтому Stage 13.2 должен
+оставаться provider-neutral и устойчивым к отсутствующим optional fields, не
+перенося contacts/certification в public model автоматически.
+
+Stage 13.2 добавил provider-neutral `HotelDetails`, tolerant provider DTO и
+fixture-driven mapper. В модель входят только отображаемые facts; contacts,
+certification, owner/register data, provider codes и сложные rules исключены.
+Optional поля сохраняют unknown, images проходят bounded HTTPS policy, а
+невалидные identity/location/time values дают typed mapping error. HTTP,
+selected-offer resolution и runtime wiring ещё не добавлены.
+
+Stage 13.3 перенёс назначение `offerId` в application layer: provider boundary
+возвращает кандидатов без client-facing ID, а сохранённый search получает
+process-local opaque IDs, не содержащие provider `hotelId`. Публичное поле
+`providerOfferRef` удалено из runtime JSON и OpenAPI. Выбранное предложение
+разрешается только по паре `hotelSearchId + offerId`; unknown search и unknown
+offer остаются разными typed outcomes. Details transport и runtime вызов ещё
+не подключены.
+
+Stage 13.4 добавил safe JSON GET в существующий public Hotels API transport и
+application-owned `HotelDetailsProviderBoundary`. Adapter кодирует opaque
+provider reference как один path segment, проверяет identity ответа и
+возвращает `Loaded`, `NotFound`, `ResponseRejected` или
+`ProviderUnavailable`. Все проверки выполнены через `MockEngine`;
+`Application.kt`, routes и runtime composition не изменены.
+
+Stage 13.5 добавил platform-neutral endpoint деталей по паре opaque
+`hotelSearchId + offerId`. Разрешение выбора остаётся search-bound, provider
+identity не попадает в response, а not-found, invalid provider response и
+temporary unavailable получают безопасные typed HTTP outcomes. OpenAPI и
+subset manifest согласованы с runtime как четвёртый
+`platform_client_candidate`, но сохраняют `not_ready`. На момент Stage 13.5
+REAL details adapter ещё не был подключён к runtime.
+
+Stage 13.6 подключил details boundary к общему hotel provider runtime. В режиме
+`REAL` search и details используют один application-owned Hotels API
+`HttpClient`; в режиме `FAKE` доступен детерминированный details provider без
+network calls. Details по-прежнему загружаются только по явному endpoint-вызову
+для выбранного offer; live call и frontend flow не выполнялись.
+
+Stage 13.7 добавил в локальную demo shell явную кнопку «Подробнее». Frontend
+передаёт backend только opaque `hotelSearchId + offerId`, загружает сведения
+одной выбранной карточки и не обращается к Hotels API напрямую. Неизвестные
+поля не отображаются как нули или пустые значения; предусмотрены loading,
+empty и безопасное error-состояния. Повторное раскрытие уже загруженного блока
+не создаёт новый запрос. Browser QA подтвердил focus management, отсутствие
+горизонтального overflow на 320 и 390 CSS px и высоту основной кнопки 44 CSS
+px. Stage 13 завершён без rates, deeplink, shortlist, comparison или booking.
+
+### Stage 14 — Закрытие рабочего hotel-only MVP
+
+**Статус:** Stage 14.0–14.6 завершены. Stage 14.7 реализован локально и ожидает
+финальную REAL-проверку exact-hotel flow.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 14.0 | Закрытие рабочего hotel-only MVP | Завершён; зафиксирован `demo-ready MVP` |
+| Stage 14.1a | Безопасность details и понятное confirmation | Завершён; служебные sections фильтруются fail-closed, confirmation переведён на естественный русский текст, внутренний offer получает первый безопасный image URL |
+| Stage 14.1b | Optional image в публичном offer contract | Завершён; `imageUrl` optional, только HTTPS, без provider identity или N+1; OpenAPI остаётся `not_ready` |
+| Stage 14.1c | Компактные карточки результатов | Завершён; responsive redesign, fallback и ветка реальных изображений подтверждены browser QA |
+| Stage 14.2 | Часовой пояс клиента и безопасность дат | Завершён; один номер используется по умолчанию, timezone устройства объединяется с backend `Clock`, относительные даты и даты без года при отсутствии timezone требуют уточнения, прошедшие даты из LLM не доходят до поиска |
+| Stage 14.3 | Фильтр включённого завтрака | Завершён; provider catalog подтвердил `meal_types=["breakfast"]`, preference проходит confirmation/idempotency/search, nullable breakfast fact отображается без догадок |
+| Stage 14.4 | Безопасная диагностика LLM и fallback UX | Завершён; runtime пишет только фиксированные OpenRouter/application категории, временные сбои и ошибки понимания имеют разные безопасные сообщения, проблемная фраза закреплена regression test |
+| Stage 14.5 | Явное уточнение звёзд и первичная диагностика изображений | Завершён; точная одиночная категория звёзд детерминированно дополняет пропуск LLM, а причина отсутствия `imageUrl` передана в Stage 14.6 |
+| Stage 14.6 | Разрешение provider image template | Завершён; `{size}` безопасно заменяется на подтверждённый `1024x768`, пять REAL-карточек загрузили изображения без proxy или N+1 |
+| Stage 14.7 | Поиск конкретного отеля и устойчивость уточнений | Реализован локально; ручная REAL-проверка подтвердила exact-hotel ветку и выявила позднюю проверку `rooms=2`; запрос нескольких номеров теперь блокируется до confirmation без вызова provider, ожидается финальная ручная REAL-перепроверка |
+
+Stage 14.0 повторно выполнил backend, frontend, launcher и OpenAPI conformance
+gates, проверил secret/provider-ID boundaries и провёл один разрешённый REAL
+browser smoke без retry. Полный запрос создал confirmation prompt до поиска;
+после отдельного «Да» backend получил 20 provider offers, demo shell показала
+5 карточек, а явный выбор одной карточки выполнил ровно один details request.
+Browser использовал только локальные `/api/v1/**`; public response и URL не
+раскрыли provider `hotelId`.
+
+Итоговый статус до закрытия Stage 14.7 остаётся `demo-ready MVP`. Stores остаются process-local, `FAKE`
+остаётся default, OpenAPI/generated clients сохраняют `not_ready`. Это не
+production readiness и не готовность к внешнему rollout. Rates, deeplink,
+shortlist, comparison, booking, payment, auth, durable storage, deployment и
+product clients не активированы. Публичный rates/booking lifecycle не
+активирован. Любая следующая функциональность требует
+отдельного product/roadmap decision.
+
+Stage 14.1 активирован отдельной задачей после REAL smoke Stage 14.0. Stage
+14.1a закрыл обнаруженное раскрытие certification/registry/owner/contact data
+через provider description sections с помощью строгой allowlist, вынес общую
+проверку безопасных HTTPS images и подготовил первое изображение во внутренней
+модели offer. Confirmation теперь показывает даты, гостей, номера и active
+preferences обычным русским текстом; поиск по-прежнему запускается только
+после отдельного «Да». Публичный image contract и demo-redesign остаются
+раздельными Stage 14.1b и Stage 14.1c. Stage 14.1b добавил optional `imageUrl`
+в provider-neutral offers response и OpenAPI без generated clients, details
+lookup или N+1. Subset manifest сохранил `not_ready` и
+`readinessClaim=false`.
+
+Кандидат Stage 14.1c переработал только локальную demo shell: на desktop карточки имеют
+горизонтальный layout, на mobile — вертикальный; первый optional image
+загружается с `no-referrer`, а unknown или ошибочный URL заменяется нейтральным
+CSS-placeholder. Повторяющийся `matchSummary` скрыт в presentation-слое, при
+этом API field и backend ranking не изменены. Правило ранжирования отображается
+один раз над списком. On-demand details, keyboard focus и отсутствие N+1
+сохранены. Локальные browser/gate проверки прошли. Единственный REAL smoke
+успешно выполнил confirmation, один search и один details request. На момент
+Stage 14.1c public offers response не содержал `imageUrl`, поэтому ветка
+реальных изображений ещё не была подтверждена; точную причину и исправление
+позже отдельно зафиксировал Stage 14.6. Автоматический retry не выполнялся.
+
+Stage 14.2 активирован отдельным сообщением о критической ошибке после ручной проверки
+demo shell. Assistant flow теперь считает неуказанное количество номеров равным
+одному. Demo shell передаёт IANA timezone устройства, а backend вычисляет
+локальную reference date по собственному `Clock`; timestamp устройства не
+используется. При отсутствии или ошибке timezone относительные и не содержащие
+год даты не угадываются, а запрашиваются явно. Любая дата заезда в прошлом,
+включая ошибочно извлечённый LLM год `2025` при текущем `2026`, очищается до
+confirmation и не создаёт search. Source whitespace больше не создаёт ложный
+абзац в assistant bubble.
+
+Stage 14.3 закрыл открытый вопрос о завтраке без нового live probe: сохранённый
+provider-derived catalog подтверждает `meal_types` с `$objectType=array` и
+значением `breakfast`, а search fixture содержит `mealType=breakfast` и
+`mealType=nomeal`. Requirement добавлен как пятое optional preference,
+учитывается в LLM patch, confirmation, idempotency и одном provider search.
+Другие meal plans не выводятся как наличие завтрака и остаются unknown.
+Offers API и demo shell показывают nullable факт без provider DTO или ID.
+
+Stage 14.4 воспроизвёл проблемную формулировку одним контролируемым OpenRouter
+вызовом: текущий candidate корректно прошёл decoder и validator, поэтому
+детерминированная ошибка извлечения не подтверждена. Runtime теперь пишет
+только фиксированные категории transport/decoder и application fallback без
+prompt, raw response, secrets, модели или идентификаторов. Временный сбой
+просит повторить сообщение, а неоднозначный candidate — переформулировать его.
+Существующий `SINGLE_RETRY` сохранён без дополнительного сетевого повтора.
+
+Stage 14.5 воспроизвёл отдельный семантический пропуск: OpenRouter candidate был
+успешно декодирован, но не содержал `stars` для фразы «отель должен быть
+пятизвездочным». Application-owned parser теперь детерминированно дополняет
+только точную одиночную категорию и не угадывает диапазоны, сравнения,
+отрицания или снятие ограничения. Событие дополнения логируется фиксированной
+безопасной категорией.
+
+Stage 14.6 уточнил прежнюю диагностику изображений. Основной search возвращает
+HTTPS templates с буквальным `{size}`; policy отклоняла их до URI validation.
+Ограниченная live-проверка подтвердила `1024x768` ответом `200 image/jpeg`.
+Подстановка разрешена только для подтверждённого CDN, неизвестные placeholders
+отклоняются. REAL browser smoke показал пять полностью загруженных изображений.
+`getHotelStaticInfo` также проверен, но не подключён: дополнительные provider
+calls для карточек не нужны.
+
+Stage 14.7 активирован явным решением владельца после воспроизведения запроса
+конкретного отеля. Вспомогательная длительность проживания теперь сохраняется
+между репликами и позволяет вычислить checkout после уточнения check-in;
+детерминированная policy формирует вопрос только по фактически отсутствующим
+полям. Autocomplete hotel candidate хранится отдельно от location candidate:
+строковый provider hotel reference никогда не используется как числовой
+`destinationId`. Для единственного явно названного отеля после confirmation
+выполняются один details и один v3 rates request; в публичный результат
+попадает прежний opaque `offerId`, а `bookHash` и provider IDs не моделируются.
+Первый REAL smoke выявил, что валидный OpenRouter candidate может пропустить
+явно названный отель. Application теперь консервативно дополняет отсутствующий
+destination из достаточно явного собственного названия и пишет только
+фиксированное событие `DESTINATION_ENRICHED`. Автоматический live retry не
+выполнялся. Последующая ручная перепроверка подтвердила exact-hotel поиск, но
+выявила, что запрос двух номеров доходил до confirmation и отклонялся только
+provider mapper-ом. Теперь MVP явно поддерживает один номер на один поиск:
+большее значение очищается, получает понятное уточнение и не создаёт
+pending confirmation или вызов provider; распределение гостей между номерами
+не имитируется. Внутренний `rooms=1` скрыт из обычного confirmation и demo
+controls. Пустая успешная выдача также больше не сопровождается фразой
+«Результат готов». Stage 14.7 остаётся открытым до финальной ручной
+перепроверки. Общий room/rates browsing и booking flow остаются вне MVP.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

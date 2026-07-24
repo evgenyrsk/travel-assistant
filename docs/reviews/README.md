@@ -277,6 +277,29 @@
 | `stage-8-55-consume-after-success-policy-and-route-cleanup.md` | Завершенный backend implementation report | Фиксирует conditional `markConsumed` после successful search creation; pending consumed after success; duplicate-after-consume через LLM path. |
 | `stage-8-56-end-to-end-confirmation-lifecycle-verification.md` | Завершенный review/design report | Фиксирует end-to-end verification полного Stage 8 confirmation lifecycle: happy path, failure/duplicate safety, Stage 7 compatibility; verdict passed with notes; backend core flow closeable. |
 | `stage-8-57-stage-8-closure-and-readiness-gate.md` | Завершенный closure/readiness gate report | Формально закрывает Stage 8 как completed backend confirmation lifecycle; фиксирует carryover; verdict passed; следующий шаг — Stage 9 planning. |
+| `stage-9-0-documentation-audit-and-stage-9-planning-readiness-review.md` | Завершенный documentation audit / planning readiness review | Проводит documentation audit перед Stage 9, устраняет stale wording в architecture docs, определяет рекомендуемое первое направление Stage 9 и предлагает Stage 9.1 scope. |
+| `stage-9-1-hotel-provider-boundary-review-and-adapter-design.md` | Завершенный provider boundary review / adapter design report | Inspect hotel provider boundary, классифицирует boundary ownership, сравнивает 4 adapter design options, рекомендует Option A (сохранить текущий interface, adapter за ним) и определяет Stage 9.2 scope. |
+| `stage-9-2-provider-result-contract-and-domain-mapping.md` | Завершенный provider result contract / domain mapping report | Gap analysis по 19 категориям, 12 normalization rules, domain mapping classification; рекомендует сохранить domain model без изменений для Stage 9.3. |
+| `stage-9-3-provider-adapter-skeleton-and-fake-real-seam.md` | Завершенный provider adapter skeleton / fake-vs-real seam report | Реализует HotelProviderMode, HotelProviderConfig, RealHotelOfferProviderAdapter skeleton, HotelOfferProviderFactory; обновляет Application.kt; 8 новых tests; все existing tests pass. |
+| `stage-9-4-provider-error-taxonomy-and-error-handling.md` | Завершенный provider error taxonomy / error handling report | Реализует HotelProviderErrorCategory (7 categories), HotelProviderException; подтверждает propagation через CreateHotelSearchUseCase и Stage 8 compatibility; 7 новых tests. |
+| `stage-9-5-provider-integration-verification.md` | Завершенный provider integration verification report | Verifies FAKE + REAL end-to-end через application composition; 3 targeted integration tests; readiness verdict: ready for provider selection. |
+| `stage-9-6-real-provider-selection-and-configuration-design.md` | Завершенный provider selection / configuration design report | Background comparison 7 provider candidates; configuration/secrets/sandbox design; verdict: shortlist selected — owner input required; next stage: 9.7 contract intake. |
+| `stage-9-7-selected-hotels-api-contract-reconciliation-and-implementation-plan.md` | Завершенный selected Hotels API contract reconciliation / implementation plan | Анализирует OpenAPI 1.0/2.0/3.0 внутреннего HotelsApi, выбирает v1 search для MVP, фиксирует autocomplete/occupancy/auth gaps и разрешает только Stage 9.8 configuration skeleton. |
+| `stage-9-8-hotels-api-configuration-skeleton.md` | Завершенный Hotels API configuration skeleton report | Добавляет typed REAL config, fail-closed validation и secret redaction при сохранении FAKE default; HTTP/client/network/runtime adapter wiring отсутствуют. |
+| `stage-9-8a-hotels-api-authentication-configuration-reconciliation.md` | Завершенный configuration reconciliation report | Заменяет неподтвержденную OAuth-модель на public/private targets и private JWT config без signing, transport или network calls. |
+| `stage-9-9-public-anonymous-hotels-api-http-transport.md` | Завершенный internal transport report | Добавляет public JSON transport, проверенный через `MockEngine`, без default network engine, auth и runtime wiring. |
+| `stage-9-10-autocomplete-location-resolution-contract-boundary.md` | Завершенный location contract implementation report | Добавляет internal autocomplete DTO, resolver boundary и location-only mapper без transport/runtime wiring и автоматического выбора candidate. |
+| `stage-9-11a-hotels-api-search-dto-without-domain-mapping.md` | Завершенный provider DTO implementation report | Добавляет DTO v1 search и tolerant internal JSON codec без domain mapping, transport call или runtime wiring. |
+| `stage-9-tbank-web-hotel-search-contract-observation.md` | Contract observation / audit artifact | Фиксирует методы, endpoint-ы и request shapes публичной web-формы Т-Банка на 13 июля 2026 года; не заменяет выбранный внутренний HotelsApi contract и не активирует runtime integration. |
+| `stage-9-11b-provider-target-and-mapping-policy-readiness-gate.md` | Завершенный review/design-only readiness gate | Подтверждает внутренний Hotels API на `hotels.tbank.ru`, изолирует публичный web-сценарий и разрешает отдельный configuration-only Stage 9.11b1 перед заблокированным mapper Stage 9.11c. |
+| `stage-9-11b1-public-base-url-configuration-reconciliation.md` | Завершенный configuration-only implementation report | Меняет default `HOTELS_API_PUBLIC_BASE_URL` на подтвержденный `https://hotels.tbank.ru/` без transport/runtime wiring и сохраняет `FAKE` по умолчанию. |
+| `stage-9-11c-search-domain-mapping-readiness-reconciliation.md` | Завершенный review/readiness artifact | Фиксирует подтвержденные provider facts, принятые nullable/occupancy policies и последовательность Stage 9.11b2–9.11b4 перед mapper-only Stage 9.11c. |
+| `stage-9-11b2-guest-occupancy-contract.md` | Завершенный backend contract report | Фиксирует канонический `childrenAges`, переходный `children`, clarification и idempotency rules без provider/runtime wiring. |
+| `stage-9-11b3-partial-hotel-offer-facts-contract.md` | Завершенный backend contract report | Делает rating/review count/amenities nullable, исключает фиктивные provider facts и уточняет ranking. |
+| `stage-9-11b4-public-contract-alignment.md` | Завершенный public contract report | Синхронизирует OpenAPI с `childrenAges`/optional facts и добавляет frontend regression для отсутствующего rating. |
+| `stage-9-11c-hotels-api-search-domain-mapping.md` | Завершенный mapper implementation report | Добавляет request/response mapper-ы Hotels API и typed errors без transport, pagination или runtime wiring. |
+| `stage-9-12-hotels-api-search-orchestration-without-runtime-wiring.md` | Завершенный internal orchestration report | Композирует resolver, один search call с проверкой через `MockEngine` и mapper-ы без REAL adapter/runtime wiring. |
+| `stage-9-13-single-page-hotel-candidate-window.md` | Завершенный provider orchestration policy report | Фиксирует один search call, `offset=0`, `limit=20`, максимум 20 уникальных кандидатов и перенос pagination за границы текущего MVP flow. |
 | `stage-7-documentation-dedup-sync-cleanup.md` | Completed documentation cleanup report | Conservative dedup/status sync: removes stale active snapshots, consolidates milestone vocabulary, demotes legacy prompt templates to compatibility redirects and keeps historical audit trail intact. |
 | `stage-7-roadmap-role-separation-cleanup.md` | Completed roadmap role cleanup | Разделяет `docs/ROADMAP.md` как non-authoritative stage-purpose map и `docs/roadmap/roadmap.md` как authoritative roadmap/status source. |
 | `pre-stage-6-documentation-consistency-review.md` | Historical audit trail | Pre-Stage 6 review. Status wording was correct at the time; not current source of truth. |
@@ -420,6 +443,86 @@
 130. `docs/reviews/stage-8-55-consume-after-success-policy-and-route-cleanup.md`
 131. `docs/reviews/stage-8-56-end-to-end-confirmation-lifecycle-verification.md`
 132. `docs/reviews/stage-8-57-stage-8-closure-and-readiness-gate.md`
+133. `docs/reviews/stage-9-0-documentation-audit-and-stage-9-planning-readiness-review.md`
+134. `docs/reviews/stage-9-1-hotel-provider-boundary-review-and-adapter-design.md`
+135. `docs/reviews/stage-9-2-provider-result-contract-and-domain-mapping.md`
+136. `docs/reviews/stage-9-3-provider-adapter-skeleton-and-fake-real-seam.md`
+137. `docs/reviews/stage-9-4-provider-error-taxonomy-and-error-handling.md`
+138. `docs/reviews/stage-9-5-provider-integration-verification.md`
+139. `docs/reviews/stage-9-6-real-provider-selection-and-configuration-design.md`
+140. `docs/reviews/stage-9-7-selected-hotels-api-contract-reconciliation-and-implementation-plan.md`
+141. `docs/reviews/stage-9-8-hotels-api-configuration-skeleton.md`
+142. `docs/reviews/stage-9-8a-hotels-api-authentication-configuration-reconciliation.md`
+143. `docs/reviews/stage-9-9-public-anonymous-hotels-api-http-transport.md`
+144. `docs/reviews/stage-9-11a-hotels-api-search-dto-without-domain-mapping.md`
+145. `docs/reviews/stage-9-10-autocomplete-location-resolution-contract-boundary.md`
+146. `docs/reviews/stage-9-tbank-web-hotel-search-contract-observation.md`
+147. `docs/reviews/stage-9-11b-provider-target-and-mapping-policy-readiness-gate.md`
+148. `docs/reviews/stage-9-11b1-public-base-url-configuration-reconciliation.md`
+149. `docs/reviews/stage-9-11c-search-domain-mapping-readiness-reconciliation.md`
+150. `docs/reviews/stage-9-11b2-guest-occupancy-contract.md`
+151. `docs/reviews/stage-9-11b3-partial-hotel-offer-facts-contract.md`
+152. `docs/reviews/stage-9-11b4-public-contract-alignment.md`
+153. `docs/reviews/stage-9-11c-hotels-api-search-domain-mapping.md`
+154. `docs/reviews/stage-9-12-hotels-api-search-orchestration-without-runtime-wiring.md`
+155. `docs/reviews/stage-9-13-single-page-hotel-candidate-window.md`
+156. `docs/reviews/stage-9-14-sanitized-provider-fixture-contract-verification.md`
+157. `docs/reviews/stage-9-15-sandbox-readiness-gate.md`
+158. `docs/reviews/stage-9-15a-mock-only-qa-transport-preflight.md`
+159. `docs/reviews/stage-9-16-first-controlled-hotels-api-qa-call.md`
+160. `docs/reviews/stage-9-17-real-runtime-wiring-readiness-gate.md`
+161. `docs/reviews/stage-9-17a-async-provider-result-contract-reconciliation.md`
+162. `docs/reviews/stage-9-17a1-backend-async-result-contract-migration.md`
+163. `docs/reviews/stage-9-17b-autocomplete-resolver-transport-adapter.md`
+164. `docs/reviews/stage-9-17c-real-hotels-api-runtime-wiring.md`
+165. `docs/reviews/stage-9-18-hotels-api-integration-verification.md`
+166. `docs/reviews/stage-9-18a-deterministic-location-candidate-selection.md`
+167. `docs/reviews/stage-9-19a-assistant-hotel-constraints-context.md`
+168. `docs/reviews/stage-9-19b-async-llm-boundary-migration.md`
+169. `docs/reviews/stage-9-20-openrouter-llm-adapter-without-runtime-wiring.md`
+170. `docs/reviews/stage-9-21a-openrouter-safe-failure-diagnostics.md`
+171. `docs/reviews/stage-9-21-opt-in-openrouter-runtime-and-qa.md`
+172. `docs/reviews/stage-9-21c-bounded-openrouter-retry-policy.md`
+173. `docs/reviews/stage-9-22-chat-first-frontend.md`
+174. `docs/reviews/stage-9-23a-openrouter-semantic-candidate-hardening.md`
+175. `docs/reviews/stage-9-23b-chat-first-happy-path-pilot.md`
+176. `docs/reviews/stage-9-23c-pilot-matrix-and-user-facing-stabilization.md`
+177. `docs/reviews/stage-10-0-cross-platform-readiness-and-open-question-reconciliation.md`
+178. `docs/reviews/stage-10-1-bounded-pwa-foundation.md`
+179. `docs/reviews/stage-10-2-cross-platform-client-contract-and-accessibility-verification.md`
+180. `docs/reviews/stage-10-3-platform-neutral-api-contract-hardening.md`
+181. `docs/reviews/stage-10-4-service-integration-boundary-and-client-ownership-decision.md`
+182. `docs/reviews/stage-11-0-local-real-mvp-demo-readiness.md`
+183. `docs/reviews/stage-12-0-iterative-hotel-search-refinement-reconciliation.md`
+184. `docs/reviews/stage-12-1-hotels-api-filter-contract-verification.md`
+185. `docs/reviews/stage-12-1a-discrete-guest-rating-filter-policy.md`
+186. `docs/reviews/stage-12-1b-controlled-filter-request-verification.md`
+187. `docs/reviews/stage-12-1c-filtered-search-without-sort-verification.md`
+188. `docs/reviews/stage-12-2-provider-neutral-preference-model.md`
+189. `docs/reviews/stage-12-3-llm-preference-patch-extraction.md`
+190. `docs/reviews/stage-12-4-hotels-api-filter-mapping.md`
+191. `docs/reviews/stage-12-5-refinement-runtime-flow.md`
+192. `docs/reviews/stage-12-6-platform-neutral-response-alignment.md`
+193. `docs/reviews/stage-12-7-no-results-refinement.md`
+194. `docs/reviews/stage-12-8-iterative-refinement-mvp-verification.md`
+195. `docs/reviews/stage-13-0-selected-hotel-details-readiness-and-open-question-reconciliation.md`
+196. `docs/reviews/stage-13-1-controlled-hotel-details-contract-verification.md`
+197. `docs/reviews/stage-13-2-provider-neutral-hotel-details-mapping.md`
+198. `docs/reviews/stage-13-3-opaque-offer-identity-and-selection.md`
+199. `docs/reviews/stage-13-4-hotel-details-transport-adapter.md`
+200. `docs/reviews/stage-13-5-platform-neutral-hotel-details-api.md`
+201. `docs/reviews/stage-13-6-opt-in-real-hotel-details-runtime-wiring.md`
+202. `docs/reviews/stage-13-7-selected-hotel-details-demo-flow.md`
+203. `docs/reviews/stage-14-0-working-hotel-mvp-closure.md`
+204. `docs/reviews/stage-14-1a-hotel-details-safety-and-confirmation-copy.md`
+205. `docs/reviews/stage-14-1b-hotel-offer-image-contract.md`
+206. `docs/reviews/stage-14-1c-compact-hotel-results-demo-redesign.md`
+207. `docs/reviews/stage-14-2-client-timezone-and-date-safety.md`
+208. `docs/reviews/stage-14-3-breakfast-filter-and-offer-fact.md`
+209. `docs/reviews/stage-14-4-safe-llm-diagnostics-and-fallback-messages.md`
+210. `docs/reviews/stage-14-5-explicit-star-refinement-and-image-source-diagnosis.md`
+211. `docs/reviews/stage-14-6-provider-image-template-resolution.md`
+212. `docs/reviews/stage-14-7-named-hotel-search-and-conversation-resilience.md`
 
 ## Historical / superseded документы
 

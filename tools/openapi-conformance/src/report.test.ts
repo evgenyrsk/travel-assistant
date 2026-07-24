@@ -1,334 +1,169 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
 import { loadOpenApiInventory } from "./openapi.js";
 import { buildReport } from "./report.js";
 import { collectRuntimeRouteInventory } from "./route-inventory.js";
+import { inspectSubsetManifest, type SubsetManifestState } from "./subset-manifest.js";
 import type {
   AssistantContractShape,
   ConformanceReport,
   OpenApiInventory,
   RuntimeRoute,
 } from "./types.js";
-import { inspectSubsetManifest } from "./subset-manifest.js";
-import type { SubsetManifestState } from "./subset-manifest.js";
 
-describe("buildReport", () => {
-  it("preserves not_ready readiness semantics while reporting endpoint classification counts", () => {
-    const report = buildReport(openApiInventory(), runtimeRoutes(), missingSubsetManifest());
+describe("Platform-client conformance", () => {
+  it("classifies the repository endpoint inventory without readiness promotion", () => {
+    const report = repositoryReport();
 
     assert.equal(report.status, "not_ready");
     assert.equal(report.readinessClaim, false);
-    assert.deepEqual(report.blockingFindings, []);
     assert.deepEqual(report.endpointClassificationSummary.byClassification, {
-      foundation_candidate: 1,
-      placeholder_excluded: 1,
-      runtime_only: 1,
-      unclassified: 1,
+      platform_client_candidate: 4,
+      operational: 1,
+      diagnostic_excluded: 1,
+      placeholder_excluded: 4,
+      runtime_only: 0,
+      unclassified: 0,
     });
-    assert.equal(report.endpointClassificationSummary.total, 4);
-    assert.equal(report.endpointClassificationSummary.openApiOnly, 1);
-    assert.equal(report.endpointClassificationSummary.runtimeOnly, 1);
-    assert.equal(report.endpointClassificationSummary.inBothInventories, 2);
+    assert.deepEqual(report.blockingFindings, []);
+    assert.ok(
+      report.futureOnlyChecks.some(
+        (check) =>
+          check.name === "generated_client_compile" &&
+          check.status === "not_run" &&
+          check.summary === "Generated-client compile proof has not run.",
+      ),
+    );
+  });
+
+  it("validates the exact bounded platform-client schema shape", () => {
+    const report = repositoryReport();
+
     assert.ok(
       report.checks.some(
         (check) =>
-          check.name === "endpoint_classification_summary" &&
-          check.status === "advisory",
+          check.name === "platform_client_endpoint_inventory" &&
+          check.status === "passed",
+      ),
+    );
+    assert.ok(
+      report.checks.some(
+        (check) =>
+          check.name === "platform_client_contract_shape" &&
+          check.status === "passed",
       ),
     );
   });
 
-  it("keeps unclassified and runtime-only drift visible as advisory findings", () => {
-    const report = buildReport(openApiInventory(), runtimeRoutes(), missingSubsetManifest());
+  it("validates every repository manifest endpoint against OpenAPI and runtime inventories", () => {
+    const report = repositoryReport();
 
-    assert.deepEqual(
-      report.advisoryFindings
-        .filter((finding) =>
-          ["UNCLASSIFIED_ENDPOINTS_VISIBLE", "RUNTIME_ONLY_ENDPOINTS_VISIBLE"].includes(
-            finding.code,
-          ),
-        )
-        .map((finding) => finding.severity),
-      ["advisory", "advisory"],
+    assert.equal(report.manifestValidation.status, "advisory_passed");
+    assert.equal(
+      report.manifestValidation.endpointReferenceValidation.status,
+      "passed",
     );
-    assert.ok(
-      report.endpoints.every((endpoint) => endpoint.readiness === "not_ready"),
+    assert.match(
+      report.manifestValidation.endpointReferenceValidation.summary,
+      /Validated 10 manifest endpoint references/,
     );
-  });
-
-  it("reports missing manifest detection without readiness promotion", () => {
-    const repositoryRoot = makeTempRepositoryRoot();
-    const subsetManifest = inspectSubsetManifest(repositoryRoot);
-    const report = buildReport(openApiInventory(), runtimeRoutes(), subsetManifest);
-
-    assert.equal(report.manifestDetection.manifestPath, "docs/architecture/stage-7/generated-client-ready-subset.yaml");
-    assert.equal(report.manifestDetection.exists, false);
-    assert.equal(report.manifestDetection.status, "missing");
-    assert.equal(report.manifestValidation.status, "not_run");
-    assert.equal(report.manifestValidation.reason, "manifest_missing");
-    assert.equal(report.status, "not_ready");
     assert.equal(report.readinessClaim, false);
-    assert.deepEqual(report.blockingFindings, []);
+  });
+
+  it("reports platform-client schema drift as blocking", () => {
+    const inventory = syntheticOpenApiInventory({
+      nextActionValues: ["ask_clarification", "future_action"],
+      hotelSearchIdConditional: false,
+      appliedPreferencesOptional: false,
+      starRatingOptional: false,
+      refinementSuggestionOptional: false,
+    });
+    const report = buildReport(
+      inventory,
+      syntheticRuntimeRoutes(),
+      missingSubsetManifest(),
+    );
+
     assert.ok(
-      report.advisoryFindings.some(
-        (finding) => finding.code === "manifest_missing",
+      report.blockingFindings.some(
+        (finding) =>
+          finding.code === "PLATFORM_CLIENT_CONTRACT_SHAPE_MISMATCH" &&
+          finding.message.includes("nextAction values match runtime") &&
+          finding.message.includes("hotelSearchId conditional enforced") &&
+          finding.message.includes("appliedPreferences remains optional") &&
+          finding.message.includes("starRating remains optional") &&
+          finding.message.includes("refinementSuggestion remains optional"),
+      ),
+    );
+    assert.equal(report.status, "not_ready");
+  });
+
+  it("reports a missing platform-client runtime endpoint as blocking", () => {
+    const report = buildReport(
+      syntheticOpenApiInventory(),
+      syntheticRuntimeRoutes().slice(0, 2),
+      missingSubsetManifest(),
+    );
+
+    assert.ok(
+      report.blockingFindings.some(
+        (finding) =>
+          finding.code === "PLATFORM_CLIENT_ENDPOINT_INVENTORY_MISMATCH",
       ),
     );
   });
 
-  it("validates a present skeleton manifest without readiness promotion", () => {
-    const repositoryRoot = makeTempRepositoryRoot();
-    const manifestPath = "tmp-generated-client-ready-subset.yaml";
+  it("blocks a manifest endpoint reference absent from runtime inventory", () => {
+    const root = makeTempRepositoryRoot();
+    const manifestPath = "subset.yaml";
     fs.writeFileSync(
-      path.join(repositoryRoot, manifestPath),
-      validSkeletonManifest(),
+      path.join(root, manifestPath),
+      validManifest("/api/v1/missing", "missingOperation"),
       "utf8",
     );
+    const report = buildReport(
+      syntheticOpenApiInventory(),
+      syntheticRuntimeRoutes(),
+      inspectSubsetManifest(root, manifestPath),
+    );
 
-    const subsetManifest = inspectSubsetManifest(repositoryRoot, manifestPath);
-    const report = buildReport(openApiInventory(), runtimeRoutes(), subsetManifest);
-
-    assert.equal(report.manifestDetection.exists, true);
-    assert.equal(report.manifestDetection.status, "present");
-    assert.equal(report.manifestValidation.status, "advisory_passed");
-    assert.equal(report.manifestValidation.schemaValidation.status, "passed");
-    assert.equal(report.manifestValidation.endpointReferenceValidation.status, "future_only");
-    assert.equal(report.subsetManifest.status, "present_not_evaluated");
-    assert.equal(report.status, "not_ready");
-    assert.equal(report.readinessClaim, false);
-    assert.deepEqual(report.blockingFindings, []);
+    assert.equal(report.manifestValidation.status, "failed");
     assert.ok(
-      report.advisoryFindings.some(
+      report.blockingFindings.some(
+        (finding) => finding.code === "manifest_openapi_reference_missing",
+      ),
+    );
+  });
+
+  it("blocks readiness promotion in a manifest", () => {
+    const report = reportForManifest(
+      validManifest(
+        "/api/v1/assistant/sessions",
+        "createAssistantSession",
+      ).replace("readinessClaim: false", "readinessClaim: true"),
+    );
+
+    assert.equal(report.manifestValidation.status, "failed");
+    assert.ok(
+      report.blockingFindings.some(
         (finding) => finding.code === "readiness_promotion_blocked",
       ),
     );
   });
 
-  it("blocks top-level readiness promotion fields in manifest candidates", () => {
-    const report = reportForManifest(
-      validSkeletonManifest()
-        .replace('status: "not_ready"', 'status: "ready"')
-        .replace("readinessClaim: false", "readinessClaim: true"),
-    );
-
-    assertReadinessPromotionBlocked(report);
-  });
-
-  it("blocks validationStatus readiness promotion fields in manifest candidates", () => {
-    const report = reportForManifest(
-      validSkeletonManifest()
-        .replace("  readinessClaim: false", "  readinessClaim: true")
-        .replace('  status: "not_ready"', '  status: "ready"'),
-    );
-
-    assertReadinessPromotionBlocked(report);
-  });
-
-  it("blocks endpoint readiness promotion in manifest candidates", () => {
-    const report = reportForManifest(
-      validSkeletonManifest().replace(
-        '    readiness: "not_ready"',
-        '    readiness: "ready"',
-      ),
-    );
-
-    assertReadinessPromotionBlocked(report);
-  });
-
-  it("blocks readiness criteria promotion in manifest candidates", () => {
-    const report = reportForManifest(
-      validSkeletonManifest().replace(
-        "  generatedClientCompilePassed: false",
-        "  generatedClientCompilePassed: true",
-      ),
-    );
-
-    assertReadinessPromotionBlocked(report);
-  });
-
-  it("validates the repository manifest candidate without readiness promotion", () => {
-    const repositoryRoot = path.resolve(process.cwd(), "../..");
-    const subsetManifest = inspectSubsetManifest(repositoryRoot);
-    const report = buildReport(openApiInventory(), runtimeRoutes(), subsetManifest);
-
-    assert.equal(report.manifestDetection.exists, true);
-    assert.equal(report.manifestDetection.status, "present");
-    assert.equal(report.manifestValidation.status, "advisory_passed");
-    assert.equal(report.status, "not_ready");
-    assert.equal(report.readinessClaim, false);
-    assert.deepEqual(report.blockingFindings, []);
-  });
-
-  it("checks repository Assistant candidates and contract shape without readiness promotion", () => {
-    const repositoryRoot = path.resolve(process.cwd(), "../..");
-    const openApi = loadOpenApiInventory(repositoryRoot);
-    const routes = collectRuntimeRouteInventory(repositoryRoot);
-    const subsetManifest = inspectSubsetManifest(repositoryRoot);
-    const report = buildReport(openApi, routes, subsetManifest);
-
-    assert.ok(
-      report.checks.some(
-        (check) =>
-          check.name === "assistant_endpoint_candidate_inventory" &&
-          check.status === "passed",
-      ),
-    );
-    assert.ok(
-      report.checks.some(
-        (check) =>
-          check.name === "assistant_endpoint_contract_shape" &&
-          check.status === "passed",
-      ),
-    );
-    assert.ok(
-      report.checks.some(
-        (check) =>
-          check.name === "assistant_endpoint_runtime_semantics" &&
-          check.status === "advisory",
-      ),
-    );
-    assert.ok(
-      report.advisoryFindings.some(
-        (finding) =>
-          finding.code === "ASSISTANT_RUNTIME_SEMANTICS_NOT_CHECKED",
-      ),
-    );
-    assert.equal(report.status, "not_ready");
-    assert.equal(report.readinessClaim, false);
-    assert.deepEqual(report.blockingFindings, []);
-  });
-
-  it("reports Assistant contract shape drift as blocking without readiness promotion", () => {
+  it("reports malformed manifest YAML as a structured blocking finding", () => {
+    const root = makeTempRepositoryRoot();
+    const manifestPath = "subset.yaml";
+    fs.writeFileSync(path.join(root, manifestPath), "manifestVersion: [", "utf8");
     const report = buildReport(
-      assistantOpenApiInventory({
-        messagePropertyPresent: false,
-        messageRequired: false,
-        nextActionPropertyPresent: false,
-        nextActionRequired: false,
-      }),
-      assistantRuntimeRoutes(),
-      missingSubsetManifest(),
+      syntheticOpenApiInventory(),
+      syntheticRuntimeRoutes(),
+      inspectSubsetManifest(root, manifestPath),
     );
-
-    assert.ok(
-      report.checks.some(
-        (check) =>
-          check.name === "assistant_endpoint_contract_shape" &&
-          check.status === "failed" &&
-          check.summary.includes(
-            "AssistantMessageRequest.message property present",
-          ) &&
-          check.summary.includes("AssistantMessageRequest.message required") &&
-          check.summary.includes(
-            "AssistantMessageResponse.nextAction property present",
-          ) &&
-          check.summary.includes(
-            "AssistantMessageResponse.nextAction required",
-          ),
-      ),
-    );
-    assert.ok(
-      report.blockingFindings.some(
-        (finding) =>
-          finding.code === "ASSISTANT_ENDPOINT_CONTRACT_SHAPE_MISMATCH",
-      ),
-    );
-    assert.equal(report.status, "not_ready");
-    assert.equal(report.readinessClaim, false);
-  });
-
-  it("reports missing Assistant candidate inventory as blocking without readiness promotion", () => {
-    const report = buildReport(
-      assistantOpenApiInventory(),
-      assistantRuntimeRoutes().slice(0, 1),
-      missingSubsetManifest(),
-    );
-
-    assert.ok(
-      report.checks.some(
-        (check) =>
-          check.name === "assistant_endpoint_candidate_inventory" &&
-          check.status === "failed",
-      ),
-    );
-    assert.ok(
-      report.blockingFindings.some(
-        (finding) =>
-          finding.code === "ASSISTANT_ENDPOINT_CANDIDATE_INVENTORY_MISMATCH",
-      ),
-    );
-    assert.equal(report.status, "not_ready");
-    assert.equal(report.readinessClaim, false);
-  });
-
-  it("keeps Assistant validation and maxLength runtime semantics advisory-only", () => {
-    const report = buildReport(
-      assistantOpenApiInventory({
-        validationErrorResponsesPresent: false,
-        messageMaxLength: undefined,
-      }),
-      assistantRuntimeRoutes(),
-      missingSubsetManifest(),
-    );
-
-    assert.deepEqual(report.blockingFindings, []);
-    assert.ok(
-      report.checks.some(
-        (check) =>
-          check.name === "assistant_endpoint_runtime_semantics" &&
-          check.status === "advisory" &&
-          check.summary.includes("message.maxLength is not declared"),
-      ),
-    );
-    assert.equal(report.status, "not_ready");
-    assert.equal(report.readinessClaim, false);
-  });
-
-  it("reports structured schema errors for an invalid skeleton manifest", () => {
-    const repositoryRoot = makeTempRepositoryRoot();
-    const manifestPath = "invalid-generated-client-ready-subset.yaml";
-    fs.writeFileSync(
-      path.join(repositoryRoot, manifestPath),
-      [
-        'scopeName: "travel-assistant-stage-7-foundation-subset"',
-        'openApiSource: "docs/architecture/stage-6/openapi-draft.yaml"',
-        "validationStatus:",
-        "  readinessClaim: false",
-        '  status: "not_ready"',
-        "includedEndpoints: []",
-        "excludedEndpoints: []",
-        "classificationPolicy: {}",
-        "readinessCriteria: {}",
-        "knownLimitations: []",
-        'generatedClientTargets: "not-an-array"',
-      ].join("\n"),
-      "utf8",
-    );
-
-    const subsetManifest = inspectSubsetManifest(repositoryRoot, manifestPath);
-    const report = buildReport(openApiInventory(), runtimeRoutes(), subsetManifest);
-
-    assert.equal(report.manifestValidation.status, "failed");
-    assert.equal(report.status, "not_ready");
-    assert.equal(report.readinessClaim, false);
-    assert.ok(
-      report.blockingFindings.some(
-        (finding) => finding.code === "schema_violation",
-      ),
-    );
-  });
-
-  it("reports YAML parse errors as structured manifest validation findings", () => {
-    const repositoryRoot = makeTempRepositoryRoot();
-    const manifestPath = "parse-error-generated-client-ready-subset.yaml";
-    fs.writeFileSync(path.join(repositoryRoot, manifestPath), "manifestVersion: [", "utf8");
-
-    const subsetManifest = inspectSubsetManifest(repositoryRoot, manifestPath);
-    const report = buildReport(openApiInventory(), runtimeRoutes(), subsetManifest);
 
     assert.equal(report.manifestValidation.status, "failed");
     assert.ok(
@@ -336,91 +171,51 @@ describe("buildReport", () => {
         (finding) => finding.code === "yaml_parse_error",
       ),
     );
-    assert.equal(report.status, "not_ready");
-    assert.equal(report.readinessClaim, false);
   });
 
-  it("keeps bad argument behavior as exit code 2 with structured not_ready JSON", () => {
+  it("reports a missing manifest without promoting readiness", () => {
+    const report = buildReport(
+      syntheticOpenApiInventory(),
+      syntheticRuntimeRoutes(),
+      missingSubsetManifest(),
+    );
+
+    assert.equal(report.manifestValidation.status, "not_run");
+    assert.equal(report.readinessClaim, false);
+    assert.deepEqual(report.blockingFindings, []);
+  });
+
+  it("keeps invalid CLI arguments safe and structured", () => {
     const cliUrl = new URL("./cli.js", import.meta.url);
     const result = spawnSync(process.execPath, [cliUrl.pathname, "--bad-arg"], {
       encoding: "utf8",
     });
 
     assert.equal(result.status, 2);
-    const report = JSON.parse(result.stdout) as { status: string; readinessClaim: boolean };
+    const report = JSON.parse(result.stdout) as {
+      status: string;
+      readinessClaim: boolean;
+    };
     assert.equal(report.status, "not_ready");
     assert.equal(report.readinessClaim, false);
   });
 });
 
-function openApiInventory(): OpenApiInventory {
-  return {
-    sourcePath: "docs/architecture/stage-6/openapi-draft.yaml",
-    detectedFromCandidates: [
-      {
-        path: "docs/architecture/stage-6/openapi-draft.yaml",
-        exists: true,
-      },
-    ],
-    openApiVersion: "3.1.0",
-    serverBasePath: "/api/v1",
-    operations: [
-      {
-        method: "get",
-        path: "/health",
-        fullPath: "/api/v1/health",
-        operationId: "getHealth",
-      },
-      {
-        method: "post",
-        path: "/hotel-searches",
-        fullPath: "/api/v1/hotel-searches",
-        operationId: "createHotelSearch",
-      },
-      {
-        method: "get",
-        path: "/future-report-only",
-        fullPath: "/api/v1/future-report-only",
-        operationId: "futureReportOnly",
-      },
-    ],
-  };
+function repositoryReport(): ConformanceReport {
+  const repositoryRoot = path.resolve(process.cwd(), "../..");
+  return buildReport(
+    loadOpenApiInventory(repositoryRoot),
+    collectRuntimeRouteInventory(repositoryRoot),
+    inspectSubsetManifest(repositoryRoot),
+  );
 }
 
-function runtimeRoutes(): RuntimeRoute[] {
-  return [
-    {
-      method: "get",
-      path: "/api/v1/health",
-      sourceFile: "services/backend/src/main/kotlin/com/travelassistant/backend/api/HealthRoutes.kt",
-      line: 8,
-    },
-    {
-      method: "post",
-      path: "/api/v1/hotel-searches",
-      sourceFile: "services/backend/src/main/kotlin/com/travelassistant/backend/api/HotelSearchPlaceholderRoutes.kt",
-      line: 10,
-    },
-    {
-      method: "get",
-      path: "/api/v1/runtime-only",
-      sourceFile: "services/backend/src/main/kotlin/com/travelassistant/backend/api/RuntimeOnlyRoutes.kt",
-      line: 12,
-    },
-  ];
-}
-
-function assistantOpenApiInventory(
+function syntheticOpenApiInventory(
   overrides: Partial<AssistantContractShape> = {},
 ): OpenApiInventory {
   return {
     sourcePath: "docs/architecture/stage-6/openapi-draft.yaml",
-    detectedFromCandidates: [
-      {
-        path: "docs/architecture/stage-6/openapi-draft.yaml",
-        exists: true,
-      },
-    ],
+    detectedFromCandidates: [],
     openApiVersion: "3.1.0",
     serverBasePath: "/api/v1",
     operations: [
@@ -436,6 +231,19 @@ function assistantOpenApiInventory(
         fullPath: "/api/v1/assistant/sessions/{sessionId}/messages",
         operationId: "continueAssistantSession",
       },
+      {
+        method: "get",
+        path: "/hotel-searches/{searchId}/offers",
+        fullPath: "/api/v1/hotel-searches/{searchId}/offers",
+        operationId: "getHotelOffers",
+      },
+      {
+        method: "get",
+        path: "/hotel-searches/{searchId}/offers/{offerId}/details",
+        fullPath:
+          "/api/v1/hotel-searches/{searchId}/offers/{offerId}/details",
+        operationId: "getHotelOfferDetails",
+      },
     ],
     assistantContractShape: {
       createSessionRequestBodyOptional: true,
@@ -447,25 +255,132 @@ function assistantOpenApiInventory(
       nextActionRequired: true,
       sessionNotFoundResponsePresent: true,
       validationErrorResponsesPresent: true,
-      messageMaxLength: 4000,
+      messageMaxLength: 4_000,
+      requestAdditionalPropertiesForbidden: true,
+      responseAdditionalPropertiesForbidden: true,
+      nextActionValues: [
+        "ask_clarification",
+        "show_boundary_message",
+        "show_hotel_results",
+      ],
+      hotelSearchIdPropertyPresent: true,
+      hotelSearchIdConditional: true,
+      sessionRequiredFields: ["createdAt", "sessionId", "status", "updatedAt"],
+      messageResponseRequiredFields: ["content", "role"],
+      offersOperationPresent: true,
+      offersNotFoundResponsePresent: true,
+      offersRequiredFields: [
+        "metadata",
+        "offers",
+        "providerFacts",
+        "searchId",
+        "status",
+      ],
+      offersAdditionalPropertiesForbidden: true,
+      detailsOperationPresent: true,
+      detailsNotFoundResponsePresent: true,
+      detailsInvalidResponsePresent: true,
+      detailsUnavailableResponsePresent: true,
+      detailsRequiredFields: ["hotelName", "metadata"],
+      detailsFields: [
+        "amenityGroups",
+        "checkInTime",
+        "checkOutTime",
+        "descriptionSections",
+        "hotelChain",
+        "hotelName",
+        "imageUrls",
+        "location",
+        "metadata",
+        "paymentMethods",
+        "starRating",
+      ],
+      detailsAdditionalPropertiesForbidden: true,
+      searchRequiredFields: [
+        "criteria",
+        "metadata",
+        "searchId",
+        "sessionId",
+        "status",
+      ],
+      searchStatusValues: ["completed_no_offers", "completed_with_offers"],
+      searchAdditionalPropertiesForbidden: true,
+      offersStatusValues: ["completed_no_offers", "completed_with_offers"],
+      metadataRequiredFields: [
+        "freshness",
+        "providerState",
+        "resultCompleteness",
+        "warnings",
+      ],
+      metadataAdditionalPropertiesForbidden: true,
+      hotelOfferRequiredFields: [
+        "availability",
+        "freshness",
+        "hotelName",
+        "location",
+        "matchSummary",
+        "offerId",
+        "price",
+        "providerFacts",
+        "source",
+      ],
+      hotelOfferAdditionalPropertiesForbidden: true,
+      ratingOptional: true,
+      amenitiesOptional: true,
+      starRatingOptional: true,
+      freeCancellationUntilOptional: true,
+      imageUrlOptional: true,
+      breakfastIncludedOptional: true,
+      appliedPreferencesOptional: true,
+      appliedPreferencesFields: [
+        "breakfastIncludedRequired",
+        "freeCancellationRequired",
+        "maxTotalPrice",
+        "minimumGuestRating",
+        "stars",
+      ],
+      appliedPreferencesAdditionalPropertiesForbidden: true,
+      refinementSuggestionOptional: true,
+      refinementSuggestionRequiredFields: ["message", "preference", "type"],
+      refinementSuggestionTypeValues: ["relax_preference"],
+      refinementSuggestionPreferenceValues: [
+        "breakfastIncludedRequired",
+        "freeCancellationRequired",
+        "maxTotalPrice",
+        "minimumGuestRating",
+        "stars",
+      ],
+      refinementSuggestionAdditionalPropertiesForbidden: true,
       ...overrides,
     },
   };
 }
 
-function assistantRuntimeRoutes(): RuntimeRoute[] {
+function syntheticRuntimeRoutes(): RuntimeRoute[] {
   return [
     {
       method: "post",
       path: "/api/v1/assistant/sessions",
-      sourceFile: "services/backend/src/main/kotlin/com/travelassistant/backend/api/AssistantPlaceholderRoutes.kt",
-      line: 26,
+      sourceFile: "AssistantPlaceholderRoutes.kt",
+      line: 1,
     },
     {
       method: "post",
       path: "/api/v1/assistant/sessions/{sessionId}/messages",
-      sourceFile: "services/backend/src/main/kotlin/com/travelassistant/backend/api/AssistantPlaceholderRoutes.kt",
-      line: 59,
+      sourceFile: "AssistantPlaceholderRoutes.kt",
+      line: 2,
+    },
+    {
+      method: "get",
+      path: "/api/v1/hotel-searches/{searchId}/offers",
+      sourceFile: "HotelSearchRoutes.kt",
+      line: 3,
+    },
+    {
+      method: "get",
+      path: "/api/v1/hotel-searches/{searchId}/offers/{offerId}/details",
+      sourceFile: "HotelDetailsRoutes.kt",
+      line: 4,
     },
   ];
 }
@@ -476,12 +391,13 @@ function missingSubsetManifest(): SubsetManifestState {
     exists: false,
     status: "missing_not_created",
     requiredForSkeleton: false,
+    endpointReferences: [],
     manifestDetection: {
       manifestPath: "docs/architecture/stage-7/generated-client-ready-subset.yaml",
       exists: false,
       explicitPathProvided: false,
       status: "missing",
-      note: "Generated-client-ready subset manifest is missing/not_created; this is expected for the skeleton and keeps readiness not_ready.",
+      note: "Manifest is missing.",
     },
     manifestValidation: {
       status: "not_run",
@@ -489,52 +405,37 @@ function missingSubsetManifest(): SubsetManifestState {
       schemaValidation: {
         name: "manifest_schema_validation",
         status: "not_run",
-        summary: "Manifest schema validation was not run because the manifest is missing/not_created.",
+        summary: "Manifest is missing.",
       },
       endpointReferenceValidation: {
         name: "endpoint_reference_validation",
         status: "future_only",
-        summary: "Endpoint reference validation is future-only until a manifest exists.",
+        summary: "Manifest is missing.",
       },
-      findings: [
-        {
-          code: "manifest_missing",
-          severity: "advisory",
-          message:
-            "Generated-client-ready subset manifest is missing/not_created; readiness remains not_ready.",
-        },
-      ],
+      findings: [],
     },
   };
 }
 
 function makeTempRepositoryRoot(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "openapi-conformance-manifest-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "openapi-conformance-"));
 }
 
-function reportForManifest(manifestText: string): ConformanceReport {
-  const repositoryRoot = makeTempRepositoryRoot();
-  const manifestPath = "tmp-generated-client-ready-subset.yaml";
-  fs.writeFileSync(path.join(repositoryRoot, manifestPath), manifestText, "utf8");
-  const subsetManifest = inspectSubsetManifest(repositoryRoot, manifestPath);
-  return buildReport(openApiInventory(), runtimeRoutes(), subsetManifest);
-}
-
-function assertReadinessPromotionBlocked(report: ConformanceReport): void {
-  assert.equal(report.manifestValidation.status, "failed");
-  assert.equal(report.status, "not_ready");
-  assert.equal(report.readinessClaim, false);
-  assert.ok(
-    report.blockingFindings.some(
-      (finding) => finding.code === "readiness_promotion_blocked",
-    ),
+function reportForManifest(manifest: string): ConformanceReport {
+  const root = makeTempRepositoryRoot();
+  const manifestPath = "subset.yaml";
+  fs.writeFileSync(path.join(root, manifestPath), manifest, "utf8");
+  return buildReport(
+    syntheticOpenApiInventory(),
+    syntheticRuntimeRoutes(),
+    inspectSubsetManifest(root, manifestPath),
   );
 }
 
-function validSkeletonManifest(): string {
+function validManifest(endpointPath: string, operationId: string): string {
   return [
-    'manifestVersion: "stage-7-generated-client-ready-subset-v1"',
-    'scopeName: "travel-assistant-stage-7-foundation-subset"',
+    'manifestVersion: "stage-10-platform-client-contract-subset-v1"',
+    'scopeName: "test-subset"',
     'status: "not_ready"',
     "readinessClaim: false",
     'openApiSource: "docs/architecture/stage-6/openapi-draft.yaml"',
@@ -543,64 +444,17 @@ function validSkeletonManifest(): string {
     '  status: "not_ready"',
     '  schemaValidation: "not_run"',
     '  endpointReferenceValidation: "not_run"',
-    '  generatedClientCompile: "not_run"',
-    '  runtimeContractValidation: "not_run"',
-    "  lastValidatedBy: null",
-    "  lastValidatedAt: null",
     "includedEndpoints:",
-    '  - method: "GET"',
-    '    path: "/api/v1/health"',
-    '    operationId: "getHealth"',
-    '    classification: "foundation_candidate"',
-    '    readiness: "not_ready"',
-    '    inclusionReason: "candidate_for_future_low_risk_foundation_subset_validation"',
-    "    requiredChecks:",
-    '      - "openapi_source_identified"',
-    '      - "runtime_route_present"',
-    '      - "response_schema_validated"',
-    '      - "generated_client_compile_passed"',
-    '      - "runtime_contract_checks_passed"',
-    "    unresolvedBlockers:",
-    '      - "response_schema_not_validated_by_runtime_contract_check"',
-    '      - "generated_client_compile_not_run"',
-    '      - "runtime_contract_checks_not_run"',
-    "excludedEndpoints:",
     '  - method: "POST"',
-    '    path: "/api/v1/hotel-searches"',
-    '    operationId: "createHotelSearch"',
-    '    classification: "placeholder_excluded"',
+    `    path: "${endpointPath}"`,
+    `    operationId: "${operationId}"`,
+    '    classification: "platform_client_candidate"',
     '    readiness: "not_ready"',
-    '    exclusionReason: "placeholder_501_not_implemented_hotel_search"',
-    "    requiredBeforeInclusion:",
-    '      - "real_hotel_search_behavior"',
-    '      - "runtime_contract_checks"',
-    '      - "generated_client_compile_check"',
-    "classificationPolicy:",
-    '  placeholderEndpoints: "exclude_until_contract_aligned"',
-    '  foundationCandidates: "candidate_only_not_ready"',
-    '  runtimeOnlyRoutes: "must_be_classified_before_readiness"',
-    '  unclassifiedEndpoints: "block_readiness"',
+    "excludedEndpoints: []",
+    "classificationPolicy: {}",
     "readinessCriteria:",
-    "  openApiSourceValidated: false",
-    "  manifestSchemaValidated: false",
-    "  allIncludedEndpointsInOpenApi: false",
-    "  allIncludedEndpointsInRuntimeInventory: false",
-    "  noPlaceholderEndpointsIncluded: false",
-    "  allRuntimeOnlyRoutesClassified: false",
-    "  allUnclassifiedEndpointsResolved: false",
-    "  includedEndpointSuccessSchemasValidated: false",
-    "  includedEndpointErrorTaxonomyValidated: false",
-    "  generatedClientTargetDeclared: false",
-    "  generatedClientGenerationConfigured: false",
     "  generatedClientCompilePassed: false",
-    "  runtimeContractChecksPassed: false",
-    "knownLimitations:",
-    '  - code: "runtime_contract_checks_not_run"',
-    '    severity: "blocking_before_readiness"',
-    '    description: "Runtime HTTP contract checks are future-only and have not run."',
-    "    blocksReadiness: true",
+    "knownLimitations: []",
     "generatedClientTargets: []",
-    "notes:",
-    '  - "This manifest is a non-readiness candidate baseline, not a readiness certificate."',
   ].join("\n");
 }

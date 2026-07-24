@@ -3,6 +3,11 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  readBoundedRequestBody,
+  RequestBodyTooLargeError,
+} from "./request-body.mjs";
+
 const sourceDirectory = fileURLToPath(new URL("./src/", import.meta.url));
 const backendUrl = new URL(process.env.BACKEND_URL ?? "http://127.0.0.1:8080");
 const port = Number.parseInt(process.env.PORT ?? "4173", 10);
@@ -13,6 +18,9 @@ const contentTypes = new Map([
   [".html", "text/html; charset=utf-8"],
   [".js", "text/javascript; charset=utf-8"],
   [".json", "application/json; charset=utf-8"],
+  [".png", "image/png"],
+  [".webmanifest", "application/manifest+json; charset=utf-8"],
+  [".svg", "image/svg+xml"],
 ]);
 
 const server = createServer(async (request, response) => {
@@ -23,7 +31,12 @@ const server = createServer(async (request, response) => {
     }
 
     await serveFrontend(request, response);
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      response.writeHead(413, { "content-type": "text/plain; charset=utf-8" });
+      response.end("Request body is too large.");
+      return;
+    }
     response.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
     response.end("Frontend server error.");
   }
@@ -48,7 +61,9 @@ async function proxyToBackend(request, response) {
   const backendResponse = await fetch(requestUrl, {
     method,
     headers,
-    body: method === "GET" || method === "HEAD" ? undefined : await readRequestBody(request),
+    body: method === "GET" || method === "HEAD"
+      ? undefined
+      : await readBoundedRequestBody(request),
   });
   const responseBody = Buffer.from(await backendResponse.arrayBuffer());
   const responseHeaders = {};
@@ -57,6 +72,7 @@ async function proxyToBackend(request, response) {
   if (contentType) {
     responseHeaders["content-type"] = contentType;
   }
+  responseHeaders["cache-control"] = "no-store";
 
   response.writeHead(backendResponse.status, responseHeaders);
   response.end(responseBody);
@@ -77,20 +93,11 @@ async function serveFrontend(request, response) {
     const content = await readFile(filePath);
     response.writeHead(200, {
       "content-type": contentTypes.get(extname(filePath)) ?? "application/octet-stream",
+      "cache-control": "no-store",
     });
     response.end(content);
   } catch {
     response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
     response.end("Not found.");
   }
-}
-
-async function readRequestBody(request) {
-  const chunks = [];
-
-  for await (const chunk of request) {
-    chunks.push(chunk);
-  }
-
-  return Buffer.concat(chunks);
 }

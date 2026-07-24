@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node server.mjs",
     "build": "node scripts/build.mjs",
-    "lint": "node --check server.mjs && node --check scripts/build.mjs && node --check src/api-client.js && node --check src/app.js && node --check src/offer-view.js",
+    "lint": "node --check server.mjs && node --check request-body.mjs && node --check scripts/build.mjs && node --check src/api-client.js && node --check src/app.js && node --check src/chat-app.js && node --check src/chat-flow.js && node --check src/client-context.js && node --check src/hotel-details-view.js && node --check src/offer-view.js",
     "test": "node --test tests/*.test.js"
   }
 }

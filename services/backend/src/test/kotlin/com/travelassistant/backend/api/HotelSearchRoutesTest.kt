@@ -1,5 +1,15 @@
 package com.travelassistant.backend.api
 
+import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
+import com.travelassistant.backend.application.hotel.CreateHotelSearchResult
+import com.travelassistant.backend.application.hotel.HotelLocationSuggestion
+import com.travelassistant.backend.application.hotel.HotelOfferProviderResult
+import com.travelassistant.backend.application.hotel.HotelSearchBoundary
+import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.hotel.HotelSearch
+import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
+import com.travelassistant.backend.domain.hotel.HotelSearchId
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import com.travelassistant.backend.module
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -10,15 +20,50 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.math.BigDecimal
+import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class HotelSearchRoutesTest {
+
+    @Test
+    fun rejectsMalformedAndOversizedSearchBodiesWithoutCallingApplication() = testApplication {
+        val boundary = ConfigurableHotelSearchBoundary()
+        application {
+            configureSerialization()
+            configureErrorHandling()
+            routing {
+                route("/api/v1") {
+                    hotelSearchRoutes(boundary)
+                }
+            }
+        }
+
+        listOf(
+            "{\"sessionId\":" to ContentType.Application.Json,
+            "{\"padding\":\"${"x".repeat(API_JSON_REQUEST_MAX_BYTES)}\"}" to
+                ContentType.Application.Json,
+            validSearchBody("assistant-session-local-test") to ContentType.Text.Plain,
+        ).forEach { (body, contentType) ->
+            val response = client.post("/api/v1/hotel-searches") {
+                header(HttpHeaders.ContentType, contentType.toString())
+                setBody(body)
+            }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertTrue(response.bodyAsText().contains("VALIDATION_ERROR"))
+        }
+
+        assertEquals(0, boundary.createSearchCalls)
+    }
 
     @Test
     fun createsHotelSearchAndReturnsDeterministicFakeOffers() = testApplication {
@@ -42,7 +87,11 @@ class HotelSearchRoutesTest {
         val createSearchBody = Json.parseToJsonElement(createSearchResponse.bodyAsText()).jsonObject
         val searchId = createSearchBody["searchId"]?.jsonPrimitive?.content.orEmpty()
 
-        assertEquals(HttpStatusCode.Accepted, createSearchResponse.status)
+        assertEquals(
+            HttpStatusCode.Accepted,
+            createSearchResponse.status,
+            createSearchResponse.bodyAsText(),
+        )
         assertEquals("hotel-search-local-000001", searchId)
         assertEquals(sessionId, createSearchBody["sessionId"]?.jsonPrimitive?.content)
         assertEquals("completed_with_offers", createSearchBody["status"]?.jsonPrimitive?.content)
@@ -60,14 +109,15 @@ class HotelSearchRoutesTest {
         assertEquals(searchId, offersBody["searchId"]?.jsonPrimitive?.content)
         assertEquals("completed_with_offers", offersBody["status"]?.jsonPrimitive?.content)
         assertEquals(2, offers.size)
-        assertEquals("fake-offer-rome-001", firstOffer["offerId"]?.jsonPrimitive?.content)
+        assertEquals("hotel-offer-local-000002", firstOffer["offerId"]?.jsonPrimitive?.content)
+        assertEquals(false, firstOffer.containsKey("providerOfferRef"))
         assertEquals("Rome Central Hotel", firstOffer["hotelName"]?.jsonPrimitive?.content)
         assertEquals("Rome", firstOffer["location"]?.jsonObject?.get("city")?.jsonPrimitive?.content)
         assertEquals("Italy", firstOffer["location"]?.jsonObject?.get("country")?.jsonPrimitive?.content)
         assertEquals("EUR", firstOffer["price"]?.jsonObject?.get("currency")?.jsonPrimitive?.content)
         assertEquals("local_fake_provider", firstOffer["source"]?.jsonPrimitive?.content)
         assertEquals(
-            "Available; ranked by rating, total stay price, then offer ID.",
+            "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
             firstOffer["matchSummary"]?.jsonPrimitive?.content,
         )
         assertTrue(firstOffer["amenities"]?.jsonArray?.isNotEmpty() == true)
@@ -199,6 +249,133 @@ class HotelSearchRoutesTest {
         )
     }
 
+    @Test
+    fun `returns one typed refinement suggestion for a completed empty search`() =
+        testApplication {
+            val boundary = ConfigurableHotelSearchBoundary().apply {
+                storedSearch = emptySearchWithPreferences()
+            }
+            application {
+                configureSerialization()
+                configureErrorHandling()
+                routing {
+                    route("/api/v1") {
+                        hotelSearchRoutes(boundary)
+                    }
+                }
+            }
+
+            val response = client.get(
+                "/api/v1/hotel-searches/hotel-search-local-empty/offers",
+            )
+            val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+            val suggestion = body.getValue("refinementSuggestion").jsonObject
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("completed_no_offers", body.getValue("status").jsonPrimitive.content)
+            assertTrue(body.getValue("offers").jsonArray.isEmpty())
+            assertEquals("relax_preference", suggestion.getValue("type").jsonPrimitive.content)
+            assertEquals(
+                "minimumGuestRating",
+                suggestion.getValue("preference").jsonPrimitive.content,
+            )
+            assertTrue(
+                suggestion.getValue("message").jsonPrimitive.content.contains(
+                    "подтвердить новый поиск",
+                ),
+            )
+            assertEquals(0, boundary.createSearchCalls)
+        }
+
+    @Test
+    fun mapsTypedNotCreatedOutcomesToExistingSafeSchemas() = testApplication {
+        val boundary = ConfigurableHotelSearchBoundary()
+        application {
+            configureSerialization()
+            configureErrorHandling()
+            routing {
+                route("/api/v1") {
+                    hotelSearchRoutes(boundary)
+                }
+            }
+        }
+
+        val locationOutcomes = listOf(
+            HotelOfferProviderResult.LocationNotFound,
+            HotelOfferProviderResult.LocationSelectionRequired(
+                suggestions = listOf(
+                    HotelLocationSuggestion(
+                        name = "Rome",
+                        signature = "City, Italy",
+                        typeCode = "city",
+                        typeName = "City",
+                    ),
+                ),
+            ),
+        )
+        locationOutcomes.forEach { outcome ->
+            boundary.nextResult = CreateHotelSearchResult.NotCreated(outcome)
+
+            val response = client.post("/api/v1/hotel-searches") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody(validSearchBody("assistant-session-local-test"))
+            }
+            val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("VALIDATION_ERROR", body["code"]?.jsonPrimitive?.content)
+            assertEquals(
+                "criteria.destination",
+                body["fields"]?.jsonArray?.first()?.jsonObject?.get("field")?.jsonPrimitive?.content,
+            )
+            assertEquals(false, body.containsKey("searchId"))
+            assertEquals(false, body.toString().contains("City, Italy"))
+        }
+
+        boundary.nextResult = CreateHotelSearchResult.NotCreated(
+            HotelOfferProviderResult.RequestRejected(
+                HotelOfferProviderResult.RequestRejectionReason.INVALID_OCCUPANCY,
+            ),
+        )
+        val rejectedResponse = client.post("/api/v1/hotel-searches") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(validSearchBody("assistant-session-local-test"))
+        }
+        val rejectedBody = Json.parseToJsonElement(rejectedResponse.bodyAsText()).jsonObject
+
+        assertEquals(HttpStatusCode.BadRequest, rejectedResponse.status)
+        assertEquals("VALIDATION_ERROR", rejectedBody["code"]?.jsonPrimitive?.content)
+        assertEquals(
+            "criteria",
+            rejectedBody["fields"]?.jsonArray?.first()?.jsonObject?.get("field")?.jsonPrimitive?.content,
+        )
+        assertEquals(false, rejectedBody.toString().contains("INVALID_OCCUPANCY"))
+
+        listOf(
+            HotelOfferProviderResult.ResponseRejected(
+                HotelOfferProviderResult.ResponseRejectionReason.INVALID_PAYLOAD,
+            ),
+            HotelOfferProviderResult.ProviderUnavailable(
+                HotelOfferProviderResult.UnavailableReason.UNAVAILABLE,
+            ),
+        ).forEach { outcome ->
+            boundary.nextResult = CreateHotelSearchResult.NotCreated(outcome)
+
+            val response = client.post("/api/v1/hotel-searches") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody(validSearchBody("assistant-session-local-test"))
+            }
+            val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertEquals("INTERNAL_ERROR", body["code"]?.jsonPrimitive?.content)
+            assertEquals("Hotel search could not be completed.", body["message"]?.jsonPrimitive?.content)
+            assertEquals(false, body.containsKey("searchId"))
+            assertEquals(false, body.toString().contains("INVALID_PAYLOAD"))
+            assertEquals(false, body.toString().contains("UNAVAILABLE"))
+        }
+    }
+
     private fun validSearchBody(sessionId: String): String =
         """
         {
@@ -215,4 +392,47 @@ class HotelSearchRoutesTest {
           }
         }
         """.trimIndent()
+
+    private fun emptySearchWithPreferences(): HotelSearch =
+        HotelSearch(
+            id = HotelSearchId("hotel-search-local-empty"),
+            sessionId = AssistantSessionId("assistant-session-local-test"),
+            criteria = HotelSearchCriteria(
+                destination = "Казань",
+                checkInDate = LocalDate.parse("2026-08-10"),
+                checkOutDate = LocalDate.parse("2026-08-14"),
+                guests = HotelSearchCriteria.Guests(adults = 2),
+                rooms = 1,
+                preferences = HotelSearchPreferences(
+                    maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
+                        amount = BigDecimal("80000"),
+                        currency = "RUB",
+                    ),
+                    stars = setOf(4, 5),
+                    minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+                    freeCancellationRequired = true,
+                ),
+            ),
+            status = HotelSearch.Status.COMPLETED_NO_OFFERS,
+            offers = emptyList(),
+        )
+
+    private class ConfigurableHotelSearchBoundary : HotelSearchBoundary {
+        var nextResult: CreateHotelSearchResult =
+            CreateHotelSearchResult.NotCreated(HotelOfferProviderResult.LocationNotFound)
+        var storedSearch: HotelSearch? = null
+        var createSearchCalls: Int = 0
+
+        override suspend fun createSearch(
+            command: CreateHotelSearchCommand,
+        ): CreateHotelSearchResult {
+            createSearchCalls += 1
+            return nextResult
+        }
+
+        override fun getSearch(searchId: HotelSearchId): HotelSearch =
+            checkNotNull(storedSearch).also { search ->
+                check(search.id == searchId)
+            }
+    }
 }

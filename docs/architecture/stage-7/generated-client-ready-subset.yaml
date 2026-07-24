@@ -1,58 +1,82 @@
-manifestVersion: "stage-7-generated-client-ready-subset-v1"
-scopeName: "travel-assistant-stage-7-foundation-subset"
+manifestVersion: "stage-10-platform-client-contract-subset-v1"
+scopeName: "travel-assistant-stage-10-platform-client-subset"
 status: "not_ready"
 readinessClaim: false
 openApiSource: "docs/architecture/stage-6/openapi-draft.yaml"
 validationStatus:
   readinessClaim: false
   status: "not_ready"
-  schemaValidation: "not_run"
-  endpointReferenceValidation: "not_run"
+  schemaValidation: "passed"
+  endpointReferenceValidation: "passed"
   generatedClientCompile: "not_run"
-  runtimeContractValidation: "not_run"
-  lastValidatedBy: null
-  lastValidatedAt: null
+  runtimeContractValidation: "covered_by_backend_test"
+  lastValidatedBy: "Stage 13.5 hotel details API quality gates"
+  lastValidatedAt: "2026-07-23"
 includedEndpoints:
-  - method: "GET"
-    path: "/api/v1/health"
-    operationId: "getHealth"
-    classification: "foundation_candidate"
-    readiness: "not_ready"
-    inclusionReason: "candidate_for_future_low_risk_foundation_subset_validation"
-    requiredChecks:
-      - "openapi_source_identified"
-      - "runtime_route_present"
-      - "response_schema_validated"
-      - "generated_client_target_declared"
-      - "generated_client_compile_passed"
-      - "runtime_contract_checks_passed"
-    unresolvedBlockers:
-      - "response_schema_not_validated_by_runtime_contract_check"
-      - "generated_client_target_not_declared"
-      - "generated_client_generation_not_configured"
-      - "generated_client_compile_not_run"
-      - "runtime_contract_checks_not_run"
-excludedEndpoints:
   - method: "POST"
-    path: "/api/v1/hotel-searches"
-    operationId: "createHotelSearch"
-    classification: "placeholder_excluded"
+    path: "/api/v1/assistant/sessions"
+    operationId: "createAssistantSession"
+    classification: "platform_client_candidate"
     readiness: "not_ready"
-    exclusionReason: "placeholder_501_not_implemented_hotel_search"
-    requiredBeforeInclusion:
-      - "real_hotel_search_behavior"
-      - "runtime_contract_checks"
-      - "generated_client_compile_check"
+    inclusionReason: "bounded_chat_first_session_creation"
+    requiredChecks:
+      - "openapi_runtime_reference_match"
+      - "platform_client_contract_test"
+    unresolvedBlockers:
+      - "external_client_handoff_not_verified"
+      - "whole_openapi_not_finalized"
+  - method: "POST"
+    path: "/api/v1/assistant/sessions/{sessionId}/messages"
+    operationId: "continueAssistantSession"
+    classification: "platform_client_candidate"
+    readiness: "not_ready"
+    inclusionReason: "bounded_chat_first_session_continuation"
+    requiredChecks:
+      - "openapi_runtime_reference_match"
+      - "platform_client_contract_test"
+    unresolvedBlockers:
+      - "external_client_handoff_not_verified"
+      - "whole_openapi_not_finalized"
   - method: "GET"
     path: "/api/v1/hotel-searches/{searchId}/offers"
     operationId: "getHotelOffers"
-    classification: "placeholder_excluded"
+    classification: "platform_client_candidate"
     readiness: "not_ready"
-    exclusionReason: "placeholder_501_not_implemented_hotel_offers"
+    inclusionReason: "bounded_chat_first_offer_loading"
+    requiredChecks:
+      - "openapi_runtime_reference_match"
+      - "platform_client_contract_test"
+    unresolvedBlockers:
+      - "external_client_handoff_not_verified"
+      - "whole_openapi_not_finalized"
+  - method: "GET"
+    path: "/api/v1/hotel-searches/{searchId}/offers/{offerId}/details"
+    operationId: "getHotelOfferDetails"
+    classification: "platform_client_candidate"
+    readiness: "not_ready"
+    inclusionReason: "bounded_selected_hotel_details_loading"
+    requiredChecks:
+      - "openapi_runtime_reference_match"
+      - "hotel_details_contract_test"
+    unresolvedBlockers:
+      - "external_client_handoff_not_verified"
+      - "whole_openapi_not_finalized"
+excludedEndpoints:
+  - method: "GET"
+    path: "/api/v1/health"
+    operationId: "getHealth"
+    classification: "operational"
+    readiness: "not_ready"
+    exclusionReason: "operational_health_check_not_product_client_flow"
+    requiredBeforeInclusion: []
+  - method: "POST"
+    path: "/api/v1/hotel-searches"
+    operationId: "createHotelSearch"
+    classification: "diagnostic_excluded"
+    readiness: "not_ready"
+    exclusionReason: "direct_hotel_search_diagnostic_not_chat_first_contract"
     requiredBeforeInclusion:
-      - "real_hotel_offers_behavior"
-      - "runtime_contract_checks"
-      - "generated_client_compile_check"
+      - "explicit_product_client_decision"
   - method: "GET"
     path: "/api/v1/assistant/sessions/{sessionId}/shortlist"
     operationId: "getSessionShortlist"
@@ -60,9 +84,7 @@ excludedEndpoints:
     readiness: "not_ready"
     exclusionReason: "placeholder_501_not_implemented_shortlist_read"
     requiredBeforeInclusion:
-      - "real_shortlist_behavior"
-      - "runtime_contract_checks"
-      - "generated_client_compile_check"
+      - "runtime_behavior_implemented"
   - method: "PUT"
     path: "/api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}"
     operationId: "upsertShortlistItem"
@@ -70,9 +92,7 @@ excludedEndpoints:
     readiness: "not_ready"
     exclusionReason: "placeholder_501_not_implemented_shortlist_upsert"
     requiredBeforeInclusion:
-      - "real_shortlist_behavior"
-      - "runtime_contract_checks"
-      - "generated_client_compile_check"
+      - "runtime_behavior_implemented"
   - method: "DELETE"
     path: "/api/v1/assistant/sessions/{sessionId}/shortlist/{offerId}"
     operationId: "removeShortlistItem"
@@ -80,9 +100,7 @@ excludedEndpoints:
     readiness: "not_ready"
     exclusionReason: "placeholder_501_not_implemented_shortlist_delete"
     requiredBeforeInclusion:
-      - "real_shortlist_behavior"
-      - "runtime_contract_checks"
-      - "generated_client_compile_check"
+      - "runtime_behavior_implemented"
   - method: "POST"
     path: "/api/v1/assistant/sessions/{sessionId}/explanations"
     operationId: "createAssistantExplanation"
@@ -90,48 +108,36 @@ excludedEndpoints:
     readiness: "not_ready"
     exclusionReason: "placeholder_501_not_implemented_explanation"
     requiredBeforeInclusion:
-      - "real_explanation_behavior"
-      - "runtime_contract_checks"
-      - "generated_client_compile_check"
+      - "runtime_behavior_implemented"
 classificationPolicy:
-  placeholderEndpoints: "exclude_until_contract_aligned"
-  foundationCandidates: "candidate_only_not_ready"
+  platformClientCandidates: "bounded_chat_first_subset_only"
+  operationalEndpoints: "exclude_from_product_client_subset"
+  diagnosticEndpoints: "exclude_without_product_decision"
+  placeholderEndpoints: "exclude_until_runtime_behavior_exists"
   runtimeOnlyRoutes: "must_be_classified_before_readiness"
   unclassifiedEndpoints: "block_readiness"
 readinessCriteria:
-  openApiSourceValidated: false
-  manifestSchemaValidated: false
-  allIncludedEndpointsInOpenApi: false
-  allIncludedEndpointsInRuntimeInventory: false
-  noPlaceholderEndpointsIncluded: false
-  allRuntimeOnlyRoutesClassified: false
-  allUnclassifiedEndpointsResolved: false
-  includedEndpointSuccessSchemasValidated: false
-  includedEndpointErrorTaxonomyValidated: false
-  generatedClientTargetDeclared: false
+  wholeOpenApiFinalized: false
+  externalClientHandoffValidated: false
   generatedClientGenerationConfigured: false
   generatedClientCompilePassed: false
-  runtimeContractChecksPassed: false
+  crossOriginPolicyActivated: false
 knownLimitations:
-  - code: "static_runtime_route_inventory"
+  - code: "whole_openapi_not_finalized"
     severity: "blocking_before_readiness"
-    description: "Static route inventory is advisory and does not prove runtime contract conformance."
+    description: "Only the bounded chat-first subset is aligned with runtime."
     blocksReadiness: true
-  - code: "endpoint_reference_validation_future_only"
+  - code: "external_client_handoff_not_verified"
     severity: "blocking_before_readiness"
-    description: "Endpoint reference validation is not enforced by the Stage 7.25 skeleton validation."
+    description: "The platform-neutral external client integration handoff has not been verified."
     blocksReadiness: true
-  - code: "generated_client_target_not_declared"
-    severity: "blocking_before_readiness"
-    description: "No generated-client target has been selected or configured."
-    blocksReadiness: true
-  - code: "runtime_contract_checks_not_run"
-    severity: "blocking_before_readiness"
-    description: "Runtime HTTP contract checks are future-only and have not run."
-    blocksReadiness: true
+  - code: "cors_default_deny"
+    severity: "informational"
+    description: "Cross-origin browser access remains disabled until an exact-origin allowlist is approved."
+    blocksReadiness: false
 generatedClientTargets: []
 notes:
-  - "This manifest is a non-readiness candidate baseline, not a readiness certificate."
-  - "Included endpoints are candidate-only and remain not_ready until separate validation stages complete."
-  - "Assistant foundation candidates beyond health remain outside this first manifest candidate until an explicit endpoint review."
-  - "Placeholder endpoints are excluded and must not be generated-client-ready from this manifest."
+  - "This manifest classifies a platform-client candidate subset; it is not a readiness certificate."
+  - "OpenAPI status and readinessClaim remain not_ready/false."
+  - "Stage 10.4 intentionally leaves platform SDK selection to a future integrating team."
+  - "SDK generation, CORS activation, auth, and durable storage remain outside this manifest state."

@@ -8,9 +8,13 @@ data class HotelSearchCriteria(
     val checkOutDate: LocalDate,
     val guests: Guests,
     val rooms: Int?,
+    val preferences: HotelSearchPreferences = HotelSearchPreferences(),
 ) {
     data class Guests(
         val adults: Int,
-        val children: Int,
-    )
+        val childrenAges: List<Int> = emptyList(),
+    ) {
+        val children: Int
+            get() = childrenAges.size
+    }
 }

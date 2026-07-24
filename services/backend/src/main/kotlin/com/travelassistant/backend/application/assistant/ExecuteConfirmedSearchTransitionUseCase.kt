@@ -1,6 +1,9 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.application.hotel.CreateHotelSearchResult
 import com.travelassistant.backend.application.hotel.HotelSearchBoundary
+import com.travelassistant.backend.domain.hotel.HotelSearch
+import kotlinx.coroutines.CancellationException
 
 class ExecuteConfirmedSearchTransitionUseCase(
     private val planSearchCreation: PlanConfirmedSearchCreationUseCase =
@@ -15,7 +18,7 @@ class ExecuteConfirmedSearchTransitionUseCase(
     private val hotelSearchBoundary: HotelSearchBoundary,
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         request: ExecuteConfirmedSearchTransitionRequest,
     ): ExecuteConfirmedSearchTransitionResult {
         val creationPlan = when (val plan = planSearchCreation(request.decision)) {
@@ -44,7 +47,7 @@ class ExecuteConfirmedSearchTransitionUseCase(
         return handlePlanningResult(attemptPlanningResult, commandPlan, request)
     }
 
-    private fun handlePlanningResult(
+    private suspend fun handlePlanningResult(
         result: ConfirmedSearchExecutionAttemptResult,
         commandPlan: ConfirmedSearchCreationCommandPlan.CommandReady,
         request: ExecuteConfirmedSearchTransitionRequest,
@@ -64,7 +67,7 @@ class ExecuteConfirmedSearchTransitionUseCase(
                 persistAndExecute(result, commandPlan, request)
         }
 
-    private fun persistAndExecute(
+    private suspend fun persistAndExecute(
         planningResult: ConfirmedSearchExecutionAttemptResult.AttemptPreparedButExecutionBlocked,
         commandPlan: ConfirmedSearchCreationCommandPlan.CommandReady,
         request: ExecuteConfirmedSearchTransitionRequest,
@@ -87,7 +90,7 @@ class ExecuteConfirmedSearchTransitionUseCase(
         }
     }
 
-    private fun executeSearchCreation(
+    private suspend fun executeSearchCreation(
         storedAttempt: ConfirmedSearchExecutionAttempt,
         commandPlan: ConfirmedSearchCreationCommandPlan.CommandReady,
         planningResult: ConfirmedSearchExecutionAttemptResult.AttemptPreparedButExecutionBlocked,
@@ -106,9 +109,11 @@ class ExecuteConfirmedSearchTransitionUseCase(
             )
         }
 
-        val createdSearch = try {
+        val creationResult = try {
             hotelSearchBoundary.createSearch(commandPlan.command)
-        } catch (e: Exception) {
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
             attemptStore.markFailed(
                 idempotencyKey = storedAttempt.idempotencyKey,
                 reason = ConfirmedSearchExecutionAttemptFailureReason.SEARCH_CREATION_FAILED,
@@ -121,19 +126,45 @@ class ExecuteConfirmedSearchTransitionUseCase(
             )
         }
 
+        return when (creationResult) {
+            is CreateHotelSearchResult.Created ->
+                recordSuccessfulSearchCreation(
+                    createdSearch = creationResult.search,
+                    inProgressAttempt = inProgressResult.attempt,
+                    planningResult = planningResult,
+                    request = request,
+                )
+
+            is CreateHotelSearchResult.NotCreated ->
+                recordSearchNotCreated(
+                    notCreated = creationResult,
+                    inProgressAttempt = inProgressResult.attempt,
+                    planningResult = planningResult,
+                    request = request,
+                )
+        }
+    }
+
+    private fun recordSuccessfulSearchCreation(
+        createdSearch: HotelSearch,
+        inProgressAttempt: ConfirmedSearchExecutionAttempt,
+        planningResult: ConfirmedSearchExecutionAttemptResult.AttemptPreparedButExecutionBlocked,
+        request: ExecuteConfirmedSearchTransitionRequest,
+    ): ExecuteConfirmedSearchTransitionResult {
         val succeededResult = attemptStore.markSucceeded(
-            idempotencyKey = storedAttempt.idempotencyKey,
+            idempotencyKey = inProgressAttempt.idempotencyKey,
             createdSearchId = createdSearch.id,
             now = request.now,
         )
 
         val finalAttempt = when (succeededResult) {
             is ConfirmedSearchExecutionAttemptStoreResult.Stored -> succeededResult.attempt
-            else -> inProgressResult.attempt
+            else -> inProgressAttempt
         }
 
         val executionResult = ConfirmedSearchExecutionResult.SearchCreated(
             searchId = createdSearch.id,
+            searchStatus = createdSearch.status,
             lifecyclePolicy = planningResult.lifecyclePolicy,
             executionPolicy = planningResult.executionPolicy,
         )
@@ -147,6 +178,39 @@ class ExecuteConfirmedSearchTransitionUseCase(
             lifecyclePolicy = planningResult.lifecyclePolicy,
             executionPolicy = planningResult.executionPolicy,
         )
+    }
+
+    private fun recordSearchNotCreated(
+        notCreated: CreateHotelSearchResult.NotCreated,
+        inProgressAttempt: ConfirmedSearchExecutionAttempt,
+        planningResult: ConfirmedSearchExecutionAttemptResult.AttemptPreparedButExecutionBlocked,
+        request: ExecuteConfirmedSearchTransitionRequest,
+    ): ExecuteConfirmedSearchTransitionResult {
+        val failedResult = attemptStore.markFailed(
+            idempotencyKey = inProgressAttempt.idempotencyKey,
+            reason = ConfirmedSearchExecutionAttemptFailureReason.SEARCH_CREATION_FAILED,
+            now = request.now,
+        )
+
+        return when (failedResult) {
+            is ConfirmedSearchExecutionAttemptStoreResult.Stored ->
+                ExecuteConfirmedSearchTransitionResult.SearchNotCreated(
+                    attempt = failedResult.attempt,
+                    outcome = notCreated.outcome,
+                    lifecyclePolicy = planningResult.lifecyclePolicy,
+                    executionPolicy = planningResult.executionPolicy,
+                )
+
+            is ConfirmedSearchExecutionAttemptStoreResult.Duplicate ->
+                buildDuplicateFromStore(failedResult.existingAttempt, planningResult)
+
+            is ConfirmedSearchExecutionAttemptStoreResult.Rejected ->
+                ExecuteConfirmedSearchTransitionResult.StoreRejected(
+                    reason = failedResult.reason,
+                    lifecyclePolicy = planningResult.lifecyclePolicy,
+                    executionPolicy = planningResult.executionPolicy,
+                )
+        }
     }
 
     private fun buildDuplicateResult(

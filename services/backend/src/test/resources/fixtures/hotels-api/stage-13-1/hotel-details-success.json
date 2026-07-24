@@ -1,0 +1,181 @@
+{
+  "payload": {
+    "hotelId": "hotel-example-001",
+    "hotelName": "Отель Пример",
+    "hotelChain": "Сеть Пример",
+    "checkInTime": "15:00",
+    "checkOutTime": "12:00",
+    "timeZoneOffset": "+03:00",
+    "phone": "+70000000000",
+    "email": "hotel@example.invalid",
+    "description": [
+      {
+        "paragraphs": [
+          "Обезличенное описание отеля.",
+          "Обезличенное описание отеля.",
+          "Обезличенное описание отеля."
+        ]
+      },
+      {
+        "paragraphs": [
+          "Обезличенное описание отеля.",
+          "Обезличенное описание отеля."
+        ],
+        "title": "Пример раздела"
+      }
+    ],
+    "facts": {
+      "electricity": {
+        "frequency": [50],
+        "sockets": [
+          {
+            "code": "c",
+            "name": "Пример"
+          },
+          {
+            "code": "f",
+            "name": "Пример"
+          }
+        ],
+        "voltage": [220]
+      },
+      "floorsCount": 5,
+      "roomsCount": 100
+    },
+    "starRating": 4,
+    "areaLocation": {
+      "countryName": "Пример страны",
+      "destinationId": 1001,
+      "destinationName": "Пример города",
+      "signature": "Пример направления",
+      "type": {
+        "code": "city",
+        "name": "Пример"
+      },
+      "cityName": "Пример города",
+      "cityNameEn": "Example City",
+      "countryNameEn": "Example Country"
+    },
+    "hotelLocation": {
+      "address": "Пример адреса",
+      "coordinates": {
+        "longitude": 0,
+        "latitude": 0
+      }
+    },
+    "images": [
+      "https://example.invalid/hotel-image-1.jpg",
+      "https://example.invalid/hotel-image-2.jpg"
+    ],
+    "facilitiesGroups": [
+      {
+        "facilities": [
+          {
+            "code": "elevator_lift",
+            "name": "Пример"
+          },
+          {
+            "code": "smoke_free_property",
+            "name": "Пример"
+          }
+        ],
+        "groupCode": "general",
+        "groupName": "Пример группы"
+      },
+      {
+        "facilities": [
+          {
+            "code": "tv",
+            "name": "Пример"
+          }
+        ],
+        "groupCode": "rooms",
+        "groupName": "Пример группы"
+      }
+    ],
+    "categoryCode": "hotel",
+    "rulesExtraInfo": "Обезличенная дополнительная информация.",
+    "structuredRules": {
+      "addFee": [],
+      "checkInCheckOut": [],
+      "childrenBeds": [],
+      "childrenMeals": [],
+      "cots": [
+        {
+          "amount": 0,
+          "inclusion": false,
+          "priceUnit": "per_room_per_night"
+        }
+      ],
+      "deposits": [],
+      "extraBeds": [
+        {
+          "amount": 0,
+          "inclusion": false,
+          "priceUnit": "per_guest_per_night"
+        }
+      ],
+      "internet": [
+        {
+          "inclusion": true,
+          "internetType": "unspecified",
+          "priceUnit": "unspecified",
+          "workArea": "room"
+        },
+        {
+          "inclusion": true,
+          "internetType": "unspecified",
+          "priceUnit": "unspecified",
+          "workArea": "hotel"
+        }
+      ],
+      "meals": [],
+      "noShow": {
+        "isAvailable": false,
+        "dayPeriod": "unspecified"
+      },
+      "parking": [
+        {
+          "inclusion": false,
+          "priceUnit": "unspecified",
+          "territoryType": "on_side"
+        }
+      ],
+      "pets": [],
+      "shuttles": [],
+      "visa": {
+        "visaSupport": true
+      }
+    },
+    "paymentMethods": [
+      "mir",
+      "cash",
+      "master_card",
+      "visa"
+    ],
+    "certificationNeeded": true,
+    "viewsCount": 42,
+    "certification": {
+      "resortId": "resort-example-001",
+      "status": "Действует",
+      "type": "Гостиница",
+      "registerRecord": "registry-example-001",
+      "fullName": "Организация Пример",
+      "addressList": ["Пример адреса"],
+      "ownerName": "Организация Пример",
+      "ownerInn": "0000000000",
+      "ownerKpp": "000000000",
+      "ownerOgrn": "0000000000000",
+      "roomList": [
+        {
+          "apartmentCount": 1,
+          "numberSeats": 2,
+          "roomCategoryId": 2001,
+          "roomCategoryName": "Пример категории номера"
+        }
+      ]
+    },
+    "badgeSlugs": [],
+    "isClosed": false
+  }
+}

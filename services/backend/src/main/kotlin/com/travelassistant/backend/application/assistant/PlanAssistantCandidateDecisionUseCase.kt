@@ -22,7 +22,12 @@ class PlanAssistantCandidateDecisionUseCase {
             LlmCandidate.Outcome.AMBIGUOUS ->
                 candidate.clarificationQuestion
                     ?.takeIf(String::isNotBlank)
-                    ?.let(AssistantCandidateDecision::AskClarification)
+                    ?.let { question ->
+                        AssistantCandidateDecision.AskClarification(
+                            question = question,
+                            candidate = candidate,
+                        )
+                    }
                     ?: AssistantCandidateDecision.Fallback(
                         AssistantCandidateDecision.FallbackReason.MISSING_CLARIFICATION,
                     )

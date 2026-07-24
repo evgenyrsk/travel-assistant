@@ -19,7 +19,7 @@ README является входной картой проекта: он пом�
 ├── .env.example         # Пример локальных переменных окружения
 ├── .gitignore           # Правила исключения локальных и сгенерированных файлов
 ├── .github/             # Шаблоны GitHub issues и pull requests
-├── app/                 # Временная техническая оболочка Stage 7.51 для проверки поиска отелей
+├── app/                 # Локальная demo shell MVP и отдельная диагностическая страница API
 ├── services/            # Backend-модули; services/backend содержит основу на Kotlin + Ktor
 ├── docs/                # Продуктовая, архитектурная и инженерная документация, а также roadmap
 ├── tests/               # Будущие тесты, fixtures и E2E-сценарии
@@ -44,9 +44,10 @@ README является входной картой проекта: он пом�
 - `docs/roadmap/roadmap.md` — основной roadmap и единственный источник текущих статусов этапов, перенесенных пунктов и следующего разрешенного шага.
 - `docs/ROADMAP.md` — краткая навигационная карта этапов без текущих статусов; не конкурирует с основным roadmap.
 - `docs/guides/documentation-style-guide.md` — единые правила языка, структуры, терминологии, ограничений и безопасного рефакторинга документации.
+- `docs/guides/local-mvp-demo.md` — воспроизводимый локальный запуск demo shell и backend в явных `FAKE`/`REAL` профилях.
 - `docs/reviews/README.md` — индекс отчетов о проверках и правила чтения исторических и текущих отчетов.
 - `docs/reviews/*.md` — исторический журнал проверок и чисток; читать через `docs/reviews/README.md`.
-- `docs/decisions/README.md` — правила ведения ADR; ADR пока не созданы.
+- `docs/decisions/README.md` — индекс принятых ADR и правила ведения архитектурных решений.
 - `docs/development/README.md` — индекс активных инженерных правил для реализации, тестирования, документации и проверок качества.
 - `docs/development/coding-standards.md` — общие правила написания кода.
 - `docs/development/kotlin-backend-style-guide.md` — Kotlin + Ktor backend style rules.
@@ -57,7 +58,8 @@ README является входной картой проекта: он пом�
 - `docs/development/roadmap.md` — компактный справочник по будущим направлениям разработки; не источник статусов и не активный список задач.
 - `docs/development/implementation-strategy.md` — справочная стратегия реализации и правила декомпозиции задач; не основной roadmap и не активный список реализации.
 - `services/backend/README.md` — инструкция по запуску backend на Kotlin + Ktor и описание текущих локальных endpoints.
-- `app/README.md` — запуск временной frontend-оболочки Stage 7.51; целевое направление продукта остается chat-first.
+- `app/README.md` — запуск локальной demo shell и отдельной диагностической страницы.
+- `scripts/local-demo.mjs` — единый launcher локальной демонстрации MVP.
 - `docs/prompts/README.md` — индекс Codex prompt templates.
 - `docs/prompts/codex-task-template.md` — практический шаблон Codex для задач реализации и сопровождения.
 - `docs/prompts/codex-review-template.md` — практический шаблон Codex для задач только на проверку.

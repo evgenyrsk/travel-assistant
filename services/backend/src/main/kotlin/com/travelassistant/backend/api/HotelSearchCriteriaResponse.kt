@@ -19,6 +19,7 @@ data class HotelSearchCriteriaResponse(
     data class Guests(
         val adults: Int,
         val children: Int,
+        val childrenAges: List<Int>,
     )
 
     companion object {
@@ -30,6 +31,7 @@ data class HotelSearchCriteriaResponse(
                 guests = Guests(
                     adults = criteria.guests.adults,
                     children = criteria.guests.children,
+                    childrenAges = criteria.guests.childrenAges,
                 ),
                 rooms = criteria.rooms,
             )

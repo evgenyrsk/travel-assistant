@@ -1,12 +1,14 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.application.llm.LlmCandidate
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import java.time.LocalDate
 
 class ProceedWithCandidateCriteriaValidator {
 
     operator fun invoke(
         decision: AssistantCandidateDecision.ProceedWithCandidate,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): ProceedWithCandidateValidationResult {
         val candidate = decision.candidate
         val issues = linkedSetOf<ProceedWithCandidateValidationIssue>()
@@ -69,6 +71,10 @@ class ProceedWithCandidateCriteriaValidator {
         if (children < 0) {
             issues += ProceedWithCandidateValidationIssue.INVALID_CHILDREN
         }
+        val childrenAges = candidate.childrenAgesConstraint(
+            children = children,
+            issues = issues,
+        )
 
         val rooms = candidate.requiredIntConstraint(
             key = ROOMS,
@@ -76,8 +82,14 @@ class ProceedWithCandidateCriteriaValidator {
             invalidIssue = ProceedWithCandidateValidationIssue.INVALID_ROOMS,
             issues = issues,
         )
-        if (rooms != null && rooms < 1) {
-            issues += ProceedWithCandidateValidationIssue.INVALID_ROOMS
+        if (rooms != null) {
+            when {
+                rooms < 1 ->
+                    issues += ProceedWithCandidateValidationIssue.INVALID_ROOMS
+
+                rooms != SUPPORTED_ROOM_COUNT ->
+                    issues += ProceedWithCandidateValidationIssue.UNSUPPORTED_ROOM_COUNT
+            }
         }
 
         if (issues.isNotEmpty()) {
@@ -94,9 +106,10 @@ class ProceedWithCandidateCriteriaValidator {
                 checkOutDate = checkNotNull(checkOutDate),
                 guests = ProceedWithCandidateCriteria.Guests(
                     adults = checkNotNull(adults),
-                    children = children,
+                    childrenAges = checkNotNull(childrenAges),
                 ),
                 rooms = checkNotNull(rooms),
+                preferences = preferences,
             ),
         )
     }
@@ -156,12 +169,45 @@ class ProceedWithCandidateCriteriaValidator {
         }
     }
 
+    private fun LlmCandidate.childrenAgesConstraint(
+        children: Int,
+        issues: MutableSet<ProceedWithCandidateValidationIssue>,
+    ): List<Int>? {
+        val rawValue = extractedConstraints[CHILDREN_AGES]?.trim()
+        if (rawValue.isNullOrBlank()) {
+            if (children > 0) {
+                issues += ProceedWithCandidateValidationIssue.MISSING_CHILDREN_AGES
+                return null
+            }
+            return emptyList()
+        }
+
+        val ages = rawValue.split(',').map { value ->
+            value.trim().toIntOrNull() ?: run {
+                issues += ProceedWithCandidateValidationIssue.INVALID_CHILDREN_AGES
+                return null
+            }
+        }
+        if (ages.any { it !in MIN_CHILD_AGE..MAX_CHILD_AGE }) {
+            issues += ProceedWithCandidateValidationIssue.INVALID_CHILDREN_AGES
+        }
+        if (ages.size != children) {
+            issues += ProceedWithCandidateValidationIssue.CHILDREN_AGES_COUNT_MISMATCH
+        }
+
+        return ages
+    }
+
     private companion object {
         const val DESTINATION = "destination"
         const val CHECK_IN_DATE = "check-in"
         const val CHECK_OUT_DATE = "check-out"
         const val ADULTS = "adults"
         const val CHILDREN = "children"
+        const val CHILDREN_AGES = "children-ages"
         const val ROOMS = "rooms"
+        const val MIN_CHILD_AGE = 0
+        const val MAX_CHILD_AGE = 17
+        const val SUPPORTED_ROOM_COUNT = 1
     }
 }

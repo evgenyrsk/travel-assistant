@@ -358,7 +358,7 @@ class PlanConfirmedSearchExecutionGuardUseCaseTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: ProceedWithCandidateCriteria.Guests = ProceedWithCandidateCriteria.Guests(
             adults = 2,
-            children = 0,
+            childrenAges = emptyList(),
         ),
         rooms: Int = 1,
     ): ProceedWithCandidateCriteria =
@@ -376,7 +376,7 @@ class PlanConfirmedSearchExecutionGuardUseCaseTest {
         checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: HotelSearchCriteria.Guests = HotelSearchCriteria.Guests(
             adults = 2,
-            children = 0,
+            childrenAges = emptyList(),
         ),
         rooms: Int = 1,
     ): HotelSearchCriteria =

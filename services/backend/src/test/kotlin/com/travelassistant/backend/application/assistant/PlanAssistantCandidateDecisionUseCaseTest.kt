@@ -34,7 +34,10 @@ class PlanAssistantCandidateDecisionUseCaseTest {
         val decision = planner(LlmCandidateValidationResult.Accepted(candidate))
 
         assertEquals(
-            AssistantCandidateDecision.AskClarification("What are your stay dates?"),
+            AssistantCandidateDecision.AskClarification(
+                question = "What are your stay dates?",
+                candidate = candidate,
+            ),
             decision,
         )
     }

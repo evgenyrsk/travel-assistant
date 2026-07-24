@@ -5,6 +5,10 @@ sealed interface LlmClientResponse {
         val value: LlmCandidate,
     ) : LlmClientResponse
 
+    data class RetryableFailure(
+        val reason: LlmClientRetryableFailureReason,
+    ) : LlmClientResponse
+
     data object Empty : LlmClientResponse
 
     data object Failure : LlmClientResponse

@@ -1,0 +1,85 @@
+{
+  "payload": {
+    "availableFilters": [],
+    "isExtraServicesShown": false,
+    "otherRates": [],
+    "rates": [
+      {
+        "availableRoomsCount": 2,
+        "bookHash": "redacted-book-hash-001",
+        "cancellationPolicyRules": {
+          "freeCancellationUntil": "2026-07-31T18:00:00+03:00",
+          "policies": []
+        },
+        "cashback": {},
+        "isCreditCardDataRequired": false,
+        "isCvcRequired": false,
+        "isNonRefundable": false,
+        "mealName": "Завтрак включён",
+        "mealType": "breakfast",
+        "noShow": {},
+        "paymentPlace": "hotel",
+        "paymentPrice": {
+          "amount": 42000,
+          "currency": "RUB"
+        },
+        "rateFacilities": [],
+        "roomId": "room-example-001",
+        "shownPrice": {
+          "amount": 42000,
+          "currency": "RUB"
+        },
+        "taxData": []
+      },
+      {
+        "availableRoomsCount": 3,
+        "bookHash": "redacted-book-hash-002",
+        "cancellationPolicyRules": {
+          "policies": []
+        },
+        "cashback": {},
+        "isCreditCardDataRequired": false,
+        "isCvcRequired": false,
+        "isNonRefundable": true,
+        "mealName": "Без питания",
+        "mealType": "nomeal",
+        "noShow": {},
+        "paymentPlace": "now",
+        "paymentPrice": {
+          "amount": 35000,
+          "currency": "RUB"
+        },
+        "rateFacilities": [],
+        "roomId": "room-example-002",
+        "shownPrice": {
+          "amount": 35000,
+          "currency": "RUB"
+        },
+        "taxData": []
+      }
+    ],
+    "rooms": [
+      {
+        "bedName": "Двуспальная кровать",
+        "images": [
+          {
+            "url": "https://images.example.test/room-001.jpg"
+          }
+        ],
+        "roomFacilities": [],
+        "roomId": "room-example-001",
+        "roomName": "Номер с завтраком",
+        "roomSize": 20
+      },
+      {
+        "bedName": "Двуспальная кровать",
+        "images": [],
+        "roomFacilities": [],
+        "roomId": "room-example-002",
+        "roomName": "Номер без питания",
+        "roomSize": 20
+      }
+    ],
+    "searchId": "redacted-search-id"
+  }
+}

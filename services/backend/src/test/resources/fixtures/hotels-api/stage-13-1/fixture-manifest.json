@@ -1,0 +1,73 @@
+{
+  "observedAt": "2026-07-22",
+  "sanitized": true,
+  "automaticRetries": false,
+  "alternateEndpointsProbed": false,
+  "calls": [
+    {
+      "purpose": "hotel-id-prerequisite",
+      "method": "POST",
+      "path": "/api/v1/hotels/search",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "authorizationSent": false,
+      "attemptCount": 1
+    },
+    {
+      "purpose": "selected-hotel-details",
+      "method": "GET",
+      "path": "/api/v1/hotels/{hotelId}",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "authorizationSent": false,
+      "attemptCount": 1
+    }
+  ],
+  "observation": {
+    "searchHotelsCount": 20,
+    "searchHotelIdType": "string",
+    "detailsTopLevelKeys": ["payload"],
+    "detailsPayloadType": "object",
+    "searchHotelIdAcceptedByDetailsPath": true,
+    "anonymousRequestAccepted": true,
+    "originalDescriptionSectionCount": 3,
+    "sanitizedDescriptionSectionCount": 2,
+    "originalImageCount": 67,
+    "sanitizedImageCount": 2,
+    "originalFacilitiesGroupCount": 14,
+    "sanitizedFacilitiesGroupCount": 2,
+    "certificationPresent": true,
+    "paymentMethodsPresent": true,
+    "structuredRulesPresent": true
+  },
+  "fixture": {
+    "file": "hotel-details-success.json",
+    "sha256": "a5d422acb70e79ce34090e8a16f805238feae09f4f4202963261a75512fb5ac5"
+  },
+  "redactions": [
+    "hotel and destination identifiers",
+    "hotel and chain names",
+    "location names and signatures",
+    "addresses and coordinates",
+    "phone and email",
+    "description text",
+    "image URLs",
+    "facility display names",
+    "certification registry and owner data",
+    "room category identifiers and names",
+    "response headers and trace identifier"
+  ],
+  "excluded": [
+    "authorization",
+    "cookies",
+    "session metadata",
+    "device metadata",
+    "tracing metadata"
+  ],
+  "limitations": [
+    "single successful hotel observation",
+    "field presence does not prove universal requiredness",
+    "404 and provider error shapes were not probed",
+    "anonymous success does not establish an official server-to-server guarantee"
+  ]
+}

@@ -1,5 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,11 +16,13 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
         val proposal = useCase(acceptedCriteria())
 
         assertEquals(
-            "Параметры hotel search: направление: Rome; заезд: 2026-07-01; " +
-                "выезд: 2026-07-04; взрослые: 2; дети: 1; номера: 1.",
+            """Проверьте параметры:
+Куда: Rome
+Даты: 1–4 июля 2026
+Гости: 2 взрослых, 1 ребёнок (7 лет)""",
             proposal.summary,
         )
-        assertEquals("Проверить отели по этим параметрам?", proposal.confirmationQuestion)
+        assertEquals("Найти отели по этим параметрам?", proposal.confirmationQuestion)
         assertEquals(
             listOf(
                 ProceedWithCandidateConfirmationField("destination", "направление", "Rome"),
@@ -26,7 +30,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                 ProceedWithCandidateConfirmationField("check-out", "выезд", "2026-07-04"),
                 ProceedWithCandidateConfirmationField("adults", "взрослые", "2"),
                 ProceedWithCandidateConfirmationField("children", "дети", "1"),
-                ProceedWithCandidateConfirmationField("rooms", "номера", "1"),
+                ProceedWithCandidateConfirmationField("children-ages", "возраст детей", "7"),
             ),
             proposal.displayFields,
         )
@@ -43,20 +47,29 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
     }
 
     @Test
-    fun includesDestinationDatesGuestsAndRooms() {
+    fun includesDestinationDatesAndGuestsWithoutInternalRoomInvariant() {
         val proposal = useCase(acceptedCriteria())
 
         val keys = proposal.displayFields.map { it.key }
         assertEquals(
-            listOf("destination", "check-in", "check-out", "adults", "children", "rooms"),
+            listOf(
+                "destination",
+                "check-in",
+                "check-out",
+                "adults",
+                "children",
+                "children-ages",
+            ),
             keys,
         )
         assertEquals(true, proposal.summary.contains("Rome"))
-        assertEquals(true, proposal.summary.contains("2026-07-01"))
-        assertEquals(true, proposal.summary.contains("2026-07-04"))
-        assertEquals(true, proposal.summary.contains("взрослые: 2"))
-        assertEquals(true, proposal.summary.contains("дети: 1"))
-        assertEquals(true, proposal.summary.contains("номера: 1"))
+        assertEquals(true, proposal.summary.contains("1–4 июля 2026"))
+        assertEquals(true, proposal.summary.contains("2 взрослых"))
+        assertEquals(true, proposal.summary.contains("1 ребёнок (7 лет)"))
+        assertFalse(proposal.summary.contains("Номера:"))
+        assertFalse(proposal.displayFields.any { it.key == "rooms" })
+        assertFalse(proposal.summary.contains("hotel search"))
+        assertFalse(proposal.summary.contains("2026-07-01"))
     }
 
     @Test
@@ -65,7 +78,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
             acceptedCriteria(
                 guests = ProceedWithCandidateCriteria.Guests(
                     adults = 2,
-                    children = 0,
+                    childrenAges = emptyList(),
                 ),
             ),
         )
@@ -74,7 +87,96 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
             ProceedWithCandidateConfirmationField("children", "дети", "0"),
             proposal.displayFields.first { it.key == "children" },
         )
-        assertEquals(true, proposal.summary.contains("дети: 0"))
+        assertEquals(true, proposal.summary.contains("без детей"))
+    }
+
+    @Test
+    fun includesOnlyActivePreferencesInDeterministicOrder() {
+        val proposal = useCase(
+            acceptedCriteria(
+                preferences = HotelSearchPreferences(
+                    maxTotalPrice = HotelSearchPreferences.MaxTotalPrice(
+                        amount = BigDecimal("80000.00"),
+                        currency = "RUB",
+                    ),
+                    stars = setOf(5, 4),
+                    minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
+                    freeCancellationRequired = true,
+                    breakfastIncludedRequired = true,
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                ProceedWithCandidateConfirmationField(
+                    "max-total-price",
+                    "максимальная стоимость за весь период",
+                    "80000 RUB",
+                ),
+                ProceedWithCandidateConfirmationField("stars", "звёзды", "4, 5"),
+                ProceedWithCandidateConfirmationField(
+                    "min-guest-rating",
+                    "минимальный гостевой рейтинг",
+                    "8",
+                ),
+                ProceedWithCandidateConfirmationField(
+                    "free-cancellation",
+                    "бесплатная отмена",
+                    "обязательна",
+                ),
+                ProceedWithCandidateConfirmationField(
+                    "breakfast-included",
+                    "завтрак",
+                    "включён",
+                ),
+            ),
+            proposal.displayFields.takeLast(5),
+        )
+        assertEquals(
+            "Условия: до 80 000 ₽ за всё проживание; 4–5 звёзд; " +
+                "рейтинг от 8; бесплатная отмена; завтрак включён",
+            proposal.summary.lineSequence().last(),
+        )
+    }
+
+    @Test
+    fun `formats date ranges across months and years in Russian`() {
+        val acrossMonths = useCase(
+            acceptedCriteria(
+                checkInDate = LocalDate.parse("2026-07-30"),
+                checkOutDate = LocalDate.parse("2026-08-02"),
+            ),
+        )
+        val acrossYears = useCase(
+            acceptedCriteria(
+                checkInDate = LocalDate.parse("2026-12-30"),
+                checkOutDate = LocalDate.parse("2027-01-02"),
+            ),
+        )
+
+        assertEquals(true, acrossMonths.summary.contains("30 июля — 2 августа 2026"))
+        assertEquals(true, acrossYears.summary.contains("30 декабря 2026 — 2 января 2027"))
+    }
+
+    @Test
+    fun `formats multiple children and ages with Russian plurals`() {
+        val proposal = useCase(
+            acceptedCriteria(
+                guests = ProceedWithCandidateCriteria.Guests(
+                    adults = 1,
+                    childrenAges = listOf(1, 2, 5),
+                ),
+            ),
+        )
+
+        assertEquals(
+            true,
+            proposal.summary.contains(
+                "Гости: 1 взрослый, 3 ребёнка (1 год, 2 года и 5 лет)",
+            ),
+        )
+        assertFalse(proposal.summary.contains("Номера:"))
     }
 
     @Test
@@ -114,23 +216,28 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
 
         val proposal = localUseCase(acceptedCriteria())
 
-        assertEquals("Проверить отели по этим параметрам?", proposal.confirmationQuestion)
+        assertEquals("Найти отели по этим параметрам?", proposal.confirmationQuestion)
     }
 
     private fun acceptedCriteria(
         destination: String = "Rome",
+        checkInDate: LocalDate = LocalDate.parse("2026-07-01"),
+        checkOutDate: LocalDate = LocalDate.parse("2026-07-04"),
         guests: ProceedWithCandidateCriteria.Guests = ProceedWithCandidateCriteria.Guests(
             adults = 2,
-            children = 1,
+            childrenAges = listOf(7),
         ),
+        rooms: Int = 1,
+        preferences: HotelSearchPreferences = HotelSearchPreferences(),
     ): ProceedWithCandidateValidationResult.Accepted =
         ProceedWithCandidateValidationResult.Accepted(
             ProceedWithCandidateCriteria(
                 destination = destination,
-                checkInDate = LocalDate.parse("2026-07-01"),
-                checkOutDate = LocalDate.parse("2026-07-04"),
+                checkInDate = checkInDate,
+                checkOutDate = checkOutDate,
                 guests = guests,
-                rooms = 1,
+                rooms = rooms,
+                preferences = preferences,
             ),
         )
 }

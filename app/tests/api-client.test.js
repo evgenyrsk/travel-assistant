@@ -18,7 +18,7 @@ test("creates a hotel search and loads hotel offers", async () => {
         {
           offerId: "fake-offer-rome-001",
           hotelName: "Rome Central Hotel",
-          matchSummary: "Available; ranked by rating, total stay price, then offer ID.",
+          matchSummary: "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
         },
       ],
     }),
@@ -46,7 +46,10 @@ test("creates a hotel search and loads hotel offers", async () => {
   );
   const offers = await api.getHotelOffers(search.searchId);
 
-  assert.equal(offers.offers[0].matchSummary, "Available; ranked by rating, total stay price, then offer ID.");
+  assert.equal(
+    offers.offers[0].matchSummary,
+    "Доступно; выше размещены варианты с лучшим рейтингом, затем — с меньшей общей ценой за проживание.",
+  );
   assert.deepEqual(
     calls.map(({ url }) => url),
     [
@@ -77,6 +80,120 @@ test("surfaces backend error messages", async () => {
     }),
     /Assistant session was not found/,
   );
+});
+
+test("loads details only for an opaque search-bound offer path", async () => {
+  const calls = [];
+  const api = createApiClient({
+    fetchImpl: async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({ hotelName: "Тестовый отель" });
+    },
+  });
+
+  const details = await api.getHotelOfferDetails(
+    "search/opaque id",
+    "offer/opaque id",
+  );
+
+  assert.equal(details.hotelName, "Тестовый отель");
+  assert.deepEqual(calls, [
+    {
+      url: "/api/v1/hotel-searches/search%2Fopaque%20id/offers/offer%2Fopaque%20id/details",
+      options: {},
+    },
+  ]);
+});
+
+test("sends initial and subsequent chat messages through assistant routes", async () => {
+  const calls = [];
+  const api = createApiClient({
+    fetchImpl: async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        session: {
+          sessionId: "assistant-session-local-000001",
+        },
+        assistantMessage: {
+          role: "assistant",
+          content: "Уточните даты.",
+        },
+        nextAction: "ask_clarification",
+      });
+    },
+  });
+
+  const clientContext = {
+    locale: "ru-RU",
+    timezone: "Europe/Moscow",
+  };
+
+  await api.createAssistantSession("Найди отель в Казани", clientContext);
+  await api.sendAssistantMessage(
+    "assistant-session-local-000001",
+    "С 10 по 14 августа",
+    clientContext,
+  );
+
+  assert.deepEqual(
+    calls.map(({ url }) => url),
+    [
+      "/api/v1/assistant/sessions",
+      "/api/v1/assistant/sessions/assistant-session-local-000001/messages",
+    ],
+  );
+  assert.equal(
+    JSON.parse(calls[0].options.body).message,
+    "Найди отель в Казани",
+  );
+  assert.equal(
+    JSON.parse(calls[1].options.body).message,
+    "С 10 по 14 августа",
+  );
+  assert.deepEqual(JSON.parse(calls[0].options.body).clientContext, clientContext);
+  assert.deepEqual(JSON.parse(calls[1].options.body).clientContext, clientContext);
+});
+
+test("supports an absolute API base URL without browser credentials", async () => {
+  const calls = [];
+  const api = createApiClient({
+    baseUrl: "https://api.example.test/api/v1",
+    fetchImpl: async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        session: {
+          sessionId: "assistant-session-portable-000001",
+        },
+        assistantMessage: {
+          role: "assistant",
+          content: "Уточните параметры поездки.",
+        },
+        nextAction: "ask_clarification",
+        offers: [],
+      });
+    },
+  });
+
+  await api.createAssistantSession("Найди отель");
+  await api.sendAssistantMessage("session/mobile client", "Казань");
+  await api.getHotelOffers("search/native client");
+  await api.getHotelOfferDetails("search/native client", "offer/native client");
+
+  assert.deepEqual(
+    calls.map(({ url }) => url),
+    [
+      "https://api.example.test/api/v1/assistant/sessions",
+      "https://api.example.test/api/v1/assistant/sessions/session%2Fmobile%20client/messages",
+      "https://api.example.test/api/v1/hotel-searches/search%2Fnative%20client/offers",
+      "https://api.example.test/api/v1/hotel-searches/search%2Fnative%20client/offers/offer%2Fnative%20client/details",
+    ],
+  );
+
+  for (const { options } of calls) {
+    assert.equal("credentials" in options, false);
+    assert.equal("cookie" in (options.headers ?? {}), false);
+    assert.equal("authorization" in (options.headers ?? {}), false);
+  }
 });
 
 function jsonResponse(body, overrides = {}) {

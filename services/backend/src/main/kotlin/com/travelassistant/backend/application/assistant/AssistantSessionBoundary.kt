@@ -11,6 +11,7 @@ import com.travelassistant.backend.domain.assistant.HotelRequirementsState
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import java.time.Clock
 import java.time.Instant
+import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -23,12 +24,13 @@ import java.util.concurrent.atomic.AtomicInteger
 interface AssistantSessionBoundary {
     fun createSession(): AssistantSession
 
-    fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage
+    suspend fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage
 }
 
 data class AcceptAssistantMessageCommand(
     val sessionId: AssistantSessionId,
     val message: String,
+    val clientTimeZone: ZoneId? = null,
 )
 
 data class AcceptedAssistantMessage(
@@ -100,7 +102,7 @@ class CreateAssistantSessionUseCase(
         )
     }
 
-    override fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
+    override suspend fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
         val session = sessionStateStore.findById(command.sessionId)
             ?: throw AssistantSessionNotFoundException(command.sessionId)
         val receivedAt = clock.instant()
@@ -119,7 +121,7 @@ class CreateAssistantSessionUseCase(
             hotelRequirementsCoveragePlan = updatedSession.hotelRequirementsCoveragePlan,
             assistantReply = AssistantReply(
                 type = AssistantReplyType.CLARIFICATION,
-                message = "I received your hotel request. Please share destination, dates, guests, and budget so I can continue.",
+                message = "Расскажите, куда и когда планируете поездку и кто едет с вами.",
             ),
             nextAction = AssistantResponseSemantics.nextActionFor(
                 updatedSession.hotelRequirementsCoveragePlan,

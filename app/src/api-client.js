@@ -3,10 +3,39 @@ export function createApiClient({
   baseUrl = "/api/v1",
 } = {}) {
   return {
-    createAssistantSession() {
-      return requestJson(fetchImpl, `${baseUrl}/assistant/sessions`, {
+    createAssistantSession(initialMessage, clientContext) {
+      const options = {
         method: "POST",
-      });
+      };
+
+      if (typeof initialMessage === "string") {
+        options.headers = {
+          "content-type": "application/json",
+        };
+        options.body = JSON.stringify({
+          message: initialMessage,
+          ...optionalClientContext(clientContext),
+        });
+      }
+
+      return requestJson(fetchImpl, `${baseUrl}/assistant/sessions`, options);
+    },
+
+    sendAssistantMessage(sessionId, message, clientContext) {
+      return requestJson(
+        fetchImpl,
+        `${baseUrl}/assistant/sessions/${encodeURIComponent(sessionId)}/messages`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            message,
+            ...optionalClientContext(clientContext),
+          }),
+        },
+      );
     },
 
     createHotelSearch(sessionId, criteria) {
@@ -25,7 +54,20 @@ export function createApiClient({
     getHotelOffers(searchId) {
       return requestJson(fetchImpl, `${baseUrl}/hotel-searches/${encodeURIComponent(searchId)}/offers`);
     },
+
+    getHotelOfferDetails(searchId, offerId) {
+      return requestJson(
+        fetchImpl,
+        `${baseUrl}/hotel-searches/${encodeURIComponent(searchId)}/offers/${encodeURIComponent(offerId)}/details`,
+      );
+    },
   };
+}
+
+function optionalClientContext(clientContext) {
+  return clientContext && typeof clientContext === "object"
+    ? { clientContext }
+    : {};
 }
 
 async function requestJson(fetchImpl, url, options = {}) {

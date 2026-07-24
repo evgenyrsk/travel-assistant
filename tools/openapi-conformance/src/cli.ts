@@ -141,7 +141,9 @@ function buildExecutionErrorReport(error: unknown): ConformanceReport {
     endpointClassificationSummary: {
       total: 0,
       byClassification: {
-        foundation_candidate: 0,
+        platform_client_candidate: 0,
+        operational: 0,
+        diagnostic_excluded: 0,
         placeholder_excluded: 0,
         runtime_only: 0,
         unclassified: 0,

@@ -28,15 +28,17 @@ ADR нужен, если решение:
 
 ## Текущий статус
 
-Standalone ADR-файлы пока не созданы.
+Принят один standalone ADR о границе backend-сервиса и будущих клиентских
+интеграций.
 
 Stage 5 создал non-ADR decision inventory в `docs/architecture/stage-5/architecture-decisions-draft.md`. Этот документ фиксирует confirmed Stage 5 architecture guardrails, deferred decisions и future ADR candidates. Он не создает accepted ADR, не активирует future decisions и не является implementation backlog.
 
 ## Accepted ADR
 
-Нет.
+- [`ADR-0001 — граница backend-сервиса и внешних клиентских интеграций`](adr-0001-service-core-and-client-integration-boundary.md) — backend остается удаленным ядром, текущий web/PWA используется только как локальная demo shell, а product UI и SDK принадлежат будущим интеграционным командам.
 
-Accepted ADR должны быть отдельными ADR-файлами в `docs/decisions/` после явного решения.
+Accepted ADR являются отдельными ADR-файлами и применяются вместе с текущими
+roadmap и baseline-документами.
 
 ## Draft ADR
 

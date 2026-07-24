@@ -1,0 +1,68 @@
+{
+  "observedAt": "2026-07-22",
+  "sanitized": true,
+  "automaticRetries": false,
+  "alternatePayloadsSent": false,
+  "requestContract": {
+    "filters": [
+      {
+        "$objectType": "range",
+        "filterId": "price",
+        "min": 0,
+        "max": 80000
+      },
+      {
+        "$objectType": "array",
+        "filterId": "stars",
+        "values": ["4", "5"]
+      },
+      {
+        "$objectType": "radio",
+        "filterId": "review_rating",
+        "value": "8"
+      },
+      {
+        "$objectType": "boolean",
+        "filterId": "free_cancellation_allowed",
+        "value": true
+      }
+    ],
+    "sort": {
+      "field": "price",
+      "order": "asc"
+    }
+  },
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/api/v1/hotels/search-filters-availability",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "redirected": false,
+      "attemptCount": 1,
+      "fixture": "filter-availability-empty.json"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/hotels/search",
+      "status": 400,
+      "contentType": "application/json; charset=utf-8",
+      "redirected": false,
+      "attemptCount": 1,
+      "providerErrorCode": "sorting_is_not_allowed_yet",
+      "fixture": "filtered-search-sorting-not-allowed.json"
+    }
+  ],
+  "redactions": [
+    "destination identifier",
+    "travel dates",
+    "response headers"
+  ],
+  "excluded": [
+    "authorization",
+    "cookies",
+    "session metadata",
+    "device metadata",
+    "tracing metadata"
+  ]
+}
