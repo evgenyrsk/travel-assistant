@@ -2,7 +2,9 @@
 
 Этот runbook описывает deployment-neutral контракт Kotlin + Ktor backend для
 внутренней инфраструктуры. Он не выбирает orchestrator, collector, dashboard,
-alert manager или поставщика мониторинга.
+alert manager или поставщика мониторинга. Конкретные продукты ниже приведены
+только как варианты интеграции поверх стабильных stdout, HTTP и OpenMetrics
+границ.
 
 ## Runtime и запуск
 
@@ -108,6 +110,198 @@ Application series используют только bounded labels `operation`,
 user text и provider data не являются labels. JVM/process gauges labels не
 имеют.
 
+## Как проверить observability локально
+
+Убедитесь, что активна Java 17, соберите application distribution и сохраните
+stdout процесса:
+
+```bash
+cd services/backend
+java -version
+./gradlew installDist
+HOST=127.0.0.1 PORT=8080 \
+  build/install/travel-assistant-backend/bin/travel-assistant-backend \
+  | tee /tmp/travel-assistant-backend.log
+```
+
+После запуска в stdout должно появиться событие `service.lifecycle` с
+`operation=service_startup` и `outcome=started`.
+
+В другом терминале отправьте запрос с известным идентификатором корреляции:
+
+```bash
+curl -sS -D - \
+  -H 'X-Request-ID: log-check-001' \
+  http://127.0.0.1:8080/api/v1/health
+
+rg 'log-check-001' /tmp/travel-assistant-backend.log
+```
+
+Один `log-check-001` должен присутствовать в заголовке ответа и событии
+`http.request.completed`. Если установлен `jq`, JSON можно отформатировать:
+
+```bash
+rg 'log-check-001' /tmp/travel-assistant-backend.log | jq .
+```
+
+Для проверки корреляции ошибки запросите неизвестный search:
+
+```bash
+curl -sS -D - \
+  -H 'X-Request-ID: error-check-001' \
+  http://127.0.0.1:8080/api/v1/hotel-searches/missing/offers
+
+rg 'error-check-001' /tmp/travel-assistant-backend.log
+```
+
+Значения `X-Request-ID` в заголовке ответа, `requestId` в теле ошибки и
+operational event должны совпасть. Некорректное входное значение, например
+`invalid request id`, не переиспользуется: backend возвращает сгенерированный
+UUID.
+
+Проверьте health endpoints и OpenMetrics:
+
+```bash
+curl -sS -D - http://127.0.0.1:8080/health/live
+curl -sS -D - http://127.0.0.1:8080/health/ready
+curl -sS http://127.0.0.1:8080/metrics \
+  | rg 'travel_assistant_|jvm_|process_|# EOF'
+```
+
+Минимальный успешный результат: обе проверки возвращают `200`, выдача metrics
+содержит `travel_assistant_readiness 1.0`, build/JVM/process series и
+завершается строкой `# EOF`.
+
+## Как интегрировать с системой наблюдаемости
+
+Интеграция состоит из трёх независимых потоков:
+
+```text
+stdout JSON Lines -> platform log capture -> collector -> log storage -> UI
+GET /metrics      -> Prometheus-compatible scraper -> time-series storage -> UI/alerts
+health endpoints  -> platform probes or uptime checker -> availability alerts
+```
+
+Выбор конкретного продукта не требует изменения backend. Если внутренняя
+платформа уже предоставляет log agent, Prometheus-compatible scrape и
+dashboard UI, следует использовать её стандартные компоненты.
+
+### Сбор и поиск логов
+
+Collector должен читать stdout процесса, сохранять одну JSON-строку как одно
+событие и не удалять поля схемы `1`.
+
+| Runtime | Источник для collector |
+|---|---|
+| systemd/VM | stdout, обычно доступный через journal |
+| container runtime | stdout-поток контейнера |
+| Kubernetes | Pod logs через runtime или Kubernetes API |
+
+Для labels/index dimensions хранилища логов подходят только bounded значения:
+
+- `service`, окружение deployment `environment`;
+- при необходимости `level`, `component`, `event`.
+
+`request_id`, `session_id` и `hotel_search_id` остаются JSON fields для поиска,
+но не становятся labels. Это защищает storage от высокой cardinality. Текст
+пользователя, данные provider и запрещённые sensitive fields не должны
+добавляться collector-ом.
+
+Если используется Loki, запрос корреляции после JSON parsing выглядит так:
+
+```logql
+{service="travel-assistant-backend"} | json | request_id="error-check-001"
+```
+
+Для нового open-source контура можно использовать Grafana Alloy как collector,
+Loki как хранилище логов и Grafana как UI. Alloy поддерживает файловые,
+container и Kubernetes log sources и передачу событий в Loki:
+
+- [Grafana Alloy: collect and forward data](https://grafana.com/docs/alloy/latest/collect/);
+- [Grafana Alloy: collect Kubernetes logs](https://grafana.com/docs/grafana-cloud/send-data/alloy/collect/logs-in-kubernetes/).
+
+Если организация уже использует OpenSearch, Elastic, Splunk или другую
+платформу, нужно настроить ingestion JSON Lines и применить те же правила
+labels/index fields; backend contract остаётся прежним.
+
+### Сбор метрик
+
+Prometheus-compatible scraper должен опрашивать только `/metrics`. Минимальный
+статический пример Prometheus:
+
+```yaml
+scrape_configs:
+  - job_name: travel-assistant
+    scrape_interval: 15s
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - travel-assistant.internal:8080
+```
+
+В динамической инфраструктуре `static_configs` заменяется стандартным service
+discovery. Доступ к `/metrics` следует ограничить monitoring network plane, не
+меняя public product API. Полный формат `scrape_config` описан в
+[Prometheus configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/).
+
+Начальные PromQL-проверки:
+
+```promql
+travel_assistant_readiness
+
+sum(increase(travel_assistant_http_requests_total{status_class="5xx"}[5m]))
+
+sum(increase(travel_assistant_dependency_calls_total{
+  outcome=~"timeout|rate_limited|unavailable"
+}[10m]))
+
+sum by (operation) (
+  rate(travel_assistant_http_request_duration_seconds_sum[5m])
+)
+/
+sum by (operation) (
+  rate(travel_assistant_http_request_duration_seconds_count[5m])
+)
+```
+
+Последний запрос показывает среднюю длительность по operation. Текущий backend не
+экспортирует histogram buckets, поэтому p50/p95/p99 нельзя достоверно вычислить
+без отдельного изменения metrics configuration.
+
+### Probes, dashboards и alerts
+
+Deployment platform должна вызывать `/health/live` для liveness и
+`/health/ready` для readiness. Если встроенные probes недоступны, эти пути можно
+проверять отдельным uptime/blackbox monitor. Health responses не заменяют сбор
+metrics и логов.
+
+Минимальный dashboard должен показывать:
+
+- readiness, process uptime и active HTTP requests;
+- количество запросов и среднюю длительность по `operation`;
+- количество `4xx`/`5xx` и долю `5xx`;
+- assistant/search/details outcomes;
+- provider/LLM timeout, rate-limit, unavailable, auth и credit outcomes;
+- unexpected errors, JVM memory, GC и threads;
+- последние `service.lifecycle` и `error.unhandled` log events.
+
+Prometheus alert rules могут передаваться в Alertmanager или внутреннюю систему
+оповещений. Alertmanager отвечает за grouping, routing и receivers; обзор
+находится в [Prometheus alerting documentation](https://prometheus.io/docs/alerting/latest/overview/).
+
+### Checklist подключения
+
+- [ ] stdout backend process попадает в collector без объединения JSON-строк;
+- [ ] окружение deployment добавляется как bounded infrastructure label;
+- [ ] request/session/search IDs доступны для поиска, но не являются labels;
+- [ ] Prometheus target для `/metrics` имеет состояние `UP`;
+- [ ] liveness и readiness probes проверяются независимо от provider API;
+- [ ] dashboard показывает HTTP, business, dependency и JVM/process signals;
+- [ ] пороги alerts ниже реализованы и имеют ответственного/notification route;
+- [ ] retention, доступ к логам и удаление данных согласованы внутренней инфраструктурой;
+- [ ] тестовый request ID находится от HTTP-ответа до log event;
+- [ ] restart проверен с учётом потери process-local sessions/searches.
+
 ## Начальные alert-рекомендации
 
 Это vendor-neutral стартовые пороги, а не готовая alert configuration:
@@ -137,7 +331,7 @@ user text и provider data не являются labels. JVM/process gauges labe
 
 ## Вне этого runbook
 
-Docker/Kubernetes manifests, collector, retention policy, dashboard,
-vendor-specific alert configuration, distributed tracing, raw conversation
-capture, durable storage, multi-instance coordination, auth и CORS не входят в
-Stage 15.
+Docker/Kubernetes manifests, готовая collector configuration/deployment,
+retention policy, готовый dashboard, vendor-specific alert configuration,
+distributed tracing, raw conversation capture, durable storage, multi-instance
+coordination, auth и CORS не входят в Stage 15.
