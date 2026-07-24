@@ -7,6 +7,7 @@ import com.travelassistant.backend.application.llm.LlmCandidateValidationResult
 import com.travelassistant.backend.application.llm.LlmClientResponse
 import com.travelassistant.backend.application.llm.LlmClientRetryableFailureReason
 import com.travelassistant.backend.application.llm.LlmHotelSearchPreferencesPatch
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -211,6 +212,7 @@ class OpenRouterLlmClientTest {
                 stars = linkedSetOf(4, 5),
                 freeCancellationRequired = true,
                 breakfastIncludedRequired = true,
+                accommodationConcept = AccommodationConcept.GLAMPING,
                 clear = setOf(
                     LlmHotelSearchPreferencesPatch.Field.MINIMUM_GUEST_RATING,
                 ),
@@ -226,6 +228,7 @@ class OpenRouterLlmClientTest {
         assertTrue(systemPrompt.contains("must not be rounded"))
         assertTrue(systemPrompt.contains("keep every preference"))
         assertTrue(systemPrompt.contains("breakfast-included=true"))
+        assertTrue(systemPrompt.contains("accommodation-concept=glamping"))
         assertTrue(systemPrompt.contains("пятизвёздочный"))
         assertTrue(systemPrompt.contains("Do not extract sorting preferences"))
 
@@ -246,6 +249,7 @@ class OpenRouterLlmClientTest {
                 "min-guest-rating",
                 "free-cancellation",
                 "breakfast-included",
+                "accommodation-concept",
                 "clear",
             ),
             preferencePatch.getValue("properties").jsonObject.keys,
@@ -261,6 +265,12 @@ class OpenRouterLlmClientTest {
         assertEquals(
             listOf("5", "6", "7", "8", "9", "null"),
             preferenceProperties.getValue("min-guest-rating").jsonObject
+                .getValue("enum").jsonArray
+                .map { value -> value.toString() },
+        )
+        assertEquals(
+            listOf("\"glamping\"", "null"),
+            preferenceProperties.getValue("accommodation-concept").jsonObject
                 .getValue("enum").jsonArray
                 .map { value -> value.toString() },
         )
@@ -791,6 +801,7 @@ class OpenRouterLlmClientTest {
                 put("min-guest-rating", JsonNull)
                 put("free-cancellation", true)
                 put("breakfast-included", true)
+                put("accommodation-concept", "glamping")
                 putJsonArray("clear") {
                     add("min-guest-rating")
                 }
@@ -804,6 +815,7 @@ class OpenRouterLlmClientTest {
             put("min-guest-rating", JsonNull)
             put("free-cancellation", JsonNull)
             put("breakfast-included", JsonNull)
+            put("accommodation-concept", JsonNull)
             put("clear", buildJsonArray {})
         }
 

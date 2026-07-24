@@ -1,6 +1,7 @@
 package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
@@ -103,6 +104,7 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                     minimumGuestRating = HotelSearchPreferences.MinimumGuestRating.EIGHT,
                     freeCancellationRequired = true,
                     breakfastIncludedRequired = true,
+                    accommodationConcept = AccommodationConcept.GLAMPING,
                 ),
             ),
         )
@@ -130,12 +132,18 @@ class BuildProceedWithCandidateConfirmationProposalUseCaseTest {
                     "завтрак",
                     "включён",
                 ),
+                ProceedWithCandidateConfirmationField(
+                    "accommodation-concept",
+                    "тип размещения",
+                    "глемпинг",
+                ),
             ),
-            proposal.displayFields.takeLast(5),
+            proposal.displayFields.takeLast(6),
         )
         assertEquals(
             "Условия: до 80 000 ₽ за всё проживание; 4–5 звёзд; " +
-                "рейтинг от 8; бесплатная отмена; завтрак включён",
+                "рейтинг от 8; бесплатная отмена; завтрак включён; " +
+                "тип размещения — глемпинг",
             proposal.summary.lineSequence().last(),
         )
     }

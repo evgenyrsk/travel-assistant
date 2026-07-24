@@ -9,8 +9,8 @@ Roadmap не является трекером задач, продуктово�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 16 — semantic-анализ типа размещения |
-| Последний завершенный этап | Stage 16.0 — feasibility и policy |
-| Следующий планируемый шаг | Stage 16.1 — conversation model для `GLAMPING` |
+| Последний завершенный этап | Stage 16.1 — conversation model для `GLAMPING` |
+| Следующий планируемый шаг | Stage 16.2 — classification core и FAKE implementation |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -1010,13 +1010,13 @@ OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 з�
 
 ### Stage 16 — Semantic-анализ типа размещения
 
-**Статус:** активен; Stage 16.0 завершён.
+**Статус:** активен; Stage 16.1 завершён.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
 | Stage 16.0 | Feasibility, taxonomy и policy gates | Завершён; широкое определение `GLAMPING`, границы provider facts/semantic assessment и критерии quality evaluation закреплены. Право передавать provider descriptions/images внешней модели и совместимость выбранного ZDR endpoint не подтверждены, поэтому REAL vision не активирован и controlled probe не выполнялся |
-| Stage 16.1 | Conversation model | Следующий разрешённый шаг; managed preference, extraction/clear, clarification persistence, confirmation и booking-boundary copy |
-| Stage 16.2 | Classification core | Запланирован после 16.1; application port, deterministic validation/merge/ranking policy и безопасная FAKE implementation |
+| Stage 16.1 | Conversation model | Завершён; managed `GLAMPING` извлекается и снимается детерминированно и через strict LLM schema, сохраняется между уточнениями, входит в confirmation/idempotency и сопровождается booking-boundary copy |
+| Stage 16.2 | Classification core | Следующий разрешённый шаг; application port, deterministic validation/merge/ranking policy и безопасная FAKE implementation |
 | Stage 16.3 | Multimodal adapter | Запланирован; opt-in OpenRouter adapter не активируется до закрытия внешнего policy gate |
 | Stage 16.4 | Async lifecycle | Запланирован отдельно от runtime wiring и public contract |
 | Stage 16.5 | Two-pass orchestration | Запланирован после async lifecycle |

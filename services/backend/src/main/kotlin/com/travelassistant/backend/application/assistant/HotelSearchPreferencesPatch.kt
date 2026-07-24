@@ -1,5 +1,6 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import java.math.BigDecimal
 
 data class HotelSearchPreferencesPatch(
@@ -10,6 +11,8 @@ data class HotelSearchPreferencesPatch(
     val freeCancellationRequired: HotelSearchPreferencePatch<Boolean> =
         HotelSearchPreferencePatch.Keep,
     val breakfastIncludedRequired: HotelSearchPreferencePatch<Boolean> =
+        HotelSearchPreferencePatch.Keep,
+    val accommodationConcept: HotelSearchPreferencePatch<AccommodationConcept> =
         HotelSearchPreferencePatch.Keep,
 ) {
     data class MaxTotalPriceInput(

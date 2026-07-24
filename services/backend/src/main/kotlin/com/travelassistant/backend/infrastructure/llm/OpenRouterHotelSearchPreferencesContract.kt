@@ -1,6 +1,7 @@
 package com.travelassistant.backend.infrastructure.llm
 
 import com.travelassistant.backend.application.llm.LlmHotelSearchPreferencesPatch
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNull
@@ -22,7 +23,10 @@ internal object OpenRouterHotelSearchPreferencesContract {
             "NEEDS_CLARIFICATION and must not be rounded. Use free-cancellation=true only for an " +
             "explicit requirement. Use breakfast-included=true only when the user explicitly " +
             "requires included breakfast. Requests for another meal plan are unsupported and " +
-            "require clarification. Use clear for an explicitly removed preference, including " +
+            "require clarification. Use accommodation-concept=glamping only when the user " +
+            "explicitly asks for glamping. No other accommodation concept is active; never " +
+            "copy an unknown category or user wording into this field. Use clear for an " +
+            "explicitly removed preference, including " +
             "phrases such as remove the rating restriction. Never set and clear the same field. " +
             "Existing preferences can be present in confirmedConstraints under the same canonical " +
             "keys; keep every preference that the user did not explicitly change or clear. " +
@@ -46,6 +50,7 @@ internal object OpenRouterHotelSearchPreferencesContract {
                         "breakfast-included",
                         nullableBooleanSchema(BREAKFAST_INCLUDED_DESCRIPTION),
                     )
+                    put("accommodation-concept", nullableAccommodationConceptSchema())
                     put("clear", clearedPreferencesSchema())
                 },
             )
@@ -57,6 +62,7 @@ internal object OpenRouterHotelSearchPreferencesContract {
                     "min-guest-rating",
                     "free-cancellation",
                     "breakfast-included",
+                    "accommodation-concept",
                     "clear",
                 ),
             )
@@ -74,6 +80,8 @@ internal object OpenRouterHotelSearchPreferencesContract {
         val freeCancellationRequired: Boolean?,
         @SerialName("breakfast-included")
         val breakfastIncludedRequired: Boolean?,
+        @SerialName("accommodation-concept")
+        val accommodationConcept: String?,
         val clear: List<String>,
     ) {
         fun toDomainPatch(): LlmHotelSearchPreferencesPatch? {
@@ -85,6 +93,9 @@ internal object OpenRouterHotelSearchPreferencesContract {
                 val field = LlmHotelSearchPreferencesPatch.Field.fromWireName(fieldName)
                     ?: return null
                 clearedFields += field
+            }
+            val mappedAccommodationConcept = accommodationConcept?.let { value ->
+                AccommodationConcept.fromCode(value) ?: return null
             }
 
             return LlmHotelSearchPreferencesPatch(
@@ -98,6 +109,7 @@ internal object OpenRouterHotelSearchPreferencesContract {
                 minimumGuestRating = minimumGuestRating,
                 freeCancellationRequired = freeCancellationRequired,
                 breakfastIncludedRequired = breakfastIncludedRequired,
+                accommodationConcept = mappedAccommodationConcept,
                 clear = clearedFields,
             )
         }
@@ -162,6 +174,19 @@ internal object OpenRouterHotelSearchPreferencesContract {
             put("description", description)
         }
 
+    private fun nullableAccommodationConceptSchema(): JsonObject =
+        buildJsonObject {
+            put("type", stringArray("string", "null"))
+            put("description", ACCOMMODATION_CONCEPT_DESCRIPTION)
+            put(
+                "enum",
+                buildJsonArray {
+                    AccommodationConcept.entries.forEach { concept -> add(concept.code) }
+                    add(JsonNull)
+                },
+            )
+        }
+
     private fun clearedPreferencesSchema(): JsonObject =
         buildJsonObject {
             put("type", "array")
@@ -217,6 +242,8 @@ internal object OpenRouterHotelSearchPreferencesContract {
         "True only when free cancellation is explicitly required; use clear to remove it."
     private const val BREAKFAST_INCLUDED_DESCRIPTION =
         "True only when included breakfast is explicitly required; use clear to remove it."
+    private const val ACCOMMODATION_CONCEPT_DESCRIPTION =
+        "Managed accommodation concept glamping, or null when not changed."
     private const val CLEARED_PREFERENCES_DESCRIPTION =
         "Preference keys that the user explicitly asked to remove; empty when none are removed."
 }

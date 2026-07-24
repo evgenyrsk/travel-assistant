@@ -1,5 +1,6 @@
 package com.travelassistant.backend.application.assistant
 
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
 import java.math.BigDecimal
 import java.text.DecimalFormat
@@ -121,6 +122,15 @@ class BuildProceedWithCandidateConfirmationProposalUseCase {
                     ),
                 )
             }
+            preferences.accommodationConcept?.let { concept ->
+                add(
+                    ProceedWithCandidateConfirmationField(
+                        key = "accommodation-concept",
+                        label = "тип размещения",
+                        value = concept.humanReadableName(),
+                    ),
+                )
+            }
         }
 
     private fun ProceedWithCandidateCriteria.Guests.humanReadableGuests(): String {
@@ -153,6 +163,14 @@ class BuildProceedWithCandidateConfirmationProposalUseCase {
             if (breakfastIncludedRequired) {
                 add("завтрак включён")
             }
+            accommodationConcept?.let { concept ->
+                add("тип размещения — ${concept.humanReadableName()}")
+            }
+        }
+
+    private fun AccommodationConcept.humanReadableName(): String =
+        when (this) {
+            AccommodationConcept.GLAMPING -> "глемпинг"
         }
 
     private fun formatDateRange(checkIn: LocalDate, checkOut: LocalDate): String =

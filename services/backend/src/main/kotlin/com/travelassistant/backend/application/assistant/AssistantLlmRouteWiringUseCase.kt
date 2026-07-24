@@ -12,6 +12,7 @@ import com.travelassistant.backend.application.observability.OperationalOutcome
 import com.travelassistant.backend.application.observability.recordSafely
 import com.travelassistant.backend.domain.assistant.AssistantSession
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -39,6 +40,11 @@ class AssistantLlmRouteWiringUseCase(
         ExplicitNamedHotelDestinationParser(),
     private val explicitHotelStarPreferenceParser: ExplicitHotelStarPreferenceParser =
         ExplicitHotelStarPreferenceParser(),
+    private val explicitAccommodationConceptPreferenceParser:
+        ExplicitAccommodationConceptPreferenceParser =
+        ExplicitAccommodationConceptPreferenceParser(),
+    private val bookingRequestBoundaryPolicy: BookingRequestBoundaryPolicy =
+        BookingRequestBoundaryPolicy(),
     private val explicitStayLengthParser: ExplicitStayLengthParser = ExplicitStayLengthParser(),
     private val clarificationPolicy: AssistantHotelClarificationPolicy =
         AssistantHotelClarificationPolicy(),
@@ -116,11 +122,12 @@ class AssistantLlmRouteWiringUseCase(
             request = request,
         )
 
-        return when (decision) {
+        val response = when (decision) {
             is AssistantCandidateDecision.AskClarification -> {
                 val candidate = decision.candidate
                     ?.withExplicitNamedHotelDestination(command.message)
                     ?.withExplicitStarPreference(command.message)
+                    ?.withExplicitAccommodationConceptPreference(command.message)
                     ?.withExplicitStayLength(command.message)
                 if (
                     candidate != null &&
@@ -171,6 +178,7 @@ class AssistantLlmRouteWiringUseCase(
                     decision.candidate
                         .withExplicitNamedHotelDestination(command.message)
                         .withExplicitStarPreference(command.message)
+                        .withExplicitAccommodationConceptPreference(command.message)
                         .withExplicitStayLength(command.message),
                 )
                 if (!enrichedDecision.candidate.isSafeForContextAccumulation()) {
@@ -193,6 +201,7 @@ class AssistantLlmRouteWiringUseCase(
                 )
             }
         }
+        return response.withBookingBoundaryIfRequested(command.message)
     }
 
     private fun requestFor(
@@ -345,6 +354,25 @@ class AssistantLlmRouteWiringUseCase(
         return copy(preferencePatch = enrichedPatch)
     }
 
+    private fun LlmCandidate.withExplicitAccommodationConceptPreference(
+        message: String,
+    ): LlmCandidate {
+        val change = explicitAccommodationConceptPreferenceParser.parse(message) ?: return this
+        val field = LlmHotelSearchPreferencesPatch.Field.ACCOMMODATION_CONCEPT
+        val enrichedPatch = when (change) {
+            is ExplicitAccommodationConceptPreferenceParser.Change.Set -> preferencePatch.copy(
+                accommodationConcept = change.concept,
+                clear = preferencePatch.clear - field,
+            )
+
+            ExplicitAccommodationConceptPreferenceParser.Change.Clear -> preferencePatch.copy(
+                accommodationConcept = null,
+                clear = preferencePatch.clear + field,
+            )
+        }
+        return copy(preferencePatch = enrichedPatch)
+    }
+
     private fun LlmCandidate.withExplicitStayLength(message: String): LlmCandidate {
         val stayLength = explicitStayLengthParser.parse(message) ?: return this
         if (extractedConstraints[AssistantHotelConstraintField.STAY_LENGTH_NIGHTS.key] == stayLength.toString()) {
@@ -365,6 +393,23 @@ class AssistantLlmRouteWiringUseCase(
             nextAction = AssistantNextAction.ASK_CLARIFICATION,
             hotelSearchId = null,
         )
+
+    private fun AcceptedAssistantMessage.withBookingBoundaryIfRequested(
+        userMessage: String,
+    ): AcceptedAssistantMessage {
+        val glampingRequested = hotelConstraintsStore
+            .findBySession(sessionId)
+            ?.preferences
+            ?.accommodationConcept == AccommodationConcept.GLAMPING
+        if (!glampingRequested || !bookingRequestBoundaryPolicy.isBookingRequested(userMessage)) {
+            return this
+        }
+        return copy(
+            assistantReply = assistantReply.copy(
+                message = "$BOOKING_BOUNDARY_MESSAGE\n\n${assistantReply.message}",
+            ),
+        )
+    }
 
     private fun preferredClarification(
         decisionQuestion: String,
@@ -633,7 +678,10 @@ class AssistantLlmRouteWiringUseCase(
 
         const val PREFERENCES_CLARIFICATION_MESSAGE =
             "Уточните предпочтения: максимальную стоимость за весь период, звёзды, " +
-                "минимальный рейтинг, бесплатную отмену или включённый завтрак."
+                "минимальный рейтинг, бесплатную отмену, включённый завтрак или глемпинг."
+
+        const val BOOKING_BOUNDARY_MESSAGE =
+            "Я могу помочь подобрать глемпинг, но не выполняю бронирование."
 
         val EARLIEST_GLOBAL_DATE_OFFSET: ZoneOffset = ZoneOffset.ofHours(-12)
     }

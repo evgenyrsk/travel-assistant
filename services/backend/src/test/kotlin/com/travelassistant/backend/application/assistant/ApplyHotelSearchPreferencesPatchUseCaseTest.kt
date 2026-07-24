@@ -2,6 +2,7 @@ package com.travelassistant.backend.application.assistant
 
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,6 +28,9 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
                         minimumGuestRating = HotelSearchPreferencePatch.Set(8),
                         freeCancellationRequired = HotelSearchPreferencePatch.Set(true),
                         breakfastIncludedRequired = HotelSearchPreferencePatch.Set(true),
+                        accommodationConcept = HotelSearchPreferencePatch.Set(
+                            AccommodationConcept.GLAMPING,
+                        ),
                     ),
                 ),
             ),
@@ -41,6 +45,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
         )
         assertEquals(true, result.preferences.freeCancellationRequired)
         assertEquals(true, result.preferences.breakfastIncludedRequired)
+        assertEquals(AccommodationConcept.GLAMPING, result.preferences.accommodationConcept)
         assertEquals(result.preferences, store.findBySession(sessionId)?.preferences)
     }
 
@@ -56,6 +61,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
                         minimumGuestRating = HotelSearchPreferencePatch.Set(9),
                         freeCancellationRequired = HotelSearchPreferencePatch.Clear,
                         breakfastIncludedRequired = HotelSearchPreferencePatch.Clear,
+                        accommodationConcept = HotelSearchPreferencePatch.Clear,
                     ),
                 ),
             ),
@@ -69,6 +75,7 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
         )
         assertEquals(false, result.preferences.freeCancellationRequired)
         assertEquals(false, result.preferences.breakfastIncludedRequired)
+        assertEquals(null, result.preferences.accommodationConcept)
     }
 
     @Test
@@ -192,6 +199,9 @@ class ApplyHotelSearchPreferencesPatchUseCaseTest {
                         minimumGuestRating = HotelSearchPreferencePatch.Set(8),
                         freeCancellationRequired = HotelSearchPreferencePatch.Set(true),
                         breakfastIncludedRequired = HotelSearchPreferencePatch.Set(true),
+                        accommodationConcept = HotelSearchPreferencePatch.Set(
+                            AccommodationConcept.GLAMPING,
+                        ),
                     ),
                 ),
             ),

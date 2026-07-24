@@ -31,6 +31,7 @@ value class ConfirmedSearchExecutionIdempotencyKey(val value: String) {
                 criteria.preferences.minimumGuestRating?.value?.toString().orEmpty(),
                 criteria.preferences.freeCancellationRequired.toString(),
                 criteria.preferences.breakfastIncludedRequired.toString(),
+                criteria.preferences.accommodationConcept?.code.orEmpty(),
             ).joinToString(separator = "|")
 
             return ConfirmedSearchExecutionIdempotencyKey(

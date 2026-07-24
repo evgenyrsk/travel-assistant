@@ -528,6 +528,7 @@
 215. `docs/reviews/stage-15-3-health-and-openmetrics.md`
 216. `docs/reviews/stage-15-4-operational-contract-and-runbook.md`
 217. `docs/reviews/stage-16-0-semantic-accommodation-feasibility-and-policy.md`
+218. `docs/reviews/stage-16-1-semantic-accommodation-conversation-model.md`
 
 ## Historical / superseded документы
 
