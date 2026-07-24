@@ -28,6 +28,7 @@ class CreateHotelSearchUseCase(
 ) : HotelSearchBoundary {
 
     override suspend fun createSearch(command: CreateHotelSearchCommand): CreateHotelSearchResult {
+        val searchStartedAt = System.nanoTime()
         assistantSessionStateStore.findById(command.sessionId)
             ?: throw AssistantSessionNotFoundException(command.sessionId)
 
@@ -59,7 +60,7 @@ class CreateHotelSearchUseCase(
             is HotelOfferProviderResult.NotCompleted ->
                 CreateHotelSearchResult.NotCreated(providerResult)
         }
-        recordSearchOutcome(command, result)
+        recordSearchOutcome(command, result, elapsedMillis(searchStartedAt))
         return result
     }
 
@@ -117,6 +118,7 @@ class CreateHotelSearchUseCase(
     private fun recordSearchOutcome(
         command: CreateHotelSearchCommand,
         result: CreateHotelSearchResult,
+        durationMillis: Long,
     ) {
         val search = (result as? CreateHotelSearchResult.Created)?.search
         val outcome = when (result) {
@@ -140,6 +142,7 @@ class CreateHotelSearchUseCase(
                 hotelSearchId = search?.id?.value,
                 operation = OperationalOperation.CREATE_HOTEL_SEARCH,
                 outcome = outcome,
+                durationMillis = durationMillis,
                 offerCount = search?.offers?.size,
             ),
         )

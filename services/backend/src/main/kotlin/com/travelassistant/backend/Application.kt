@@ -3,6 +3,7 @@ package com.travelassistant.backend
 import com.travelassistant.backend.api.configureApiRoutes
 import com.travelassistant.backend.api.configureErrorHandling
 import com.travelassistant.backend.api.configureOperationalHttpEvents
+import com.travelassistant.backend.api.configureOperationalRoutes
 import com.travelassistant.backend.api.configureRequestCorrelation
 import com.travelassistant.backend.api.configureSerialization
 import com.travelassistant.backend.application.assistant.AssistantHotelConstraintsStore
@@ -33,8 +34,10 @@ import com.travelassistant.backend.application.observability.OperationalEvent
 import com.travelassistant.backend.application.observability.OperationalEventName
 import com.travelassistant.backend.application.observability.OperationalEventSink
 import com.travelassistant.backend.application.observability.OperationalLevel
+import com.travelassistant.backend.application.observability.OperationalMetricsExporter
 import com.travelassistant.backend.application.observability.OperationalOperation
 import com.travelassistant.backend.application.observability.OperationalOutcome
+import com.travelassistant.backend.application.observability.ServiceReadiness
 import com.travelassistant.backend.application.observability.recordSafely
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.infrastructure.llm.LlmProviderConfig
@@ -43,6 +46,8 @@ import com.travelassistant.backend.infrastructure.llm.OpenRouterDiagnosticObserv
 import com.travelassistant.backend.infrastructure.llm.SafeLlmDiagnosticLogger
 import com.travelassistant.backend.infrastructure.llm.createProductionOpenRouterHttpClient
 import com.travelassistant.backend.infrastructure.observability.JsonOperationalEventSink
+import com.travelassistant.backend.infrastructure.observability.CompositeOperationalEventSink
+import com.travelassistant.backend.infrastructure.observability.PrometheusOperationalMetrics
 import com.travelassistant.backend.infrastructure.provider.HotelOfferProviderFactory
 import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
 import com.travelassistant.backend.infrastructure.provider.createProductionHotelsApiHttpClient
@@ -70,13 +75,23 @@ internal fun resolveBackendHost(environment: Map<String, String>): String =
         ?: DEFAULT_BACKEND_HOST
 
 fun Application.module() {
-    val eventSink = JsonOperationalEventSink()
+    val readiness = ServiceReadiness()
+    val metrics = PrometheusOperationalMetrics(readiness)
+    val eventSink = CompositeOperationalEventSink(
+        JsonOperationalEventSink(),
+        metrics,
+    )
     try {
         moduleWithProviderConfigs(
             llmProviderConfig = LlmProviderConfig.fromEnvironment(),
             providerConfig = HotelProviderConfig.fromEnvironment(),
             eventSink = eventSink,
+            metricsExporter = metrics,
+            readiness = readiness,
         )
+        environment.monitor.subscribe(ApplicationStopped) {
+            metrics.close()
+        }
     } catch (error: Throwable) {
         eventSink.recordSafely(
             OperationalEvent(
@@ -88,6 +103,7 @@ fun Application.module() {
                 error = OperationalError.from(error),
             ),
         )
+        metrics.close()
         throw error
     }
 }
@@ -103,6 +119,8 @@ internal fun Application.moduleWithProviderConfigs(
     assistantLlmDiagnosticObserver: AssistantLlmDiagnosticObserver? = null,
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
     eventSink: OperationalEventSink = OperationalEventSink.NONE,
+    metricsExporter: OperationalMetricsExporter = OperationalMetricsExporter.NONE,
+    readiness: ServiceReadiness = ServiceReadiness(),
 ) {
     val safeLlmDiagnosticLogger = SafeLlmDiagnosticLogger(eventSink)
     val llmProviderRuntime = LlmProviderFactory.create(
@@ -127,6 +145,8 @@ internal fun Application.moduleWithProviderConfigs(
                 assistantLlmDiagnosticObserver ?: safeLlmDiagnosticLogger,
             realHotelHttpClientFactory = realHotelHttpClientFactory,
             eventSink = eventSink,
+            metricsExporter = metricsExporter,
+            readiness = readiness,
         )
         eventSink.recordSafely(
             OperationalEvent(
@@ -173,6 +193,8 @@ internal fun Application.moduleWithAssistantLlm(
     assistantLlmDiagnosticObserver: AssistantLlmDiagnosticObserver =
         AssistantLlmDiagnosticObserver.NONE,
     eventSink: OperationalEventSink = OperationalEventSink.NONE,
+    metricsExporter: OperationalMetricsExporter = OperationalMetricsExporter.NONE,
+    readiness: ServiceReadiness = ServiceReadiness(),
 ) {
     val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
     val hotelProviderRuntime = HotelOfferProviderFactory.create(
@@ -232,6 +254,14 @@ internal fun Application.moduleWithAssistantLlm(
         ),
         eventSink = eventSink,
     )
+    configureOperationalRoutes(
+        readiness = readiness,
+        metricsExporter = metricsExporter,
+    )
+    environment.monitor.subscribe(ApplicationStopping) {
+        readiness.markNotReady()
+    }
+    readiness.markReady()
 }
 
 private fun defaultAssistantLlmClient(): LlmClient =

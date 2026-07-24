@@ -18,6 +18,9 @@ class JsonOperationalEventSink(
     private val writerLock = Any()
 
     override fun record(event: OperationalEvent) {
+        if (event.name == com.travelassistant.backend.application.observability.OperationalEventName.HTTP_REQUEST_STARTED) {
+            return
+        }
         runCatching {
             val line = Json.encodeToString(event.toJsonObject())
             synchronized(writerLock) {

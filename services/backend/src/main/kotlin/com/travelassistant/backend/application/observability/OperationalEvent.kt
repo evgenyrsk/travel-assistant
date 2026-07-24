@@ -20,6 +20,7 @@ data class OperationalEvent(
 
 enum class OperationalEventName(val wireValue: String) {
     SERVICE_LIFECYCLE("service.lifecycle"),
+    HTTP_REQUEST_STARTED("http.request.started"),
     HTTP_REQUEST_COMPLETED("http.request.completed"),
     ASSISTANT_SESSION_CREATED("assistant.session.created"),
     ASSISTANT_TURN_COMPLETED("assistant.turn.completed"),

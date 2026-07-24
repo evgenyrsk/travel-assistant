@@ -23,6 +23,19 @@ fun Application.configureOperationalHttpEvents(
     intercept(ApplicationCallPipeline.Monitoring) {
         val startedAt = System.nanoTime()
         val requestId = call.requestId()
+        val operation = resolveHttpOperation(
+            method = call.request.httpMethod.value,
+            path = call.request.path(),
+        )
+        val method = call.request.httpMethod.value.toOperationalMethod()
+        eventSink.recordSafely(
+            OperationalEvent(
+                name = OperationalEventName.HTTP_REQUEST_STARTED,
+                component = OperationalComponent.HTTP,
+                operation = operation,
+                method = method,
+            ),
+        )
         try {
             proceed()
         } finally {
@@ -38,11 +51,8 @@ fun Application.configureOperationalHttpEvents(
                         OperationalLevel.INFO
                     },
                     requestId = requestId,
-                    operation = resolveHttpOperation(
-                        method = call.request.httpMethod.value,
-                        path = call.request.path(),
-                    ),
-                    method = call.request.httpMethod.value.toOperationalMethod(),
+                    operation = operation,
+                    method = method,
                     statusCode = statusCode,
                     outcome = statusCode.toOperationalOutcome(),
                     durationMillis = elapsedMillis(startedAt),

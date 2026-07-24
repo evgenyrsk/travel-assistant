@@ -20,6 +20,7 @@ class LoadSelectedHotelDetailsUseCase(
     suspend operator fun invoke(
         request: ResolveSelectedHotelOfferRequest,
     ): LoadSelectedHotelDetailsResult {
+        val detailsStartedAt = System.nanoTime()
         val result = when (val selected = resolveSelectedOffer(request)) {
             ResolveSelectedHotelOfferResult.SearchNotFound ->
                 LoadSelectedHotelDetailsResult.SearchNotFound
@@ -31,7 +32,11 @@ class LoadSelectedHotelDetailsUseCase(
                     hotelSearchId = request.searchId.value,
                 )
         }
-        recordDetailsOutcome(request.searchId.value, result)
+        recordDetailsOutcome(
+            hotelSearchId = request.searchId.value,
+            result = result,
+            durationMillis = elapsedMillis(detailsStartedAt),
+        )
         return result
     }
 
@@ -95,6 +100,7 @@ class LoadSelectedHotelDetailsUseCase(
     private fun recordDetailsOutcome(
         hotelSearchId: String,
         result: LoadSelectedHotelDetailsResult,
+        durationMillis: Long,
     ) {
         eventSink.recordSafely(
             OperationalEvent(
@@ -108,6 +114,7 @@ class LoadSelectedHotelDetailsUseCase(
                 hotelSearchId = hotelSearchId,
                 operation = OperationalOperation.GET_HOTEL_DETAILS,
                 outcome = result.toOperationalOutcome(),
+                durationMillis = durationMillis,
             ),
         )
     }

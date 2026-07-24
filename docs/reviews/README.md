@@ -525,6 +525,7 @@
 212. `docs/reviews/stage-14-7-named-hotel-search-and-conversation-resilience.md`
 213. `docs/reviews/stage-15-0-backend-portability-and-layering-verification.md`
 214. `docs/reviews/stage-15-1-15-2-request-correlation-and-operational-events.md`
+215. `docs/reviews/stage-15-3-health-and-openmetrics.md`
 
 ## Historical / superseded документы
 
