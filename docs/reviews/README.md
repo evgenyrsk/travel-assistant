@@ -524,6 +524,7 @@
 211. `docs/reviews/stage-14-6-provider-image-template-resolution.md`
 212. `docs/reviews/stage-14-7-named-hotel-search-and-conversation-resilience.md`
 213. `docs/reviews/stage-15-0-backend-portability-and-layering-verification.md`
+214. `docs/reviews/stage-15-1-15-2-request-correlation-and-operational-events.md`
 
 ## Historical / superseded документы
 

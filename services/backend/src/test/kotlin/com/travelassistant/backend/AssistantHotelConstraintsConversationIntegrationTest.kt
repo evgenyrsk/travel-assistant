@@ -6,6 +6,10 @@ import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmClient
 import com.travelassistant.backend.application.llm.LlmClientResponse
+import com.travelassistant.backend.application.observability.OperationalEvent
+import com.travelassistant.backend.application.observability.OperationalEventName
+import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalOutcome
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -405,6 +409,7 @@ class AssistantHotelConstraintsConversationIntegrationTest {
     fun blocksMultipleRoomsBeforeConfirmationAndAcceptsSingleRoomCorrection() = testApplication {
         val contextStore = InMemoryAssistantHotelConstraintsStore()
         val pendingStore = InMemoryPendingConfirmationStore()
+        val events = mutableListOf<OperationalEvent>()
         val requests = mutableListOf<LlmCandidateRequest>()
         val llmClient = queuedLlmClient(
             requests = requests,
@@ -424,6 +429,7 @@ class AssistantHotelConstraintsConversationIntegrationTest {
                 pendingConfirmationStore = pendingStore,
                 hotelConstraintsStore = contextStore,
                 clock = clock,
+                eventSink = OperationalEventSink(events::add),
             )
         }
 
@@ -466,12 +472,27 @@ class AssistantHotelConstraintsConversationIntegrationTest {
             )?.criteria?.rooms,
         )
         assertEquals(listOf("rooms"), requests[2].missingRequiredFields)
+        assertTrue(
+            events.filter { it.name == OperationalEventName.CONFIRMATION_OUTCOME }
+                .map { it.outcome }
+                .containsAll(
+                    listOf(
+                        OperationalOutcome.CONFIRMATION_REQUIRED,
+                        OperationalOutcome.CONFIRMED,
+                    ),
+                ),
+        )
+        assertTrue(
+            events.filter { it.name == OperationalEventName.ASSISTANT_TURN_COMPLETED }
+                .any { it.outcome == OperationalOutcome.RESULTS },
+        )
     }
 
     @Test
     fun keepsContextAfterDeclinedConfirmation() = testApplication {
         val contextStore = InMemoryAssistantHotelConstraintsStore()
         val pendingStore = InMemoryPendingConfirmationStore()
+        val events = mutableListOf<OperationalEvent>()
         val llmClient = queuedLlmClient(
             requests = mutableListOf(),
             responses = listOf(interpretedCandidate(*completeConstraints(destination = "Rome"))),
@@ -483,6 +504,7 @@ class AssistantHotelConstraintsConversationIntegrationTest {
                 pendingConfirmationStore = pendingStore,
                 hotelConstraintsStore = contextStore,
                 clock = clock,
+                eventSink = OperationalEventSink(events::add),
             )
         }
 
@@ -502,6 +524,22 @@ class AssistantHotelConstraintsConversationIntegrationTest {
             "Rome",
             contextStore.findBySession(AssistantSessionId(sessionId))?.destination,
         )
+        assertEquals(
+            listOf(OperationalOutcome.CONFIRMATION_REQUIRED, OperationalOutcome.DECLINED),
+            events.filter { it.name == OperationalEventName.CONFIRMATION_OUTCOME }
+                .map { it.outcome },
+        )
+        assertEquals(
+            listOf(OperationalOutcome.CLARIFICATION, OperationalOutcome.CLARIFICATION),
+            events.filter { it.name == OperationalEventName.ASSISTANT_TURN_COMPLETED }
+                .map { it.outcome },
+        )
+        assertEquals(
+            sessionId,
+            events.single { it.name == OperationalEventName.ASSISTANT_SESSION_CREATED }
+                .sessionId,
+        )
+        assertTrue(events.none { event -> event.toString().contains("Найди отель") })
 
         val offersResponse = client.get(
             "/api/v1/hotel-searches/hotel-search-local-000001/offers",

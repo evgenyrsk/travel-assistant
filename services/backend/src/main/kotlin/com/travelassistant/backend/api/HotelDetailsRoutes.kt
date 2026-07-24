@@ -68,7 +68,7 @@ private suspend fun io.ktor.server.application.ApplicationCall.respondSafeError(
         ErrorResponse(
             code = code,
             message = message,
-            requestId = requestIdOrNull(),
+            requestId = requestId(),
         ),
     )
 }

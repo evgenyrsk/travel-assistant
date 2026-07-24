@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 15.1–15.2 — request correlation и структурированные operational events |
-| Последний завершенный этап | Stage 15.0 — архитектурная и deployment-проверка портируемого backend |
-| Следующий планируемый шаг | Добавить safe `X-Request-ID`, application-owned `OperationalEventSink` и JSON Lines с безопасным context |
+| Текущий этап | Stage 15.3 — liveness, readiness и OpenMetrics |
+| Последний завершенный этап | Stage 15.1–15.2 — request correlation и структурированные operational events |
+| Следующий планируемый шаг | Добавить root `/health/live`, `/health/ready` и `/metrics` с bounded labels и OpenMetrics 1.0 |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -990,13 +990,13 @@ exact-hotel details/rates flow. Автоматический live retry не в�
 
 ### Stage 15 — Портируемый backend и эксплуатационная наблюдаемость
 
-**Статус:** Stage 15.0 завершён. Stage 15.1–15.2 активны.
+**Статус:** Stage 15.0–15.2 завершены. Stage 15.3 активен.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
 | Stage 15.0 | Архитектурная и deployment-проверка | Завершён; responsibility map и source-level guards подтверждают backend-owned business logic, а process-local stores явно ограничивают deployment одним instance |
-| Stage 15.1–15.2 | Request correlation и структурированные operational events | Активен; safe `X-Request-ID`, application-owned sink и JSON Lines без sensitive payload |
-| Stage 15.3 | Liveness, readiness и OpenMetrics | Запланирован после стабилизации operational event contract |
+| Stage 15.1–15.2 | Request correlation и структурированные operational events | Завершён; safe `X-Request-ID`, application-owned sink, stdout JSON Lines и bounded service/HTTP/business/dependency/error events покрыты tests |
+| Stage 15.3 | Liveness, readiness и OpenMetrics | Активен; operational endpoints отделены от product API, external providers не входят в readiness |
 | Stage 15.4 | Operational contract, conformance и runbook | Запланирован после backend behavior и endpoints |
 
 Stage 15 не меняет business behavior, ranking, provider mapping и product success

@@ -6,6 +6,13 @@ import com.travelassistant.backend.application.assistant.AssistantResponseSemant
 import com.travelassistant.backend.application.assistant.AssistantSessionBoundary
 import com.travelassistant.backend.domain.assistant.AssistantSession
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.application.observability.OperationalComponent
+import com.travelassistant.backend.application.observability.OperationalEvent
+import com.travelassistant.backend.application.observability.OperationalEventName
+import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalOperation
+import com.travelassistant.backend.application.observability.OperationalOutcome
+import com.travelassistant.backend.application.observability.recordSafely
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
@@ -21,6 +28,7 @@ import kotlinx.serialization.Serializable
 
 fun Route.assistantPlaceholderRoutes(
     createAssistantSession: AssistantSessionBoundary,
+    eventSink: OperationalEventSink = OperationalEventSink.NONE,
 ) {
     route("/assistant/sessions") {
         post {
@@ -37,6 +45,16 @@ fun Route.assistantPlaceholderRoutes(
             }
 
             val session = createAssistantSession.createSession()
+            eventSink.recordSafely(
+                OperationalEvent(
+                    name = OperationalEventName.ASSISTANT_SESSION_CREATED,
+                    component = OperationalComponent.ASSISTANT,
+                    requestId = call.requestId(),
+                    sessionId = session.id.value,
+                    operation = OperationalOperation.CREATE_ASSISTANT_SESSION,
+                    outcome = OperationalOutcome.CREATED,
+                ),
+            )
             val response = if (initialMessage != null) {
                 val acceptedMessage = createAssistantSession.acceptUserMessage(
                     AcceptAssistantMessageCommand(
@@ -45,6 +63,7 @@ fun Route.assistantPlaceholderRoutes(
                         clientTimeZone = initialMessage.clientTimeZone,
                     ),
                 )
+                recordAssistantTurn(call.requestId(), acceptedMessage, eventSink)
                 AssistantMessageResponse.fromAcceptedMessage(acceptedMessage)
             } else {
                 AssistantMessageResponse.fromSession(session)
@@ -83,6 +102,7 @@ fun Route.assistantPlaceholderRoutes(
                     clientTimeZone = messageRequest.clientTimeZone,
                 ),
             )
+            recordAssistantTurn(call.requestId(), acceptedMessage, eventSink)
 
             call.respond(
                 HttpStatusCode.OK,
@@ -106,6 +126,31 @@ fun Route.assistantPlaceholderRoutes(
             call.respondNotImplementedPlaceholder("assistant.session.explanation")
         }
     }
+}
+
+private fun recordAssistantTurn(
+    requestId: String,
+    acceptedMessage: AcceptedAssistantMessage,
+    eventSink: OperationalEventSink,
+) {
+    eventSink.recordSafely(
+        OperationalEvent(
+            name = OperationalEventName.ASSISTANT_TURN_COMPLETED,
+            component = OperationalComponent.ASSISTANT,
+            requestId = requestId,
+            sessionId = acceptedMessage.sessionId.value,
+            hotelSearchId = acceptedMessage.hotelSearchId?.value,
+            operation = OperationalOperation.POST_ASSISTANT_MESSAGE,
+            outcome = when (acceptedMessage.nextAction) {
+                com.travelassistant.backend.application.assistant.AssistantNextAction.ASK_CLARIFICATION ->
+                    OperationalOutcome.CLARIFICATION
+                com.travelassistant.backend.application.assistant.AssistantNextAction.SHOW_HOTEL_RESULTS ->
+                    OperationalOutcome.RESULTS
+                com.travelassistant.backend.application.assistant.AssistantNextAction.SHOW_BOUNDARY_MESSAGE ->
+                    OperationalOutcome.UNSUPPORTED
+            },
+        ),
+    )
 }
 
 @Serializable
@@ -193,7 +238,7 @@ suspend fun io.ktor.server.application.ApplicationCall.respondValidationError(
         ValidationErrorResponse(
             code = ErrorCode.VALIDATION_ERROR,
             message = "Request validation failed.",
-            requestId = requestIdOrNull(),
+            requestId = requestId(),
             fields = listOf(
                 ValidationErrorField(
                     field = field,

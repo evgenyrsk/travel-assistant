@@ -2,6 +2,8 @@ package com.travelassistant.backend
 
 import com.travelassistant.backend.api.configureApiRoutes
 import com.travelassistant.backend.api.configureErrorHandling
+import com.travelassistant.backend.api.configureOperationalHttpEvents
+import com.travelassistant.backend.api.configureRequestCorrelation
 import com.travelassistant.backend.api.configureSerialization
 import com.travelassistant.backend.application.assistant.AssistantHotelConstraintsStore
 import com.travelassistant.backend.application.assistant.AssistantLlmDiagnosticObserver
@@ -25,18 +27,29 @@ import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRetryPolicy
 import com.travelassistant.backend.application.llm.LlmClient
 import com.travelassistant.backend.application.llm.LlmClientResponse
+import com.travelassistant.backend.application.observability.OperationalComponent
+import com.travelassistant.backend.application.observability.OperationalError
+import com.travelassistant.backend.application.observability.OperationalEvent
+import com.travelassistant.backend.application.observability.OperationalEventName
+import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalLevel
+import com.travelassistant.backend.application.observability.OperationalOperation
+import com.travelassistant.backend.application.observability.OperationalOutcome
+import com.travelassistant.backend.application.observability.recordSafely
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import com.travelassistant.backend.infrastructure.llm.LlmProviderConfig
 import com.travelassistant.backend.infrastructure.llm.LlmProviderFactory
 import com.travelassistant.backend.infrastructure.llm.OpenRouterDiagnosticObserver
 import com.travelassistant.backend.infrastructure.llm.SafeLlmDiagnosticLogger
 import com.travelassistant.backend.infrastructure.llm.createProductionOpenRouterHttpClient
+import com.travelassistant.backend.infrastructure.observability.JsonOperationalEventSink
 import com.travelassistant.backend.infrastructure.provider.HotelOfferProviderFactory
 import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
 import com.travelassistant.backend.infrastructure.provider.createProductionHotelsApiHttpClient
 import io.ktor.client.HttpClient
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import java.time.Clock
@@ -57,10 +70,26 @@ internal fun resolveBackendHost(environment: Map<String, String>): String =
         ?: DEFAULT_BACKEND_HOST
 
 fun Application.module() {
-    moduleWithProviderConfigs(
-        llmProviderConfig = LlmProviderConfig.fromEnvironment(),
-        providerConfig = HotelProviderConfig.fromEnvironment(),
-    )
+    val eventSink = JsonOperationalEventSink()
+    try {
+        moduleWithProviderConfigs(
+            llmProviderConfig = LlmProviderConfig.fromEnvironment(),
+            providerConfig = HotelProviderConfig.fromEnvironment(),
+            eventSink = eventSink,
+        )
+    } catch (error: Throwable) {
+        eventSink.recordSafely(
+            OperationalEvent(
+                name = OperationalEventName.SERVICE_LIFECYCLE,
+                component = OperationalComponent.SERVICE,
+                level = OperationalLevel.ERROR,
+                operation = OperationalOperation.SERVICE_STARTUP,
+                outcome = OperationalOutcome.STARTUP_FAILED,
+                error = OperationalError.from(error),
+            ),
+        )
+        throw error
+    }
 }
 
 internal fun Application.moduleWithProviderConfigs(
@@ -70,15 +99,17 @@ internal fun Application.moduleWithProviderConfigs(
     hotelConstraintsStore: AssistantHotelConstraintsStore = InMemoryAssistantHotelConstraintsStore(),
     clock: Clock = Clock.systemUTC(),
     openRouterHttpClientFactory: () -> HttpClient = ::createProductionOpenRouterHttpClient,
-    openRouterDiagnosticObserver: OpenRouterDiagnosticObserver = SafeLlmDiagnosticLogger,
-    assistantLlmDiagnosticObserver: AssistantLlmDiagnosticObserver = SafeLlmDiagnosticLogger,
+    openRouterDiagnosticObserver: OpenRouterDiagnosticObserver? = null,
+    assistantLlmDiagnosticObserver: AssistantLlmDiagnosticObserver? = null,
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
+    eventSink: OperationalEventSink = OperationalEventSink.NONE,
 ) {
+    val safeLlmDiagnosticLogger = SafeLlmDiagnosticLogger(eventSink)
     val llmProviderRuntime = LlmProviderFactory.create(
         config = llmProviderConfig,
         fakeClientFactory = ::defaultAssistantLlmClient,
         openRouterHttpClientFactory = openRouterHttpClientFactory,
-        openRouterDiagnosticObserver = openRouterDiagnosticObserver,
+        openRouterDiagnosticObserver = openRouterDiagnosticObserver ?: safeLlmDiagnosticLogger,
     )
     environment.monitor.subscribe(ApplicationStopped) {
         llmProviderRuntime.close()
@@ -92,9 +123,39 @@ internal fun Application.moduleWithProviderConfigs(
             pendingConfirmationStore = pendingConfirmationStore,
             hotelConstraintsStore = hotelConstraintsStore,
             clock = clock,
-            assistantLlmDiagnosticObserver = assistantLlmDiagnosticObserver,
+            assistantLlmDiagnosticObserver =
+                assistantLlmDiagnosticObserver ?: safeLlmDiagnosticLogger,
             realHotelHttpClientFactory = realHotelHttpClientFactory,
+            eventSink = eventSink,
         )
+        eventSink.recordSafely(
+            OperationalEvent(
+                name = OperationalEventName.SERVICE_LIFECYCLE,
+                component = OperationalComponent.SERVICE,
+                operation = OperationalOperation.SERVICE_STARTUP,
+                outcome = OperationalOutcome.STARTED,
+            ),
+        )
+        environment.monitor.subscribe(ApplicationStopping) {
+            eventSink.recordSafely(
+                OperationalEvent(
+                    name = OperationalEventName.SERVICE_LIFECYCLE,
+                    component = OperationalComponent.SERVICE,
+                    operation = OperationalOperation.SERVICE_SHUTDOWN,
+                    outcome = OperationalOutcome.STOPPING,
+                ),
+            )
+        }
+        environment.monitor.subscribe(ApplicationStopped) {
+            eventSink.recordSafely(
+                OperationalEvent(
+                    name = OperationalEventName.SERVICE_LIFECYCLE,
+                    component = OperationalComponent.SERVICE,
+                    operation = OperationalOperation.SERVICE_SHUTDOWN,
+                    outcome = OperationalOutcome.STOPPED,
+                ),
+            )
+        }
     } catch (error: Throwable) {
         llmProviderRuntime.close()
         throw error
@@ -111,6 +172,7 @@ internal fun Application.moduleWithAssistantLlm(
     realHotelHttpClientFactory: () -> HttpClient = ::createProductionHotelsApiHttpClient,
     assistantLlmDiagnosticObserver: AssistantLlmDiagnosticObserver =
         AssistantLlmDiagnosticObserver.NONE,
+    eventSink: OperationalEventSink = OperationalEventSink.NONE,
 ) {
     val assistantSessionStateStore = InMemoryAssistantSessionStateStore()
     val hotelProviderRuntime = HotelOfferProviderFactory.create(
@@ -125,6 +187,7 @@ internal fun Application.moduleWithAssistantLlm(
         assistantSessionStateStore = assistantSessionStateStore,
         hotelOfferProvider = hotelProviderRuntime.provider,
         hotelSearchStateStore = hotelSearchStateStore,
+        eventSink = eventSink,
     )
     val assistantHotelSearchHandoffBoundary = AssistantHotelSearchHandoffUseCase(
         assistantSessionBoundary = CreateAssistantSessionUseCase(
@@ -139,6 +202,7 @@ internal fun Application.moduleWithAssistantLlm(
             generateLlmCandidateUseCase = GenerateLlmCandidateUseCase(
                 llmClient = llmClient,
                 retryPolicy = llmCandidateRetryPolicy,
+                eventSink = eventSink,
             ),
         ),
         pendingConfirmationStore = pendingConfirmationStore,
@@ -151,17 +215,22 @@ internal fun Application.moduleWithAssistantLlm(
         ),
         clock = clock,
         diagnosticObserver = assistantLlmDiagnosticObserver,
+        eventSink = eventSink,
     )
 
+    configureRequestCorrelation()
+    configureOperationalHttpEvents(eventSink)
     configureSerialization()
-    configureErrorHandling()
+    configureErrorHandling(eventSink)
     configureApiRoutes(
         assistantSessionBoundary = assistantSessionBoundary,
         hotelSearchBoundary = hotelSearchBoundary,
         loadSelectedHotelDetails = LoadSelectedHotelDetailsUseCase(
             resolveSelectedOffer = ResolveSelectedHotelOfferUseCase(hotelSearchStateStore),
             hotelDetailsProvider = hotelProviderRuntime.detailsProvider,
+            eventSink = eventSink,
         ),
+        eventSink = eventSink,
     )
 }
 

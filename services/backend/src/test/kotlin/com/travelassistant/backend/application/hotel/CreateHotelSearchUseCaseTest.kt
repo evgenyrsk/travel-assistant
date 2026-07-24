@@ -2,6 +2,10 @@ package com.travelassistant.backend.application.hotel
 
 import com.travelassistant.backend.application.assistant.CreateAssistantSessionUseCase
 import com.travelassistant.backend.application.assistant.InMemoryAssistantSessionStateStore
+import com.travelassistant.backend.application.observability.OperationalEvent
+import com.travelassistant.backend.application.observability.OperationalEventName
+import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalOutcome
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
@@ -15,6 +19,48 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class CreateHotelSearchUseCaseTest {
+
+    @Test
+    fun recordsBoundedNoOffersAndProviderFailureOutcomes() = runBlocking {
+        val providerOutcomes = listOf(
+            HotelOfferProviderResult.SearchCompleted(emptyList()) to OperationalOutcome.NO_OFFERS,
+            HotelOfferProviderResult.ProviderUnavailable(
+                HotelOfferProviderResult.UnavailableReason.TIMEOUT,
+            ) to OperationalOutcome.TIMEOUT,
+        )
+
+        providerOutcomes.forEach { (providerOutcome, expectedOutcome) ->
+            val sessionStore = InMemoryAssistantSessionStateStore()
+            val session = CreateAssistantSessionUseCase(
+                sessionStateStore = sessionStore,
+            ).createSession()
+            val events = mutableListOf<OperationalEvent>()
+            val useCase = CreateHotelSearchUseCase(
+                assistantSessionStateStore = sessionStore,
+                hotelOfferProvider = HotelOfferProviderBoundary { providerOutcome },
+                hotelSearchStateStore = InMemoryHotelSearchStateStore(),
+                idGenerator = HotelSearchIdGenerator { HotelSearchId("opaque-search-id") },
+                eventSink = OperationalEventSink(events::add),
+            )
+
+            useCase.createSearch(command(session.id))
+
+            assertEquals(
+                expectedOutcome,
+                events.single {
+                    it.name == OperationalEventName.DEPENDENCY_CALL_COMPLETED
+                }.outcome,
+            )
+            assertEquals(
+                expectedOutcome,
+                events.single {
+                    it.name == OperationalEventName.HOTEL_SEARCH_COMPLETED
+                }.outcome,
+            )
+            assertTrue(events.all { it.sessionId == session.id.value })
+            assertTrue(events.none { it.toString().contains("Rome") })
+        }
+    }
 
     @Test
     fun createsProcessLocalSearchFromDeterministicFakeProviderOffers() = runBlocking {
