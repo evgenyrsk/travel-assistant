@@ -15,6 +15,10 @@ data class OperationalEvent(
     val diagnostic: OperationalDiagnostic? = null,
     val durationMillis: Long? = null,
     val offerCount: Int? = null,
+    val analyzedCount: Int? = null,
+    val deepAnalyzedCount: Int? = null,
+    val matchCount: Int? = null,
+    val probableCount: Int? = null,
     val error: OperationalError? = null,
 )
 
@@ -25,6 +29,7 @@ enum class OperationalEventName(val wireValue: String) {
     ASSISTANT_SESSION_CREATED("assistant.session.created"),
     ASSISTANT_TURN_COMPLETED("assistant.turn.completed"),
     CONFIRMATION_OUTCOME("assistant.confirmation.outcome"),
+    HOTEL_SEARCH_STARTED("hotel.search.started"),
     HOTEL_SEARCH_COMPLETED("hotel.search.completed"),
     HOTEL_DETAILS_COMPLETED("hotel.details.completed"),
     DEPENDENCY_CALL_COMPLETED("dependency.call.completed"),
@@ -38,6 +43,7 @@ enum class OperationalComponent(val wireValue: String) {
     ASSISTANT("assistant"),
     HOTEL_SEARCH("hotel_search"),
     HOTEL_DETAILS("hotel_details"),
+    ACCOMMODATION_ANALYSIS("accommodation_analysis"),
     LLM("llm"),
     PROVIDER("provider"),
 }
@@ -67,6 +73,9 @@ enum class OperationalOperation(val wireValue: String) {
     GENERATE_LLM_CANDIDATE("generate_llm_candidate"),
     PROVIDER_HOTEL_SEARCH("provider_hotel_search"),
     PROVIDER_HOTEL_DETAILS("provider_hotel_details"),
+    SEMANTIC_HOTEL_SEARCH("semantic_hotel_search"),
+    ACCOMMODATION_COARSE_ANALYSIS("accommodation_coarse_analysis"),
+    ACCOMMODATION_DEEP_ANALYSIS("accommodation_deep_analysis"),
     UNMATCHED("unmatched"),
 }
 
@@ -82,6 +91,7 @@ enum class OperationalDependency(val wireValue: String) {
     LLM("llm"),
     OPENROUTER("openrouter"),
     HOTEL_PROVIDER("hotel_provider"),
+    ACCOMMODATION_ANALYZER("accommodation_analyzer"),
 }
 
 enum class OperationalOutcome(val wireValue: String) {
@@ -100,6 +110,8 @@ enum class OperationalOutcome(val wireValue: String) {
     UNKNOWN("unknown"),
     RESULTS("results"),
     NO_OFFERS("no_offers"),
+    NO_SEMANTIC_MATCHES("no_semantic_matches"),
+    PARTIAL("partial"),
     VALIDATION_ERROR("validation_error"),
     NOT_FOUND("not_found"),
     REQUEST_REJECTED("request_rejected"),

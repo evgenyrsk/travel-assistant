@@ -29,6 +29,7 @@ class CreateHotelSearchUseCaseTest {
         val searchStore = InMemoryHotelSearchStateStore()
         var providerCallCount = 0
         var launchedSearch: HotelSearch? = null
+        val events = mutableListOf<OperationalEvent>()
         val useCase = CreateHotelSearchUseCase(
             assistantSessionStateStore = sessionStore,
             hotelOfferProvider = HotelOfferProviderBoundary {
@@ -41,6 +42,7 @@ class CreateHotelSearchUseCaseTest {
                 launchedSearch = searchStore.findById(search.id)
                 true
             },
+            eventSink = OperationalEventSink(events::add),
         )
 
         val result = assertIs<CreateHotelSearchResult.Created>(
@@ -59,6 +61,8 @@ class CreateHotelSearchUseCaseTest {
         assertTrue(result.search.offers.isEmpty())
         assertEquals(1_000L, result.search.analysis?.pollAfterMillis)
         assertEquals(0, providerCallCount)
+        assertEquals(OperationalEventName.HOTEL_SEARCH_STARTED, events.single().name)
+        assertEquals(OperationalOutcome.STARTED, events.single().outcome)
     }
 
     @Test

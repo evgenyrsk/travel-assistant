@@ -101,8 +101,10 @@
   OpenRouter vision является opt-in adapter и не активируется до подтверждения
   прав на provider descriptions/images, privacy routing и model compatibility.
 
-Stage 16.1 является следующим разрешённым implementation slice. REAL vision
-остаётся закрыт внешним policy gate, зафиксированным в roadmap.
+Stage 16 завершил provider-neutral async/two-pass implementation в FAKE scope,
+public polling contract и bounded observability. Process-local scheduler/cache
+сохраняют single-instance ограничение. REAL vision остаётся закрыт внешними
+policy, model/ZDR и quality gates, зафиксированными в roadmap.
 
 Chat-first demo shell использует Assistant routes и загружает результаты только по
 полученному `hotelSearchId`. Диагностическая форма Stage 7.51 вызывает

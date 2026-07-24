@@ -62,6 +62,7 @@ class PrometheusOperationalMetrics(
                 OperationalEventName.DEPENDENCY_CALL_COMPLETED -> recordDependencyCall(event)
                 OperationalEventName.UNEXPECTED_ERROR ->
                     Counter.builder(UNEXPECTED_ERRORS).register(registry).increment()
+                OperationalEventName.HOTEL_SEARCH_STARTED,
                 OperationalEventName.CONFIRMATION_OUTCOME,
                 OperationalEventName.LLM_DIAGNOSTIC,
                 OperationalEventName.ASSISTANT_SESSION_CREATED,

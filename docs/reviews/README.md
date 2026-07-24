@@ -534,6 +534,8 @@
 221. `docs/reviews/stage-16-4-semantic-accommodation-async-lifecycle.md`
 222. `docs/reviews/stage-16-5-semantic-accommodation-two-pass-orchestration.md`
 223. `docs/reviews/stage-16-6-semantic-accommodation-public-contract-and-demo.md`
+224. `docs/reviews/stage-16-7-semantic-accommodation-quality-evaluation-report.md`
+225. `docs/reviews/stage-16-7-semantic-accommodation-observability-and-closure.md`
 
 ## Historical / superseded документы
 

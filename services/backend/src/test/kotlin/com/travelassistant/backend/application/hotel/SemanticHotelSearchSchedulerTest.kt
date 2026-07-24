@@ -1,5 +1,10 @@
 package com.travelassistant.backend.application.hotel
 
+import com.travelassistant.backend.application.observability.OperationalEvent
+import com.travelassistant.backend.application.observability.OperationalEventName
+import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalOperation
+import com.travelassistant.backend.application.observability.OperationalOutcome
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.AccommodationAnalysisMetadata
 import com.travelassistant.backend.domain.hotel.AccommodationConcept
@@ -27,6 +32,7 @@ class SemanticHotelSearchSchedulerTest {
         val search = store.save(search())
         val started = CompletableDeferred<Unit>()
         val result = CompletableDeferred<SemanticHotelSearchJobResult>()
+        val events = mutableListOf<OperationalEvent>()
         var executionCount = 0
         val scheduler = SemanticHotelSearchScheduler(
             stateStore = store,
@@ -35,6 +41,7 @@ class SemanticHotelSearchSchedulerTest {
                 started.complete(Unit)
                 result.await()
             },
+            eventSink = OperationalEventSink(events::add),
         )
 
         assertTrue(scheduler.launch(search, command()))
@@ -48,9 +55,16 @@ class SemanticHotelSearchSchedulerTest {
             ),
         )
         awaitStatus(store, HotelSearch.Status.COMPLETED_NO_SEMANTIC_MATCHES)
+        awaitIdle(scheduler)
 
         assertEquals(1, executionCount)
         assertEquals(0, scheduler.activeJobCount())
+        val event = events.single()
+        assertEquals(OperationalEventName.HOTEL_SEARCH_COMPLETED, event.name)
+        assertEquals(OperationalOperation.SEMANTIC_HOTEL_SEARCH, event.operation)
+        assertEquals(OperationalOutcome.NO_SEMANTIC_MATCHES, event.outcome)
+        assertEquals(2, event.analyzedCount)
+        assertEquals("semantic-search-000001", event.hotelSearchId)
         scheduler.close()
     }
 
@@ -59,6 +73,7 @@ class SemanticHotelSearchSchedulerTest {
         val store = InMemoryHotelSearchStateStore()
         val search = store.save(search())
         var executionCount = 0
+        val events = mutableListOf<OperationalEvent>()
         val scheduler = SemanticHotelSearchScheduler(
             stateStore = store,
             semanticJob = SemanticHotelSearchJob { _, _ ->
@@ -66,13 +81,16 @@ class SemanticHotelSearchSchedulerTest {
                 awaitCancellation()
             },
             budget = Duration.ofMillis(20),
+            eventSink = OperationalEventSink(events::add),
         )
 
         assertTrue(scheduler.launch(search, command()))
         awaitStatus(store, HotelSearch.Status.FAILED)
+        awaitIdle(scheduler)
 
         assertEquals(1, executionCount)
         assertEquals(AccommodationAnalysisMetadata.Status.FAILED, store.current().analysis?.status)
+        assertEquals(OperationalOutcome.TIMEOUT, events.single().outcome)
         scheduler.close()
     }
 
@@ -139,6 +157,12 @@ class SemanticHotelSearchSchedulerTest {
     ) {
         withTimeout(1_000) {
             while (store.current().status != status) yield()
+        }
+    }
+
+    private suspend fun awaitIdle(scheduler: SemanticHotelSearchScheduler) {
+        withTimeout(1_000) {
+            while (scheduler.activeJobCount() != 0) yield()
         }
     }
 

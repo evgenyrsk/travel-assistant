@@ -170,7 +170,11 @@ class CreateHotelSearchUseCase(
         }
         eventSink.recordSafely(
             OperationalEvent(
-                name = OperationalEventName.HOTEL_SEARCH_COMPLETED,
+                name = if (search?.status == HotelSearch.Status.SEARCHING) {
+                    OperationalEventName.HOTEL_SEARCH_STARTED
+                } else {
+                    OperationalEventName.HOTEL_SEARCH_COMPLETED
+                },
                 component = OperationalComponent.HOTEL_SEARCH,
                 level = if (result is CreateHotelSearchResult.Created) {
                     OperationalLevel.INFO

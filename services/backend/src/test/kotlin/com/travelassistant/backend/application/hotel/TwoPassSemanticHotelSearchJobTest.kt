@@ -3,6 +3,11 @@ package com.travelassistant.backend.application.hotel
 import com.travelassistant.backend.application.accommodation.AccommodationAnalysisClient
 import com.travelassistant.backend.application.accommodation.AccommodationAnalysisRequest
 import com.travelassistant.backend.application.accommodation.AccommodationAnalysisResult
+import com.travelassistant.backend.application.observability.OperationalDependency
+import com.travelassistant.backend.application.observability.OperationalEvent
+import com.travelassistant.backend.application.observability.OperationalEventName
+import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalOperation
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.AccommodationAnalysisMetadata
 import com.travelassistant.backend.domain.hotel.AccommodationConcept
@@ -69,6 +74,7 @@ class TwoPassSemanticHotelSearchJobTest {
         val maxActiveDetails = AtomicInteger()
         val detailsCache = InMemoryHotelDetailsCache()
         var detailsCalls = 0
+        val events = mutableListOf<OperationalEvent>()
         val detailsProvider = HotelDetailsProviderBoundary {
             detailsCalls += 1
             val active = activeDetails.incrementAndGet()
@@ -95,6 +101,7 @@ class TwoPassSemanticHotelSearchJobTest {
                     },
                 )
             },
+            eventSink = OperationalEventSink(events::add),
         )
 
         val completed = assertIs<SemanticHotelSearchJobResult.Completed>(
@@ -109,6 +116,27 @@ class TwoPassSemanticHotelSearchJobTest {
         assertEquals(6, completed.analysis.matchCount)
         assertEquals(14, completed.analysis.probableCount)
         assertEquals(HotelSearch.Status.COMPLETED_WITH_OFFERS, completed.status)
+        assertEquals(
+            1,
+            events.count {
+                it.name == OperationalEventName.DEPENDENCY_CALL_COMPLETED &&
+                    it.operation == OperationalOperation.PROVIDER_HOTEL_SEARCH
+            },
+        )
+        assertEquals(
+            6,
+            events.count { it.operation == OperationalOperation.PROVIDER_HOTEL_DETAILS },
+        )
+        assertEquals(
+            setOf(
+                OperationalOperation.ACCOMMODATION_COARSE_ANALYSIS,
+                OperationalOperation.ACCOMMODATION_DEEP_ANALYSIS,
+            ),
+            events.filter { it.dependency == OperationalDependency.ACCOMMODATION_ANALYZER }
+                .mapNotNull { event -> event.operation }
+                .toSet(),
+        )
+        assertTrue(events.none { event -> event.toString().contains("Synthetic candidate") })
 
         val searchStore = InMemoryHotelSearchStateStore()
         searchStore.save(
@@ -228,6 +256,7 @@ class TwoPassSemanticHotelSearchJobTest {
         },
         detailsCache: HotelDetailsCache = InMemoryHotelDetailsCache(),
         analysisClient: AccommodationAnalysisClient,
+        eventSink: OperationalEventSink = OperationalEventSink.NONE,
     ) = TwoPassSemanticHotelSearchJob(
         hotelOfferProvider = HotelOfferProviderBoundary {
             HotelOfferProviderResult.SearchCompleted(offers)
@@ -235,6 +264,7 @@ class TwoPassSemanticHotelSearchJobTest {
         hotelDetailsProvider = detailsProvider,
         analysisClient = analysisClient,
         detailsCache = detailsCache,
+        eventSink = eventSink,
     )
 
     private fun probable(candidateId: String) = AccommodationAnalysisResult.Decision(

@@ -237,7 +237,9 @@ internal fun Application.moduleWithAssistantLlm(
             hotelDetailsProvider = hotelProviderRuntime.detailsProvider,
             analysisClient = accommodationAnalysisRuntime.client,
             detailsCache = detailsCache,
+            eventSink = eventSink,
         ),
+        eventSink = eventSink,
     )
     environment.monitor.subscribe(ApplicationStopping) {
         semanticSearchScheduler.close()
