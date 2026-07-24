@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Нет активного implementation stage; Stage 16 завершён в разрешённом FAKE scope |
+| Текущий этап | Нет активного implementation stage; Stage 16.8 выбран как следующий safety follow-up, реализация не начата |
 | Последний завершенный этап | Stage 16.7 — observability, evaluation harness и closure |
-| Следующий планируемый шаг | Не назначен; REAL activation требует отдельной явной задачи, provider-content approval, controlled model/ZDR probe и пройденный quality dataset |
+| Следующий планируемый шаг | Stage 16.8a — запретить пользовательские semantic verdict из `FAKE`-анализатора поверх REAL provider data и завершать такой поиск fail-closed |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -66,7 +66,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
 | Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
 | Stage 15 | Завершен | Подтверждены backend-owned business logic и Java 17 portability; добавлены layering guards, correlation, stdout JSON events, probes, OpenMetrics и operational runbook. |
-| Stage 16 | Завершен в FAKE scope | Provider-neutral async two-pass semantic-анализ `GLAMPING`, public polling, observability и evaluation harness прошли regression gates; REAL vision rollout закрыт внешними policy/model/quality gates. |
+| Stage 16 | Stage 16.0–16.7 завершены в FAKE scope; Stage 16.8 запланирован | Provider-neutral async two-pass semantic-анализ `GLAMPING`, public polling, observability и evaluation harness прошли regression gates; ручная проверка выявила необходимость fail-closed защиты смешанного REAL/FAKE runtime до любого REAL vision rollout. |
 
 ## 2. Правила управления roadmap
 
@@ -1010,7 +1010,9 @@ OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 з�
 
 ### Stage 16 — Semantic-анализ типа размещения
 
-**Статус:** завершён в разрешённом FAKE scope. REAL rollout не активирован.
+**Статус:** Stage 16.0–16.7 завершены в разрешённом FAKE scope. По результатам
+ручной проверки 24 июля 2026 года Stage 16.8 выбран как следующий safety
+follow-up; implementation ещё не начат. REAL rollout не активирован.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
@@ -1022,6 +1024,16 @@ OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 з�
 | Stage 16.5 | Two-pass orchestration | Завершён; coarse до 20, deep до 6, concurrency 3/2, 45-second lifecycle budget, partial fallback, bounded details cache и FAKE-default runtime composition покрыты tests |
 | Stage 16.6 | Public contract и demo shell | Завершён; response/OpenAPI/conformance расширены async status, bounded analysis/semantic fields, demo polling 1–3 секунды с лимитом 120 секунд и безопасным evidence presentation |
 | Stage 16.7 | Observability, evaluation и closure | Завершён; bounded semantic search/dependency events и metrics, rights-safe evaluation harness/schema и aggregate report добавлены, полный backend regression gate пройден. REAL smoke не выполнялся, потому что provider-content approval, ZDR/model probe и dataset quality gates не закрыты |
+| Stage 16.8a | Backend semantic runtime safety | Следующий разрешённый implementation step; `FAKE`-анализатор остаётся только deterministic test/demo implementation и не формирует пользовательские `MATCH`/`PROBABLE` поверх REAL provider data. Смешанный REAL Hotels + FAKE semantic flow завершается существующим `failed` status без показа обычных отелей |
+| Stage 16.8b | Async UX и прозрачность режимов | Запланирован только после 16.8a; первоначальный `searching` получает текст запуска без семантики duplicate, terminal UI не сообщает, что результаты не готовы, когда карточки уже показаны, а launcher/diagnostics явно различают LLM, Hotels и semantic modes |
+| Stage 16.8c | Regression и closure | Запланирован только после 16.8b; negative fixtures закрывают ложные совпадения `город`, `городской`, `домашний` и аналогичные слова, полные backend/frontend/conformance gates и отдельный review подтверждают fail-closed behavior без REAL vision call |
+| Stage 16.9 | REAL semantic activation gate | Future / blocked; не является активным backlog. Требует отдельной явной задачи, разрешения на передачу provider descriptions/images конкретному внешнему endpoint, exact-host allowlist, controlled ZDR/model probe и пройденного quality dataset |
+
+Диагноз, границы исправления и критерии приёмки Stage 16.8 зафиксированы в
+`docs/reviews/stage-16-8-semantic-runtime-safety-plan.md`. Stage 16.8 не меняет
+taxonomy, ranking, provider mapping или обычный hotel search. Backend safety,
+frontend/demo изменения и closure выполняются отдельными commits и review
+reports.
 
 Первый и единственный активный semantic concept — `GLAMPING`. Он охватывает
 оборудованные tents, domes, yurts, safari tents, tiny houses и отдельные cabins

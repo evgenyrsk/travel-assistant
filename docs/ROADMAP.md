@@ -152,5 +152,10 @@
   `PROBABLE` с ограниченным набором evidence sources.
 - Сохранить обычный hotel search неизменным, а semantic search выполнять через
   bounded async lifecycle и двухпроходный coarse/deep анализ.
+- Не выдавать пользовательские semantic verdict из deterministic `FAKE`-анализатора
+  поверх REAL provider data; такой смешанный runtime должен завершаться
+  fail-closed.
+- Различать первоначальный async-запуск и duplicate confirmation в сообщениях,
+  а в локальной диагностике явно показывать режимы LLM, Hotels и semantic analysis.
 - Оставить REAL vision opt-in и заблокированным до подтверждения прав на
   provider content, privacy routing и quality gate.
