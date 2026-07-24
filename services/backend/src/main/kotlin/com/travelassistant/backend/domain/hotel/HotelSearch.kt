@@ -8,9 +8,13 @@ data class HotelSearch(
     val criteria: HotelSearchCriteria,
     val status: Status,
     val offers: List<RankedHotelOffer>,
+    val analysis: AccommodationAnalysisMetadata? = null,
 ) {
     enum class Status(val apiValue: String) {
+        SEARCHING("searching"),
         COMPLETED_WITH_OFFERS("completed_with_offers"),
         COMPLETED_NO_OFFERS("completed_no_offers"),
+        COMPLETED_NO_SEMANTIC_MATCHES("completed_no_semantic_matches"),
+        FAILED("failed"),
     }
 }

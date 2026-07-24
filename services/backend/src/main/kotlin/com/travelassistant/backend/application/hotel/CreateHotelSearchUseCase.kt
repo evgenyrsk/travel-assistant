@@ -14,6 +14,7 @@ import com.travelassistant.backend.application.observability.recordSafely
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import com.travelassistant.backend.domain.hotel.HotelOfferRanker
+import com.travelassistant.backend.domain.hotel.AccommodationAnalysisMetadata
 import kotlinx.coroutines.CancellationException
 import kotlin.math.max
 
@@ -24,6 +25,8 @@ class CreateHotelSearchUseCase(
     private val hotelSearchStateStore: HotelSearchStateStore = InMemoryHotelSearchStateStore(),
     private val idGenerator: HotelSearchIdGenerator = LocalHotelSearchIdGenerator(),
     private val offerIdGenerator: HotelOfferIdGenerator = LocalHotelOfferIdGenerator(),
+    private val semanticSearchLauncher: SemanticHotelSearchLauncher =
+        SemanticHotelSearchLauncher.UNAVAILABLE,
     private val eventSink: OperationalEventSink = OperationalEventSink.NONE,
 ) : HotelSearchBoundary {
 
@@ -31,6 +34,12 @@ class CreateHotelSearchUseCase(
         val searchStartedAt = System.nanoTime()
         assistantSessionStateStore.findById(command.sessionId)
             ?: throw AssistantSessionNotFoundException(command.sessionId)
+
+        if (command.criteria.preferences.accommodationConcept != null) {
+            val result = createSemanticSearch(command)
+            recordSearchOutcome(command, result, elapsedMillis(searchStartedAt))
+            return result
+        }
 
         val startedAt = System.nanoTime()
         val providerResult = try {
@@ -62,6 +71,33 @@ class CreateHotelSearchUseCase(
         }
         recordSearchOutcome(command, result, elapsedMillis(searchStartedAt))
         return result
+    }
+
+    private fun createSemanticSearch(
+        command: CreateHotelSearchCommand,
+    ): CreateHotelSearchResult.Created {
+        val search = hotelSearchStateStore.save(
+            HotelSearch(
+                id = idGenerator.nextId(),
+                sessionId = command.sessionId,
+                criteria = command.criteria,
+                status = HotelSearch.Status.SEARCHING,
+                offers = emptyList(),
+                analysis = AccommodationAnalysisMetadata.searching(POLL_AFTER_MILLIS),
+            ),
+        )
+        if (!semanticSearchLauncher.launch(search, command)) {
+            hotelSearchStateStore.updateIfStatus(
+                searchId = search.id,
+                expectedStatus = HotelSearch.Status.SEARCHING,
+            ) { current ->
+                current.copy(
+                    status = HotelSearch.Status.FAILED,
+                    analysis = AccommodationAnalysisMetadata.failed(),
+                )
+            }
+        }
+        return CreateHotelSearchResult.Created(search)
     }
 
     private fun createAndSaveSearch(
@@ -122,10 +158,13 @@ class CreateHotelSearchUseCase(
     ) {
         val search = (result as? CreateHotelSearchResult.Created)?.search
         val outcome = when (result) {
-            is CreateHotelSearchResult.Created -> if (result.search.offers.isEmpty()) {
-                OperationalOutcome.NO_OFFERS
-            } else {
-                OperationalOutcome.RESULTS
+            is CreateHotelSearchResult.Created -> when (result.search.status) {
+                HotelSearch.Status.SEARCHING -> OperationalOutcome.STARTED
+                HotelSearch.Status.COMPLETED_WITH_OFFERS -> OperationalOutcome.RESULTS
+                HotelSearch.Status.COMPLETED_NO_OFFERS,
+                HotelSearch.Status.COMPLETED_NO_SEMANTIC_MATCHES,
+                -> OperationalOutcome.NO_OFFERS
+                HotelSearch.Status.FAILED -> OperationalOutcome.FAILED
             }
             is CreateHotelSearchResult.NotCreated -> result.outcome.toOperationalOutcome()
         }
@@ -189,5 +228,6 @@ class CreateHotelSearchUseCase(
 
     private companion object {
         const val NANOS_PER_MILLISECOND = 1_000_000L
+        const val POLL_AFTER_MILLIS = 1_000L
     }
 }

@@ -531,6 +531,7 @@
 218. `docs/reviews/stage-16-1-semantic-accommodation-conversation-model.md`
 219. `docs/reviews/stage-16-2-semantic-accommodation-classification-core.md`
 220. `docs/reviews/stage-16-3-semantic-accommodation-multimodal-adapter.md`
+221. `docs/reviews/stage-16-4-semantic-accommodation-async-lifecycle.md`
 
 ## Historical / superseded документы
 
