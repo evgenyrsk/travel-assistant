@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 15 завершён; следующий этап не активирован |
-| Последний завершенный этап | Stage 15.4 — operational contract, conformance и runbook |
-| Следующий планируемый шаг | Выбрать отдельную явную roadmap-aligned задачу без автоматической активации нового этапа |
+| Текущий этап | Stage 16 — semantic-анализ типа размещения |
+| Последний завершенный этап | Stage 16.0 — feasibility и policy |
+| Следующий планируемый шаг | Stage 16.1 — conversation model для `GLAMPING` |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -66,6 +66,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
 | Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
 | Stage 15 | Завершен | Подтверждены backend-owned business logic и Java 17 portability; добавлены layering guards, correlation, stdout JSON events, probes, OpenMetrics и operational runbook. |
+| Stage 16 | Активен | Активирован semantic-анализ типа размещения; `GLAMPING` — единственный действующий concept, REAL vision закрыт внешним policy gate. |
 
 ## 2. Правила управления roadmap
 
@@ -1006,6 +1007,45 @@ capture, auth, CORS, deployment manifests и monitoring vendor остаются 
 Итоговые quality gates подтвердили backend tests, frontend tests/lint/build,
 OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 закрыт без
 заявления multi-instance/HA или полной production readiness.
+
+### Stage 16 — Semantic-анализ типа размещения
+
+**Статус:** активен; Stage 16.0 завершён.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 16.0 | Feasibility, taxonomy и policy gates | Завершён; широкое определение `GLAMPING`, границы provider facts/semantic assessment и критерии quality evaluation закреплены. Право передавать provider descriptions/images внешней модели и совместимость выбранного ZDR endpoint не подтверждены, поэтому REAL vision не активирован и controlled probe не выполнялся |
+| Stage 16.1 | Conversation model | Следующий разрешённый шаг; managed preference, extraction/clear, clarification persistence, confirmation и booking-boundary copy |
+| Stage 16.2 | Classification core | Запланирован после 16.1; application port, deterministic validation/merge/ranking policy и безопасная FAKE implementation |
+| Stage 16.3 | Multimodal adapter | Запланирован; opt-in OpenRouter adapter не активируется до закрытия внешнего policy gate |
+| Stage 16.4 | Async lifecycle | Запланирован отдельно от runtime wiring и public contract |
+| Stage 16.5 | Two-pass orchestration | Запланирован после async lifecycle |
+| Stage 16.6 | Public contract и demo shell | Запланирован после стабилизации backend behavior |
+| Stage 16.7 | Observability, evaluation и closure | Запланирован; REAL smoke допускается только после policy/model gates и без automatic retry |
+
+Первый и единственный активный semantic concept — `GLAMPING`. Он охватывает
+оборудованные tents, domes, yurts, safari tents, tiny houses и отдельные cabins
+в природном формате. Обычные hotel rooms, apartment blocks, пустые camping
+pitches и стандартные cottages без признаков glamping исключаются. `APARTMENT`
+не активирован и требует отдельного определения и quality evaluation.
+
+Semantic verdict является assessment ассистента, а не provider fact. Provider
+остаётся источником availability, цены, рейтинга, amenities, descriptions и
+изображений. Booking и payment не входят в Stage 16; запрос «забронировать
+глемпинг» запускает подбор с явным сообщением этой границы.
+
+До закрытия внешнего policy gate разрешены conversation slice, provider-neutral
+classification core, FAKE mode, тестовые fixtures и evaluation harness без
+provider content. Передача provider descriptions/images во внешнюю модель,
+REAL vision activation и controlled live probe запрещены, пока владелец данных
+не подтвердит такое использование, а выбранные model/provider endpoint —
+совместимость с `require_parameters=true`, `data_collection=deny` и `zdr=true`.
+
+Quality gate перед REAL rollout требует не менее 100 вручную размеченных
+кандидатов из нескольких направлений, precision `MATCH` не ниже 90%, precision
+`MATCH + PROBABLE` не ниже 80%, recall не ниже 70% и false-positive rate для
+обычных отелей не выше 5%. Пограничная часть размечается двумя независимыми
+reviewer. Изображения не коммитятся без подтверждённых прав.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

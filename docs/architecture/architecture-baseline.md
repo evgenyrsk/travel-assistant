@@ -17,9 +17,8 @@
 
 ## 2. Текущий статус архитектуры
 
-- Stage 0–14.6 завершены в границах рабочего `demo-ready MVP`; Stage 14.7
-  реализован, full gates пройдены, ожидается ручная REAL-перепроверка; Stage 14.1c
-  закрыт после подтверждения provider image template; подробные статусы находятся в
+- Stage 0–15 завершены; Stage 16 активирован для provider-neutral
+  semantic-анализа типа размещения. Подробные статусы находятся в
   `docs/roadmap/roadmap.md`.
 - Backend использует Kotlin + Ktor и сохраняет разделение domain, application, infrastructure и API слоев.
 - `LlmClient` и `HotelOfferProviderBoundary` реализованы как application-owned асинхронные границы.
@@ -92,9 +91,18 @@
   критериев application может консервативно дополнить отсутствующий destination
   из явно названного отеля; transport, provider IDs и raw LLM data в эту policy
   не входят.
+- Stage 15 подтвердил backend-owned business logic, Java 17 process portability
+  и single-instance ограничение process-local stores; operational events,
+  probes и metrics остаются infrastructure concerns за application-owned
+  boundaries.
+- Stage 16 вводит отдельную application-owned
+  `AccommodationAnalysisClient`; существующий текстовый `LlmClient` не получает
+  multimodal responsibility. Semantic verdict не меняет provider facts.
+  OpenRouter vision является opt-in adapter и не активируется до подтверждения
+  прав на provider descriptions/images, privacy routing и model compatibility.
 
-После закрытия Stage 14.7 следующая задача реализации может начаться только
-через отдельную явную задачу, согласованную с roadmap.
+Stage 16.1 является следующим разрешённым implementation slice. REAL vision
+остаётся закрыт внешним policy gate, зафиксированным в roadmap.
 
 Chat-first demo shell использует Assistant routes и загружает результаты только по
 полученному `hotelSearchId`. Диагностическая форма Stage 7.51 вызывает
