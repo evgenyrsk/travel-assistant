@@ -24,6 +24,7 @@ class AccommodationAnalysisProviderConfigTest {
         val config = AccommodationAnalysisProviderConfig.fromEnvironment(
             mapOf(
                 "ACCOMMODATION_ANALYSIS_MODE" to "openrouter",
+                "ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED" to "true",
                 "OPENROUTER_API_KEY" to "synthetic-key",
                 "ACCOMMODATION_ANALYSIS_MODEL" to "synthetic/vision-model",
                 "ACCOMMODATION_ANALYSIS_IMAGE_HOSTS" to
@@ -45,6 +46,7 @@ class AccommodationAnalysisProviderConfigTest {
     fun `rejects missing image allowlist wildcard host and oversized batch`() {
         fun environment(hosts: String, batchSize: String) = mapOf(
             "ACCOMMODATION_ANALYSIS_MODE" to "OPENROUTER",
+            "ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED" to "true",
             "OPENROUTER_API_KEY" to "synthetic-key",
             "ACCOMMODATION_ANALYSIS_MODEL" to "synthetic/vision-model",
             "ACCOMMODATION_ANALYSIS_IMAGE_HOSTS" to hosts,
@@ -66,5 +68,24 @@ class AccommodationAnalysisProviderConfigTest {
                 environment("", "5"),
             )
         }
+    }
+
+    @Test
+    fun `rejects OpenRouter activation without explicit external content approval`() {
+        val error = assertFailsWith<LlmProviderConfigurationException> {
+            AccommodationAnalysisProviderConfig.fromEnvironment(
+                mapOf(
+                    "ACCOMMODATION_ANALYSIS_MODE" to "OPENROUTER",
+                    "OPENROUTER_API_KEY" to "synthetic-key",
+                    "ACCOMMODATION_ANALYSIS_MODEL" to "synthetic/vision-model",
+                    "ACCOMMODATION_ANALYSIS_IMAGE_HOSTS" to "images.example.test",
+                ),
+            )
+        }
+
+        assertEquals(
+            "ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED",
+            error.configurationKey,
+        )
     }
 }

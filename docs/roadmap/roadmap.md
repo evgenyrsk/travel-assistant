@@ -9,8 +9,8 @@ Roadmap не является трекером задач, продуктово�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 16 — semantic-анализ типа размещения |
-| Последний завершенный этап | Stage 16.4 — async search lifecycle |
-| Следующий планируемый шаг | Stage 16.5 — two-pass orchestration и details cache |
+| Последний завершенный этап | Stage 16.5 — two-pass orchestration и details cache |
+| Следующий планируемый шаг | Stage 16.6 — public contract и demo polling |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -1010,7 +1010,7 @@ OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 з�
 
 ### Stage 16 — Semantic-анализ типа размещения
 
-**Статус:** активен; Stage 16.4 завершён.
+**Статус:** активен; Stage 16.5 завершён.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
@@ -1019,8 +1019,8 @@ OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 з�
 | Stage 16.2 | Classification core | Завершён; application-owned port, typed verdict/evidence/signals, fail-closed batch validation, merge/selection policy и deterministic network-free FAKE implementation покрыты tests |
 | Stage 16.3 | Multimodal adapter | Завершён; opt-in OpenRouter adapter, strict schema, exact-host URL policy, privacy routing, batching и typed failures проверены только через MockEngine; REAL activation отсутствует |
 | Stage 16.4 | Async lifecycle | Завершён; semantic search сначала сохраняется как `searching`, application-owned scheduler ограничивает job 45 секундами, не допускает duplicate launch, атомарно публикует terminal state и отменяется при shutdown |
-| Stage 16.5 | Two-pass orchestration | Следующий разрешённый шаг; coarse/deep flow, bounded details calls, runtime composition и process-local details cache |
-| Stage 16.6 | Public contract и demo shell | Запланирован после стабилизации backend behavior |
+| Stage 16.5 | Two-pass orchestration | Завершён; coarse до 20, deep до 6, concurrency 3/2, 45-second lifecycle budget, partial fallback, bounded details cache и FAKE-default runtime composition покрыты tests |
+| Stage 16.6 | Public contract и demo shell | Следующий разрешённый шаг; OpenAPI/conformance, response metadata, polling и semantic evidence presentation |
 | Stage 16.7 | Observability, evaluation и closure | Запланирован; REAL smoke допускается только после policy/model gates и без automatic retry |
 
 Первый и единственный активный semantic concept — `GLAMPING`. Он охватывает

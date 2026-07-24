@@ -109,7 +109,8 @@ class FakeAccommodationAnalysisClient : AccommodationAnalysisClient {
             AccommodationAnalysisResult.Signal.NATURE_SETTING to
                 Regex(
                     """(?<![\p{L}\p{N}])(?:лес[\p{L}]*|озер[\p{L}]*|гор[а-я]*|""" +
-                        """природ[\p{L}]*|forest|lake|mountain|nature)(?![\p{L}\p{N}])""",
+                        """природ[\p{L}]*|forest|lake|mountain|nature|river|riverside)""" +
+                        """(?![\p{L}\p{N}])""",
                 ),
             AccommodationAnalysisResult.Signal.STANDARD_HOTEL_FORMAT to
                 Regex(

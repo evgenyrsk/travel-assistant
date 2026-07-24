@@ -20,6 +20,8 @@ internal data class AccommodationAnalysisProviderConfig(
 
     companion object {
         internal const val MODE_KEY = "ACCOMMODATION_ANALYSIS_MODE"
+        internal const val EXTERNAL_CONTENT_APPROVED_KEY =
+            "ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED"
         private const val OPENROUTER_CONFIG_KEY = "ACCOMMODATION_ANALYSIS_OPENROUTER_CONFIG"
 
         fun fromEnvironment(
@@ -36,6 +38,12 @@ internal data class AccommodationAnalysisProviderConfig(
             } ?: AccommodationAnalysisProviderMode.FAKE
             if (mode == AccommodationAnalysisProviderMode.FAKE) {
                 return AccommodationAnalysisProviderConfig()
+            }
+            if (!environment.optional(EXTERNAL_CONTENT_APPROVED_KEY).equals("true", true)) {
+                throw LlmProviderConfigurationException(
+                    EXTERNAL_CONTENT_APPROVED_KEY,
+                    "must be true before OPENROUTER can receive provider content",
+                )
             }
 
             return AccommodationAnalysisProviderConfig(
