@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 14.7 — поиск конкретного отеля и устойчивость уточнений; exact-hotel flow подтверждён вручную, исправлена поздняя проверка нескольких номеров, ожидается финальная ручная REAL-перепроверка |
-| Последний завершенный этап | Stage 14.6 — разрешение provider image template |
-| Следующий планируемый шаг | Ручная перепроверка диалога с явно названным отелем; автоматический live retry не выполнять |
+| Текущий этап | Stage 15.0 — архитектурная и deployment-проверка портируемого backend |
+| Последний завершенный этап | Stage 14.7 — поиск конкретного отеля и устойчивость уточнений |
+| Следующий планируемый шаг | Зафиксировать backend/client responsibility map, single-instance ограничение и source-level layering guards Stage 15.0 |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -64,7 +64,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 11 | Завершен | Локальный launcher, FAKE preflight и один полный REAL browser smoke подтвердили демонстрационный chat-first hotel flow без production-readiness claim. |
 | Stage 12 | Завершен | Итеративное уточнение четырёх фильтров, повторное confirmation, новый provider search и safe no-results flow подтверждены regression и одним REAL smoke. |
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
-| Stage 14 | Активен | Stage 14.0–14.6 завершены; Stage 14.7 добавляет подтверждённую проверку конкретного hotel candidate через details/rates и исправляет накопление длительности без заявления production readiness. |
+| Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
 
 ## 2. Правила управления roadmap
 
@@ -864,8 +864,8 @@ px. Stage 13 завершён без rates, deeplink, shortlist, comparison ил
 
 ### Stage 14 — Закрытие рабочего hotel-only MVP
 
-**Статус:** Stage 14.0–14.6 завершены. Stage 14.7 реализован локально и ожидает
-финальную REAL-проверку exact-hotel flow.
+**Статус:** Stage 14.0–14.7 завершены. Финальная REAL-проверка
+подтвердила exact-hotel flow и раннюю multi-room границу.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
@@ -878,7 +878,7 @@ px. Stage 13 завершён без rates, deeplink, shortlist, comparison ил
 | Stage 14.4 | Безопасная диагностика LLM и fallback UX | Завершён; runtime пишет только фиксированные OpenRouter/application категории, временные сбои и ошибки понимания имеют разные безопасные сообщения, проблемная фраза закреплена regression test |
 | Stage 14.5 | Явное уточнение звёзд и первичная диагностика изображений | Завершён; точная одиночная категория звёзд детерминированно дополняет пропуск LLM, а причина отсутствия `imageUrl` передана в Stage 14.6 |
 | Stage 14.6 | Разрешение provider image template | Завершён; `{size}` безопасно заменяется на подтверждённый `1024x768`, пять REAL-карточек загрузили изображения без proxy или N+1 |
-| Stage 14.7 | Поиск конкретного отеля и устойчивость уточнений | Реализован локально; ручная REAL-проверка подтвердила exact-hotel ветку и выявила позднюю проверку `rooms=2`; запрос нескольких номеров теперь блокируется до confirmation без вызова provider, ожидается финальная ручная REAL-перепроверка |
+| Stage 14.7 | Поиск конкретного отеля и устойчивость уточнений | Завершён; REAL-перепроверка подтвердила раннюю блокировку нескольких номеров, сохранение destination, дат и гостей после исправления, новое confirmation и exact-hotel details/rates с одним результатом |
 
 Stage 14.0 повторно выполнил backend, frontend, launcher и OpenAPI conformance
 gates, проверил secret/provider-ID boundaries и провёл один разрешённый REAL
@@ -981,8 +981,11 @@ provider mapper-ом. Теперь MVP явно поддерживает оди�
 pending confirmation или вызов provider; распределение гостей между номерами
 не имитируется. Внутренний `rooms=1` скрыт из обычного confirmation и demo
 controls. Пустая успешная выдача также больше не сопровождается фразой
-«Результат готов». Stage 14.7 остаётся открытым до финальной ручной
-перепроверки. Общий room/rates browsing и booking flow остаются вне MVP.
+«Результат готов». Финальная REAL-перепроверка выявила узкий пробел в local confirmation
+classifier для словесных room counts. После regression-исправления сценарий подтвердил раннюю
+multi-room блокировку, сохранение destination, дат и гостей, новое confirmation и один успешный
+exact-hotel details/rates flow. Автоматический live retry не выполнялся. Stage 14.7 завершён;
+общий room/rates browsing и booking flow остаются вне MVP.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

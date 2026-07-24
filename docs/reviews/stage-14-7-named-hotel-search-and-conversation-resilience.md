@@ -73,7 +73,7 @@ Autocomplete locations и hotels остаются разными внутрен�
 - malformed provider data преобразуются в существующие typed safe outcomes;
 - cancellation не перехватывается как provider failure.
 
-## REAL-проверка и оставшийся gate
+## REAL-проверка
 
 Первый контролируемый REAL browser smoke дошёл до валидного OpenRouter
 candidate, но candidate пропустил `Cosmos ВДНХ` в `destination`. Backend не
@@ -103,7 +103,19 @@ guest group. После «Да» это превращалось в общий `
 
 В безопасную диагностику добавлена только фиксированная категория
 `UNSUPPORTED_ROOM_COUNT`; количество номеров и пользовательский текст не
-логируются. Повторная REAL-проверка после этого исправления остаётся ручной.
+логируются. Финальная ручная REAL-проверка выявила узкий regression: при активном
+confirmation словесные room counts вроде «два номера» не считались исправлением
+критериев. Local classifier дополнен bounded-формами от одного до четырёх для гостей и
+номеров; regression test покрывает «два номера» и «один номер».
+
+После исправления ручной сценарий подтвердил:
+
+- запрос двух номеров блокируется до provider execution;
+- исправление на один номер сохраняет `Cosmos ВДНХ`, даты и двух взрослых;
+- backend формирует новое confirmation без внутреннего `rooms=1`;
+- единственное «Да» завершает exact-hotel details + rates flow одним предложением;
+- цена, звёздность, location и cancellation fact отобразились из details/rates mapping;
+- автоматический live retry не выполнялся.
 
 После этого добавлены две независимые защиты:
 
@@ -128,12 +140,11 @@ suite после исправления прошли. Повторная REAL-п
   вызывает destination search;
 - mapper tests для price, currency, stars, breakfast, cancellation, image и
   отсутствующего review;
-- regression tests ранней блокировки нескольких номеров, отсутствия pending
+- regression tests ранней блокировки нескольких номеров, словесных room-count corrections, отсутствия pending
   confirmation и восстановления confirmation после исправления на один номер;
 - отдельная проверка понятного сообщения для `COMPLETED_NO_OFFERS`.
 
-Итоговые browser gates фиксируются после ручной повторной проверки актуального
-REAL demo.
+Итоговый browser gate актуального REAL demo пройден 24 июля 2026 года.
 
 ## Не входит в этап
 
@@ -145,4 +156,4 @@ REAL demo.
 
 ## Verdict
 
-`IMPLEMENTED_PENDING_MANUAL_REAL_RECHECK`.
+`PASSED`.

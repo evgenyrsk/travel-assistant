@@ -53,6 +53,8 @@ class ClassifyConfirmationReplyUseCaseTest {
             "нет, лучше Париж",
             "измени даты",
             "2 взрослых",
+            "Давай два номера: в одном двое, во втором один",
+            "Тогда один номер на троих",
             "с 10 по 15 июля",
             "change destination to Paris",
         ).forEach { reply ->

@@ -86,8 +86,9 @@ class ClassifyConfirmationReplyUseCase {
 
         val guestOrRoomChangePattern =
             Regex(
-                pattern = "\\b(" +
-                    "\\d+\\s*(взросл\\S*|adult\\S*|гост\\S*|guest\\S*|дет\\S*|child\\S*|children|комнат\\S*|room\\S*|номер\\S*)|" +
+                pattern = "(?U)\\b(" +
+                    "(один|одна|одно|два|две|три|четыре|\\d+)\\s*" +
+                    "(взросл\\S*|adult\\S*|гост\\S*|guest\\S*|дет\\S*|child\\S*|children|комнат\\S*|room\\S*|номер\\S*)|" +
                     "для\\s+(одного|двоих|троих|четверых)" +
                     ")\\b",
             )
