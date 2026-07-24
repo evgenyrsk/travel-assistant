@@ -9,8 +9,8 @@ Roadmap не является трекером задач, продуктово�
 | Пункт | Статус |
 |---|---|
 | Текущий этап | Stage 16 — semantic-анализ типа размещения |
-| Последний завершенный этап | Stage 16.2 — classification core и FAKE implementation |
-| Следующий планируемый шаг | Stage 16.3 — opt-in multimodal adapter без REAL activation |
+| Последний завершенный этап | Stage 16.3 — opt-in multimodal adapter без REAL activation |
+| Следующий планируемый шаг | Stage 16.4 — async search lifecycle |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -1010,15 +1010,15 @@ OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 з�
 
 ### Stage 16 — Semantic-анализ типа размещения
 
-**Статус:** активен; Stage 16.2 завершён.
+**Статус:** активен; Stage 16.3 завершён.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
 | Stage 16.0 | Feasibility, taxonomy и policy gates | Завершён; широкое определение `GLAMPING`, границы provider facts/semantic assessment и критерии quality evaluation закреплены. Право передавать provider descriptions/images внешней модели и совместимость выбранного ZDR endpoint не подтверждены, поэтому REAL vision не активирован и controlled probe не выполнялся |
 | Stage 16.1 | Conversation model | Завершён; managed `GLAMPING` извлекается и снимается детерминированно и через strict LLM schema, сохраняется между уточнениями, входит в confirmation/idempotency и сопровождается booking-boundary copy |
 | Stage 16.2 | Classification core | Завершён; application-owned port, typed verdict/evidence/signals, fail-closed batch validation, merge/selection policy и deterministic network-free FAKE implementation покрыты tests |
-| Stage 16.3 | Multimodal adapter | Следующий разрешённый шаг; opt-in OpenRouter adapter без REAL activation до закрытия внешнего policy gate |
-| Stage 16.4 | Async lifecycle | Запланирован отдельно от runtime wiring и public contract |
+| Stage 16.3 | Multimodal adapter | Завершён; opt-in OpenRouter adapter, strict schema, exact-host URL policy, privacy routing, batching и typed failures проверены только через MockEngine; REAL activation отсутствует |
+| Stage 16.4 | Async lifecycle | Следующий разрешённый шаг; background scheduler, atomic states и idempotent job launch отдельно от public contract |
 | Stage 16.5 | Two-pass orchestration | Запланирован после async lifecycle |
 | Stage 16.6 | Public contract и demo shell | Запланирован после стабилизации backend behavior |
 | Stage 16.7 | Observability, evaluation и closure | Запланирован; REAL smoke допускается только после policy/model gates и без automatic retry |
