@@ -38,6 +38,7 @@ class AssistantLlmRouteWiringUseCase(
     private val explicitHotelSearchMessageParser: MinimalHotelSearchMessageParser =
         MinimalHotelSearchMessageParser(),
 ) : AssistantSessionBoundary {
+    private val sessionTurnCoordinator = AssistantSessionTurnCoordinator()
     private val accumulateHotelConstraints =
         AccumulateAssistantHotelConstraintsUseCase(hotelConstraintsStore)
     private val mapHotelSearchPreferencesPatch =
@@ -48,7 +49,14 @@ class AssistantLlmRouteWiringUseCase(
     override fun createSession(): AssistantSession =
         assistantSessionBoundary.createSession()
 
-    override suspend fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage {
+    override suspend fun acceptUserMessage(command: AcceptAssistantMessageCommand): AcceptedAssistantMessage =
+        sessionTurnCoordinator.execute(command.sessionId) {
+            acceptUserMessageInSession(command)
+        }
+
+    private suspend fun acceptUserMessageInSession(
+        command: AcceptAssistantMessageCommand,
+    ): AcceptedAssistantMessage {
         val acceptedMessage = assistantSessionBoundary.acceptUserMessage(command)
 
         val explicitHotelSearchMessage = explicitHotelSearchMessageParser.parse(command.message)

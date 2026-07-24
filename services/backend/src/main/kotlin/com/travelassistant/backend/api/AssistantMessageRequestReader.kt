@@ -3,7 +3,6 @@ package com.travelassistant.backend.api
 import io.ktor.http.ContentType
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.contentType
-import io.ktor.server.request.receiveText
 import java.time.ZoneId
 import kotlinx.serialization.decodeFromString
 
@@ -24,9 +23,17 @@ internal sealed interface AssistantMessageRequestReadResult {
 }
 
 internal suspend fun ApplicationCall.readAssistantMessageRequest(): AssistantMessageRequestReadResult {
-    val body = receiveText()
-    if (body.isEmpty()) {
-        return AssistantMessageRequestReadResult.NoBody
+    val body = when (val readResult = readBoundedRequestBody()) {
+        BoundedRequestBodyReadResult.NoBody ->
+            return AssistantMessageRequestReadResult.NoBody
+
+        BoundedRequestBodyReadResult.TooLarge ->
+            return AssistantMessageRequestReadResult.Invalid(
+                field = "body",
+                message = "Assistant request body is too large.",
+            )
+
+        is BoundedRequestBodyReadResult.Accepted -> readResult.text
     }
     if (body.isBlank() || request.contentType().withoutParameters() != ContentType.Application.Json) {
         return invalidBody()

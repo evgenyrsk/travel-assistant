@@ -19,6 +19,7 @@ const defaultEnvFile = path.join(repositoryRoot, ".env");
 const defaultBackendPort = 8080;
 const defaultFrontendPort = 4173;
 const defaultStartupTimeoutMillis = 120_000;
+const localDemoHost = "127.0.0.1";
 const demoEnvFileKeys = new Set([
   "JAVA_HOME",
   "LLM_PROVIDER_MODE",
@@ -186,6 +187,14 @@ export function validatePort(rawValue, name) {
   return port;
 }
 
+export function buildBackendProcessEnvironment(environment, backendPort) {
+  return {
+    ...environment,
+    HOST: localDemoHost,
+    PORT: String(backendPort),
+  };
+}
+
 export async function isPortAvailable(port, host = "127.0.0.1") {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -306,10 +315,7 @@ async function startDemo(environment, profile, preflight) {
     const backend = spawn("./gradlew", ["--no-daemon", "run"], {
       cwd: path.join(repositoryRoot, "services", "backend"),
       detached: process.platform !== "win32",
-      env: {
-        ...environment,
-        PORT: String(preflight.backendPort),
-      },
+      env: buildBackendProcessEnvironment(environment, preflight.backendPort),
       stdio: ["ignore", backendLog, backendLog],
     });
     children.push({ name: "Backend", process: backend });

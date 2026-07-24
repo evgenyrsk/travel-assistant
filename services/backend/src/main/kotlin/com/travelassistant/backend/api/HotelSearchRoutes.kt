@@ -6,13 +6,15 @@ import com.travelassistant.backend.application.hotel.HotelSearchBoundary
 import com.travelassistant.backend.application.hotel.PlanHotelNoOffersRefinementUseCase
 import com.travelassistant.backend.domain.hotel.HotelSearchId
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.ContentType
 import io.ktor.server.application.call
-import io.ktor.server.request.receiveNullable
+import io.ktor.server.request.contentType
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import kotlinx.serialization.decodeFromString
 
 fun Route.hotelSearchRoutes(
     hotelSearchBoundary: HotelSearchBoundary,
@@ -21,9 +23,23 @@ fun Route.hotelSearchRoutes(
 ) {
     route("/hotel-searches") {
         post {
-            val request = runCatching {
-                call.receiveNullable<HotelSearchRequest>()
-            }.getOrNull()
+            val request = when (val body = call.readBoundedRequestBody()) {
+                is BoundedRequestBodyReadResult.Accepted ->
+                    if (
+                        call.request.contentType().withoutParameters() ==
+                        ContentType.Application.Json
+                    ) {
+                        runCatching {
+                            ApiJson.decodeFromString<HotelSearchRequest>(body.text)
+                        }.getOrNull()
+                    } else {
+                        null
+                    }
+
+                BoundedRequestBodyReadResult.NoBody,
+                BoundedRequestBodyReadResult.TooLarge,
+                -> null
+            }
 
             if (request == null) {
                 call.respondValidationError(

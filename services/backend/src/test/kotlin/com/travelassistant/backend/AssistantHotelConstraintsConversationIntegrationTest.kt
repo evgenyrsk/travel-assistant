@@ -22,6 +22,12 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.ArrayDeque
+import java.util.Collections
+import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -36,6 +42,74 @@ import kotlin.test.assertTrue
 class AssistantHotelConstraintsConversationIntegrationTest {
     private val now = Instant.parse("2026-07-18T10:00:00Z")
     private val clock = Clock.fixed(now, ZoneOffset.UTC)
+
+    @Test
+    fun serializesConcurrentMessagesBeforeUpdatingOneSessionContext() = testApplication {
+        val contextStore = InMemoryAssistantHotelConstraintsStore()
+        val firstGenerationStarted = CompletableDeferred<Unit>()
+        val releaseFirstGeneration = CompletableDeferred<Unit>()
+        val generationCalls = AtomicInteger(0)
+        val requests = Collections.synchronizedList(mutableListOf<LlmCandidateRequest>())
+        val llmClient = LlmClient { request ->
+            requests += request
+            when (generationCalls.getAndIncrement()) {
+                0 -> {
+                    firstGenerationStarted.complete(Unit)
+                    releaseFirstGeneration.await()
+                    LlmClientResponse.Candidate(
+                        clarificationCandidate(
+                            constraints = mapOf("destination" to "Казань"),
+                            missing = listOf("check-in", "check-out", "adults"),
+                            question = "На какие даты планируется поездка?",
+                        ),
+                    )
+                }
+
+                else -> LlmClientResponse.Candidate(
+                    clarificationCandidate(
+                        constraints = mapOf(
+                            "check-in" to "2026-08-10",
+                            "check-out" to "2026-08-14",
+                        ),
+                        missing = listOf("adults"),
+                        question = "Сколько будет взрослых?",
+                    ),
+                )
+            }
+        }
+
+        application {
+            moduleWithAssistantLlm(
+                llmClient = llmClient,
+                hotelConstraintsStore = contextStore,
+                clock = clock,
+            )
+        }
+
+        val sessionId = createSession()
+        coroutineScope {
+            val destinationMessage = async {
+                sendMessage(sessionId, "Ищу отель в Казани")
+            }
+            firstGenerationStarted.await()
+
+            val datesMessage = async {
+                sendMessage(sessionId, "С 10 по 14 августа 2026")
+            }
+            delay(50)
+
+            assertEquals(1, generationCalls.get())
+            releaseFirstGeneration.complete(Unit)
+            destinationMessage.await()
+            datesMessage.await()
+        }
+
+        val stored = contextStore.findBySession(AssistantSessionId(sessionId))
+        assertEquals("Казань", stored?.destination)
+        assertEquals(LocalDate.parse("2026-08-10"), stored?.checkInDate)
+        assertEquals(LocalDate.parse("2026-08-14"), stored?.checkOutDate)
+        assertEquals("Казань", requests[1].confirmedConstraints["destination"])
+    }
 
     @Test
     fun accumulatesCityDatesAndGuestsBeforeExplicitlyConfirmedSearch() = testApplication {

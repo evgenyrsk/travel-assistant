@@ -21,8 +21,10 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
 import io.ktor.http.headersOf
 import io.ktor.server.testing.testApplication
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -134,6 +136,27 @@ class PlatformClientContractTest {
             jsonBody(AssistantMessageRequest(message = "😀".repeat(ASSISTANT_MESSAGE_MAX_CODE_POINTS + 1)))
         }
         tooLong.assertValidationField("message")
+
+        val oversizedBody = client.post(path) {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody("{\"message\":\"${"x".repeat(API_JSON_REQUEST_MAX_BYTES)}\"}")
+        }
+        oversizedBody.assertValidationField("body")
+
+        val oversizedChunkedBody = client.post(path) {
+            setBody(
+                object : OutgoingContent.ReadChannelContent() {
+                    override val contentType: ContentType = ContentType.Application.Json
+
+                    override fun readFrom(): ByteReadChannel =
+                        ByteReadChannel(
+                            "{\"message\":\"${"x".repeat(API_JSON_REQUEST_MAX_BYTES)}\"}"
+                                .encodeToByteArray(),
+                        )
+                },
+            )
+        }
+        oversizedChunkedBody.assertValidationField("body")
 
         val blank = client.post(path) {
             jsonBody(AssistantMessageRequest(message = "   "))

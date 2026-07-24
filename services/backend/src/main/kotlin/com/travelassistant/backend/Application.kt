@@ -44,11 +44,17 @@ import java.time.Clock
 fun main() {
     embeddedServer(
         factory = Netty,
-        host = "0.0.0.0",
+        host = resolveBackendHost(System.getenv()),
         port = System.getenv("PORT")?.toIntOrNull() ?: 8080,
         module = Application::module,
     ).start(wait = true)
 }
+
+internal fun resolveBackendHost(environment: Map<String, String>): String =
+    environment[BACKEND_HOST_ENVIRONMENT_KEY]
+        ?.trim()
+        ?.takeIf(String::isNotEmpty)
+        ?: DEFAULT_BACKEND_HOST
 
 fun Application.module() {
     moduleWithProviderConfigs(
@@ -173,3 +179,6 @@ private fun defaultAssistantLlmClient(): LlmClient =
 
 private const val DEFAULT_LLM_CLARIFICATION_MESSAGE =
     "Расскажите, куда и когда планируете поездку и кто едет с вами."
+
+private const val BACKEND_HOST_ENVIRONMENT_KEY = "HOST"
+internal const val DEFAULT_BACKEND_HOST = "127.0.0.1"

@@ -35,6 +35,37 @@ import kotlin.test.assertTrue
 class HotelSearchRoutesTest {
 
     @Test
+    fun rejectsMalformedAndOversizedSearchBodiesWithoutCallingApplication() = testApplication {
+        val boundary = ConfigurableHotelSearchBoundary()
+        application {
+            configureSerialization()
+            configureErrorHandling()
+            routing {
+                route("/api/v1") {
+                    hotelSearchRoutes(boundary)
+                }
+            }
+        }
+
+        listOf(
+            "{\"sessionId\":" to ContentType.Application.Json,
+            "{\"padding\":\"${"x".repeat(API_JSON_REQUEST_MAX_BYTES)}\"}" to
+                ContentType.Application.Json,
+            validSearchBody("assistant-session-local-test") to ContentType.Text.Plain,
+        ).forEach { (body, contentType) ->
+            val response = client.post("/api/v1/hotel-searches") {
+                header(HttpHeaders.ContentType, contentType.toString())
+                setBody(body)
+            }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertTrue(response.bodyAsText().contains("VALIDATION_ERROR"))
+        }
+
+        assertEquals(0, boundary.createSearchCalls)
+    }
+
+    @Test
     fun createsHotelSearchAndReturnsDeterministicFakeOffers() = testApplication {
         application {
             module()

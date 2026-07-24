@@ -3,6 +3,7 @@ import { createServer } from "node:net";
 import test from "node:test";
 
 import {
+  buildBackendProcessEnvironment,
   buildProfileEnvironment,
   isPortAvailable,
   parseArguments,
@@ -10,6 +11,23 @@ import {
   selectDemoFileValues,
   validatePort,
 } from "./local-demo.mjs";
+
+test("binds the demo backend to loopback even when the shell host is broader", () => {
+  assert.deepEqual(
+    buildBackendProcessEnvironment(
+      {
+        HOST: "0.0.0.0",
+        LLM_PROVIDER_MODE: "OPENROUTER",
+      },
+      8080,
+    ),
+    {
+      HOST: "127.0.0.1",
+      PORT: "8080",
+      LLM_PROVIDER_MODE: "OPENROUTER",
+    },
+  );
+});
 
 test("requires one explicit demo profile", () => {
   assert.deepEqual(parseArguments(["--fake", "--check-only"]), {
