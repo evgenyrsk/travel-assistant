@@ -5,6 +5,10 @@ import com.travelassistant.backend.application.hotel.HotelDetailsProviderResult
 import com.travelassistant.backend.application.hotel.InMemoryHotelSearchStateStore
 import com.travelassistant.backend.application.hotel.LoadSelectedHotelDetailsUseCase
 import com.travelassistant.backend.application.hotel.ResolveSelectedHotelOfferUseCase
+import com.travelassistant.backend.application.observability.OperationalEvent
+import com.travelassistant.backend.application.observability.OperationalEventName
+import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalOutcome
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelDetails
 import com.travelassistant.backend.domain.hotel.HotelOffer
@@ -27,6 +31,41 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 class HotelDetailsRoutesTest {
+
+    @Test
+    fun `records bounded details and provider outcomes without identity leakage`() =
+        testApplication {
+            val events = mutableListOf<OperationalEvent>()
+            application {
+                detailsTestModule(
+                    store = storeWithSearch(),
+                    provider = HotelDetailsProviderBoundary {
+                        HotelDetailsProviderResult.ProviderUnavailable(
+                            HotelDetailsProviderResult.UnavailableReason.TIMEOUT,
+                        )
+                    },
+                    eventSink = OperationalEventSink(events::add),
+                )
+            }
+
+            assertEquals(HttpStatusCode.ServiceUnavailable, client.get(detailsPath()).status)
+
+            assertEquals(
+                OperationalOutcome.TIMEOUT,
+                events.single {
+                    it.name == OperationalEventName.DEPENDENCY_CALL_COMPLETED
+                }.outcome,
+            )
+            assertEquals(
+                OperationalOutcome.TIMEOUT,
+                events.single {
+                    it.name == OperationalEventName.HOTEL_DETAILS_COMPLETED
+                }.outcome,
+            )
+            assertEquals(setOf(SEARCH_ID), events.mapNotNull { it.hotelSearchId }.toSet())
+            assertFalse(events.toString().contains(OFFER_ID))
+            assertFalse(events.toString().contains(PROVIDER_REFERENCE))
+        }
 
     @Test
     fun `loads details only after search-bound offer selection without identity leakage`() =
@@ -164,6 +203,7 @@ class HotelDetailsRoutesTest {
     private fun io.ktor.server.application.Application.detailsTestModule(
         store: InMemoryHotelSearchStateStore,
         provider: HotelDetailsProviderBoundary,
+        eventSink: OperationalEventSink = OperationalEventSink.NONE,
     ) {
         configureSerialization()
         configureErrorHandling()
@@ -173,6 +213,7 @@ class HotelDetailsRoutesTest {
                     LoadSelectedHotelDetailsUseCase(
                         resolveSelectedOffer = ResolveSelectedHotelOfferUseCase(store),
                         hotelDetailsProvider = provider,
+                        eventSink = eventSink,
                     ),
                 )
             }

@@ -1,6 +1,5 @@
 package com.travelassistant.backend.api
 
-import io.ktor.server.application.ApplicationCall
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -9,7 +8,7 @@ import kotlinx.serialization.json.JsonElement
 data class ErrorResponse(
     val code: ErrorCode,
     val message: String,
-    val requestId: String? = null,
+    val requestId: String,
     val details: Map<String, JsonElement>? = null,
 )
 
@@ -17,7 +16,7 @@ data class ErrorResponse(
 data class ValidationErrorResponse(
     val code: ErrorCode,
     val message: String,
-    val requestId: String? = null,
+    val requestId: String,
     val fields: List<ValidationErrorField>,
 )
 
@@ -59,5 +58,3 @@ enum class ErrorCode {
     @SerialName("INTERNAL_ERROR")
     INTERNAL_ERROR,
 }
-
-fun ApplicationCall.requestIdOrNull(): String? = request.headers["X-Request-ID"]

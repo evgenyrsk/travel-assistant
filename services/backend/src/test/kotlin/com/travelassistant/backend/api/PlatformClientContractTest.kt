@@ -288,7 +288,11 @@ class PlatformClientContractTest {
         val body = response.jsonBody()
 
         assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals(setOf("code", "message"), body.keys)
+        assertEquals(setOf("code", "message", "requestId"), body.keys)
+        assertEquals(
+            response.headers[REQUEST_ID_HEADER],
+            body.getValue("requestId").jsonPrimitive.content,
+        )
         assertEquals("INTERNAL_ERROR", body.getValue("code").jsonPrimitive.content)
         assertEquals(
             "Hotel search could not be completed.",

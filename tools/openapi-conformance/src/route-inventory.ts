@@ -9,6 +9,7 @@ import {
 import type { HttpMethod, RuntimeRoute } from "./types.js";
 
 const API_BASE_PATH = "/api/v1";
+const ROOT_OPERATIONAL_ROUTE_FILE = "OperationalRoutes.kt";
 const ROUTE_DECLARATION = /\broute\s*\(\s*"([^"]+)"\s*\)\s*\{/;
 const VERB_DECLARATION =
   /\b(get|post|put|delete|patch)\s*(?:\(\s*"([^"]*)"\s*\))?\s*\{/;
@@ -38,6 +39,8 @@ function extractRoutesFromFile(
   filePath: string,
 ): RuntimeRoute[] {
   const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
+  const basePath =
+    path.basename(filePath) === ROOT_OPERATIONAL_ROUTE_FILE ? "/" : API_BASE_PATH;
   const contexts: RouteContext[] = [];
   const routes: RuntimeRoute[] = [];
   let braceDepth = 0;
@@ -61,7 +64,7 @@ function extractRoutesFromFile(
       const method = verbMatch[1] as HttpMethod;
       const declaredPath = verbMatch[2] ?? "";
       const routePath = joinRoutePath(
-        API_BASE_PATH,
+        basePath,
         joinRoutePath(currentPrefix, declaredPath),
       );
 

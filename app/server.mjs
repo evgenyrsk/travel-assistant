@@ -7,6 +7,10 @@ import {
   readBoundedRequestBody,
   RequestBodyTooLargeError,
 } from "./request-body.mjs";
+import {
+  buildBackendRequestHeaders,
+  buildProxyResponseHeaders,
+} from "./proxy-headers.mjs";
 
 const sourceDirectory = fileURLToPath(new URL("./src/", import.meta.url));
 const backendUrl = new URL(process.env.BACKEND_URL ?? "http://127.0.0.1:8080");
@@ -50,13 +54,7 @@ server.listen(port, host, () => {
 async function proxyToBackend(request, response) {
   const requestUrl = new URL(request.url, backendUrl);
   const method = request.method ?? "GET";
-  const headers = new Headers();
-
-  for (const [name, value] of Object.entries(request.headers)) {
-    if (value && name !== "host" && name !== "content-length") {
-      headers.set(name, Array.isArray(value) ? value.join(", ") : value);
-    }
-  }
+  const headers = buildBackendRequestHeaders(request.headers);
 
   const backendResponse = await fetch(requestUrl, {
     method,
@@ -66,13 +64,7 @@ async function proxyToBackend(request, response) {
       : await readBoundedRequestBody(request),
   });
   const responseBody = Buffer.from(await backendResponse.arrayBuffer());
-  const responseHeaders = {};
-  const contentType = backendResponse.headers.get("content-type");
-
-  if (contentType) {
-    responseHeaders["content-type"] = contentType;
-  }
-  responseHeaders["cache-control"] = "no-store";
+  const responseHeaders = buildProxyResponseHeaders(backendResponse.headers);
 
   response.writeHead(backendResponse.status, responseHeaders);
   response.end(responseBody);

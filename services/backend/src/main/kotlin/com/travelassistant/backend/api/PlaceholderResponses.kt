@@ -11,7 +11,7 @@ suspend fun ApplicationCall.respondNotImplementedPlaceholder(boundary: String) {
         ErrorResponse(
             code = ErrorCode.NOT_IMPLEMENTED,
             message = "This hotel-only MVP backend boundary is a Stage 7 foundation placeholder and is not generated-client-ready.",
-            requestId = requestIdOrNull(),
+            requestId = requestId(),
             details = mapOf("boundary" to JsonPrimitive(boundary)),
         ),
     )

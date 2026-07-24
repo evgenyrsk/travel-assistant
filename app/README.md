@@ -62,6 +62,10 @@ Backend должен быть доступен локально на `http://127
 server проксирует `/api/v1/**`, поэтому для текущего same-origin web/PWA flow
 изменение CORS не требуется.
 
+Proxy передаёт только безопасный `X-Request-ID`, соответствующий
+`[A-Za-z0-9._-]{1,128}`, и возвращает безопасный backend correlation header
+клиенту. Malformed и oversized значения не проксируются.
+
 ```bash
 cd app
 npm run dev

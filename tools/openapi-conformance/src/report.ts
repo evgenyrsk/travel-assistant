@@ -50,7 +50,7 @@ export function buildReport(
       code: "NON_PRODUCT_ENDPOINTS_EXCLUDED",
       severity: "advisory",
       message:
-        "Health is operational, direct hotel search is diagnostic-only, and shortlist/explanation placeholders remain outside the bounded platform-client subset.",
+        "Health and metrics endpoints are operational, direct hotel search is diagnostic-only, and shortlist/explanation placeholders remain outside the bounded platform-client subset.",
     },
     ...buildEndpointClassificationFindings(endpointClassificationSummary),
     ...platformClientChecks.advisoryFindings,
@@ -215,6 +215,16 @@ function buildPlatformClientChecks(
   });
 
   const shapeExpectations: Array<[string, boolean]> = [
+    ["request ID header pattern present", shape.requestIdHeaderPatternPresent],
+    [
+      "all product responses expose X-Request-ID",
+      shape.productResponseRequestIdHeadersPresent,
+    ],
+    ["ErrorResponse.requestId required", shape.errorResponseRequestIdRequired],
+    [
+      "ValidationErrorResponse.requestId required",
+      shape.validationErrorResponseRequestIdRequired,
+    ],
     ["create-session requestBody optional", shape.createSessionRequestBodyOptional],
     ["message requestBody required", shape.continueSessionRequestBodyRequired],
     ["AssistantMessageRequest.message present", shape.messagePropertyPresent],

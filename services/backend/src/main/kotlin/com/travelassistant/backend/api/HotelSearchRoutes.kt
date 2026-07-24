@@ -120,7 +120,7 @@ private suspend fun io.ktor.server.application.ApplicationCall.respondNotCreated
                 ErrorResponse(
                     code = ErrorCode.INTERNAL_ERROR,
                     message = "Hotel search could not be completed.",
-                    requestId = requestIdOrNull(),
+                    requestId = requestId(),
                 ),
             )
         }

@@ -1,5 +1,9 @@
 package com.travelassistant.backend.application.llm
 
+import com.travelassistant.backend.application.observability.OperationalEvent
+import com.travelassistant.backend.application.observability.OperationalEventName
+import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalOutcome
 import com.travelassistant.backend.infrastructure.llm.FakeLlmClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
@@ -9,6 +13,26 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 class GenerateLlmCandidateUseCaseTest {
+
+    @Test
+    fun recordsBoundedDependencyOutcomeWithoutPromptOrCandidateData() = runBlocking {
+        val events = mutableListOf<OperationalEvent>()
+        val useCase = GenerateLlmCandidateUseCase(
+            llmClient = FakeLlmClient(LlmClientResponse.Empty),
+            eventSink = OperationalEventSink(events::add),
+        )
+
+        useCase(safeRequest())
+
+        val event = events.single {
+            it.name == OperationalEventName.DEPENDENCY_CALL_COMPLETED
+        }
+        assertEquals(OperationalOutcome.FAILED, event.outcome)
+        assertEquals("generate_llm_candidate", event.operation?.wireValue)
+        assertEquals("llm", event.dependency?.wireValue)
+        assertEquals(true, (event.durationMillis ?: -1) >= 0)
+        assertEquals(false, event.toString().contains(safeRequest().userMessage))
+    }
 
     @Test
     fun acceptsValidLlmCandidate() = runBlocking {

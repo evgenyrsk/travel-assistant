@@ -3,6 +3,13 @@ package com.travelassistant.backend.application.assistant
 import com.travelassistant.backend.application.llm.LlmCandidate
 import com.travelassistant.backend.application.llm.LlmCandidateRequest
 import com.travelassistant.backend.application.llm.LlmHotelSearchPreferencesPatch
+import com.travelassistant.backend.application.observability.OperationalComponent
+import com.travelassistant.backend.application.observability.OperationalEvent
+import com.travelassistant.backend.application.observability.OperationalEventName
+import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalOperation
+import com.travelassistant.backend.application.observability.OperationalOutcome
+import com.travelassistant.backend.application.observability.recordSafely
 import com.travelassistant.backend.domain.assistant.AssistantSession
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import java.time.Clock
@@ -27,6 +34,7 @@ class AssistantLlmRouteWiringUseCase(
         AssistantDateInterpretationPolicy(),
     private val diagnosticObserver: AssistantLlmDiagnosticObserver =
         AssistantLlmDiagnosticObserver.NONE,
+    private val eventSink: OperationalEventSink = OperationalEventSink.NONE,
     private val explicitNamedHotelDestinationParser: ExplicitNamedHotelDestinationParser =
         ExplicitNamedHotelDestinationParser(),
     private val explicitHotelStarPreferenceParser: ExplicitHotelStarPreferenceParser =
@@ -389,6 +397,7 @@ class AssistantLlmRouteWiringUseCase(
         when (plan) {
             is ProceedWithCandidateConfirmationPlan.ConfirmationRequired -> {
                 savePendingConfirmation(plan)
+                recordConfirmationOutcome(OperationalOutcome.CONFIRMATION_REQUIRED)
                 withClarification(plan.proposal.confirmationPromptMessage())
             }
 
@@ -467,8 +476,17 @@ class AssistantLlmRouteWiringUseCase(
         decision: PostConfirmationDecision,
         decidedAt: Instant,
         activePendingConfirmation: PendingProceedWithCandidateConfirmation? = null,
-    ): AcceptedAssistantMessage =
-        when (decision) {
+    ): AcceptedAssistantMessage {
+        eventSink.recordSafely(
+            OperationalEvent(
+                name = OperationalEventName.CONFIRMATION_OUTCOME,
+                component = OperationalComponent.ASSISTANT,
+                sessionId = sessionId.value,
+                operation = OperationalOperation.POST_ASSISTANT_MESSAGE,
+                outcome = decision.toOperationalOutcome(),
+            ),
+        )
+        return when (decision) {
             is PostConfirmationDecision.Confirmed -> {
                 val composedResult = composeTransitionResponse(
                     ComposeConfirmedSearchTransitionResponseRequest(
@@ -518,6 +536,32 @@ class AssistantLlmRouteWiringUseCase(
             PostConfirmationDecision.Unknown ->
                 withClarification(CONFIRMATION_UNKNOWN_REPLY_MESSAGE)
         }
+    }
+
+    private fun PostConfirmationDecision.toOperationalOutcome(): OperationalOutcome =
+        when (this) {
+            is PostConfirmationDecision.Confirmed -> OperationalOutcome.CONFIRMED
+            PostConfirmationDecision.Declined -> OperationalOutcome.DECLINED
+            PostConfirmationDecision.NeedsClarification -> OperationalOutcome.NEEDS_CLARIFICATION
+            PostConfirmationDecision.NeedsReplanning -> OperationalOutcome.NEEDS_REPLANNING
+            PostConfirmationDecision.NoActivePendingConfirmation,
+            PostConfirmationDecision.Unknown,
+            -> OperationalOutcome.UNKNOWN
+        }
+
+    private fun AcceptedAssistantMessage.recordConfirmationOutcome(
+        outcome: OperationalOutcome,
+    ) {
+        eventSink.recordSafely(
+            OperationalEvent(
+                name = OperationalEventName.CONFIRMATION_OUTCOME,
+                component = OperationalComponent.ASSISTANT,
+                sessionId = sessionId.value,
+                operation = OperationalOperation.POST_ASSISTANT_MESSAGE,
+                outcome = outcome,
+            ),
+        )
+    }
 
     private fun ProceedWithCandidateConfirmationProposal.confirmationPromptMessage(): String =
         "$summary\n\n$confirmationQuestion"

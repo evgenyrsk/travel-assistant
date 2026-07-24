@@ -300,7 +300,10 @@ Operational, security, observability и testing details требуют отде�
 
 Accepted ADR должны находиться в `docs/decisions/`.
 
-На текущий момент standalone accepted ADR files отсутствуют. Stage 5 создал non-ADR decision inventory в `docs/architecture/stage-5/architecture-decisions-draft.md`.
+Принят [`ADR-0001`](../decisions/adr-0001-service-core-and-client-integration-boundary.md),
+который фиксирует backend как удалённое сервисное ядро и отделяет его от
+локальной demo shell и будущих product clients. Stage 5 также создал non-ADR
+decision inventory в `docs/architecture/stage-5/architecture-decisions-draft.md`.
 
 Этот inventory содержит confirmed architecture guardrails, deferred decisions и future ADR candidates, но не создает accepted ADR и не активирует future decisions.
 

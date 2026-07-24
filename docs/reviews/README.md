@@ -523,6 +523,10 @@
 210. `docs/reviews/stage-14-5-explicit-star-refinement-and-image-source-diagnosis.md`
 211. `docs/reviews/stage-14-6-provider-image-template-resolution.md`
 212. `docs/reviews/stage-14-7-named-hotel-search-and-conversation-resilience.md`
+213. `docs/reviews/stage-15-0-backend-portability-and-layering-verification.md`
+214. `docs/reviews/stage-15-1-15-2-request-correlation-and-operational-events.md`
+215. `docs/reviews/stage-15-3-health-and-openmetrics.md`
+216. `docs/reviews/stage-15-4-operational-contract-and-runbook.md`
 
 ## Historical / superseded документы
 
