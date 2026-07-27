@@ -86,18 +86,31 @@ class CreateHotelSearchUseCase(
                 analysis = AccommodationAnalysisMetadata.searching(POLL_AFTER_MILLIS),
             ),
         )
-        if (!semanticSearchLauncher.launch(search, command)) {
-            hotelSearchStateStore.updateIfStatus(
+        val currentSearch = if (!semanticSearchLauncher.launch(search, command)) {
+            val failedSearch = search.copy(
+                status = HotelSearch.Status.FAILED,
+                offers = emptyList(),
+                analysis = AccommodationAnalysisMetadata.failed(),
+            )
+            when (val transition = hotelSearchStateStore.updateIfStatus(
                 searchId = search.id,
                 expectedStatus = HotelSearch.Status.SEARCHING,
             ) { current ->
                 current.copy(
                     status = HotelSearch.Status.FAILED,
+                    offers = emptyList(),
                     analysis = AccommodationAnalysisMetadata.failed(),
                 )
+            }) {
+                is HotelSearchStateTransitionResult.Updated -> transition.search
+                is HotelSearchStateTransitionResult.UnexpectedStatus -> transition.search
+                HotelSearchStateTransitionResult.NotFound ->
+                    hotelSearchStateStore.save(failedSearch)
             }
+        } else {
+            search
         }
-        return CreateHotelSearchResult.Created(search)
+        return CreateHotelSearchResult.Created(currentSearch)
     }
 
     private fun createAndSaveSearch(
@@ -176,10 +189,10 @@ class CreateHotelSearchUseCase(
                     OperationalEventName.HOTEL_SEARCH_COMPLETED
                 },
                 component = OperationalComponent.HOTEL_SEARCH,
-                level = if (result is CreateHotelSearchResult.Created) {
-                    OperationalLevel.INFO
-                } else {
-                    OperationalLevel.WARNING
+                level = when {
+                    search?.status == HotelSearch.Status.FAILED -> OperationalLevel.ERROR
+                    result is CreateHotelSearchResult.Created -> OperationalLevel.INFO
+                    else -> OperationalLevel.WARNING
                 },
                 sessionId = command.sessionId.value,
                 hotelSearchId = search?.id?.value,
