@@ -122,6 +122,7 @@ export function buildProfileEnvironment(profile, inputEnvironment) {
   const environment = { ...inputEnvironment };
   environment.OPENROUTER_RUNTIME_QA_ENABLED = "false";
   environment.HOTELS_API_RUNTIME_QA_ENABLED = "false";
+  environment.ACCOMMODATION_ANALYSIS_MODE = "FAKE";
 
   if (profile === "fake") {
     environment.LLM_PROVIDER_MODE = "FAKE";
@@ -144,6 +145,33 @@ export function buildProfileEnvironment(profile, inputEnvironment) {
   environment.LLM_PROVIDER_MODE = "OPENROUTER";
   environment.HOTEL_PROVIDER_MODE = "REAL";
   return environment;
+}
+
+export function formatRuntimeModes(environment) {
+  const llmMode = validatedRuntimeMode(
+    environment.LLM_PROVIDER_MODE,
+    new Set(["FAKE", "OPENROUTER"]),
+    "LLM",
+  );
+  const hotelMode = validatedRuntimeMode(
+    environment.HOTEL_PROVIDER_MODE,
+    new Set(["FAKE", "REAL"]),
+    "Hotels",
+  );
+  const semanticMode = validatedRuntimeMode(
+    environment.ACCOMMODATION_ANALYSIS_MODE,
+    new Set(["FAKE", "OPENROUTER"]),
+    "Semantic analysis",
+  );
+
+  return `Runtime modes: LLM=${llmMode}, Hotels=${hotelMode}, Semantic=${semanticMode}`;
+}
+
+function validatedRuntimeMode(value, supportedModes, component) {
+  if (!supportedModes.has(value)) {
+    throw new Error(`Не удалось безопасно определить режим ${component}.`);
+  }
+  return value;
 }
 
 function requireNonBlank(environment, key) {
@@ -473,6 +501,7 @@ async function main() {
   const preflight = await runPreflight(environment);
 
   console.log(`Preflight ${arguments_.profile.toUpperCase()}: OK`);
+  console.log(formatRuntimeModes(environment));
   if (!arguments_.checkOnly) {
     await startDemo(environment, arguments_.profile, preflight);
   }

@@ -538,6 +538,7 @@
 225. `docs/reviews/stage-16-7-semantic-accommodation-observability-and-closure.md`
 226. `docs/reviews/stage-16-8-semantic-runtime-safety-plan.md`
 227. `docs/reviews/stage-16-8a-backend-semantic-runtime-safety.md`
+228. `docs/reviews/stage-16-8b-async-ux-and-runtime-mode-transparency.md`
 
 ## Historical / superseded документы
 

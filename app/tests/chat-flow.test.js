@@ -140,6 +140,8 @@ test("polls a semantic search with bounded backoff until a terminal result", asy
 
   assert.deepEqual(pollDelays, [1000, 1500]);
   assert.equal(statuses.filter((message) => message.includes("Анализирую")).length, 2);
+  assert.equal(statuses.at(-1), "Показано предложений: 1.");
+  assert.equal(statuses.at(-1).includes("Анализирую"), false);
   assert.equal(offerViews.length, 1);
   assert.equal(offerViews[0].searchStatus, "completed_with_offers");
   assert.equal(offerViews[0].analysis.matchCount, 1);
@@ -214,6 +216,49 @@ test("renders semantic failure without offering ordinary hotel fallback", async 
     "Semantic-анализ недоступен. Обычные отели не показаны.",
     "error",
   ]);
+});
+
+test("replaces semantic loading status with terminal no-match presentation", async () => {
+  const statuses = [];
+  const offerViews = [];
+  const responses = [
+    {
+      status: "searching",
+      offers: [],
+      metadata: { analysis: { status: "searching", pollAfterMillis: 1000 } },
+    },
+    {
+      status: "completed_no_semantic_matches",
+      offers: [],
+      metadata: { analysis: { status: "completed" } },
+    },
+  ];
+  const flow = createChatFlow({
+    api: {
+      async createAssistantSession() {
+        return assistantResponse("Проверка типа размещения запущена.", {
+          nextAction: "show_hotel_results",
+          hotelSearchId: "semantic-search-no-matches",
+        });
+      },
+      async getHotelOffers() {
+        return responses.shift();
+      },
+    },
+    wait: async () => {},
+    onStatus: (message, tone) => statuses.push([message, tone]),
+    onOffers: offerViews.push.bind(offerViews),
+  });
+
+  await flow.submit("Да, ищи глемпинг");
+
+  assert.equal(offerViews[0].searchStatus, "completed_no_semantic_matches");
+  assert.deepEqual(offerViews[0].offers, []);
+  assert.deepEqual(statuses.at(-1), [
+    "Поиск завершён без подтверждённых semantic-совпадений.",
+    "idle",
+  ]);
+  assert.equal(statuses.at(-1)[0].includes("Анализирую"), false);
 });
 
 test("shows one safe refinement suggestion for a completed empty search", async () => {
