@@ -8,11 +8,14 @@
 
 Доступны два явных профиля:
 
-- `--fake` — детерминированная проверка окружения и локального flow;
-- `--real` — OpenRouter и публичный Hotels API с реальными provider data.
+- `--fake` — детерминированные `FAKE` LLM, Hotels и semantic analysis;
+- `--real` — OpenRouter LLM и публичный Hotels API с реальными provider data,
+  при этом semantic analysis остаётся `FAKE`.
 
 Production defaults остаются `FAKE`; launcher меняет режимы только для своих
-дочерних локальных процессов.
+дочерних локальных процессов. REAL semantic analysis не активирован: launcher
+явно фиксирует `ACCOMMODATION_ANALYSIS_MODE=FAKE` в обоих профилях до отдельного
+Stage 16.9.
 
 ## Подготовка
 
@@ -56,7 +59,17 @@ node scripts/local-demo.mjs --real --check-only
 
 Проверяются версия Java и Node.js, наличие `npm`/Gradle wrapper, обязательные
 REAL-параметры и доступность портов. Сетевых запросов к providers в режиме
-`--check-only` нет.
+`--check-only` нет. После успешной проверки launcher выводит только безопасную
+сводку трёх режимов без API key, model slug или endpoint:
+
+```text
+Runtime modes: LLM=FAKE, Hotels=FAKE, Semantic=FAKE
+Runtime modes: LLM=OPENROUTER, Hotels=REAL, Semantic=FAKE
+```
+
+Первая строка соответствует `--fake`, вторая — `--real`. Значение
+`ACCOMMODATION_ANALYSIS_MODE` из локального env-файла не импортируется и не
+может включить REAL semantic analysis через demo launcher.
 
 ## Запуск
 
@@ -100,6 +113,11 @@ URL используют только opaque `hotelSearchId` и `offerId`, а pr
 confirmation prompt и подтвердить новый поиск. Предыдущий `hotelSearchId`
 остаётся доступен до завершения локального процесса.
 
+Детерминированный semantic flow проверяется только через `--fake`. В профиле
+`--real` semantic-запрос использует безопасную mixed-mode policy Stage 16.8a:
+Hotels API и semantic analyzer не вызываются, а поиск завершается terminal
+`failed` без показа обычных hotel offers.
+
 ## Завершение
 
 Нажмите `Ctrl+C` в терминале launcher. Он отправит сигнал завершения backend и
@@ -112,6 +130,7 @@ demo shell и при необходимости завершит их process gr
 | Java 17 не найдена | Настройте `JAVA_HOME` или `PATH` и повторите `--check-only` |
 | Порт занят | Завершите локальный процесс либо задайте другой `DEMO_*_PORT` |
 | REAL-конфигурация отклонена | Проверьте наличие ключа и модели без вывода их значений |
+| Неясно, какие provider modes активны | Повторите `--check-only` и проверьте строку `Runtime modes` |
 | Backend не стал доступен | Проверьте `.tmp/local-demo/backend.log` локально |
 | Demo shell не стала доступна | Проверьте `.tmp/local-demo/frontend.log` локально |
 | Provider flow завершился ошибкой | Не повторяйте REAL smoke автоматически; зафиксируйте только безопасную категорию |
@@ -124,4 +143,5 @@ demo shell и при необходимости завершит их process gr
 Локальное демо не подтверждает production readiness, SLA, публичный rollout,
 auth, durable storage, CORS или готовность product web/mobile clients. Rates,
 deeplink, shortlist, отдельный comparison flow, booking и payment не входят в
-этот демонстрационный срез.
+этот демонстрационный срез. REAL semantic/model call и передача provider
+descriptions или images внешней модели также не входят в launcher profiles.

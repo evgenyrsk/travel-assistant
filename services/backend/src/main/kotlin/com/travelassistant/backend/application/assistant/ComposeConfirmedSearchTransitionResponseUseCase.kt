@@ -70,7 +70,7 @@ class ComposeConfirmedSearchTransitionResponseUseCase(
 
     private companion object {
         const val PROCESSING_MESSAGE =
-            "Поиск уже выполняется, результаты пока не готовы."
+            "Проверка типа размещения запущена."
 
         const val ALREADY_PROCESSING_MESSAGE =
             "Этот поиск уже выполняется."
