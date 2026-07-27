@@ -223,32 +223,38 @@ internal fun Application.moduleWithAssistantLlm(
     }
     val hotelSearchStateStore = InMemoryHotelSearchStateStore()
     val detailsCache = InMemoryHotelDetailsCache()
-    val accommodationAnalysisRuntime = AccommodationAnalysisProviderFactory.create(
-        config = accommodationAnalysisProviderConfig,
-        openRouterHttpClientFactory = accommodationAnalysisHttpClientFactory,
-    )
-    environment.monitor.subscribe(ApplicationStopped) {
-        accommodationAnalysisRuntime.close()
-    }
-    val semanticSearchScheduler = SemanticHotelSearchScheduler(
-        stateStore = hotelSearchStateStore,
-        semanticJob = TwoPassSemanticHotelSearchJob(
-            hotelOfferProvider = hotelProviderRuntime.provider,
-            hotelDetailsProvider = hotelProviderRuntime.detailsProvider,
-            analysisClient = accommodationAnalysisRuntime.client,
-            detailsCache = detailsCache,
+    val semanticSearchLauncher = SemanticHotelSearchRuntimePolicy.createLauncher(
+        hotelProviderMode = providerConfig.mode,
+        accommodationAnalysisMode = accommodationAnalysisProviderConfig.mode,
+    ) {
+        val accommodationAnalysisRuntime = AccommodationAnalysisProviderFactory.create(
+            config = accommodationAnalysisProviderConfig,
+            openRouterHttpClientFactory = accommodationAnalysisHttpClientFactory,
+        )
+        environment.monitor.subscribe(ApplicationStopped) {
+            accommodationAnalysisRuntime.close()
+        }
+        SemanticHotelSearchScheduler(
+            stateStore = hotelSearchStateStore,
+            semanticJob = TwoPassSemanticHotelSearchJob(
+                hotelOfferProvider = hotelProviderRuntime.provider,
+                hotelDetailsProvider = hotelProviderRuntime.detailsProvider,
+                analysisClient = accommodationAnalysisRuntime.client,
+                detailsCache = detailsCache,
+                eventSink = eventSink,
+            ),
             eventSink = eventSink,
-        ),
-        eventSink = eventSink,
-    )
-    environment.monitor.subscribe(ApplicationStopping) {
-        semanticSearchScheduler.close()
+        ).also { scheduler ->
+            environment.monitor.subscribe(ApplicationStopping) {
+                scheduler.close()
+            }
+        }
     }
     val hotelSearchBoundary = CreateHotelSearchUseCase(
         assistantSessionStateStore = assistantSessionStateStore,
         hotelOfferProvider = hotelProviderRuntime.provider,
         hotelSearchStateStore = hotelSearchStateStore,
-        semanticSearchLauncher = semanticSearchScheduler,
+        semanticSearchLauncher = semanticSearchLauncher,
         eventSink = eventSink,
     )
     val assistantHotelSearchHandoffBoundary = AssistantHotelSearchHandoffUseCase(

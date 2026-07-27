@@ -5,8 +5,10 @@ import com.travelassistant.backend.application.assistant.InMemoryAssistantSessio
 import com.travelassistant.backend.application.observability.OperationalEvent
 import com.travelassistant.backend.application.observability.OperationalEventName
 import com.travelassistant.backend.application.observability.OperationalEventSink
+import com.travelassistant.backend.application.observability.OperationalLevel
 import com.travelassistant.backend.application.observability.OperationalOutcome
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.hotel.AccommodationAnalysisMetadata
 import com.travelassistant.backend.domain.hotel.HotelSearch
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchId
@@ -63,6 +65,53 @@ class CreateHotelSearchUseCaseTest {
         assertEquals(0, providerCallCount)
         assertEquals(OperationalEventName.HOTEL_SEARCH_STARTED, events.single().name)
         assertEquals(OperationalOutcome.STARTED, events.single().outcome)
+    }
+
+    @Test
+    fun semanticSearchReturnsPersistedFailureWhenBackgroundLaunchIsRejected() = runBlocking {
+        val sessionStore = InMemoryAssistantSessionStateStore()
+        val session = CreateAssistantSessionUseCase(sessionStateStore = sessionStore).createSession()
+        val searchStore = InMemoryHotelSearchStateStore()
+        var providerCallCount = 0
+        val events = mutableListOf<OperationalEvent>()
+        val useCase = CreateHotelSearchUseCase(
+            assistantSessionStateStore = sessionStore,
+            hotelOfferProvider = HotelOfferProviderBoundary {
+                providerCallCount += 1
+                HotelOfferProviderResult.SearchCompleted(emptyList())
+            },
+            hotelSearchStateStore = searchStore,
+            idGenerator = HotelSearchIdGenerator { HotelSearchId("semantic-search-failed") },
+            semanticSearchLauncher = SemanticHotelSearchLauncher.UNAVAILABLE,
+            eventSink = OperationalEventSink(events::add),
+        )
+
+        val result = assertIs<CreateHotelSearchResult.Created>(
+            useCase.createSearch(
+                command(
+                    session.id,
+                    HotelSearchPreferences(
+                        accommodationConcept = AccommodationConcept.GLAMPING,
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(HotelSearch.Status.FAILED, result.search.status)
+        assertEquals(result.search, searchStore.findById(result.search.id))
+        assertTrue(result.search.offers.isEmpty())
+        assertEquals(
+            AccommodationAnalysisMetadata.Status.FAILED,
+            result.search.analysis?.status,
+        )
+        assertEquals(null, result.search.analysis?.pollAfterMillis)
+        assertEquals(0, providerCallCount)
+        assertEquals(1, events.size)
+        assertEquals(OperationalEventName.HOTEL_SEARCH_COMPLETED, events.single().name)
+        assertEquals(OperationalOutcome.FAILED, events.single().outcome)
+        assertEquals(OperationalLevel.ERROR, events.single().level)
+        assertEquals("semantic-search-failed", events.single().hotelSearchId)
+        assertTrue(events.none { event -> event.toString().contains("Rome") })
     }
 
     @Test

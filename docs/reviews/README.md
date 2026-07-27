@@ -537,6 +537,7 @@
 224. `docs/reviews/stage-16-7-semantic-accommodation-quality-evaluation-report.md`
 225. `docs/reviews/stage-16-7-semantic-accommodation-observability-and-closure.md`
 226. `docs/reviews/stage-16-8-semantic-runtime-safety-plan.md`
+227. `docs/reviews/stage-16-8a-backend-semantic-runtime-safety.md`
 
 ## Historical / superseded документы
 
