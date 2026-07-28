@@ -45,6 +45,29 @@ class AccommodationAnalysisProviderConfigTest {
     }
 
     @Test
+    fun `parses opt in internal gateway configuration`() {
+        val config = AccommodationAnalysisProviderConfig.fromEnvironment(
+            mapOf(
+                "ACCOMMODATION_ANALYSIS_MODE" to "internal_gateway",
+                "ACCOMMODATION_ANALYSIS_INTERNAL_CONTENT_APPROVED" to "true",
+                "ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_URL" to
+                    "https://semantic.internal.test/v1/accommodation-analysis",
+                "ACCOMMODATION_ANALYSIS_DEPLOYMENT_ID" to "vision-balanced-v1",
+                "ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_TOKEN" to "synthetic-token",
+                "ACCOMMODATION_ANALYSIS_IMAGE_HOSTS" to "images.internal.test",
+                "ACCOMMODATION_ANALYSIS_TIMEOUT_MS" to "4321",
+                "ACCOMMODATION_ANALYSIS_BATCH_SIZE" to "6",
+            ),
+        )
+
+        assertEquals(AccommodationAnalysisProviderMode.INTERNAL_GATEWAY, config.mode)
+        assertEquals("vision-balanced-v1", config.internalGateway?.deploymentId)
+        assertEquals(4_321L, config.internalGateway?.timeoutMillis)
+        assertEquals(6, config.internalGateway?.batchSize)
+        assertEquals("[REDACTED]", config.internalGateway?.accessToken.toString())
+    }
+
+    @Test
     fun `rejects missing image allowlist wildcard host and oversized batch`() {
         fun environment(hosts: String, batchSize: String) = mapOf(
             "ACCOMMODATION_ANALYSIS_MODE" to "OPENROUTER",
@@ -109,6 +132,70 @@ class AccommodationAnalysisProviderConfigTest {
         assertEquals(
             "ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED",
             error.configurationKey,
+        )
+    }
+
+    @Test
+    fun `rejects internal gateway activation without approval or exact contract config`() {
+        fun environment() = mutableMapOf(
+            "ACCOMMODATION_ANALYSIS_MODE" to "INTERNAL_GATEWAY",
+            "ACCOMMODATION_ANALYSIS_INTERNAL_CONTENT_APPROVED" to "true",
+            "ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_URL" to
+                "https://semantic.internal.test/v1/accommodation-analysis",
+            "ACCOMMODATION_ANALYSIS_DEPLOYMENT_ID" to "vision-balanced-v1",
+            "ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_TOKEN" to "synthetic-token",
+            "ACCOMMODATION_ANALYSIS_IMAGE_HOSTS" to "images.internal.test",
+        )
+
+        val missingApproval = environment().also {
+            it.remove("ACCOMMODATION_ANALYSIS_INTERNAL_CONTENT_APPROVED")
+        }
+        assertEquals(
+            "ACCOMMODATION_ANALYSIS_INTERNAL_CONTENT_APPROVED",
+            assertFailsWith<LlmProviderConfigurationException> {
+                AccommodationAnalysisProviderConfig.fromEnvironment(missingApproval)
+            }.configurationKey,
+        )
+
+        val wrongPath = environment().also {
+            it["ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_URL"] =
+                "https://semantic.internal.test/v1/chat/completions"
+        }
+        assertEquals(
+            "ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_URL",
+            assertFailsWith<LlmProviderConfigurationException> {
+                AccommodationAnalysisProviderConfig.fromEnvironment(wrongPath)
+            }.configurationKey,
+        )
+
+        val implicitDeployment = environment().also {
+            it.remove("ACCOMMODATION_ANALYSIS_DEPLOYMENT_ID")
+        }
+        assertEquals(
+            "ACCOMMODATION_ANALYSIS_DEPLOYMENT_ID",
+            assertFailsWith<LlmProviderConfigurationException> {
+                AccommodationAnalysisProviderConfig.fromEnvironment(implicitDeployment)
+            }.configurationKey,
+        )
+
+        val missingToken = environment().also {
+            it.remove("ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_TOKEN")
+        }
+        assertEquals(
+            "ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_TOKEN",
+            assertFailsWith<LlmProviderConfigurationException> {
+                AccommodationAnalysisProviderConfig.fromEnvironment(missingToken)
+            }.configurationKey,
+        )
+
+        val wildcardImageHost = environment().also {
+            it["ACCOMMODATION_ANALYSIS_IMAGE_HOSTS"] = "*.internal.test"
+        }
+        assertEquals(
+            "ACCOMMODATION_ANALYSIS_IMAGE_HOSTS",
+            assertFailsWith<LlmProviderConfigurationException> {
+                AccommodationAnalysisProviderConfig.fromEnvironment(wildcardImageHost)
+            }.configurationKey,
         )
     }
 }

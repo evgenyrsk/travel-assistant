@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Нет активного implementation stage; Stage 16.9 readiness завершён, REAL semantic activation заблокирована |
-| Последний завершенный этап | Stage 16.9 — exact endpoint pinning и activation-readiness decision без REAL calls |
-| Следующий планируемый шаг | Не активирован; controlled probe требует письменного provider-content approval и отдельного явного разрешения |
+| Текущий этап | Нет активного implementation stage; Stage 17.0 corporate semantic portability завершён, REAL activation заблокирована |
+| Последний завершенный этап | Stage 17.0 — internal gateway contract, adapter и corporate transfer readiness без REAL calls |
+| Следующий планируемый шаг | Не активирован; corporate platform intake и model shortlist требуют доступных deployment constraints и отдельной задачи |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -67,6 +67,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
 | Stage 15 | Завершен | Подтверждены backend-owned business logic и Java 17 portability; добавлены layering guards, correlation, stdout JSON events, probes, OpenMetrics и operational runbook. |
 | Stage 16 | Activation readiness завершён; REAL rollout заблокирован | Provider-neutral async two-pass semantic-анализ `GLAMPING`, exact endpoint pinning, public polling, observability и evaluation harness прошли regression gates; provider content не передавался внешней модели. |
+| Stage 17 | Portability foundation завершён; REAL rollout заблокирован | Internal semantic gateway adapter и contract v1 отделяют Travel Assistant от конкретной model/provider; transfer и evaluation checklist зафиксированы без live calls или deployment artifacts. |
 
 ## 2. Правила управления roadmap
 
@@ -1071,6 +1072,38 @@ report имеет статус `NOT_RUN`, поскольку rights-approved dat
 предоставлен. Stage 16.9 подготовил EU-only shortlist и exact endpoint pinning,
 но это не закрывает rights, probe и quality gates. REAL activation не разрешена
 автоматически.
+
+### Stage 17 — Корпоративная переносимость semantic analysis
+
+**Статус:** Stage 17.0 завершён без REAL calls. Model/provider/runtime остаются
+сменным deployment за внутренним gateway; `FAKE` сохраняется default.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 17.0 | Provider-neutral corporate semantic portability | Завершён; добавлены `INTERNAL_GATEWAY` mode, contract v1, opaque deployment ID, exact endpoint/token/allowlist config, fail-closed adapter tests, ADR и transfer readiness checklist |
+
+Stage 17.0 сохраняет существующий `AccommodationAnalysisClient` и
+two-pass orchestration. Gateway request не содержит session/search/offer или
+provider IDs и ограничивает descriptions, amenities и images. Response обязан
+вернуть ту же contract version и deployment ID; schema/deployment drift,
+unknown verdict/evidence и network failures преобразуются в существующий typed
+failure без retry или automatic fallback.
+
+Конкретная модель не выбрана предположением. После переноса корпоративная
+платформа формирует 2–3 доступных deployment и оценивает их на одном
+rights-approved dataset. Первый rollout использует один deployment для coarse
+и deep passes; второй прошедший candidate может быть только ручным rollback
+target. Порядок переноса и model-selection gate находятся в
+`docs/guides/corporate-transfer-readiness.md`, архитектурное решение — в
+`docs/decisions/adr-0002-provider-neutral-semantic-gateway-boundary.md`, а
+closure — в
+`docs/reviews/stage-17-0-corporate-semantic-portability.md`.
+
+Stage 17.0 не меняет public API/OpenAPI, taxonomy `GLAMPING`, ranking, Hotels
+provider mapping, frontend, durable storage или deployment manifests. Internal
+gateway implementation, corporate auth/workload identity, model weights,
+probe, evaluation и rollout требуют отдельных задач после появления внешних
+входных данных.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

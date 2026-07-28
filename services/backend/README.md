@@ -82,6 +82,15 @@ Approval flag является только техническим interlock: о
 включать его без подтверждённых прав на provider content, controlled ZDR/model
 probe и пройденного quality report из `../../tools/semantic-evaluation/`.
 
+Для корпоративного контура доступен opt-in `INTERNAL_GATEWAY`. Он реализует тот
+же `AccommodationAnalysisClient` и не меняет orchestration или публичный API.
+Startup требует `ACCOMMODATION_ANALYSIS_INTERNAL_CONTENT_APPROVED=true`, exact
+`ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_URL` с path
+`/v1/accommodation-analysis`, opaque `ACCOMMODATION_ANALYSIS_DEPLOYMENT_ID`,
+`ACCOMMODATION_ANALYSIS_INTERNAL_GATEWAY_TOKEN` и exact-host image allowlist.
+Модель и inference provider выбираются gateway deployment, а не кодом Travel
+Assistant. Adapter не делает retries или автоматический fallback.
+
 ## Активный HTTP-контракт
 
 Все product API пути находятся под `/api/v1`.

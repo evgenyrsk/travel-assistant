@@ -23,7 +23,7 @@ HOST=0.0.0.0 PORT=8080 \
 | `PORT` | `8080` | HTTP port; нечисловое значение заменяется default |
 | `LLM_PROVIDER_MODE` | `FAKE` | `FAKE` или явно включённый `OPENROUTER` |
 | `HOTEL_PROVIDER_MODE` | `FAKE` | `FAKE` или явно включённый `REAL` |
-| `ACCOMMODATION_ANALYSIS_MODE` | `FAKE` | `FAKE` или policy-gated `OPENROUTER` |
+| `ACCOMMODATION_ANALYSIS_MODE` | `FAKE` | `FAKE`, policy-gated `OPENROUTER` или `INTERNAL_GATEWAY` |
 
 Для `OPENROUTER` требуются `OPENROUTER_API_KEY` и `OPENROUTER_MODEL`; target и
 timeout задаются `OPENROUTER_BASE_URL` и `OPENROUTER_TIMEOUT_MS`. Для Hotels API
@@ -45,6 +45,14 @@ fallback и требует поддержку параметров, отказ �
 Model slug и endpoint default не имеют. Текущий provider CDN
 `extranet-cdn.tinkoff.ru` не следует добавлять в allowlist до письменного
 подтверждения прав на передачу изображений выбранному processor.
+
+Semantic `INTERNAL_GATEWAY` mode требует отдельного внутреннего approval,
+точного HTTPS URL `/v1/accommodation-analysis`, opaque deployment ID, bearer
+token и image-host allowlist. Contract version и deployment ID проверяются в
+ответе; drift, unknown fields и unknown evidence codes завершаются
+fail-closed. Модель, runtime и аппаратная платформа находятся за gateway и
+переключаются конфигурацией deployment, без изменения domain/application code.
+Автоматический retry и fallback между deployments отсутствуют.
 
 Секреты передаются через environment внутренней инфраструктуры и не должны
 записываться в image, command line, логи или metrics.

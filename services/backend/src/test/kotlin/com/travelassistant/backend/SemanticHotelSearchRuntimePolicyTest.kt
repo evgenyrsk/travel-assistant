@@ -15,8 +15,10 @@ class SemanticHotelSearchRuntimePolicyTest {
         val expectations = mapOf(
             (HotelProviderMode.FAKE to AccommodationAnalysisProviderMode.FAKE) to true,
             (HotelProviderMode.FAKE to AccommodationAnalysisProviderMode.OPENROUTER) to true,
+            (HotelProviderMode.FAKE to AccommodationAnalysisProviderMode.INTERNAL_GATEWAY) to true,
             (HotelProviderMode.REAL to AccommodationAnalysisProviderMode.FAKE) to false,
             (HotelProviderMode.REAL to AccommodationAnalysisProviderMode.OPENROUTER) to true,
+            (HotelProviderMode.REAL to AccommodationAnalysisProviderMode.INTERNAL_GATEWAY) to true,
         )
 
         expectations.forEach { (modes, expectedCompatibility) ->

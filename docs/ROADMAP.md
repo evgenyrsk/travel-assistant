@@ -159,3 +159,15 @@
   а в локальной диагностике явно показывать режимы LLM, Hotels и semantic analysis.
 - Оставить REAL vision opt-in и заблокированным до подтверждения прав на
   provider content, privacy routing и quality gate.
+
+## Этап 17 — корпоративная переносимость semantic analysis
+
+- Сохранить `AccommodationAnalysisClient` единственной application-owned
+  границей semantic classification.
+- Добавить versioned internal gateway adapter с opaque deployment ID и
+  fail-closed contract validation.
+- Оставить model/provider/runtime за gateway и переключать deployment без
+  изменения domain, orchestration или public API.
+- Подготовить checklist переноса Git, CI, secrets, rights и model evaluation.
+- Не активировать REAL calls, deployment manifests или automatic model
+  fallback без отдельных решений.
