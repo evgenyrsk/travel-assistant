@@ -229,7 +229,7 @@ internal fun Application.moduleWithAssistantLlm(
     ) {
         val accommodationAnalysisRuntime = AccommodationAnalysisProviderFactory.create(
             config = accommodationAnalysisProviderConfig,
-            openRouterHttpClientFactory = accommodationAnalysisHttpClientFactory,
+            httpClientFactory = accommodationAnalysisHttpClientFactory,
         )
         environment.monitor.subscribe(ApplicationStopped) {
             accommodationAnalysisRuntime.close()
