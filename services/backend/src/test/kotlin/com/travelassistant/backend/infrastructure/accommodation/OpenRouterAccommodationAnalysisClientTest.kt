@@ -77,6 +77,11 @@ class OpenRouterAccommodationAnalysisClientTest {
         val bodyText = (capturedRequest?.body as TextContent).text
         val body = Json.parseToJsonElement(bodyText).jsonObject
         val provider = body.getValue("provider").jsonObject
+        assertEquals(
+            listOf("synthetic/eu"),
+            provider.getValue("only").jsonArray.map { value -> value.jsonPrimitive.content },
+        )
+        assertFalse(provider.getValue("allow_fallbacks").jsonPrimitive.content.toBoolean())
         assertTrue(provider.getValue("require_parameters").jsonPrimitive.content.toBoolean())
         assertEquals("deny", provider.getValue("data_collection").jsonPrimitive.content)
         assertTrue(provider.getValue("zdr").jsonPrimitive.content.toBoolean())
@@ -168,6 +173,7 @@ class OpenRouterAccommodationAnalysisClientTest {
         config = OpenRouterAccommodationAnalysisConfig(
             apiKey = OpenRouterApiKey.of("synthetic-key"),
             model = "synthetic/vision-model",
+            providerEndpoint = "synthetic/eu",
             imageHosts = setOf("images.example.test"),
             baseUrl = "https://router.example.test/api/v1/",
             timeoutMillis = 5_000,

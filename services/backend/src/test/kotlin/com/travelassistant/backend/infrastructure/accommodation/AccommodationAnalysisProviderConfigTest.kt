@@ -27,6 +27,7 @@ class AccommodationAnalysisProviderConfigTest {
                 "ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED" to "true",
                 "OPENROUTER_API_KEY" to "synthetic-key",
                 "ACCOMMODATION_ANALYSIS_MODEL" to "synthetic/vision-model",
+                "ACCOMMODATION_ANALYSIS_PROVIDER_ENDPOINT" to "synthetic/eu",
                 "ACCOMMODATION_ANALYSIS_IMAGE_HOSTS" to
                     "images.example.test, cdn.example.test",
                 "ACCOMMODATION_ANALYSIS_BASE_URL" to "https://router.example.test/v1/",
@@ -37,6 +38,7 @@ class AccommodationAnalysisProviderConfigTest {
 
         assertEquals(AccommodationAnalysisProviderMode.OPENROUTER, config.mode)
         assertEquals("synthetic/vision-model", config.openRouter?.model)
+        assertEquals("synthetic/eu", config.openRouter?.providerEndpoint)
         assertEquals(setOf("images.example.test", "cdn.example.test"), config.openRouter?.imageHosts)
         assertEquals(1_234L, config.openRouter?.timeoutMillis)
         assertEquals(4, config.openRouter?.batchSize)
@@ -49,6 +51,7 @@ class AccommodationAnalysisProviderConfigTest {
             "ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED" to "true",
             "OPENROUTER_API_KEY" to "synthetic-key",
             "ACCOMMODATION_ANALYSIS_MODEL" to "synthetic/vision-model",
+            "ACCOMMODATION_ANALYSIS_PROVIDER_ENDPOINT" to "synthetic/eu",
             "ACCOMMODATION_ANALYSIS_IMAGE_HOSTS" to hosts,
             "ACCOMMODATION_ANALYSIS_BATCH_SIZE" to batchSize,
         )
@@ -71,6 +74,25 @@ class AccommodationAnalysisProviderConfigTest {
     }
 
     @Test
+    fun `rejects missing or non exact provider endpoint`() {
+        fun environment(endpoint: String?) = buildMap {
+            put("ACCOMMODATION_ANALYSIS_MODE", "OPENROUTER")
+            put("ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED", "true")
+            put("OPENROUTER_API_KEY", "synthetic-key")
+            put("ACCOMMODATION_ANALYSIS_MODEL", "synthetic/vision-model")
+            put("ACCOMMODATION_ANALYSIS_IMAGE_HOSTS", "images.example.test")
+            endpoint?.let { put("ACCOMMODATION_ANALYSIS_PROVIDER_ENDPOINT", it) }
+        }
+
+        listOf(null, "synthetic,*", "synthetic/*", "Synthetic/eu").forEach { endpoint ->
+            val error = assertFailsWith<LlmProviderConfigurationException> {
+                AccommodationAnalysisProviderConfig.fromEnvironment(environment(endpoint))
+            }
+            assertEquals("ACCOMMODATION_ANALYSIS_PROVIDER_ENDPOINT", error.configurationKey)
+        }
+    }
+
+    @Test
     fun `rejects OpenRouter activation without explicit external content approval`() {
         val error = assertFailsWith<LlmProviderConfigurationException> {
             AccommodationAnalysisProviderConfig.fromEnvironment(
@@ -78,6 +100,7 @@ class AccommodationAnalysisProviderConfigTest {
                     "ACCOMMODATION_ANALYSIS_MODE" to "OPENROUTER",
                     "OPENROUTER_API_KEY" to "synthetic-key",
                     "ACCOMMODATION_ANALYSIS_MODEL" to "synthetic/vision-model",
+                    "ACCOMMODATION_ANALYSIS_PROVIDER_ENDPOINT" to "synthetic/eu",
                     "ACCOMMODATION_ANALYSIS_IMAGE_HOSTS" to "images.example.test",
                 ),
             )

@@ -32,12 +32,19 @@ timeout задаются `OPENROUTER_BASE_URL` и `OPENROUTER_TIMEOUT_MS`. Дл�
 доступа к настроенным target. Health checks никогда не вызывают эти зависимости.
 
 Semantic `OPENROUTER` mode использует тот же `OPENROUTER_API_KEY`, отдельные
-`ACCOMMODATION_ANALYSIS_MODEL`, `ACCOMMODATION_ANALYSIS_BASE_URL`,
+`ACCOMMODATION_ANALYSIS_MODEL`, обязательный exact endpoint
+`ACCOMMODATION_ANALYSIS_PROVIDER_ENDPOINT`, `ACCOMMODATION_ANALYSIS_BASE_URL`,
 `ACCOMMODATION_ANALYSIS_TIMEOUT_MS`, `ACCOMMODATION_ANALYSIS_BATCH_SIZE` и
 exact-host `ACCOMMODATION_ANALYSIS_IMAGE_HOSTS`. Startup требует
 `ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED=true`. Этот flag не заменяет
 согласование provider content, controlled ZDR/model probe и quality evaluation;
 без них production operator обязан оставить `FAKE`.
+
+OpenRouter request фиксирует endpoint через singleton `provider.only`, запрещает
+fallback и требует поддержку параметров, отказ от data collection и ZDR.
+Model slug и endpoint default не имеют. Текущий provider CDN
+`extranet-cdn.tinkoff.ru` не следует добавлять в allowlist до письменного
+подтверждения прав на передачу изображений выбранному processor.
 
 Секреты передаются через environment внутренней инфраструктуры и не должны
 записываться в image, command line, логи или metrics.

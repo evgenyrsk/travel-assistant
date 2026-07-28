@@ -18,3 +18,11 @@ Exit code `0` означает прохождение всех gates, `1` — в
 quality thresholds, `2` — ошибка запуска или schema. Dataset минимум из 100
 кандидатов и provider images/descriptions остаётся в одобренном внутреннем
 контуре, пока права на его хранение и передачу явно не подтверждены.
+
+Rights-approved dataset должен быть сформирован до просмотра model outputs и
+содержать минимум три непрозрачные destination groups, обычные отели,
+подтверждённые glamping-объекты и borderline cases. Borderline subset размечают
+два reviewer независимо. Repository получает только opaque labels и
+агрегированный report; исходные descriptions, amenities, images и model output
+остаются в согласованном внутреннем контуре с зафиксированными retention,
+access и deletion rules.
