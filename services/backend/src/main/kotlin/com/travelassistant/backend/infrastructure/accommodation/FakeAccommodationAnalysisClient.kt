@@ -53,15 +53,18 @@ class FakeAccommodationAnalysisClient : AccommodationAnalysisClient {
             .filter { item -> item.signal.positive }
             .map { item -> item.signal }
             .toSet()
-        val explicit = AccommodationAnalysisResult.Signal.EXPLICIT_GLAMPING_LABEL in
+        val hasExplicitLabel = AccommodationAnalysisResult.Signal.EXPLICIT_GLAMPING_LABEL in
+            positiveSignals
+        val hasStructure = AccommodationAnalysisResult.Signal.GLAMPING_STRUCTURE in
             positiveSignals
         val negative = evidence.any { item -> !item.signal.positive }
         val verdict = when {
-            negative && positiveSignals.isNotEmpty() -> AccommodationMatchVerdict.PROBABLE
-            explicit || positiveSignals.size >= MIN_SIGNALS_FOR_MATCH ->
-                AccommodationMatchVerdict.MATCH
-            positiveSignals.size == 1 -> AccommodationMatchVerdict.PROBABLE
+            negative && (hasExplicitLabel || hasStructure) -> AccommodationMatchVerdict.PROBABLE
             negative -> AccommodationMatchVerdict.NO_MATCH
+            hasExplicitLabel -> AccommodationMatchVerdict.MATCH
+            hasStructure && positiveSignals.size >= MIN_SIGNALS_FOR_MATCH ->
+                AccommodationMatchVerdict.MATCH
+            hasStructure -> AccommodationMatchVerdict.PROBABLE
             else -> AccommodationMatchVerdict.UNKNOWN
         }
 
@@ -94,6 +97,11 @@ class FakeAccommodationAnalysisClient : AccommodationAnalysisClient {
     private companion object {
         const val MIN_SIGNALS_FOR_MATCH = 2
         val WHITESPACE = Regex("""\s+""")
+        const val RUSSIAN_HOUSE =
+            """(?:дом(?:а|е|ом|у|ов)?|домик(?:и|а|ов|е|ом|у|ах|ами)?)"""
+        const val RUSSIAN_MOUNTAIN =
+            """(?:гор(?:а|ы|е|у|ой|ою|ами|ах)|""" +
+                """горн(?:ый|ая|ое|ые|ого|ой|ому|ым|ом|ую|ою|ых|ыми))"""
         val GLAMPING_AMENITY = Regex(
             """(?:костров|fire\s?pit|уличн[а-я]*\s+купел|outdoor\s+hot\s+tub|""" +
                 """панорамн[а-я]*\s+окн|panoramic\s+window)""",
@@ -103,12 +111,13 @@ class FakeAccommodationAnalysisClient : AccommodationAnalysisClient {
                 Regex("""(?<![\p{L}\p{N}])(?:гл[еэ]мпинг[\p{L}]*|glamping)(?![\p{L}\p{N}])"""),
             AccommodationAnalysisResult.Signal.GLAMPING_STRUCTURE to
                 Regex(
-                    """(?<![\p{L}\p{N}])(?:купол[\p{L}]*|д[оё]м[\p{L}]*|юрта|юрты|""" +
-                        """сафари[ -]тент|tiny house|safari tent|yurt|dome|equipped tent)""",
+                    """(?<![\p{L}\p{N}])(?:купол[\p{L}]*|$RUSSIAN_HOUSE|юрта|юрты|""" +
+                        """сафари[ -]тент|tiny house|safari tent|yurt|dome|equipped tent)""" +
+                        """(?![\p{L}\p{N}])""",
                 ),
             AccommodationAnalysisResult.Signal.NATURE_SETTING to
                 Regex(
-                    """(?<![\p{L}\p{N}])(?:лес[\p{L}]*|озер[\p{L}]*|гор[а-я]*|""" +
+                    """(?<![\p{L}\p{N}])(?:лес[\p{L}]*|озер[\p{L}]*|$RUSSIAN_MOUNTAIN|""" +
                         """природ[\p{L}]*|forest|lake|mountain|nature|river|riverside)""" +
                         """(?![\p{L}\p{N}])""",
                 ),
@@ -118,7 +127,10 @@ class FakeAccommodationAnalysisClient : AccommodationAnalysisClient {
                         """standard hotel|hostel)(?![\p{L}\p{N}])""",
                 ),
             AccommodationAnalysisResult.Signal.APARTMENT_BLOCK_FORMAT to
-                Regex("""(?<![\p{L}\p{N}])(?:апарт-?отел|апартамент|apartment block)(?![\p{L}\p{N}])"""),
+                Regex(
+                    """(?<![\p{L}\p{N}])(?:апарт-?отел[\p{L}]*|апартамент|""" +
+                        """apartment block)(?![\p{L}\p{N}])""",
+                ),
             AccommodationAnalysisResult.Signal.EMPTY_CAMPING_PITCH to
                 Regex("""(?:место\s+под\s+палатку|empty camping pitch|tent pitch)"""),
             AccommodationAnalysisResult.Signal.ORDINARY_COTTAGE to

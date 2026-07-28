@@ -145,21 +145,22 @@ class SemanticRuntimeSafetyIntegrationTest {
             val confirmed = sendMessage(sessionId, "Да")
             val searchId = confirmed.getValue("hotelSearchId").jsonPrimitive.content
             val offers = awaitTerminalOffers(searchId)
+            val analysis = offers
+                .getValue("metadata")
+                .jsonObject
+                .getValue("analysis")
+                .jsonObject
 
-            assertEquals("completed_with_offers", offers.getValue("status").jsonPrimitive.content)
-            assertEquals(1, offers.getValue("offers").jsonArray.size)
             assertEquals(
-                "probable",
-                offers.getValue("offers")
-                    .jsonArray
-                    .single()
-                    .jsonObject
-                    .getValue("semanticMatch")
-                    .jsonObject
-                    .getValue("verdict")
-                    .jsonPrimitive
-                    .content,
+                "completed_no_semantic_matches",
+                offers.getValue("status").jsonPrimitive.content,
             )
+            assertTrue(offers.getValue("offers").jsonArray.isEmpty())
+            assertEquals("completed", analysis.getValue("status").jsonPrimitive.content)
+            assertEquals(2, analysis.getValue("analyzedCount").jsonPrimitive.content.toInt())
+            assertEquals(2, analysis.getValue("deepAnalyzedCount").jsonPrimitive.content.toInt())
+            assertEquals(0, analysis.getValue("matchCount").jsonPrimitive.content.toInt())
+            assertEquals(0, analysis.getValue("probableCount").jsonPrimitive.content.toInt())
             assertFalse(hotelClientCreated)
             assertFalse(analysisClientCreated)
         }
