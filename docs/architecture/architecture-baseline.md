@@ -17,9 +17,9 @@
 
 ## 2. Текущий статус архитектуры
 
-- Stage 0–15 завершены; Stage 16 активирован для provider-neutral
-  semantic-анализа типа размещения. Подробные статусы находятся в
-  `docs/roadmap/roadmap.md`.
+- Stage 0–16.9 readiness завершены; REAL semantic activation остаётся
+  заблокированной внешними rights/model/quality gates. Подробные статусы
+  находятся в `docs/roadmap/roadmap.md`.
 - Backend использует Kotlin + Ktor и сохраняет разделение domain, application, infrastructure и API слоев.
 - `LlmClient` и `HotelOfferProviderBoundary` реализованы как application-owned асинхронные границы.
 - OpenRouter и публичный Hotels API имеют opt-in adapters и отдельные `HttpClient`; оба режима по умолчанию остаются `FAKE`.
@@ -100,6 +100,8 @@
   multimodal responsibility. Semantic verdict не меняет provider facts.
   OpenRouter vision является opt-in adapter и не активируется до подтверждения
   прав на provider descriptions/images, privacy routing и model compatibility.
+  Adapter требует отдельные model и exact provider endpoint без defaults,
+  передаёт endpoint через singleton `provider.only` и запрещает fallback.
 
 Stage 16 завершил provider-neutral async/two-pass implementation в FAKE scope,
 public polling contract и bounded observability. Process-local scheduler/cache

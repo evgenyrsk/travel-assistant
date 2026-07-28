@@ -51,6 +51,9 @@ internal data class AccommodationAnalysisProviderConfig(
                 openRouter = OpenRouterAccommodationAnalysisConfig(
                     apiKey = OpenRouterApiKey.of(environment.required(OpenRouterConfig.API_KEY_KEY)),
                     model = environment.required(OpenRouterAccommodationAnalysisConfig.MODEL_KEY),
+                    providerEndpoint = environment.required(
+                        OpenRouterAccommodationAnalysisConfig.PROVIDER_ENDPOINT_KEY,
+                    ),
                     imageHosts = environment
                         .required(OpenRouterAccommodationAnalysisConfig.IMAGE_HOSTS_KEY)
                         .split(',')

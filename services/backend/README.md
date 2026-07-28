@@ -70,9 +70,13 @@ provider `hotelId`, room ID или `bookHash`.
 `ACCOMMODATION_ANALYSIS_MODE=FAKE` является default и не выполняет network
 calls. Opt-in `OPENROUTER` использует существующий `OPENROUTER_API_KEY`, но
 дополнительно требует `ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED=true`,
-`ACCOMMODATION_ANALYSIS_MODEL` и exact-host allowlist
+`ACCOMMODATION_ANALYSIS_MODEL`, exact provider endpoint
+`ACCOMMODATION_ANALYSIS_PROVIDER_ENDPOINT` и exact-host allowlist
 `ACCOMMODATION_ANALYSIS_IMAGE_HOSTS`. Timeout и batch задаются
 `ACCOMMODATION_ANALYSIS_TIMEOUT_MS` и `ACCOMMODATION_ANALYSIS_BATCH_SIZE`.
+Model и endpoint не имеют default. Adapter передаёт endpoint единственным
+значением `provider.only`, запрещает provider fallback и сохраняет обязательные
+`require_parameters=true`, `data_collection=deny`, `zdr=true`.
 
 Approval flag является только техническим interlock: оператор не должен
 включать его без подтверждённых прав на provider content, controlled ZDR/model

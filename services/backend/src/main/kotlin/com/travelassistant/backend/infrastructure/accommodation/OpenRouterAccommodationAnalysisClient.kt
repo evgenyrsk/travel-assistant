@@ -139,6 +139,10 @@ internal class OpenRouterAccommodationAnalysisClient(
             put("stream", false)
             put("temperature", 0)
             putJsonObject("provider") {
+                putJsonArray("only") {
+                    add(config.providerEndpoint)
+                }
+                put("allow_fallbacks", false)
                 put("require_parameters", true)
                 put("data_collection", "deny")
                 put("zdr", true)

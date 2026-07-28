@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Нет активного implementation stage; Stage 16 завершён в разрешённом FAKE scope, Stage 16.9 заблокирован |
-| Последний завершенный этап | Stage 16.8c — regression и closure semantic runtime safety |
-| Следующий планируемый шаг | Не активирован; Stage 16.9 требует отдельной явной задачи и закрытия внешних policy/model/quality gates |
+| Текущий этап | Нет активного implementation stage; Stage 16.9 readiness завершён, REAL semantic activation заблокирована |
+| Последний завершенный этап | Stage 16.9 — exact endpoint pinning и activation-readiness decision без REAL calls |
+| Следующий планируемый шаг | Не активирован; controlled probe требует письменного provider-content approval и отдельного явного разрешения |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -66,7 +66,7 @@ Roadmap не является трекером задач, продуктово�
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
 | Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
 | Stage 15 | Завершен | Подтверждены backend-owned business logic и Java 17 portability; добавлены layering guards, correlation, stdout JSON events, probes, OpenMetrics и operational runbook. |
-| Stage 16 | Завершён в разрешённом FAKE scope; Stage 16.9 заблокирован | Provider-neutral async two-pass semantic-анализ `GLAMPING`, public polling, observability и evaluation harness прошли regression gates; mixed runtime завершается fail-closed, а deterministic FAKE fixtures не формируют semantic verdict без structural evidence. |
+| Stage 16 | Activation readiness завершён; REAL rollout заблокирован | Provider-neutral async two-pass semantic-анализ `GLAMPING`, exact endpoint pinning, public polling, observability и evaluation harness прошли regression gates; provider content не передавался внешней модели. |
 
 ## 2. Правила управления roadmap
 
@@ -1010,10 +1010,9 @@ OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 з�
 
 ### Stage 16 — Semantic-анализ типа размещения
 
-**Статус:** Stage 16.0–16.8c завершены в разрешённом FAKE scope. Смешанный REAL
-Hotels + FAKE semantic runtime закрыт fail-closed, async UX и launcher mode
-transparency согласованы, а negative fixtures блокируют ложные semantic verdict
-для обычных hotel descriptions. REAL rollout не активирован.
+**Статус:** Stage 16.0–16.9 readiness завершены. Смешанный REAL Hotels + FAKE
+semantic runtime закрыт fail-closed, OpenRouter adapter фиксирует exact endpoint
+без fallback, а launcher сохраняет semantic `FAKE`. REAL rollout не активирован.
 
 | Sub-stage | Scope | Статус |
 |---|---|---|
@@ -1028,7 +1027,7 @@ transparency согласованы, а negative fixtures блокируют л�
 | Stage 16.8a | Backend semantic runtime safety | Завершён; composition policy запрещает REAL Hotels + FAKE semantic, не создаёт analyzer runtime/scheduler и возвращает сохранённый terminal `failed` snapshot с пустыми offers без provider calls. Обычный REAL search и полный FAKE flow не изменены |
 | Stage 16.8b | Async UX и прозрачность режимов | Завершён; initial `searching` сообщает о запуске проверки отдельно от duplicate, terminal frontend states не сохраняют loading copy, а launcher явно показывает LLM, Hotels и semantic modes без secrets/model slug и фиксирует semantic `FAKE` в обоих demo-профилях |
 | Stage 16.8c | Regression и closure | Завершён; exact word-form patterns и structural-evidence sufficiency блокируют ложные `MATCH`/`PROBABLE` для `город`, `городской`, `домашний`, обычных hotel descriptions и nature/amenity-only fixtures. Полные backend/frontend/conformance gates пройдены без REAL vision call |
-| Stage 16.9 | REAL semantic activation gate | Future / blocked; не является активным backlog. Требует отдельной явной задачи, разрешения на передачу provider descriptions/images конкретному внешнему endpoint, exact-host allowlist, controlled ZDR/model probe и пройденного quality dataset |
+| Stage 16.9 | REAL semantic activation readiness | Завершён как configuration/policy readiness без REAL calls: model и exact endpoint задаются отдельно, `provider.only` содержит одну пару, fallback запрещён, EU-only shortlist и rights/evaluation gates зафиксированы. Activation остаётся `BLOCKED` до письменного разрешения, controlled probe и quality dataset |
 
 Диагноз и общие границы Stage 16.8 зафиксированы в
 `docs/reviews/stage-16-8-semantic-runtime-safety-plan.md`, результат Stage 16.8a —
@@ -1036,7 +1035,9 @@ transparency согласованы, а negative fixtures блокируют л�
 Stage 16.8b — в
 `docs/reviews/stage-16-8b-async-ux-and-runtime-mode-transparency.md`, а closure
 Stage 16.8c — в
-`docs/reviews/stage-16-8c-semantic-runtime-safety-closure.md`. Stage 16.8 не
+`docs/reviews/stage-16-8c-semantic-runtime-safety-closure.md`. Stage 16.9
+readiness зафиксирован в
+`docs/reviews/stage-16-9-real-semantic-activation-readiness.md`. Stage 16.8 не
 меняет taxonomy, ranking, provider mapping или обычный hotel search. Backend
 safety, frontend/demo изменения и closure выполнены отдельными commits и review
 reports.
@@ -1066,9 +1067,10 @@ Quality gate перед REAL rollout требует не менее 100 вруч
 reviewer. Изображения не коммитятся без подтверждённых прав.
 
 Evaluation harness находится в `tools/semantic-evaluation/`; текущий aggregate
-report имеет статус `NOT_RUN`, поскольку одобренный dataset не предоставлен.
-Это блокирует REAL vision rollout, но не завершённый deterministic FAKE flow.
-Новый этап или REAL activation не разрешены автоматически.
+report имеет статус `NOT_RUN`, поскольку rights-approved dataset ещё не
+предоставлен. Stage 16.9 подготовил EU-only shortlist и exact endpoint pinning,
+но это не закрывает rights, probe и quality gates. REAL activation не разрешена
+автоматически.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

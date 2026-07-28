@@ -69,7 +69,9 @@ Runtime modes: LLM=OPENROUTER, Hotels=REAL, Semantic=FAKE
 
 Первая строка соответствует `--fake`, вторая — `--real`. Значение
 `ACCOMMODATION_ANALYSIS_MODE` из локального env-файла не импортируется и не
-может включить REAL semantic analysis через demo launcher.
+может включить REAL semantic analysis через demo launcher. Это ограничение
+сохраняется после Stage 16.9 readiness и снимается только отдельным решением о
+controlled probe или rollout.
 
 ## Запуск
 
