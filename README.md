@@ -48,6 +48,7 @@ README является входной картой проекта: он пом�
 - `docs/guides/backend-operations-runbook.md` — deployment-neutral запуск Java 17 backend, локальная проверка логов и практическая интеграция collector, log storage, Prometheus, dashboards и alerts.
 - `docs/guides/corporate-transfer-readiness.md` — checklist переноса репозитория и выбора внутреннего semantic deployment без внешних model calls.
 - `tools/semantic-evaluation/README.md` — rights-safe harness для агрегированной проверки качества semantic `GLAMPING` без хранения provider content в репозитории.
+- `tools/tbank-hotels-mcp/README.md` — локальный browser-driven MCP для публичных и авторизованных сценариев раздела «Отели» Т-Банка без прямого использования web endpoint-ов.
 - `docs/reviews/README.md` — индекс отчетов о проверках и правила чтения исторических и текущих отчетов.
 - `docs/reviews/*.md` — исторический журнал проверок и чисток; читать через `docs/reviews/README.md`.
 - `docs/decisions/README.md` — индекс принятых ADR и правила ведения архитектурных решений.
