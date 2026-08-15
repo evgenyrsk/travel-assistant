@@ -1,436 +1,488 @@
-import { existsSync, statSync } from "node:fs";
-import { spawn } from "node:child_process";
-import { randomUUID } from "node:crypto";
+#!/usr/bin/env node
+
+import { createHash } from "node:crypto";
 import { createInterface } from "node:readline";
 
-const BANK_ORIGIN = "https://www.tbank.ru";
-const HOTELS_HOME = `${BANK_ORIGIN}/travel/hotels/new/`;
-const DEFAULT_SESSION = "tbank-hotels-mcp";
-const SENSITIVE_ACTION = /(оплат|заброниров|оформ|подтверд|купить|отменить|pay\b|book\b|confirm\b|purchase\b|cancel\b)/i;
-const STATE_CHANGING_ACTION = /(?:добавить|удалить).*(?:избранн|favorite)|(?:избранн|favorite).*(?:добавить|удалить)|скачать|download\b/i;
-const ARMED_ACTION_TTL_MS = 5 * 60 * 1000;
+const SERVER_NAME = "tbank-hotels-api-mcp";
+const SERVER_VERSION = "0.2.0";
+const DEFAULT_TIMEOUT_MS = 15_000;
+const MAX_TIMEOUT_MS = 60_000;
+const AUTH_HEADER_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
 
-const snapshotsBySession = new Map();
-const armedActionsById = new Map();
+const text = (value) => ({ type: "text", text: typeof value === "string" ? value : JSON.stringify(value, null, 2) });
 
-const text = (value) => ({ type: "text", text: value });
-
-const schema = (properties, required = []) => ({
+const objectSchema = (properties, required = [], additionalProperties = false) => ({
   type: "object",
   properties,
   required,
-  additionalProperties: false,
+  additionalProperties,
 });
+
+const payload = {
+  type: "object",
+  description: "Payload в точном формате соответствующего Hotels API контракта.",
+  additionalProperties: true,
+};
+
+const bookingPayload = {
+  type: "object",
+  description: "Payload из CreateBookingsApiRequest или CreateBookingsWithTcsUserDataApiRequest.",
+  additionalProperties: true,
+};
 
 const tools = [
   {
-    name: "tbank_hotels_open",
-    description: "Открывает главную страницу отелей Т-Банка в изолированной браузерной сессии.",
-    inputSchema: schema({ session: { type: "string", description: "Необязательное имя изолированной сессии." } }),
+    name: "tbank_hotels_connection_status",
+    description: "Показывает, настроен ли API transport и auth profile. Секреты, значения заголовков и токены никогда не возвращаются.",
+    inputSchema: objectSchema({}),
   },
   {
-    name: "tbank_hotels_start_login",
-    description: "Открывает ручной вход в Интернет-банк в видимом окне браузера. Не передавайте пароль, одноразовый код или данные карты через MCP.",
-    inputSchema: schema({ session: { type: "string", description: "Необязательное имя изолированной сессии." } }),
+    name: "tbank_hotels_get_customer",
+    description: "Получает данные авторизованного клиента через GET /api/v1/auth/customerdata. Используйте только когда интегратор имеет законное основание обрабатывать эти данные.",
+    inputSchema: objectSchema({}),
   },
   {
-    name: "tbank_hotels_import_auth_cookies",
-    description: "Импортирует авторизованную cookie-сессию из локального файла, созданного пользователем. Содержимое файла не читается и не возвращается моделью.",
-    inputSchema: schema({
-      cookieFile: { type: "string", description: "Абсолютный путь к файлу c Cookie header или Copy as cURL." },
-      session: { type: "string", description: "Необязательное имя изолированной сессии." },
-    }, ["cookieFile"]),
+    name: "tbank_hotels_search",
+    description: "Ищет отели по локации или точному отелю, датам, гостям, фильтрам и сортировке. payload соответствует SearchParametersListApiRequest; exact-hotel и location search задаются provider-полями payload.",
+    inputSchema: objectSchema({ payload, language: languageSchema() }, ["payload"]),
   },
   {
-    name: "tbank_hotels_open_favorites",
-    description: "Открывает раздел «Избранное». Его содержимое доступно после авторизации.",
-    inputSchema: schema({ session: { type: "string" } }),
+    name: "tbank_hotels_get_search_filters",
+    description: "Возвращает каталог доступных фильтров Hotels API.",
+    inputSchema: objectSchema({ apiVersion: apiVersionSchema() }),
   },
   {
-    name: "tbank_hotels_open_orders",
-    description: "Открывает раздел заказов Т-Путешествий. Его содержимое доступно после авторизации.",
-    inputSchema: schema({ session: { type: "string" } }),
+    name: "tbank_hotels_get_filter_availability",
+    description: "Возвращает доступность фильтров для точных параметров поиска.",
+    inputSchema: objectSchema({ payload, language: languageSchema() }, ["payload"]),
   },
   {
-    name: "tbank_hotels_open_order",
-    description: "Открывает карточку существующего заказа отеля по числовому номеру. Позволяет просмотреть статус, условия, документы и доступные действия, но не отменяет бронирование и не скачивает документы.",
-    inputSchema: schema({
-      orderId: { type: "string", description: "Только цифры, например 443021782873." },
-      session: { type: "string" },
-    }, ["orderId"]),
+    name: "tbank_hotels_search_map",
+    description: "Возвращает поисковые данные для карты отелей. payload соответствует SearchParametersListApiRequest.",
+    inputSchema: objectSchema({ payload, language: languageSchema() }, ["payload"]),
   },
   {
-    name: "tbank_hotels_open_city",
-    description: "Открывает публичную подборку отелей города по SEO slug, например russia/moscow.",
-    inputSchema: schema({
-      countrySlug: { type: "string", description: "Например: russia." },
-      citySlug: { type: "string", description: "Например: moscow." },
-      session: { type: "string" },
-    }, ["countrySlug", "citySlug"]),
+    name: "tbank_hotels_get_map_hotels",
+    description: "Возвращает отели для области карты. payload соответствует контракту POST /api/v1/hotels/map/hotels.",
+    inputSchema: objectSchema({ payload, language: languageSchema() }, ["payload"]),
   },
   {
-    name: "tbank_hotels_open_search_results",
-    description: "Открывает выдачу отелей для города, дат и числа гостей. Не создаёт бронь и не фиксирует цену.",
-    inputSchema: schema({
-      countrySlug: { type: "string", description: "Например: russia." },
-      citySlug: { type: "string", description: "Например: moscow." },
-      checkIn: { type: "string", description: "Дата заезда в формате YYYY-MM-DD." },
-      checkOut: { type: "string", description: "Дата выезда в формате YYYY-MM-DD." },
-      guests: { type: "integer", minimum: 1, maximum: 8, description: "Число взрослых гостей от 1 до 8." },
-      session: { type: "string" },
-    }, ["countrySlug", "citySlug", "checkIn", "checkOut", "guests"]),
+    name: "tbank_hotels_search_points_of_interest",
+    description: "Ищет точки интереса, ориентиры или группы ориентиров. mode: search, landmarks или groups.",
+    inputSchema: objectSchema({ mode: { type: "string", enum: ["search", "landmarks", "groups"] }, payload }, ["mode", "payload"]),
   },
   {
-    name: "tbank_hotels_open_hotel",
-    description: "Открывает карточку отеля по числовому идентификатору из URL Т-Банка.",
-    inputSchema: schema({
-      hotelId: { type: "string", description: "Только цифры, например 1441391." },
-      session: { type: "string" },
-    }, ["hotelId"]),
+    name: "tbank_hotels_get_hotel",
+    description: "Получает provider-карточку отеля по hotelId.",
+    inputSchema: objectSchema({ hotelId: identifierSchema("Идентификатор отеля из Hotels API."), language: languageSchema() }, ["hotelId"]),
   },
   {
-    name: "tbank_hotels_open_booking_preview",
-    description: "Открывает карточку отеля с выбранными датами и гостями, чтобы просмотреть номера, тарифы, условия отмены и предельный шаг перед оформлением. Бронь и оплата не создаются.",
-    inputSchema: schema({
-      hotelId: { type: "string", description: "Только цифры, например 1441391." },
-      checkIn: { type: "string", description: "Дата заезда в формате YYYY-MM-DD." },
-      checkOut: { type: "string", description: "Дата выезда в формате YYYY-MM-DD." },
-      guests: { type: "integer", minimum: 1, maximum: 8, description: "Число взрослых гостей от 1 до 8." },
-      session: { type: "string" },
-    }, ["hotelId", "checkIn", "checkOut", "guests"]),
+    name: "tbank_hotels_get_hotel_rates",
+    description: "Получает номера и тарифы выбранного отеля. По умолчанию используется v3; payload соответствует POST /api/v3/hotels/{hotelId}/rates.",
+    inputSchema: objectSchema({ hotelId: identifierSchema("Идентификатор отеля из Hotels API."), payload, apiVersion: rateApiVersionSchema(), language: languageSchema() }, ["hotelId", "payload"]),
   },
   {
-    name: "tbank_hotels_fill_destination",
-    description: "Вводит название отеля, города, страны или другую локацию в поисковую строку и показывает актуальные подсказки. Затем выберите подходящий вариант через snapshot и click.",
-    inputSchema: schema({
-      destination: { type: "string", description: "Название города, страны или отеля." },
-      session: { type: "string" },
-    }, ["destination"]),
+    name: "tbank_hotels_get_rate",
+    description: "Получает актуальный checkout rate по bookHash. По умолчанию используется v3.",
+    inputSchema: objectSchema({ bookHash: identifierSchema("Непрозрачный bookHash из ответа Hotels API."), apiVersion: rateApiVersionSchema(), language: languageSchema() }, ["bookHash"]),
   },
   {
-    name: "tbank_hotels_arm_user_action",
-    description: "Подготавливает действие с внешним эффектом из последнего snapshot: бронь, оплату, подтверждение, отмену, изменение избранного или скачивание. Само действие не выполняет; для выполнения требуется отдельное одноразовое подтверждение пользователя.",
-    inputSchema: schema({
-      ref: { type: "string", description: "Ref финальной или изменяющей кнопки из последнего snapshot." },
-      session: { type: "string" },
-    }, ["ref"]),
+    name: "tbank_hotels_get_cashback_percent",
+    description: "Получает процент кэшбэка по bookHash для авторизованного счёта.",
+    inputSchema: objectSchema({ bookHash: identifierSchema("Непрозрачный bookHash из ответа Hotels API.") }, ["bookHash"]),
   },
   {
-    name: "tbank_hotels_execute_armed_action",
-    description: "Выполняет ранее подготовленное действие только после явного подтверждения пользователя непосредственно перед вызовом. Используйте исключительно для конкретной показанной пользователю брони, оплаты, отмены или другого подготовленного действия.",
-    inputSchema: schema({
-      actionId: { type: "string", description: "Одноразовый actionId из tbank_hotels_arm_user_action." },
-      confirmation: { type: "string", description: "Точная строка подтверждения из ответа подготовки действия." },
-    }, ["actionId", "confirmation"]),
+    name: "tbank_hotels_get_max_cashback",
+    description: "Получает максимальный доступный процент кэшбэка.",
+    inputSchema: objectSchema({}),
   },
   {
-    name: "tbank_hotels_snapshot",
-    description: "Возвращает интерактивные элементы текущего экрана. Используйте полученные refs в click; после каждого изменения экрана вызовите snapshot снова.",
-    inputSchema: schema({ session: { type: "string" } }),
+    name: "tbank_hotels_validate_promocode",
+    description: "Проверяет промокод без создания брони. payload соответствует POST /api/v1/hotels/promocodes/validate.",
+    inputSchema: objectSchema({ payload }, ["payload"]),
   },
   {
-    name: "tbank_hotels_click",
-    description: "Нажимает интерактивный элемент из последнего snapshot. Бронирование, оплата, покупка, подтверждение, отмена, изменение избранного и скачивание намеренно заблокированы.",
-    inputSchema: schema({
-      ref: { type: "string", description: "Ref из последнего snapshot, например @e42." },
-      session: { type: "string" },
-    }, ["ref"]),
+    name: "tbank_hotels_get_rate_upgrade",
+    description: "Получает доступное улучшение тарифа по bookHash. Не применяет изменение.",
+    inputSchema: objectSchema({ bookHash: identifierSchema("Непрозрачный bookHash из ответа Hotels API."), payload }, ["bookHash", "payload"]),
   },
   {
-    name: "tbank_hotels_press",
-    description: "Отправляет безопасную клавишу текущему элементу: Enter, Escape, ArrowDown, ArrowUp или Tab.",
-    inputSchema: schema({
-      key: { type: "string", enum: ["Enter", "Escape", "ArrowDown", "ArrowUp", "Tab"] },
-      session: { type: "string" },
-    }, ["key"]),
+    name: "tbank_hotels_get_booking",
+    description: "Получает существующую бронь по orderId. По умолчанию используется v3.",
+    inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа."), apiVersion: bookingApiVersionSchema(), language: languageSchema() }, ["orderId"]),
   },
   {
-    name: "tbank_hotels_current_url",
-    description: "Возвращает URL текущего экрана изолированной браузерной сессии.",
-    inputSchema: schema({ session: { type: "string" } }),
+    name: "tbank_hotels_list_bookings",
+    description: "Возвращает активные, отменённые и завершённые брони. payload соответствует BookingsListApiRequest.",
+    inputSchema: objectSchema({ payload }, ["payload"]),
   },
   {
-    name: "tbank_hotels_close",
-    description: "Закрывает изолированную браузерную сессию отелей.",
-    inputSchema: schema({ session: { type: "string" } }),
+    name: "tbank_hotels_get_voucher",
+    description: "Получает voucher существующей брони. Результат может содержать персональные данные и документ бронирования.",
+    inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа.") }, ["orderId"]),
   },
+  {
+    name: "tbank_hotels_get_reservation",
+    description: "Получает reservation-данные бронирования. Параметры query должны соответствовать GET /api/v1/hotels/bookings/getReservation.",
+    inputSchema: objectSchema({ query: payload }, ["query"]),
+  },
+  {
+    name: "tbank_hotels_get_evo_booking",
+    description: "Получает EVO booking-данные по orderId.",
+    inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа.") }, ["orderId"]),
+  },
+  {
+    name: "tbank_hotels_get_bnpl_offer",
+    description: "Получает предложение рассрочки по существующему заказу. Не подключает рассрочку и не списывает средства.",
+    inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа."), payload }, ["orderId", "payload"]),
+  },
+  {
+    name: "tbank_hotels_get_booking_task_status",
+    description: "Получает статус асинхронной задачи создания бронирования.",
+    inputSchema: objectSchema({ taskId: identifierSchema("Идентификатор задачи.") }, ["taskId"]),
+  },
+  {
+    name: "tbank_hotels_check_ls_order",
+    description: "Проверяет статус LS-заказа по orderId.",
+    inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа.") }, ["orderId"]),
+  },
+  {
+    name: "tbank_hotels_get_reviews",
+    description: "Возвращает ratings, summary, feedback, feedback-filters или order-status для отеля. Запрос не изменяет лайки или отзывы.",
+    inputSchema: objectSchema({ hotelId: identifierSchema("Идентификатор отеля."), resource: { type: "string", enum: ["ratings", "summary", "feedback", "feedback-filters"] }, query: payload }, ["hotelId", "resource"]),
+  },
+  {
+    name: "tbank_hotels_get_review_order_status",
+    description: "Проверяет, доступно ли действие с отзывом для конкретного заказа. Запрос не изменяет отзыв или лайк.",
+    inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа.") }, ["orderId"]),
+  },
+  {
+    name: "tbank_hotels_search_seo",
+    description: "Выполняет SEO/location search Hotels API. По умолчанию используется v3.",
+    inputSchema: objectSchema({ payload, apiVersion: seoApiVersionSchema() }, ["payload"]),
+  },
+  {
+    name: "tbank_hotels_search_urls",
+    description: "Создаёт поисковый URL Hotels API из параметров. По умолчанию используется v3.",
+    inputSchema: objectSchema({ payload, apiVersion: seoApiVersionSchema() }, ["payload"]),
+  },
+  {
+    name: "tbank_hotels_get_seo_resource",
+    description: "Получает публичные SEO-данные: отель, регион, фильтры, locations, location-by-slug, комнаты или slug отеля.",
+    inputSchema: objectSchema({ resource: { type: "string", enum: ["hotel", "region", "available-filters", "locations", "location-by-slug", "rooms", "slug-by-hotel"] }, id: identifierSchema("hotelId, regionId или locationId, если это требуется выбранным resource."), query: payload }, ["resource"]),
+  },
+  {
+    name: "tbank_hotels_get_deeplink_token",
+    description: "Получает токен для general или Hotels URL deeplink. Не создаёт бронирование.",
+    inputSchema: objectSchema({ kind: { type: "string", enum: ["general", "hotels-urls"] } }, ["kind"]),
+  },
+  {
+    name: "tbank_hotels_get_available_tranche_amount",
+    description: "Проверяет доступную сумму рассрочки для параметров checkout. Не подключает рассрочку и не создаёт платёж.",
+    inputSchema: objectSchema({ payload }, ["payload"]),
+  },
+  {
+    name: "tbank_hotels_get_partner_redirect_url",
+    description: "Получает redirect URL партнёра по partnerAlias. Сам переход и внешняя покупка не выполняются.",
+    inputSchema: objectSchema({ partnerAlias: identifierSchema("Псевдоним партнёра."), payload }, ["partnerAlias", "payload"]),
+  },
+  mutationTool("tbank_hotels_prepare_booking", "Создаёт stateless preview создания брони. Не делает HTTP-запрос и не резервирует номер.", "booking", bookingPayload),
+  mutationTool("tbank_hotels_execute_booking", "Создаёт задачу бронирования только после непосредственного явного подтверждения пользователя.", "booking", bookingPayload, true),
+  mutationTool("tbank_hotels_prepare_ls_booking", "Создаёт stateless preview создания LS-брони. Не делает HTTP-запрос и не резервирует номер.", "lsBooking", bookingPayload),
+  mutationTool("tbank_hotels_execute_ls_booking", "Создаёт LS-задачу бронирования только после непосредственного явного подтверждения пользователя.", "lsBooking", bookingPayload, true),
+  mutationTool("tbank_hotels_prepare_cancel_booking", "Создаёт stateless preview отмены брони. Не отменяет заказ.", "cancel", payload),
+  mutationTool("tbank_hotels_execute_cancel_booking", "Отменяет бронь только после непосредственного явного подтверждения пользователя.", "cancel", payload, true),
+  mutationTool("tbank_hotels_prepare_payment_setup", "Создаёт stateless preview подготовки оплаты. Не создаёт платёж и не списывает средства.", "paymentSetup", payload, false, { orderId: identifierSchema("Идентификатор заказа.") }),
+  mutationTool("tbank_hotels_execute_payment_setup", "Подготавливает оплату для заказа только после непосредственного явного подтверждения пользователя. MCP не принимает данные карты.", "paymentSetup", payload, true, { orderId: identifierSchema("Идентификатор заказа.") }),
+  mutationTool("tbank_hotels_prepare_apply_promocode", "Создаёт stateless preview применения промокода к тарифу. Не создаёт бронь.", "applyPromocode", payload, false, { bookHash: identifierSchema("Непрозрачный bookHash из ответа Hotels API.") }),
+  mutationTool("tbank_hotels_execute_apply_promocode", "Применяет промокод к тарифу после непосредственного явного подтверждения пользователя.", "applyPromocode", payload, true, { bookHash: identifierSchema("Непрозрачный bookHash из ответа Hotels API.") }),
+  mutationTool("tbank_hotels_prepare_update_extra_services", "Создаёт stateless preview изменения дополнительных услуг тарифа.", "extraServices", payload, false, { bookHash: identifierSchema("Непрозрачный bookHash из ответа Hotels API.") }),
+  mutationTool("tbank_hotels_execute_update_extra_services", "Изменяет дополнительные услуги тарифа после непосредственного явного подтверждения пользователя.", "extraServices", payload, true, { bookHash: identifierSchema("Непрозрачный bookHash из ответа Hotels API.") }),
 ];
 
-function sessionName(value) {
-  if (value === undefined || value === "") return DEFAULT_SESSION;
-  if (typeof value !== "string" || !/^[a-zA-Z0-9_-]{1,64}$/.test(value)) {
-    throw new Error("session must contain only letters, digits, underscores, or hyphens.");
-  }
-  return `tbank-hotels-${value}`;
+function languageSchema() {
+  return { type: "string", minLength: 2, maxLength: 35, description: "Значение заголовка X-User-Language, например ru-RU." };
 }
 
-function slug(value, name) {
-  if (typeof value !== "string" || !/^[a-z0-9-]+$/.test(value)) {
-    throw new Error(`${name} must be a lowercase URL slug.`);
+function identifierSchema(description) {
+  return { type: "string", minLength: 1, maxLength: 512, description };
+}
+
+function apiVersionSchema() {
+  return { type: "string", enum: ["v1", "v2"], default: "v1" };
+}
+
+function rateApiVersionSchema() {
+  return { type: "string", enum: ["v2", "v3"], default: "v3" };
+}
+
+function bookingApiVersionSchema() {
+  return { type: "string", enum: ["v1", "v2", "v3"], default: "v3" };
+}
+
+function seoApiVersionSchema() {
+  return { type: "string", enum: ["v1", "v2", "v3"], default: "v3" };
+}
+
+function mutationTool(name, description, action, actionPayload, execute = false, extraProperties = {}) {
+  const properties = {
+    ...extraProperties,
+    payload: actionPayload,
+  };
+  if (execute) {
+    properties.preparedRequestHash = { type: "string", pattern: "^[a-f0-9]{64}$", description: "requestHash из соответствующего prepare-вызова." };
+    properties.confirmation = { type: "string", description: "Точная фраза подтверждения из соответствующего prepare-вызова после явного согласия пользователя." };
   }
+  return {
+    name,
+    description,
+    inputSchema: objectSchema(properties, [...Object.keys(extraProperties), "payload", ...(execute ? ["preparedRequestHash", "confirmation"] : [])]),
+    _action: action,
+    _execute: execute,
+  };
+}
+
+function configuredHeaders() {
+  const rawHeaders = process.env.TBANK_HOTELS_AUTH_HEADERS_JSON;
+  const token = process.env.TBANK_HOTELS_AUTH_TOKEN;
+  const header = process.env.TBANK_HOTELS_AUTH_HEADER;
+  if (rawHeaders && (token || header)) throw new Error("Configure either TBANK_HOTELS_AUTH_HEADERS_JSON or TBANK_HOTELS_AUTH_TOKEN with TBANK_HOTELS_AUTH_HEADER, not both.");
+  if (rawHeaders) {
+    let headers;
+    try { headers = JSON.parse(rawHeaders); } catch { throw new Error("TBANK_HOTELS_AUTH_HEADERS_JSON must contain a JSON object."); }
+    if (!headers || Array.isArray(headers) || typeof headers !== "object") throw new Error("TBANK_HOTELS_AUTH_HEADERS_JSON must contain a JSON object.");
+    return validateHeaders(headers);
+  }
+  if (!token && !header) return {};
+  if (!token) throw new Error("TBANK_HOTELS_AUTH_HEADER requires TBANK_HOTELS_AUTH_TOKEN.");
+  const resolvedHeader = header ?? "Authorization";
+  if (!AUTH_HEADER_NAME.test(resolvedHeader)) throw new Error("TBANK_HOTELS_AUTH_HEADER contains an invalid header name.");
+  const prefix = process.env.TBANK_HOTELS_AUTH_PREFIX ?? "Bearer ";
+  return { [resolvedHeader]: `${prefix}${token}` };
+}
+
+function validateHeaders(headers) {
+  const result = {};
+  for (const [name, value] of Object.entries(headers)) {
+    if (!AUTH_HEADER_NAME.test(name) || typeof value !== "string" || !value) throw new Error("Auth headers must have valid names and non-empty string values.");
+    result[name] = value;
+  }
+  return result;
+}
+
+function baseUrl() {
+  const configured = process.env.TBANK_HOTELS_API_BASE_URL;
+  if (!configured) throw new Error("TBANK_HOTELS_API_BASE_URL is required. The supplied contracts do not declare an absolute server URL.");
+  let url;
+  try { url = new URL(configured); } catch { throw new Error("TBANK_HOTELS_API_BASE_URL must be an absolute URL."); }
+  const localHttp = url.protocol === "http:" && ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  if (url.protocol !== "https:" && !localHttp) throw new Error("TBANK_HOTELS_API_BASE_URL must use HTTPS outside localhost.");
+  return url;
+}
+
+function timeoutMs() {
+  const configured = process.env.TBANK_HOTELS_TIMEOUT_MS;
+  if (!configured) return DEFAULT_TIMEOUT_MS;
+  const value = Number(configured);
+  if (!Number.isInteger(value) || value < 1_000 || value > MAX_TIMEOUT_MS) throw new Error(`TBANK_HOTELS_TIMEOUT_MS must be an integer from 1000 to ${MAX_TIMEOUT_MS}.`);
   return value;
 }
 
-function numericId(value, name) {
-  if (typeof value !== "string" || !/^\d+$/.test(value)) {
-    throw new Error(`${name} must contain digits only.`);
-  }
+function connectionStatus() {
+  const hasBaseUrl = Boolean(process.env.TBANK_HOTELS_API_BASE_URL);
+  const hasAuth = Boolean(process.env.TBANK_HOTELS_AUTH_HEADERS_JSON || process.env.TBANK_HOTELS_AUTH_TOKEN);
+  return {
+    transport: hasBaseUrl ? "configured" : "not_configured",
+    authentication: hasAuth ? "configured" : "not_configured",
+    browserDependency: false,
+    storedUserSession: false,
+    note: "Значения URL, токенов и auth-заголовков намеренно не раскрываются.",
+  };
+}
+
+function value(value, name) {
+  if (typeof value !== "string" || !value.trim()) throw new Error(`${name} must be a non-empty string.`);
+  if (value.length > 512 || value.includes("/") || value.includes("?")) throw new Error(`${name} contains unsupported path characters.`);
+  return encodeURIComponent(value);
+}
+
+function requestObject(value, name = "payload") {
+  if (!value || Array.isArray(value) || typeof value !== "object") throw new Error(`${name} must be an object.`);
   return value;
 }
 
-function dateRange(checkIn, checkOut) {
-  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-  if (typeof checkIn !== "string" || typeof checkOut !== "string" || !datePattern.test(checkIn) || !datePattern.test(checkOut)) {
-    throw new Error("checkIn and checkOut must use YYYY-MM-DD format.");
-  }
-  const start = new Date(`${checkIn}T00:00:00Z`);
-  const end = new Date(`${checkOut}T00:00:00Z`);
-  if (Number.isNaN(start.valueOf()) || Number.isNaN(end.valueOf()) || start.toISOString().slice(0, 10) !== checkIn || end.toISOString().slice(0, 10) !== checkOut || end <= start) {
-    throw new Error("checkOut must be later than a valid checkIn date.");
-  }
-  return { checkIn, checkOut };
+function requestHash(action, path, args) {
+  const material = JSON.stringify({ action, path, payload: args.payload, orderId: args.orderId, bookHash: args.bookHash });
+  return createHash("sha256").update(material).digest("hex");
 }
 
-function guests(value) {
-  if (!Number.isInteger(value) || value < 1 || value > 8) {
-    throw new Error("guests must be an integer from 1 to 8.");
-  }
-  return value;
+function confirmationPhrase(action, hash) {
+  return `CONFIRM_TBANK_HOTELS_${action.toUpperCase()}_${hash.slice(0, 12)}`;
 }
 
-function hotelPreviewUrl(hotelId, checkIn, checkOut, guestCount) {
-  const params = new URLSearchParams({ dateFrom: checkIn, dateTo: checkOut, guests: String(guestCount) });
-  return `${HOTELS_HOME}hotels/${hotelId}/?${params}`;
-}
-
-function refLabel(session, ref) {
-  const escaped = ref.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const snapshotText = snapshotsBySession.get(session) ?? "";
-  const match = snapshotText.match(new RegExp(`^.*${escaped}.*$`, "m"));
-  return match?.[0] ?? "";
-}
-
-function actionRequiresConfirmation(label) {
-  return SENSITIVE_ACTION.test(label) || STATE_CHANGING_ACTION.test(label);
-}
-
-function requireSafeRef(session, ref) {
-  if (typeof ref !== "string" || !/^@e\d+$/.test(ref)) {
-    throw new Error("ref must be a value from the latest tbank_hotels_snapshot response.");
-  }
-  if (!snapshotsBySession.has(session)) {
-    throw new Error("Call tbank_hotels_snapshot before clicking an element.");
-  }
-  const label = refLabel(session, ref);
-  if (!label) {
-    throw new Error("ref is not present in the latest tbank_hotels_snapshot response.");
-  }
-  if (actionRequiresConfirmation(label)) {
-    throw new Error("This action requires explicit user confirmation. Call tbank_hotels_arm_user_action first.");
+function mutationPath(action, args) {
+  switch (action) {
+    case "booking": return "/api/v1/hotels/bookings/tasks/create";
+    case "lsBooking": return "/api/v1/hotels/bookings/ls/tasks/create";
+    case "cancel": return "/api/v1/hotels/bookings/cancel";
+    case "paymentSetup": return `/api/v1/hotels/bookings/shevo/${value(args.orderId, "orderId")}/payment/setup`;
+    case "applyPromocode": return `/api/v1/hotels/rates/${value(args.bookHash, "bookHash")}/promocode`;
+    case "extraServices": return `/api/v1/hotels/rates/${value(args.bookHash, "bookHash")}/extraServices`;
+    default: throw new Error("Unsupported mutation.");
   }
 }
 
-function armAction(session, ref) {
-  if (typeof ref !== "string" || !/^@e\d+$/.test(ref) || !snapshotsBySession.has(session)) {
-    throw new Error("Call tbank_hotels_snapshot and provide a ref from it before preparing an action.");
-  }
-  const label = refLabel(session, ref);
-  if (!label) throw new Error("ref is not present in the latest tbank_hotels_snapshot response.");
-  if (!actionRequiresConfirmation(label)) {
-    throw new Error("This is a non-final action. Use tbank_hotels_click instead.");
-  }
-  const actionId = randomUUID();
-  const confirmation = `CONFIRM ${actionId}`;
-  armedActionsById.set(actionId, { session, ref, label, confirmation, expiresAt: Date.now() + ARMED_ACTION_TTL_MS });
-  return { actionId, confirmation, label };
+function redactPreview(payloadValue) {
+  if (Array.isArray(payloadValue)) return payloadValue.map(redactPreview);
+  if (!payloadValue || typeof payloadValue !== "object") return payloadValue;
+  const secretNames = /password|token|authorization|card|pan|cvv|cvc|phone|email|passport|birth|document/i;
+  return Object.fromEntries(Object.entries(payloadValue).map(([key, item]) => [key, secretNames.test(key) ? "[REDACTED]" : redactPreview(item)]));
 }
 
-async function executeArmedAction(actionId, confirmation) {
-  const armed = armedActionsById.get(actionId);
-  if (!armed) throw new Error("Unknown or already used actionId. Prepare the action again.");
-  if (Date.now() > armed.expiresAt) {
-    armedActionsById.delete(actionId);
-    throw new Error("The action confirmation expired. Prepare the action again.");
+async function apiRequest(method, path, { payload: body, query, language } = {}) {
+  const origin = baseUrl();
+  const target = new URL(path.replace(/^\//, ""), `${origin.href.replace(/\/$/, "")}/`);
+  if (query) {
+    requestObject(query, "query");
+    for (const [key, item] of Object.entries(query)) {
+      if (item === undefined || item === null) continue;
+      if (typeof item === "object") throw new Error("query values must be scalar.");
+      target.searchParams.set(key, String(item));
+    }
   }
-  if (confirmation !== armed.confirmation) {
-    throw new Error("confirmation must exactly match the confirmation string returned when the action was prepared.");
+  if (body !== undefined) requestObject(body);
+  const headers = { Accept: "application/json", ...configuredHeaders() };
+  if (language) {
+    if (typeof language !== "string" || language.length < 2 || language.length > 35) throw new Error("language must be a string from 2 to 35 characters.");
+    headers["X-User-Language"] = language;
   }
-  await snapshot(armed.session);
-  const currentLabel = refLabel(armed.session, armed.ref);
-  if (!currentLabel || currentLabel !== armed.label) {
-    armedActionsById.delete(actionId);
-    throw new Error("The page changed after preparation. Review the latest snapshot and prepare the action again.");
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  let response;
+  try {
+    response = await fetch(target, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(timeoutMs()) });
+  } catch (error) {
+    throw new Error(error.name === "TimeoutError" ? "Hotels API request timed out." : "Unable to reach Hotels API.");
   }
-  await runAgentBrowser(armed.session, ["click", armed.ref]);
-  armedActionsById.delete(actionId);
-  return snapshot(armed.session);
+  const responseText = await response.text();
+  let responseBody = null;
+  if (responseText) {
+    try { responseBody = JSON.parse(responseText); } catch { responseBody = responseText; }
+  }
+  if (!response.ok) throw new Error(`Hotels API returned HTTP ${response.status}.`);
+  return { status: response.status, data: responseBody };
 }
 
-function validateCookieFile(cookieFile) {
-  if (typeof cookieFile !== "string" || !cookieFile.startsWith("/")) {
-    throw new Error("cookieFile must be an absolute path to a local file.");
-  }
-  if (!existsSync(cookieFile) || !statSync(cookieFile).isFile()) {
-    throw new Error("cookieFile must point to an existing regular file.");
-  }
-}
-
-function runAgentBrowser(session, args, { headed = false } = {}) {
-  return new Promise((resolve, reject) => {
-    const commandArgs = ["--session", session];
-    if (headed) commandArgs.push("--headed");
-    commandArgs.push(...args);
-    const child = spawn("agent-browser", commandArgs, { stdio: ["ignore", "pipe", "pipe"] });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk) => { stdout += chunk; });
-    child.stderr.on("data", (chunk) => { stderr += chunk; });
-    child.on("error", (spawnError) => reject(new Error(`Unable to start agent-browser: ${spawnError.message}`)));
-    child.on("close", (code) => {
-      if (code === 0) resolve(stdout.trim());
-      else reject(new Error((stderr || stdout || `agent-browser exited with code ${code}`).trim()));
-    });
-  });
-}
-
-async function snapshot(session) {
-  const output = await runAgentBrowser(session, ["snapshot", "-i", "-c"]);
-  snapshotsBySession.set(session, output);
-  return output;
-}
-
-async function openAndSnapshot(session, url, options) {
-  await runAgentBrowser(session, ["open", url], options);
-  await runAgentBrowser(session, ["wait", "--load", "networkidle"]);
-  return snapshot(session);
+function version(args, fallback, allowed) {
+  const selected = args.apiVersion ?? fallback;
+  if (!allowed.includes(selected)) throw new Error(`apiVersion must be one of: ${allowed.join(", ")}.`);
+  return selected;
 }
 
 async function callTool(name, args = {}) {
-  const session = sessionName(args.session);
+  if (!args || typeof args !== "object" || Array.isArray(args)) throw new Error("Tool arguments must be an object.");
+  const mutation = tools.find((tool) => tool.name === name && tool._action);
+  if (mutation) return callMutation(mutation, args);
   switch (name) {
-    case "tbank_hotels_open":
-      return text(await openAndSnapshot(session, HOTELS_HOME));
-    case "tbank_hotels_start_login": {
-      await runAgentBrowser(session, ["open", HOTELS_HOME], { headed: true });
-      await runAgentBrowser(session, ["wait", "--load", "networkidle"]);
-      await runAgentBrowser(session, ["find", "role", "button", "click", "--name", "Личный кабинет"]);
-      await runAgentBrowser(session, ["find", "role", "link", "click", "--name", "Интернет-банк"]);
-      return text(`Окно входа открыто. Завершите вход вручную в видимом браузере, затем вызовите tbank_hotels_snapshot.\n\n${await snapshot(session)}`);
+    case "tbank_hotels_connection_status": return connectionStatus();
+    case "tbank_hotels_get_customer": return apiRequest("GET", "/api/v1/auth/customerdata");
+    case "tbank_hotels_search": return apiRequest("POST", "/api/v1/hotels/search", args);
+    case "tbank_hotels_get_search_filters": return apiRequest("GET", `/api/${version(args, "v1", ["v1", "v2"])}/hotels/search-filters`);
+    case "tbank_hotels_get_filter_availability": return apiRequest("POST", "/api/v1/hotels/search-filters-availability", args);
+    case "tbank_hotels_search_map": return apiRequest("POST", "/api/v1/hotels/map/search", args);
+    case "tbank_hotels_get_map_hotels": return apiRequest("POST", "/api/v1/hotels/map/hotels", args);
+    case "tbank_hotels_search_points_of_interest": {
+      if (!["search", "landmarks", "groups"].includes(args.mode)) throw new Error("mode must be search, landmarks, or groups.");
+      return apiRequest("POST", `/api/v1/points_of_interest/${args.mode}`, args);
     }
-    case "tbank_hotels_import_auth_cookies":
-      validateCookieFile(args.cookieFile);
-      await runAgentBrowser(session, ["cookies", "set", "--curl", args.cookieFile]);
-      return text(`Cookie-сессия импортирована.\n\n${await openAndSnapshot(session, HOTELS_HOME)}`);
-    case "tbank_hotels_open_favorites":
-      return text(await openAndSnapshot(session, `${HOTELS_HOME}favorite/`));
-    case "tbank_hotels_open_orders":
-      return text(await openAndSnapshot(session, `${BANK_ORIGIN}/mybank/gorod/orders/?previousPageUrl=/travel/hotels/new/`));
-    case "tbank_hotels_open_order":
-      return text(await openAndSnapshot(session, `${HOTELS_HOME}orders/${numericId(args.orderId, "orderId")}/`));
-    case "tbank_hotels_open_city": {
-      const country = slug(args.countrySlug, "countrySlug");
-      const city = slug(args.citySlug, "citySlug");
-      return text(await openAndSnapshot(session, `${HOTELS_HOME}countries/${country}/${city}/`));
+    case "tbank_hotels_get_hotel": return apiRequest("GET", `/api/v1/hotels/${value(args.hotelId, "hotelId")}`, args);
+    case "tbank_hotels_get_hotel_rates": { const v = version(args, "v3", ["v2", "v3"]); return apiRequest("POST", `/api/${v}/hotels/${value(args.hotelId, "hotelId")}/rates`, args); }
+    case "tbank_hotels_get_rate": { const v = version(args, "v3", ["v2", "v3"]); return apiRequest("GET", `/api/${v}/rates/${value(args.bookHash, "bookHash")}`, args); }
+    case "tbank_hotels_get_cashback_percent": return apiRequest("GET", `/api/v1/hotels/cashback/percent-by-account/${value(args.bookHash, "bookHash")}`);
+    case "tbank_hotels_get_max_cashback": return apiRequest("GET", "/api/v1/hotels/cashback/max-percent");
+    case "tbank_hotels_validate_promocode": return apiRequest("POST", "/api/v1/hotels/promocodes/validate", args);
+    case "tbank_hotels_get_rate_upgrade": return apiRequest("POST", `/api/v1/hotels/rates/${value(args.bookHash, "bookHash")}/upgrade`, args);
+    case "tbank_hotels_get_booking": { const v = version(args, "v3", ["v1", "v2", "v3"]); return apiRequest("GET", `/api/${v}/hotels/bookings/${value(args.orderId, "orderId")}`, args); }
+    case "tbank_hotels_list_bookings": return apiRequest("POST", "/api/v1/hotels/bookings/booking_list", args);
+    case "tbank_hotels_get_voucher": return apiRequest("GET", `/api/v1/hotels/bookings/voucher/${value(args.orderId, "orderId")}`);
+    case "tbank_hotels_get_reservation": return apiRequest("GET", "/api/v1/hotels/bookings/getReservation", args);
+    case "tbank_hotels_get_evo_booking": return apiRequest("GET", `/api/v1/hotels/bookings/evo/${value(args.orderId, "orderId")}`);
+    case "tbank_hotels_get_bnpl_offer": return apiRequest("POST", `/api/v1/hotels/bookings/evo/${value(args.orderId, "orderId")}/bnpl_offer`, args);
+    case "tbank_hotels_get_booking_task_status": return apiRequest("GET", `/api/v1/hotels/bookings/tasks/${value(args.taskId, "taskId")}/status`);
+    case "tbank_hotels_check_ls_order": return apiRequest("GET", `/api/v1/hotels/bookings/ls/check_orders/${value(args.orderId, "orderId")}`);
+    case "tbank_hotels_get_reviews": {
+      if (!["ratings", "summary", "feedback", "feedback-filters"].includes(args.resource)) throw new Error("resource is unsupported.");
+      return apiRequest("GET", `/api/v1/review/${value(args.hotelId, "hotelId")}/${args.resource}`, args);
     }
-    case "tbank_hotels_open_search_results": {
-      const country = slug(args.countrySlug, "countrySlug");
-      const city = slug(args.citySlug, "citySlug");
-      const range = dateRange(args.checkIn, args.checkOut);
-      const guestCount = guests(args.guests);
-      const params = new URLSearchParams({ dateFrom: range.checkIn, dateTo: range.checkOut, guests: String(guestCount) });
-      return text(await openAndSnapshot(session, `${HOTELS_HOME}countries/${country}/${city}/?${params}`));
+    case "tbank_hotels_get_review_order_status": return apiRequest("GET", `/api/v1/review/order-status/${value(args.orderId, "orderId")}`);
+    case "tbank_hotels_search_seo": return apiRequest("POST", `/api/${version(args, "v3", ["v1", "v2", "v3"])}/seo/search`, args);
+    case "tbank_hotels_search_urls": return apiRequest("POST", `/api/${version(args, "v3", ["v1", "v2", "v3"])}/hotels/urls/search`, args);
+    case "tbank_hotels_get_seo_resource": return seoResource(args);
+    case "tbank_hotels_get_deeplink_token": {
+      if (args.kind === "general") return apiRequest("GET", "/api/v1/get-link-token");
+      if (args.kind === "hotels-urls") return apiRequest("GET", "/api/v1/hotels/urls/link-token");
+      throw new Error("kind must be general or hotels-urls.");
     }
-    case "tbank_hotels_open_hotel":
-      return text(await openAndSnapshot(session, `${HOTELS_HOME}hotels/${numericId(args.hotelId, "hotelId")}/`));
-    case "tbank_hotels_open_booking_preview": {
-      const hotelId = numericId(args.hotelId, "hotelId");
-      const range = dateRange(args.checkIn, args.checkOut);
-      const guestCount = guests(args.guests);
-      return text(await openAndSnapshot(session, hotelPreviewUrl(hotelId, range.checkIn, range.checkOut, guestCount)));
-    }
-    case "tbank_hotels_fill_destination":
-      if (typeof args.destination !== "string" || args.destination.trim().length === 0 || args.destination.length > 160) {
-        throw new Error("destination must be a non-empty string of at most 160 characters.");
-      }
-      await openAndSnapshot(session, HOTELS_HOME);
-      await runAgentBrowser(session, ["find", "first", "input", "fill", args.destination.trim()]);
-      await runAgentBrowser(session, ["wait", "750"]);
-      return text(await snapshot(session));
-    case "tbank_hotels_arm_user_action": {
-      const armed = armAction(session, args.ref);
-      return text(`Action prepared but not performed: ${armed.label}\n\nShow this exact action to the user and obtain an explicit confirmation immediately before execution. Then call tbank_hotels_execute_armed_action with actionId ${armed.actionId} and confirmation ${armed.confirmation}. The confirmation expires in 5 minutes.`);
-    }
-    case "tbank_hotels_execute_armed_action":
-      return text(await executeArmedAction(args.actionId, args.confirmation));
-    case "tbank_hotels_snapshot":
-      return text(await snapshot(session));
-    case "tbank_hotels_click":
-      requireSafeRef(session, args.ref);
-      await runAgentBrowser(session, ["click", args.ref]);
-      return text(await snapshot(session));
-    case "tbank_hotels_press":
-      await runAgentBrowser(session, ["press", args.key]);
-      return text(await snapshot(session));
-    case "tbank_hotels_current_url":
-      return text(await runAgentBrowser(session, ["get", "url"]));
-    case "tbank_hotels_close":
-      await runAgentBrowser(session, ["close"]);
-      snapshotsBySession.delete(session);
-      for (const [actionId, armed] of armedActionsById.entries()) if (armed.session === session) armedActionsById.delete(actionId);
-      return text("Browser session closed.");
-    default:
-      throw new Error(`Unknown tool: ${name}`);
+    case "tbank_hotels_get_available_tranche_amount": return apiRequest("POST", "/api/v1/tranches/available/amount", args);
+    case "tbank_hotels_get_partner_redirect_url": return apiRequest("POST", `/api/v1/partners/${value(args.partnerAlias, "partnerAlias")}/redirectUrl`, args);
+    default: throw new Error(`Unknown tool: ${name}`);
   }
 }
 
-function response(id, result) {
-  return { jsonrpc: "2.0", id, result };
+function seoResource(args) {
+  switch (args.resource) {
+    case "hotel": return apiRequest("GET", `/api/v1/seo/hotels/${value(args.id, "id")}`, args);
+    case "region": return apiRequest("GET", `/api/v1/seo/regions/${value(args.id, "id")}`, args);
+    case "available-filters": return args.id ? apiRequest("GET", `/api/v1/seo/available-filters/${value(args.id, "id")}`, args) : apiRequest("GET", "/api/v1/seo/available-filters", args);
+    case "locations": return apiRequest("GET", "/api/v1/seo/locations", args);
+    case "location-by-slug": return apiRequest("GET", "/api/v1/seo/location-by-slug", args);
+    case "rooms": return apiRequest("GET", `/api/v1/seo/rooms/${value(args.id, "id")}`, args);
+    case "slug-by-hotel": return apiRequest("GET", `/api/v1/seo/slug-by-hotel/${value(args.id, "id")}`, args);
+    default: throw new Error("resource is unsupported.");
+  }
 }
 
-function error(id, code, message) {
-  return { jsonrpc: "2.0", id, error: { code, message } };
+async function callMutation(tool, args) {
+  requestObject(args.payload);
+  const path = mutationPath(tool._action, args);
+  const hash = requestHash(tool._action, path, args);
+  const phrase = confirmationPhrase(tool._action, hash);
+  if (!tool._execute) {
+    return {
+      action: tool._action,
+      requestHash: hash,
+      confirmation: phrase,
+      endpoint: path,
+      payloadPreview: redactPreview(args.payload),
+      note: "HTTP-запрос не выполнен. Получите явное подтверждение пользователя непосредственно перед execute-вызовом.",
+    };
+  }
+  if (args.preparedRequestHash !== hash) throw new Error("preparedRequestHash does not match this exact request. Prepare and review the action again.");
+  if (args.confirmation !== phrase) throw new Error("confirmation must exactly match the phrase returned by the corresponding prepare call.");
+  return apiRequest("POST", path, args);
 }
 
-function write(message) {
-  process.stdout.write(`${JSON.stringify(message)}\n`);
-}
+function response(id, result) { return { jsonrpc: "2.0", id, result }; }
+function error(id, code, message) { return { jsonrpc: "2.0", id, error: { code, message } }; }
+function write(message) { process.stdout.write(`${JSON.stringify(message)}\n`); }
 
 async function handle(request) {
   if (request.id === undefined) return;
-  if (request.jsonrpc !== "2.0") {
-    write(error(request.id ?? null, -32600, "Invalid JSON-RPC version."));
-    return;
-  }
+  if (request.jsonrpc !== "2.0") return write(error(request.id ?? null, -32600, "Invalid JSON-RPC version."));
   if (request.method === "initialize") {
-    write(response(request.id, {
+    return write(response(request.id, {
       protocolVersion: request.params?.protocolVersion ?? "2025-03-26",
       capabilities: { tools: { listChanged: false } },
-      serverInfo: { name: "tbank-hotels-browser-mcp", version: "0.1.0" },
-      instructions: "Use the browser only for T-Bank Hotels. Complete login manually or import a local cookie file. For booking, payment, purchase, confirmation, cancellation, favorites, or downloads, first prepare the exact visible action, then obtain explicit user confirmation immediately before executing it through the one-time confirmation protocol.",
+      serverInfo: { name: SERVER_NAME, version: SERVER_VERSION },
+      instructions: "API-driven T-Bank Hotels MCP. Configure the base URL and authentication only through environment variables. This server does not use a browser, cookies, local browser state, or stored user sessions. Calls that can create a booking, set up a payment, cancel a booking, apply a promocode, or update extra services require a stateless prepare/execute confirmation protocol.",
     }));
-    return;
   }
-  if (request.method === "tools/list") {
-    write(response(request.id, { tools }));
-    return;
-  }
+  if (request.method === "tools/list") return write(response(request.id, { tools: tools.map(({ _action, _execute, ...tool }) => tool) }));
   if (request.method === "tools/call") {
-    try {
-      const content = await callTool(request.params?.name, request.params?.arguments);
-      write(response(request.id, { content: [content], isError: false }));
-    } catch (toolError) {
-      write(response(request.id, { content: [text(toolError.message)], isError: true }));
-    }
-    return;
+    try { return write(response(request.id, { content: [text(await callTool(request.params?.name, request.params?.arguments))], isError: false })); }
+    catch (toolError) { return write(response(request.id, { content: [text(toolError.message)], isError: true })); }
   }
-  write(error(request.id, -32601, "Method not found."));
+  return write(error(request.id, -32601, "Method not found."));
 }
 
 const input = createInterface({ input: process.stdin, crlfDelay: Infinity });
-input.on("line", (line) => {
-  try {
-    void handle(JSON.parse(line));
-  } catch {
-    write(error(null, -32700, "Parse error."));
-  }
-});
+input.on("line", (line) => { try { void handle(JSON.parse(line)); } catch { write(error(null, -32700, "Parse error.")); } });

@@ -1,9 +1,15 @@
 {
-  "name": "tbank-hotels-browser-mcp",
-  "version": "0.1.0",
+  "name": "@travel-assistant/tbank-hotels-mcp",
+  "version": "0.2.0",
   "private": true,
-  "description": "Browser-driven MCP for T-Bank Hotels flows.",
+  "description": "API-driven MCP for T-Bank Hotels flows.",
   "type": "module",
+  "bin": {
+    "tbank-hotels-mcp": "src/server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/server.mjs",
     "test": "node --test test/*.test.mjs"
