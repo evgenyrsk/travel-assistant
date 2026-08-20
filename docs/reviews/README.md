@@ -28,6 +28,8 @@
 
 | Документ | Роль | Как читать |
 |---|---|---|
+| `tbank-hotels-mcp-0.8.0-progress-checkpoint.md` | Completed progress checkpoint / MCP 0.8.0 | Фиксирует реализованный read-only journey и safe preview, текущие safety gates и handoff; дальнейшая исполнимая последовательность хранится только в `tools/tbank-hotels-mcp/docs/journey-tools-plan.md` |
+| `tbank-hotels-mcp-qwen-3-8-max-review-follow-up.md` | Review context / tool-local MCP audit | Фиксирует внешний review и triage Hotels MCP; активная последовательность исправлений хранится в `tools/tbank-hotels-mcp/docs/journey-tools-plan.md`, реальные mutating calls не разрешает |
 | `documentation-redundancy-structure-audit.md` | Review context / Stage 7.0e audit | Deep audit структуры документации. Его findings читаются как context для bounded cleanup tasks, а не как open-ended blocker. |
 | `stage-7-status-navigation-sync-cleanup.md` | Completed cleanup report / Stage 7.0f-a | Подтверждает, что stale active wording про pending restart readiness review удален из active/navigation/source-of-truth docs. |
 | `stage-7-reviews-index-historical-labeling-cleanup.md` | Completed cleanup report / Stage 7.0f-b | Фиксирует создание этого reviews index и минимальную historical role labeling работу. |

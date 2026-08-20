@@ -5,9 +5,9 @@ Node.js 20+, поэтому его можно подключить к Codex, Cla
 любому другому MCP-клиенту без расширения браузера, cookie и сохранённой
 браузерной сессии.
 
-Сервер использует только явную конфигурацию API transport. Токены остаются в
-переменных окружения процесса: MCP не принимает их как аргументы инструментов,
-не записывает на диск и не выводит в ответах.
+Сервер использует только явную конфигурацию API transport. Токены и ключи
+остаются в переменных окружения процесса: MCP не принимает их как аргументы
+инструментов, не записывает на диск и не выводит в ответах.
 
 ## Подключение
 
@@ -29,9 +29,51 @@ export TBANK_HOTELS_AUTH_TOKEN='<token>'
 export TBANK_HOTELS_AUTH_HEADERS_JSON='{"X-Integration-Token":"<token>","X-Client-Id":"<client-id>"}'
 ```
 
-Cookie, SSO-заголовки и обновление токена не используются. Если production API
+Cookie и SSO-заголовки не используются. Static token profile не обновляет токен;
+service JWT profile ниже выпускает подпись локально. Если production API
 потребует несколько заголовков, их можно передать в JSON без изменения MCP
 tools.
+
+### Service JWT для `HotelsApiPrivate`
+
+Для конфигурации Hotels, предоставленной владельцем API, MCP умеет сам
+подписывать service JWT алгоритмом `RS384`. В JWT записываются claims `iss`,
+`aud` (массив значений через запятую) и `iat`; подпись обновляется локально раз
+в 30 секунд. Это отдельный auth-profile: не сочетайте его с token или JSON
+headers profile.
+
+```bash
+export TBANK_HOTELS_API_BASE_URL='https://hotels-private.tcsbank.ru/'
+export TBANK_HOTELS_JWT_ISSUER='HOTELSSEARCHAPI'
+export TBANK_HOTELS_JWT_AUDIENCE='HOTELSAPI'
+export TBANK_HOTELS_JWT_PRIVATE_KEY="$(< /secure/path/hotels-qa-rsa-key.pem)"
+```
+
+Ключ может быть полным PEM PKCS#1/PKCS#8 либо телом PKCS#1 без PEM-заголовков.
+Его выдаёт владелец QA-интеграции; не добавляйте ключ в конфигурацию MCP,
+репозиторий или сообщение модели. В соответствии с показанным Hotels Go-client
+заголовок по умолчанию формируется как `Authorization: Bearer<JWT>` — без
+автоматически добавляемого пробела. Для утверждённого API-варианта можно
+переопределить имя и префикс:
+
+```bash
+export TBANK_HOTELS_JWT_AUTH_HEADER='Authorization'
+export TBANK_HOTELS_JWT_AUTH_PREFIX='Bearer '
+```
+
+`service_jwt` удостоверяет MCP как сервис, но не заменяет пользовательскую
+авторизацию, если конкретный endpoint требует customer context.
+В этом режиме `connection_status` возвращает `canReadCustomer=false`, а
+`get_customer` завершается локальной диагностикой без заведомо бесполезного
+HTTP-запроса и ответа `401`.
+
+Переданный OpenAPI помечает HTTP-header `x-real-ip` обязательным для обычного и
+LS-создания брони. Это исходный IP клиента, обычно используемый antifraud и
+аудитом. MCP не спрашивает его у пользователя, не вычисляет самостоятельно и
+не принимает как tool argument. Источник должен определить владелец API или
+доверенный gateway. Для `payment/setup` доступный v1-контракт `x-real-ip` не
+требует. Пока источник не подтверждён, один `service_jwt` не считается готовым
+booking execution profile.
 
 Необязательная настройка таймаута:
 
@@ -57,20 +99,30 @@ export TBANK_HOTELS_TIMEOUT_MS=15000
 
 ## Контракт MCP
 
-Инструменты возвращают ответ provider как `{ status, data }`. Их `payload`
-передаётся без преобразования в соответствующий OpenAPI request body, поэтому
-потребитель должен использовать типы из официальных v1–v3-контрактов. Это
-исключает догадки о полях, которые не подтверждены спецификацией.
+Низкоуровневые инструменты возвращают ответ provider как `{ status, data }` и
+предназначены для интеграторов, которым нужен точный v1–v3 контракт. Основной
+journey-инструмент `tbank_hotels_plan_stay` принимает пользовательские параметры,
+сам разрешает название локации в `destinationId`, валидирует даты и гостей и
+создаёт корректный `SearchParametersListApiRequest`.
+
+Это скрывает provider DTO на шагах поиска, сравнения и получения тарифов:
+`get_selected_stay_rates` сам переносит даты и состав гостей из journey.
+Подтверждённые контракты обычной и LS-брони, списка броней, отмены, промокода,
+дополнительных услуг и рассрочки также представлены typed-полями. Auth-модель,
+обязательные request headers и idempotency реальных mutations пока имеют
+contract gaps, перечисленные в tool-local плане развития.
 
 | Группа | Инструменты |
 | --- | --- |
 | Проверка transport/auth | `tbank_hotels_connection_status`, `tbank_hotels_get_customer` |
-| Поиск по локации и точному отелю | `tbank_hotels_search`, `tbank_hotels_get_search_filters`, `tbank_hotels_get_filter_availability`, `tbank_hotels_search_map`, `tbank_hotels_get_map_hotels`, `tbank_hotels_search_points_of_interest` |
+| Поиск и разрешение локации | `tbank_hotels_resolve_destination`, `tbank_hotels_plan_stay`, `tbank_hotels_search`, `tbank_hotels_get_search_filters`, `tbank_hotels_get_filter_availability`, `tbank_hotels_search_map`, `tbank_hotels_get_map_hotels`, `tbank_hotels_search_points_of_interest` |
 | Карточка, номера и тарифы | `tbank_hotels_get_hotel`, `tbank_hotels_get_hotel_rates`, `tbank_hotels_get_rate`, `tbank_hotels_get_cashback_percent`, `tbank_hotels_get_max_cashback`, `tbank_hotels_validate_promocode`, `tbank_hotels_get_rate_upgrade` |
 | Отзывы, SEO и deeplink | `tbank_hotels_get_reviews`, `tbank_hotels_get_review_order_status`, `tbank_hotels_search_seo`, `tbank_hotels_search_urls`, `tbank_hotels_get_seo_resource`, `tbank_hotels_get_deeplink_token`, `tbank_hotels_get_partner_redirect_url` |
 | Рассрочка | `tbank_hotels_get_available_tranche_amount`, `tbank_hotels_get_bnpl_offer` |
 | Авторизованные заказы | `tbank_hotels_get_booking`, `tbank_hotels_list_bookings`, `tbank_hotels_get_voucher`, `tbank_hotels_get_reservation`, `tbank_hotels_get_evo_booking`, `tbank_hotels_get_bnpl_offer`, `tbank_hotels_get_booking_task_status`, `tbank_hotels_check_ls_order` |
 | Изменяющие операции | `tbank_hotels_prepare_*` и `tbank_hotels_execute_*` для обычной и LS-брони, отмены, setup оплаты, промокода и дополнительных услуг |
+| Journey-сценарий | `tbank_hotels_plan_stay`, `tbank_hotels_get_stay_options`, `tbank_hotels_compare_stay_options`, `tbank_hotels_select_stay_option`, `tbank_hotels_get_selected_stay_rates`, `tbank_hotels_select_stay_rate`, `tbank_hotels_repeat_stay_plan` |
+| Journey checkout и заказ | `tbank_hotels_create_booking_preview`, `tbank_hotels_create_booking_draft`, `tbank_hotels_validate_checkout`, `tbank_hotels_prepare_draft_booking`, `tbank_hotels_confirm_booking`, `tbank_hotels_get_booking_overview`, `tbank_hotels_preview_cancellation` |
 
 По умолчанию для чтения заказа, тарифов, SEO и URL выбран v3; аргумент
 `apiVersion` позволяет явно выбрать поддерживаемую версию (`v1`, `v2`, `v3`) в
@@ -80,22 +132,160 @@ export TBANK_HOTELS_TIMEOUT_MS=15000
 изменения отзывов: они не являются переносимой клиентской Hotels-функцией либо
 требуют отдельного официального контракта и security review.
 
+### Journey-сценарий
+
+Обычный поиск не требует знания provider DTO:
+
+```json
+{
+  "destination": "Москва",
+  "checkinDate": "2026-09-15",
+  "checkoutDate": "2026-09-16",
+  "rooms": [{ "adults": 2, "childrenAges": [] }],
+  "language": "ru-RU",
+  "ranking": "provider_order",
+  "maxOptions": 20
+}
+```
+
+MCP загружает каталог `/api/v1/seo/locations`, выбирает однозначную локацию и
+передаёт в поиск `destinationId`, даты и `guests[].adultsCount`. Для
+неоднозначного названия `plan_stay` возвращает `clarification_required` с
+кандидатами и не вызывает hotel search. Для конкретного отеля можно добавить
+`hotelName`: совпадение выполняется только среди provider results выбранной
+локации. Глобальный поиск отеля по одному названию не заявлен, поскольку в
+полученных контрактах нет подтверждённого endpoint.
+
+`plan_stay` собирает выдачу по `nextOffset` и повторно опрашивает текущую
+страницу, если provider вернул `isLoadingCompleted=false` без нового offset.
+Каталог локаций имеет отдельный общий бюджет 10 секунд, чтобы cold-cache lookup
+не занял десятки последовательных provider timeouts. Сбор отелей ограничен 20 HTTP-запросами, тремя дополнительными опросами одной
+частично загруженной страницы и общим бюджетом 11 секунд. Если дополнительная
+страница не успевает ответить, MCP возвращает уже собранные варианты с
+`truncated=true`, а не заставляет весь tool-вызов упасть по таймауту. Дубли
+удаляются по `hotelId`, а при его отсутствии — по хэшу полного provider-объекта.
+Ответ содержит `searchCoverage`: число собранных отелей и запросов, provider
+counts, признак завершённой загрузки, применённый `providerSort` и флаг
+`truncated`. Поэтому агент может явно сообщить, сравнивает ли он полную
+подтверждённую выдачу или ограниченное окно результатов. `maxOptions` влияет
+только на число вариантов непосредственно в ответе `plan_stay`, но не обрезает
+сохраняемую в journey выборку.
+
+Успешный вызов возвращает непрозрачный `journeyId`. В пределах 60 минут можно
+получить варианты, детерминированно выбрать `provider_order`, `lowest_price`
+или `highest_rating`, сравнить 2–5 вариантов, выбрать один и загрузить тарифы
+без передачи provider `hotelId` между вызовами. После выбора тарифа MCP может
+сформировать безопасный локальный `booking preview` без ФИО, email и телефона.
+Такой preview не создаёт draft, не проверяет checkout и не вызывает Hotels API.
+Реальные guest PII нужны только после явного намерения оформить бронь и при
+готовом execution profile. Затем MCP может сформировать черновик брони без
+`bookHash` в аргументах клиента, повторно
+проверить checkout и принять одно явное подтверждение перед созданием брони.
+Контекст не включает токен или auth headers и удаляется при перезапуске MCP.
+Booking draft получает собственный 60-минутный TTL, поэтому длительный диалог
+не делает свежий черновик зависимым от остатка жизни исходного journey.
+
+Ответ rates различает `ready`, `no_bookable_rates` и
+`rates_temporarily_unavailable`. Если provider вернул пустой массив `rates`,
+search-feed цена остаётся только информационным фактом: без
+`rateOptionId`/`bookHash` MCP не позволяет выбирать тариф, запрашивать
+персональные данные гостей или создавать booking draft. Если обе timeout-попытки
+исчерпали общий бюджет, MCP возвращает структурированный результат и запрещает
+LLM автоматически повторять тот же вызов.
+
+Хотя OpenAPI перечисляет `review_rating` и `price` в search sort, проверенный
+production endpoint отвечает `sorting_is_not_allowed_yet`. Поэтому MCP не
+отправляет `sort`: `highest_rating` и `lowest_price` применяются локально ко
+всей собранной выборке. Локальный `highest_rating` сравнивает только числовой
+рейтинг и сохраняет исходный порядок при равенстве; число отзывов не
+используется как дополнительный вес. `provider_order` сохраняет порядок
+собранной provider-выдачи. Если `get_stay_options` или
+`compare_stay_options` вызываются без `ranking`, они наследуют стратегию из
+исходного `plan_stay`.
+
+Для формулировок «лучшие», «самые дешёвые» или «с самым высоким рейтингом»
+`compare_stay_options` применяет переданный `ranking` ко всем сохранённым
+вариантам journey. Даже если модель одновременно передала `optionIds`, явный
+`ranking` имеет приоритет, поэтому сравнение не сужается до вручную выбранного
+моделью подмножества. `optionIds` используются только без `ranking`, когда
+пользователь сам назвал конкретные варианты для сравнения.
+
+Локальная валидация отклоняет неправильный диапазон дат, пустые комнаты,
+некорректное число взрослых и возраст детей до HTTP-запроса. Provider error
+возвращает только HTTP status, безопасный error code и request ID; произвольное
+тело ошибки не раскрывается модели. `tbank_hotels_connection_status` локально
+проверяет не только наличие настроек, но и формат URL/auth profile и способность
+создать service JWT. `ready`/`searchReady` относятся к read-only transport;
+`customerReadiness` и `bookingExecution` возвращаются отдельно. Вызов не
+обращается к Hotels API.
+
+MCP metadata помечает фактически изменяющие инструменты как mutating, а
+read-only и prepare-инструменты — как безопасные для предварительного вызова.
+Число одновременно хранимых journey, booking drafts и location caches
+ограничено; при переполнении удаляется контекст с самым ранним сроком жизни.
+Каталог локаций читается ограниченными страницами. Redirect с credentialed
+запросов запрещён, provider response ограничен 2 MiB, а price ranking не
+смешивает неизвестные или разные валюты.
+
 ## Бронь, отмена и оплата
 
-Для каждой изменяющей операции есть пара `prepare` → `execute`:
+Для каждой изменяющей операции есть пара `prepare` → `execute`. Полный набор
+данных подтверждения формируется только когда соответствующий execution profile
+готов:
 
 1. `prepare` не вызывает API, ничего не бронирует и не списывает. Он возвращает
-   endpoint, безопасный preview payload, `requestHash` и точную фразу
-   подтверждения.
+   endpoint, безопасный preview payload, `requestHash`, `preparedAt`,
+   `expiresAt` и точную фразу подтверждения. Подтверждение живёт 5 минут.
 2. Покажите пользователю цену, условия, последствия и preview. Только после
    непосредственного явного согласия вызовите соответствующий `execute` с тем
-   же payload, `preparedRequestHash` и фразой подтверждения.
+   же typed-набором полей, `preparedRequestHash`, временными метками и фразой
+   подтверждения.
 
 Сервер повторно вычисляет хэш полного запроса. Изменение даже одного поля делает
-подтверждение недействительным. Pending action, пользовательская сессия и
-платёжное состояние в памяти сервера не хранятся. MCP не принимает номер карты,
+подтверждение недействительным. Для journey-брони draft хранит только локальное
+состояние `ready` / `confirming` / `outcome_unknown`: параллельный confirm не
+отправляет второй POST, а после timeout/network/5xx с неизвестным исходом
+автоматический retry блокируется до внешней сверки task/order status.
+Generic execute-tools аналогично отслеживаются по `requestHash`: параллельный
+вызов, replay завершённого действия и повтор после неизвестного исхода
+отклоняются до истечения локального окна. Пользовательская сессия и платёжное
+состояние не хранятся. MCP не принимает номер карты,
 CVV, пароль или одноразовый код; если официальный payment contract требует их,
 нужен отдельный защищённый payment-hand-off.
+
+Реальные mutations дополнительно заблокированы по умолчанию. Даже точное
+подтверждение не отправит HTTP write-запрос без отдельной переменной:
+
+```bash
+export TBANK_HOTELS_ENABLE_MUTATIONS=true
+```
+
+Одного флага недостаточно: booking/LS execution дополнительно требует валидный
+transport/auth profile и настроенный доверенный `x-real-ip`. Не включайте
+execution для production, пока владелец Hotels API не подтвердит customer auth,
+источник headers, idempotency и timeout recovery. `connection_status` показывает
+раздельную готовность, но не раскрывает значения headers или секреты.
+
+При неготовом execution profile journey и низкоуровневые prepare-tools
+возвращают `executionAvailable=false` и `status=preview_only` без вычислимой
+фразы подтверждения и без предложения пользователю оформить действие.
+Execute-tools проверяют readiness до TTL/hash, поэтому не запускают бесполезную
+повторную подготовку. Checkout после успешной проверки считается
+свежим 5 минут; один сетевой timeout повторяется внутри tool в общем бюджете
+13 секунд. Загрузка тарифов также безопасно повторяет один timeout внутри
+`get_selected_stay_rates`: первая попытка ограничена 5 секундами, обе попытки —
+общим бюджетом 13 секунд. Ответ сообщает `attempts`, `durationMs` и
+`failureKind`, поэтому LLM не должна самостоятельно перебирать одинаковые
+вызовы.
+
+Черновик также возвращает `guestCoverage`: сопоставление числа указанных имён с
+составом гостей поиска. Это предупреждение, а не выдуманное ограничение:
+доступный OpenAPI не задаёт обязательного равенства этих количеств.
+
+Если `bookingExecution.available=false`, агент должен использовать
+`tbank_hotels_create_booking_preview`, показать выбранный тариф и состав гостей,
+а затем остановиться без запроса PII и финального подтверждения. Инструмент не
+возвращает `bookHash` и не подставляет вымышленные персональные данные.
 
 ## Проверка
 
@@ -104,5 +294,17 @@ cd tools/tbank-hotels-mcp
 npm test
 ```
 
-Тесты проверяют MCP-протокол, конфигурационные границы и stateless confirmation
-без сетевых вызовов к Т-Банку.
+32 теста проверяют MCP-протокол, конфигурационные границы и stateless confirmation
+без сетевых вызовов к Т-Банку. Test subprocess получает allowlist окружения и
+не наследует `TBANK_HOTELS_*` родительского shell; отдельный regression test
+фиксирует эту границу. Provider-вызовы в тестах перехватываются локальными
+fake transport implementations.
+
+Порядок развития высокоуровневых journey-инструментов находится в
+[`docs/journey-tools-plan.md`](docs/journey-tools-plan.md). Готовый промпт для
+независимого review-only аудита всего MCP находится в
+[`docs/mcp-review-prompt.md`](docs/mcp-review-prompt.md). Результат и triage
+Qwen 3.8 Max review зафиксированы в
+[`../../docs/reviews/tbank-hotels-mcp-qwen-3-8-max-review-follow-up.md`](../../docs/reviews/tbank-hotels-mcp-qwen-3-8-max-review-follow-up.md).
+Текущее состояние версии `0.8.0`, safety gates и handoff сохранены в
+[`../../docs/reviews/tbank-hotels-mcp-0.8.0-progress-checkpoint.md`](../../docs/reviews/tbank-hotels-mcp-0.8.0-progress-checkpoint.md).
