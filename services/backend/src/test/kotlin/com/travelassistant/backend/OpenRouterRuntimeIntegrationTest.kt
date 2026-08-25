@@ -33,6 +33,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -81,6 +84,7 @@ class OpenRouterRuntimeIntegrationTest {
             application {
                 moduleWithProviderConfigs(
                     llmProviderConfig = openRouterProviderConfig(),
+                    clock = FIXED_CLOCK,
                     openRouterHttpClientFactory = { openRouterClient },
                 )
             }
@@ -192,6 +196,7 @@ class OpenRouterRuntimeIntegrationTest {
             application {
                 moduleWithProviderConfigs(
                     llmProviderConfig = openRouterProviderConfig(),
+                    clock = FIXED_CLOCK,
                     openRouterHttpClientFactory = { openRouterClient },
                     openRouterDiagnosticObserver =
                         OpenRouterDiagnosticObserver(diagnosticEvents::add),
@@ -423,6 +428,9 @@ class OpenRouterRuntimeIntegrationTest {
         headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
 
     private companion object {
+        val FIXED_CLOCK: Clock =
+            Clock.fixed(Instant.parse("2026-07-18T10:00:00Z"), ZoneOffset.UTC)
+
         const val COMPLETE_HOTEL_REQUEST =
             "Найди отель в Казани с 10 по 14 августа 2026 года для двух взрослых без детей, одна комната"
         const val CONFIRMATION_QUESTION = "Найти отели по этим параметрам?"

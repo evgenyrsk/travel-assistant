@@ -18,13 +18,14 @@ README является входной картой проекта: он пом�
 ├── README.md            # Входная точка и навигация
 ├── .env.example         # Пример локальных переменных окружения
 ├── .gitignore           # Правила исключения локальных и сгенерированных файлов
-├── .github/             # Шаблоны GitHub issues и pull requests
+├── .github/             # GitHub Actions CI и шаблоны issues/pull requests
+├── .agent/              # Краткое persistent state существенной активной задачи
 ├── app/                 # Локальная demo shell MVP и отдельная диагностическая страница API
 ├── services/            # Backend-модули; services/backend содержит основу на Kotlin + Ktor
 ├── docs/                # Продуктовая, архитектурная и инженерная документация, а также roadmap
 ├── tests/               # Будущие тесты, fixtures и E2E-сценарии
 ├── tools/               # Изолированные evaluation и MCP-инструменты
-└── scripts/             # Будущие скрипты разработки и автоматизации
+└── scripts/             # Локальный launcher и repository verification entry point
 ```
 
 ## Карта документации
@@ -63,16 +64,20 @@ README является входной картой проекта: он пом�
 - `docs/development/documentation-guidelines.md` — documentation source-of-truth, navigation и language policy rules.
 - `docs/development/definition-of-done.md` — task completion criteria.
 - `docs/development/quality-gates.md` — supported validation gates и reporting expectations.
+- `docs/development/autonomous-engineering.md` — portable lifecycle, autonomy/escalation policy, recovery loop, persistent state и independent review.
 - `docs/development/roadmap.md` — компактный справочник по будущим направлениям разработки; не источник статусов и не активный список задач.
 - `docs/development/implementation-strategy.md` — справочная стратегия реализации и правила декомпозиции задач; не основной roadmap и не активный список реализации.
 - `services/backend/README.md` — инструкция по запуску backend на Kotlin + Ktor и описание текущих локальных endpoints.
 - `app/README.md` — запуск локальной demo shell и отдельной диагностической страницы.
 - `scripts/local-demo.mjs` — единый launcher локальной демонстрации MVP.
+- `scripts/verify.sh` — единый entry point для `docs`, `core` и `all` verification profiles.
+- `.github/workflows/core-verification.yml` — минимальный GitHub Actions gate для `./scripts/verify.sh core`.
+- `.agent/README.md` — правила краткого persistent state для длительных задач и handoff.
 - `docs/prompts/README.md` — индекс Codex prompt templates.
 - `docs/prompts/codex-task-template.md` — практический шаблон Codex для задач реализации и сопровождения.
 - `docs/prompts/codex-review-template.md` — практический шаблон Codex для задач только на проверку.
 - `docs/prompts/` — переиспользуемые правила и шаблоны Codex/opencode задач.
-- `.github/` — GitHub templates для постановки задач и описания pull requests.
+- `.github/` — GitHub Actions CI и templates для постановки задач и описания pull requests.
 
 ## Начало работы
 
@@ -86,6 +91,7 @@ README является входной картой проекта: он пом�
 - Переиспользуемый шаблон постановки задач находится в `docs/prompts/codex-task-template.md`; устаревший компактный шаблон сохранен только как совместимая переадресация.
 - Шаблон проверки без изменений кода находится в `docs/prompts/codex-review-template.md`; устаревший шаблон сохранен только как совместимая переадресация.
 - Основные правила работы с roadmap, границами задач, ADR, проверками, языком и отчетностью находятся в `AGENTS.md`; подробные правила реализации живут в `docs/development/**`.
+- Для существенных задач lifecycle и recovery policy находятся в `docs/development/autonomous-engineering.md`, а resumable state — в `.agent/`.
 - GitHub PR checklist находится в `.github/pull_request_template.md`.
 - Основной roadmap со статусами этапов находится в `docs/roadmap/roadmap.md`.
 - Верхнеуровневый список этапов находится в `docs/ROADMAP.md`.

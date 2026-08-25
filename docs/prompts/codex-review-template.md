@@ -2,6 +2,8 @@
 
 Use this template for review-only tasks. The review is read-only unless the prompt explicitly asks Codex to make fixes.
 
+For independent completion review, start from a fresh context when possible. Receive the original task and acceptance criteria, inspect the applicable project rules and final diff, and do not assume the implementation is correct. Return findings to the implementation loop; do not edit files unless a separate fixing task explicitly authorizes it.
+
 ## Required Context to Read
 
 - `AGENTS.md`
@@ -13,6 +15,8 @@ Use this template for review-only tasks. The review is read-only unless the prom
 - `docs/development/documentation-guidelines.md`
 - `docs/development/definition-of-done.md`
 - `docs/development/quality-gates.md`
+- `docs/development/autonomous-engineering.md`, for independent completion review of a substantial task
+- `.agent/README.md` and the current `.agent/task.md`, when persistent task state is used
 - `docs/architecture/architecture-baseline.md`, if architecture or backend scope is affected
 - `docs/architecture/backend-layering-rules.md`, if backend code is affected
 - `docs/development/kotlin-backend-style-guide.md`, if Kotlin backend code is affected
