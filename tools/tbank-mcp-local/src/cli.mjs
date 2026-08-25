@@ -106,6 +106,7 @@ export function runtimeEnvironment(component, config) {
 
 async function runInteractiveLogin(logout = false) {
   const config = readConfig();
+  if (logout) await stopBroker(config);
   const python = resolve(bankingRoot, ".venv/bin/python");
   const loginScript = resolve(bankingRoot, "login_cli.py");
   if (!existsSync(python) || !existsSync(loginScript)) {
@@ -122,30 +123,37 @@ async function runInteractiveLogin(logout = false) {
   process.exitCode = code ?? 1;
 }
 
-function brokerStatus(socketPath, timeoutMs = 300) {
+function brokerRequest(socketPath, client, method, params = {}, timeoutMs = 300) {
   return new Promise((resolvePromise) => {
-    if (!socketPath) return resolvePromise(false);
+    if (!socketPath) return resolvePromise(null);
     const connection = createConnection(socketPath);
     let settled = false;
     let response = "";
-    const finish = (ready) => {
+    const finish = (result) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
       connection.destroy();
-      resolvePromise(ready);
+      resolvePromise(result);
     };
-    const timer = setTimeout(() => finish(false), timeoutMs);
+    const timer = setTimeout(() => finish(null), timeoutMs);
     connection.setEncoding("utf8");
-    connection.on("connect", () => connection.write(`${JSON.stringify({ version: 2, client: "banking", method: "status", params: {} })}\n`));
+    connection.on("connect", () => connection.write(`${JSON.stringify({ version: 2, client, method, params })}\n`));
     connection.on("data", (chunk) => {
       response += chunk;
       if (!response.includes("\n")) return;
-      try { finish(JSON.parse(response.split("\n", 1)[0]).ok === true); } catch { finish(false); }
+      try {
+        const parsed = JSON.parse(response.split("\n", 1)[0]);
+        finish(parsed.ok === true ? parsed.result : null);
+      } catch { finish(null); }
     });
-    connection.on("error", () => finish(false));
-    connection.on("end", () => finish(false));
+    connection.on("error", () => finish(null));
+    connection.on("end", () => finish(null));
   });
+}
+
+async function brokerStatus(socketPath, timeoutMs = 300) {
+  return (await brokerRequest(socketPath, "lifecycle", "status", {}, timeoutMs)) !== null;
 }
 
 function scopedBrokerRequest(socketPath, method, params = {}, timeoutMs = 45_000) {
@@ -198,31 +206,45 @@ async function captureBookingShape(args) {
   const category = argumentValue(args, "--category") ?? "active";
   const config = readConfig();
   const socketPath = process.env.TBANK_AUTH_BROKER_SOCKET ?? config.banking?.brokerSocket;
-  const ownedBroker = await startOwnedBroker(config);
-  try {
-    const report = await captureOwnBookingStructure({
-      category,
-      brokerCall: (method, params) => scopedBrokerRequest(socketPath, method, params),
-    });
-    process.stdout.write(writeStructureOnlyReport(report, outputPath));
-  } finally {
-    if (ownedBroker?.exitCode === null) ownedBroker.kill("SIGINT");
-  }
+  await ensureBroker(config);
+  const report = await captureOwnBookingStructure({
+    category,
+    brokerCall: (method, params) => scopedBrokerRequest(socketPath, method, params),
+  });
+  process.stdout.write(writeStructureOnlyReport(report, outputPath));
 }
 
-async function startOwnedBroker(config) {
+async function ensureBroker(config) {
   const socketPath = process.env.TBANK_AUTH_BROKER_SOCKET ?? config.banking?.brokerSocket;
   if (!socketPath) throw new Error("Combined mobile auth is not configured. Run setup with the combined profile first.");
-  if (await brokerStatus(socketPath)) return null;
+  if (await brokerStatus(socketPath)) return { started: false };
   if (!existsSync(brokerExecutable)) throw new Error("Auth broker executable is missing. Run the documented local installation first.");
-  const broker = spawn(brokerExecutable, [], { stdio: "ignore", env: runtimeEnvironment("broker", config) });
+  const broker = spawn(brokerExecutable, [], {
+    stdio: "ignore",
+    env: runtimeEnvironment("broker", config),
+    detached: true,
+  });
+  broker.unref();
   for (let attempt = 0; attempt < 40; attempt += 1) {
-    if (await brokerStatus(socketPath)) return broker.exitCode === null ? broker : null;
-    if (broker.exitCode !== null) break;
+    if (await brokerStatus(socketPath)) return { started: broker.exitCode === null };
+    // Another concurrently launched MCP may have won the socket race. Keep
+    // polling for that shared broker even when this child has already exited.
     await new Promise((resolvePromise) => setTimeout(resolvePromise, 50));
   }
   if (broker.exitCode === null) broker.kill("SIGTERM");
   throw new Error("Auth broker did not become ready for the MCP session.");
+}
+
+async function stopBroker(config) {
+  const socketPath = process.env.TBANK_AUTH_BROKER_SOCKET ?? config.banking?.brokerSocket;
+  if (!socketPath || !(await brokerStatus(socketPath))) return { stopped: false, status: "not_running" };
+  const result = await brokerRequest(socketPath, "lifecycle", "shutdown", {}, 1_000);
+  if (!result?.shutdownRequested) throw new Error("Auth broker rejected the lifecycle shutdown request.");
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    if (!(await brokerStatus(socketPath, 100))) return { stopped: true, status: "stopped" };
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 50));
+  }
+  throw new Error("Auth broker did not stop within the local lifecycle timeout.");
 }
 
 async function runComponent(component, args = []) {
@@ -235,14 +257,15 @@ async function runComponent(component, args = []) {
   const selected = commands[component];
   if (!selected) throw new Error("component must be hotels, banking, or broker.");
   if (!existsSync(selected[0])) throw new Error(`${component} executable is missing. Run the documented local installation first.`);
-  const ownedBroker = args.includes("--with-broker") ? await startOwnedBroker(config) : null;
+  const sharedMobileSessionConfigured = Boolean(config.banking?.sessionFile && config.banking?.brokerSocket);
+  const brokerRequired = args.includes("--ensure-broker") || args.includes("--with-broker")
+    || ((component === "hotels" || component === "banking") && sharedMobileSessionConfigured);
+  if (brokerRequired) await ensureBroker(config);
   const child = spawn(selected[0], selected[1], { stdio: "inherit", env: runtimeEnvironment(component, config) });
   for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => {
     child.kill(signal);
-    if (ownedBroker?.exitCode === null) ownedBroker.kill("SIGINT");
   });
   const [code, signal] = await new Promise((resolvePromise) => child.on("exit", (...result) => resolvePromise(result)));
-  if (ownedBroker?.exitCode === null) ownedBroker.kill("SIGINT");
   if (signal) process.kill(process.pid, signal);
   process.exitCode = code ?? 1;
 }
@@ -294,17 +317,17 @@ function clientConfig(args) {
   const client = argumentValue(args, "--client");
   const profile = argumentValue(args, "--profile") ?? "combined";
   const components = profileComponents(profile);
-  const brokerOwner = components.includes("banking") ? "banking" : null;
+  const brokerComponents = profile === "combined" ? new Set(["hotels", "banking"]) : new Set(components.includes("banking") ? ["banking"] : []);
   const entries = Object.fromEntries(components.map((component) => [
     `tbank-${component}`,
-    { type: "local", command: [process.execPath, fileURLToPath(import.meta.url), "run", component, ...(component === brokerOwner ? ["--with-broker"] : [])], enabled: true },
+    { type: "local", command: [process.execPath, fileURLToPath(import.meta.url), "run", component, ...(brokerComponents.has(component) ? ["--ensure-broker"] : [])], enabled: true },
   ]));
   if (client === "opencode") {
     process.stdout.write(`${JSON.stringify({ mcp: entries }, null, 2)}\n`);
     return;
   }
   const lines = components.map((component) => {
-    const command = [process.execPath, fileURLToPath(import.meta.url), "run", component, ...(component === brokerOwner ? ["--with-broker"] : [])].map(shellQuote).join(" ");
+    const command = [process.execPath, fileURLToPath(import.meta.url), "run", component, ...(brokerComponents.has(component) ? ["--ensure-broker"] : [])].map(shellQuote).join(" ");
     if (client === "codex") return `codex mcp add tbank-${component} -- ${command}`;
     if (client === "claude") return `claude mcp add --scope user tbank-${component} -- ${command}`;
     throw new Error("client must be opencode, codex, or claude.");
@@ -449,6 +472,10 @@ export async function main(argv = process.argv.slice(2)) {
     return;
   }
   if (command === "capture-booking-shape") return captureBookingShape(argv.slice(1));
+  if (command === "stop-broker") {
+    process.stdout.write(`${JSON.stringify(await stopBroker(readConfig()), null, 2)}\n`);
+    return;
+  }
   if (command === "payment-readiness") {
     process.stdout.write(`${JSON.stringify(paymentReadinessReport(), null, 2)}\n`);
     return;
@@ -456,7 +483,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (command === "contracts") return contracts(subcommand);
   if (command === "conformance") return conformance();
   if (command === "verify") return verify();
-  throw new Error("Usage: tbank-mcp-local setup|doctor|login|logout|run|client-config|inspect-booking-fixture|capture-booking-shape|payment-readiness|contracts|conformance|verify");
+  throw new Error("Usage: tbank-mcp-local setup|doctor|login|logout|run|client-config|inspect-booking-fixture|capture-booking-shape|payment-readiness|stop-broker|contracts|conformance|verify");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

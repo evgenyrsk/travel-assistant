@@ -19,7 +19,7 @@ from .upstream.observability import redact_text
 
 
 SERVER_NAME = "tbank-banking-mcp"
-SERVER_VERSION = "0.13.1"
+SERVER_VERSION = "0.14.0"
 MCP_PROTOCOL_VERSION = "2025-03-26"
 MAX_PORTFOLIO_ACCOUNTS = 20
 _sessions = None

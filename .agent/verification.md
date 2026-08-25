@@ -1,28 +1,26 @@
 # Verification
 
+- `node --test tools/tbank-mcp-local/test/cli.test.mjs` вне sandbox: 11/11 pass.
+- `npm --prefix tools/tbank-mcp-local run verify`: pass; toolkit 11, Hotels 49,
+  Banking 48, manifests/conformance pass, providerRequestsPerformed=false.
+- `./scripts/verify.sh docs`: pass после исправления trailing whitespace.
+- `git diff --check`: pass.
+
 | Check | Required | Latest result |
 |---|---|---|
-| Workflow YAML syntax and expected structure | yes | passed with existing `yaml` parser and assertions |
-| Locked dependency install | yes | `npm ci --ignore-scripts --prefix tools/openapi-conformance` passed; 0 vulnerabilities |
-| `./scripts/verify.sh docs` | yes | passed |
-| `./scripts/verify.sh core` | yes | passed three times; final run after independent-review repair |
-| Acceptance criteria review | yes | passed; all seven criteria checked individually |
-| Final staged, unstaged, and untracked scope review | yes | passed; task changes are CI workflow, focused docs, and persistent state only |
-| Secret and REAL-provider activation review | yes | passed for workflow candidate; no secret expressions or provider modes |
-| Independent read-only review | yes | accepted after Node.js 20 → 22 repair |
-| First GitHub-hosted `Verify core` | yes | failed in run `32822469845`; clean-checkout docs gate returned exit code 1 |
-| Clean-checkout repair | yes | shell syntax, `docs`, and full local `core` passed |
-| Post-repair GitHub-hosted `Verify core` | yes | passed in run `32824450278` on Java 17 and Node.js 22 |
+| Hotels-first lazy startup | yes | passed offline Unix-socket test |
+| Banking-first lazy startup | yes | passed offline Unix-socket test |
+| Shared broker survives individual MCP EOF | yes | passed |
+| Explicit stop removes socket | yes | passed |
+| Toolkit/Hotels/Banking tests | yes | 11 + 49 + 48 passed |
+| Contract manifests and conformance | yes | passed |
+| `git diff --check` | yes | passed |
+| Provider requests | yes | 0 during implementation checks |
 
-## Recovery history
+## Live acceptance
 
-- Independent review выявил EOL Node.js 20 в initial workflow. Runtime обновлён до поддерживаемой Node.js 22 LTS; documentation и persistent state синхронизированы; повторные docs, YAML и `core` checks прошли.
-- Первый hosted run выявил POSIX shell edge case: при отсутствии untracked files bare `return` сохранял status `1` от `[ -n "" ]`. Root cause локально воспроизведён; применяется explicit `return 0`.
-
-## Unresolved failures
-
-None.
-
-## Environment note
-
-Локально `core` прошёл на доступном Node.js v25.8.1. GitHub-hosted run `32824450278` отдельно подтвердил CI path на provisioned Node.js 22 LTS и Java 17.
+- Hotels-first `tbank_hotels_summarize_bookings`: passed после restart клиента,
+  один tool, privacy-safe response, writes 0.
+- Banking-second `tbank_banking_build_portfolio_travel_profile(days=90)`: passed,
+  один tool, агрегированный профиль без account/amount/category disclosure,
+  payments/bookings 0.

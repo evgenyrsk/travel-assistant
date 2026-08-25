@@ -35,9 +35,14 @@ CLIENT_OPERATIONS = {
         "hotels.save_voucher_v1",
         "hotels.create_payment_handoff",
     },
+    "lifecycle": {
+        "status",
+        "shutdown",
+    },
 }
 VERIFIED_OPERATIONS = {
     "banking": set(),
+    "lifecycle": set(),
     "hotels": {
         "hotels.get_booking_v1",
         "hotels.get_customer",
@@ -144,6 +149,12 @@ class BrokerService:
                 "supportedOperations": sorted(CLIENT_OPERATIONS[client] - {"status"}),
                 "verifiedOperations": sorted(VERIFIED_OPERATIONS[client]),
             }
+        if method == "shutdown":
+            return {
+                "shutdownRequested": True,
+                "credentialsExposed": False,
+                "providerRequestsPerformed": False,
+            }
         if method == "banking.resolve_hotel_payment_handoff":
             return self.payment_handoffs.resolve(_required_text(params, "paymentHandoffRef"))
         with self._operation_lock:
@@ -199,6 +210,8 @@ class _BrokerHandler(socketserver.StreamRequestHandler):
                 raise ValueError("request must be an object")
             result = self.server.service.dispatch(request)  # type: ignore[attr-defined]
             self._reply({"ok": True, "result": result})
+            if request.get("client") == "lifecycle" and request.get("method") == "shutdown":
+                threading.Thread(target=self.server.shutdown, daemon=True).start()
         except Exception as error:
             self._reply({"ok": False, "error": _safe_error_message(error)})
 

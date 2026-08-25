@@ -117,6 +117,12 @@ provider-вызова и различает `broker_unavailable`, `mobile_login_
 45 секунд, поскольку могут включать refresh сессии; диапазон настраивается через
 `TBANK_AUTH_BROKER_TIMEOUT_MS=1000..120000`.
 
+В combined-конфигурации local toolkit broker автоматически обеспечивается
+launcher-ом как Hotels, так и Banking MCP. Поэтому Hotels-first запуск после
+рестарта клиента не требует ручной команды и не зависит от предварительного
+обращения к Banking MCP. Закрытие одного MCP не завершает общую mobile session;
+её явно завершает toolkit `logout` или диагностическая команда `stop-broker`.
+
 Broker protocol v2 ограничивает Hotels-клиент операциями
 `hotels.get_customer`, `hotels.list_bookings`, `hotels.get_booking_v1` и
 `hotels.save_voucher_v1`, а также локальным

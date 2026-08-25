@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { chmodSync, existsSync, linkSync, mkdtempSync, readFileSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import test from "node:test";
 import { runtimeEnvironment } from "../src/cli.mjs";
 import { captureOwnBookingStructure } from "../src/booking-shape-capture.mjs";
@@ -61,7 +61,7 @@ test("generates secret-free client registration for all supported local clients"
     assert.match(output, /tbank-hotels/);
     assert.match(output, /tbank-banking/);
     assert.match(output, /run/);
-    assert.match(output, /with-broker/);
+    assert.match(output, /ensure-broker/);
     assert.doesNotMatch(output, /PRIVATE_KEY|AUTH_TOKEN|session\.json/);
   }
 });
@@ -223,7 +223,7 @@ test("payment readiness is offline, explicit and fail-closed", () => {
   assert.doesNotMatch(output, /token|private.?key|authorization/i);
 });
 
-test("combined launcher owns broker lifecycle without provider requests", async (t) => {
+test("combined launchers ensure one persistent broker in either lazy-start order", async (t) => {
   const directory = mkdtempSync(resolve(tmpdir(), "tbank-mcp-broker-owner-"));
   const sessionFile = resolve(directory, "session.json");
   const socketFile = resolve(directory, "auth.sock");
@@ -231,23 +231,70 @@ test("combined launcher owns broker lifecycle without provider requests", async 
   chmodSync(directory, 0o700);
   writeFileSync(sessionFile, "{}\n", { mode: 0o600 });
   writeFileSync(configFile, JSON.stringify({ version: 1, banking: { sessionFile, brokerSocket: socketFile } }), { mode: 0o600 });
-  let output;
-  try {
-    output = execFileSync(process.execPath, [cli, "run", "banking", "--with-broker"], {
-      encoding: "utf8",
-      input: `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "launcher-test", version: "1" } } })}\n`,
+  const launch = (component, brokerArgument = "--ensure-broker") => execFileSync(process.execPath, [cli, "run", component, ...(brokerArgument ? [brokerArgument] : [])], {
+    encoding: "utf8",
+    input: `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "launcher-test", version: "1" } } })}\n`,
+    env: { PATH: process.env.PATH, HOME: process.env.HOME, TBANK_MCP_LOCAL_CONFIG: configFile },
+  });
+  const launchAsync = (component) => new Promise((resolvePromise, rejectPromise) => {
+    const child = spawn(process.execPath, [cli, "run", component, "--ensure-broker"], {
       env: { PATH: process.env.PATH, HOME: process.env.HOME, TBANK_MCP_LOCAL_CONFIG: configFile },
+      stdio: ["pipe", "pipe", "pipe"],
     });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => { stdout += chunk; });
+    child.stderr.on("data", (chunk) => { stderr += chunk; });
+    child.on("error", rejectPromise);
+    child.on("exit", (code) => code === 0
+      ? resolvePromise(stdout)
+      : rejectPromise(new Error(stderr || `${component} launcher exited with code ${code}.`)));
+    child.stdin.end(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "launcher-test", version: "1" } } })}\n`);
+  });
+  const stop = () => execute(["stop-broker"], { TBANK_MCP_LOCAL_CONFIG: configFile });
+  try {
+    const hotelsFirst = launch("hotels");
+    assert.match(hotelsFirst, /tbank-hotels-api-mcp/);
+    assert.equal(existsSync(socketFile), true);
+    const bankingSecond = launch("banking");
+    assert.match(bankingSecond, /tbank-banking-mcp/);
+    assert.equal(existsSync(socketFile), true);
+    assert.equal(JSON.parse(stop()).status, "stopped");
+    assert.equal(existsSync(socketFile), false);
+
+    const bankingFirst = launch("banking");
+    assert.match(bankingFirst, /tbank-banking-mcp/);
+    assert.equal(existsSync(socketFile), true);
+    const hotelsSecond = launch("hotels");
+    assert.match(hotelsSecond, /tbank-hotels-api-mcp/);
+    assert.equal(existsSync(socketFile), true);
+    assert.equal(JSON.parse(stop()).status, "stopped");
+
+    const legacyHotelsConfig = launch("hotels", "");
+    assert.match(legacyHotelsConfig, /tbank-hotels-api-mcp/);
+    assert.equal(existsSync(socketFile), true);
+    assert.equal(JSON.parse(stop()).status, "stopped");
+
+    const legacyWithBroker = launch("banking", "--with-broker");
+    assert.match(legacyWithBroker, /tbank-banking-mcp/);
+    assert.equal(existsSync(socketFile), true);
+    assert.equal(JSON.parse(stop()).status, "stopped");
+
+    const [hotelsConcurrent, bankingConcurrent] = await Promise.all([launchAsync("hotels"), launchAsync("banking")]);
+    assert.match(hotelsConcurrent, /tbank-hotels-api-mcp/);
+    assert.match(bankingConcurrent, /tbank-banking-mcp/);
+    assert.equal(existsSync(socketFile), true);
+    assert.equal(JSON.parse(stop()).status, "stopped");
   } catch (error) {
     if (/did not become ready|operation not permitted|not supported/i.test(String(error.stderr ?? error.message))) {
       t.skip("Unix sockets are blocked by the current sandbox");
       return;
     }
     throw error;
-  }
-  assert.match(output, /tbank-banking-mcp/);
-  for (let attempt = 0; attempt < 20 && existsSync(socketFile); attempt += 1) {
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
+  } finally {
+    try { stop(); } catch {}
   }
   assert.equal(existsSync(socketFile), false);
 });

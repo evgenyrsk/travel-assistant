@@ -1148,7 +1148,7 @@ order identifiers. Следующий разрешённый шаг toolstream �
 mutations остаются отдельным gate.
 
 Текущий локальный checkpoint toolstream: Hotels MCP `0.22.0`, Banking/broker
-`0.13.1`, local toolkit `0.5.0`. Safe voucher handoff реализован и проверен
+`0.14.0`, local toolkit `0.6.0`. Safe voucher handoff реализован и проверен
 только на fixture/fake transport после ранее зафиксированного read-only auth
 evidence. Hotels search
 journey теперь принимает semantic `breakfastIncluded`, применяет подтверждённый
@@ -1229,6 +1229,14 @@ Review этого checkpoint не выявил P0–P2. В patch follow-up `payl
 содержит однозначный recovery-шаг создать новый handoff.
 Реальная оплата, booking/payment setup, мутации и remote transport этим
 checkpoint не активированы.
+
+Live smoke customer summary и portfolio profile подтвердил корректность самих
+read-only tools, но выявил зависимость mobile auth от порядка ленивого запуска
+MCP-клиентом. Lifecycle hardening устранил ручной шаг: combined launcher обоих
+MCP обеспечивает один persistent local broker для Hotels-first, Banking-first и
+одновременного старта; закрытие одного MCP не обрывает session, а `logout` и
+`stop-broker` выполняют явное graceful shutdown. Provider API при проверке этого
+изменения не вызывались.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

@@ -9,8 +9,8 @@ smoke-кейсов. Это review-only задача.
 
 Scope:
 - tools/tbank-hotels-mcp, ожидаемая версия 0.22.0;
-- tools/tbank-banking-mcp, ожидаемая версия 0.13.1;
-- tools/tbank-mcp-local, ожидаемая версия 0.5.0;
+- tools/tbank-banking-mcp, ожидаемая версия 0.14.0;
+- tools/tbank-mcp-local, ожидаемая версия 0.6.0;
 - ADR-0003, ADR-0004;
 - tools/tbank-hotels-mcp/docs/journey-tools-plan.md;
 - tools/tbank-hotels-mcp/docs/portability-and-distribution-roadmap.md;
@@ -34,6 +34,9 @@ Scope:
    secrets в args/stdout/errors/manifests, разделение Hotels и Banking env.
 3. Setup/doctor/client-config UX для OpenCode и Codex CLI;
    standalone и combined profiles не должны объединять полномочия MCP.
+   Combined config должен автоматически обеспечить один broker при Hotels-first,
+   Banking-first и одновременном lazy start; завершение одного MCP не должно
+   обрывать session, а logout/stop-broker должны завершать broker явно.
 4. Offline guarantee команды verify: unit/protocol tests, manifests,
    conformance и ноль provider requests даже при credentials у parent process.
 5. Natural-language journey: обычный поиск, обязательный breakfast,

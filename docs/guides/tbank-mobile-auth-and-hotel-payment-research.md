@@ -181,7 +181,7 @@ payment setup/payment gateway, idempotency, reconciliation и доверенны
 
 ## Structure-only intake собственных booking fixtures
 
-Local toolkit `0.5.0` предоставляет команды `inspect-booking-fixture` и
+Local toolkit `0.6.0` предоставляет команды `inspect-booking-fixture` и
 `payment-readiness`. Первая принимает
 только явно указанный локальный JSON-файл, не обращается к provider и формирует
 отдельный отчёт без исходных значений. Динамические object keys, похожие на UUID,
@@ -214,3 +214,8 @@ payment/mutation routes. `200` на `bearer_only` доказывает мини�
 только для конкретного route. Успех лишь на `capture_compatible` не доказывает,
 что одного Bearer достаточно. Отсутствие тестового identifier фиксируется как
 `not_tested_missing_identifier`, без подбора значений.
+
+В combined-профиле toolkit автоматически обеспечивает общий auth broker при
+запуске любого из MCP. Hotels-first, Banking-first и одновременный lazy start
+не требуют ручного поднятия процесса. Broker сохраняется при закрытии одного
+MCP и завершается через toolkit `logout` или `stop-broker`.

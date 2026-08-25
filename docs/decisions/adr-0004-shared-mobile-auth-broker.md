@@ -42,6 +42,10 @@ Banking MCP и Hotels MCP должны подключаться к любому 
 10. В combined-режиме broker является единственным владельцем refresh. Direct-file
     MCP для того же session-файла параллельно не запускается; advisory file lock
     остаётся дополнительной защитой от случайной гонки.
+11. Сгенерированный combined launcher каждого MCP проверяет broker и при
+    необходимости запускает один общий process-local service. Broker не
+    принадлежит жизненному циклу отдельного MCP: он переживает закрытие одного
+    stdio-процесса, явно останавливается при local logout или lifecycle shutdown.
 
 ## Последствия
 
@@ -53,6 +57,8 @@ Banking MCP и Hotels MCP должны подключаться к любому 
   Поддержка расширяется только по endpoint matrix с безопасными проверками.
 - Broker является локальной инфраструктурой авторизации, а не третьим MCP и не
   выставляет tools модели.
+- Lazy-start порядок MCP-клиента не влияет на доступность mobile reads;
+  одновременный запуск двух MCP переиспользует один owner-only socket.
 - Локальный `--logout` удаляет session-файл, но не считается server-side revoke,
   пока официальный logout endpoint не подтверждён.
 

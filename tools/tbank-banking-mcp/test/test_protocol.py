@@ -28,7 +28,7 @@ class ProtocolTest(unittest.TestCase):
             {"jsonrpc": "2.0", "id": 3, "method": "tools/call",
              "params": {"name": "tbank_banking_connection_status", "arguments": {}}},
         ])
-        self.assertEqual(responses[0]["result"]["serverInfo"]["version"], "0.13.1")
+        self.assertEqual(responses[0]["result"]["serverInfo"]["version"], "0.14.0")
         names = {tool["name"] for tool in responses[1]["result"]["tools"]}
         self.assertEqual(names, {
             "tbank_banking_connection_status", "tbank_banking_list_accounts",

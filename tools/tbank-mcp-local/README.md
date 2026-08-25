@@ -58,13 +58,20 @@ node tools/tbank-mcp-local/src/cli.mjs client-config --client codex --profile co
 node tools/tbank-mcp-local/src/cli.mjs client-config --client claude --profile combined
 ```
 
-Допустимые профили: `hotels`, `banking`, `combined`. В сгенерированной
-конфигурации `banking` и `combined` launcher сам поднимает broker на время жизни
-Banking MCP и останавливает принадлежащий ему процесс вместе с MCP. Отдельный
-ручной запуск остаётся только диагностической возможностью:
+Допустимые профили: `hotels`, `banking`, `combined`. В сгенерированной combined-
+конфигурации launcher любого из двух MCP при необходимости поднимает один общий
+локальный broker. Поэтому результат не зависит от того, какой MCP клиент
+запустил первым; закрытие отдельного MCP не обрывает общую mobile session.
+Ручной запуск для обычной работы не нужен.
+Старый combined config также поддерживается: launcher распознаёт сохранённую
+общую mobile-session конфигурацию без обязательного нового флага.
+
+Broker завершается автоматически при `logout`. Для диагностики и явной
+остановки без удаления mobile session доступны команды:
 
 ```bash
 node tools/tbank-mcp-local/src/cli.mjs run broker
+node tools/tbank-mcp-local/src/cli.mjs stop-broker
 ```
 
 ## Versioned contracts

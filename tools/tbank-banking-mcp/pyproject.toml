@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "travel-assistant-tbank-banking-mcp"
-version = "0.13.1"
+version = "0.14.0"
 description = "Experimental MCP facade for T-Bank phone auth, read-only aggregates and travel personalization."
 readme = "README.md"
 requires-python = ">=3.11"

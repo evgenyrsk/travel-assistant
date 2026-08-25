@@ -2,33 +2,23 @@
 
 ## Current focus
 
-Задача завершена; local и GitHub-hosted `core` проходят после clean-checkout repair.
+Lifecycle общего auth broker реализован и проверен офлайн.
 
 ## Completed
 
-- Подтверждена среда Codex и обязательный autonomous engineering protocol.
-- Проверены current branch/worktree, primary branch `main` и отсутствие существующего CI workflow.
-- Подтверждены Java 17 для backend и Node.js `>=20` для repository tools; для нового CI выбрана поддерживаемая Node.js 22 LTS.
-- Подтверждено, что `core` использует FAKE/default paths и не выполняет REAL provider integrations.
-- Выявлена единственная предварительная установка: `npm ci` для `tools/openapi-conformance/package-lock.json`.
-- Добавлен один workflow для pull request, push в `main` и ручного запуска.
-- Настроены read-only permissions, Java 17, Node.js 22 и узкие Gradle/npm dependency caches.
-- CI gate добавлен в существующую quality-gates documentation и README navigation.
-- Workflow YAML разобран existing `yaml` parser; trigger, permissions, toolchain и final gate проверены assertions.
-- `./scripts/verify.sh docs` прошёл.
-- Clean `npm ci --ignore-scripts --prefix tools/openapi-conformance` прошёл без vulnerabilities.
-- `./scripts/verify.sh core` прошёл до и после clean npm install; REAL provider calls не выполнялись.
-- По review finding Node.js 20 заменена на поддерживаемую Node.js 22 LTS; documentation/state синхронизированы.
-- Финальный `./scripts/verify.sh core` после repair прошёл.
-- Independent reviewer принял repair без новых findings.
-- Acceptance criteria, secrets/provider boundaries и final worktree scope проверены.
-- Первый pull-request run `32822469845` завершился до backend checks с exit code 1.
-- Ошибка воспроизведена локально на clean worktree через `./scripts/verify.sh docs`.
-- Root cause: bare `return` наследовал status `1` от пустой проверки untracked files.
-- Добавлен explicit `return 0` для clean checkout без untracked files.
-- `sh -n scripts/verify.sh`, `./scripts/verify.sh docs` и полный `./scripts/verify.sh core` после repair прошли.
-- Repair commit `558373b` отправлен в pull-request branch.
-- GitHub Actions run `32824450278` прошёл на Ubuntu с Java 17 и Node.js 22; job duration 2m47s.
+- Кейсы search, breakfast и booking preview прошли read-only/preview-only smoke.
+- Customer summary и portfolio profile сначала не прошли из-за недоступного broker.
+- Ручной диагностический запуск broker подтвердил, что сами оба flows исправны.
+- Root cause локализован: generated combined config назначает `--with-broker`
+  только Banking MCP, тогда как OpenCode запускает MCP лениво.
+- Временный диагностический broker остановлен; socket больше не работает.
+- Combined launcher обоих MCP автоматически обеспечивает один persistent broker.
+- Hotels-first, Banking-first и одновременный запуск прошли Unix-socket тест.
+- Graceful lifecycle shutdown и остановка через logout/stop-broker покрыты тестом.
+- Версии обновлены: Banking/broker `0.14.0`, toolkit `0.6.0`.
+- Полный release gate прошёл: toolkit 11, Hotels 49, Banking 48; provider calls 0.
+- После restart OpenCode Hotels-first summary и Banking-second portfolio profile
+  прошли без ручного broker; по одному высокоуровневому tool на сценарий.
 
 ## Blocker
 
@@ -36,4 +26,4 @@ None.
 
 ## Next action
 
-None. Следующая существенная задача заменяет active state в своей branch/worktree.
+Подготовить commit/push только по отдельному явному запросу пользователя.

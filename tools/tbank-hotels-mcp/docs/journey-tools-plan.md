@@ -8,7 +8,7 @@ Assistant или границы MVP v1.
 
 | Пункт | Состояние |
 | --- | --- |
-| Версия MCP | Hotels `0.22.0`, Banking/broker `0.13.1`, local toolkit `0.5.0` |
+| Версия MCP | Hotels `0.22.0`, Banking/broker `0.14.0`, local toolkit `0.6.0` |
 | Transport | stdio, Node.js 20+, без браузера и cookie |
 | Read-only search journey | Реализован и проверен fake transport tests; `breakfastIncluded` преобразуется в строгий provider filter без low-level перебора; production-like smoke новой версии ещё предстоит |
 | Safe booking preview | Реализован без PII, booking draft и HTTP-вызова |

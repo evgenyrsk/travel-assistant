@@ -96,12 +96,20 @@ class AuthBrokerSocketTest(unittest.TestCase):
                 denied = self._call(socket_path, "hotels", "banking.list_accounts")
                 self.assertFalse(denied["ok"])
                 self.assertNotIn("account", denied.get("result", {}))
+                lifecycle = self._call(socket_path, "lifecycle", "status")
+                self.assertTrue(lifecycle["ok"])
+                self.assertEqual(lifecycle["result"]["clientScope"], "lifecycle")
+                self.assertEqual(lifecycle["result"]["supportedOperations"], ["shutdown"])
                 with ThreadPoolExecutor(max_workers=2) as executor:
                     results = list(executor.map(
                         lambda client: self._call(socket_path, client, "status"),
                         ("banking", "hotels"),
                     ))
                 self.assertTrue(all(result["ok"] for result in results))
+                shutdown = self._call(socket_path, "lifecycle", "shutdown")
+                self.assertTrue(shutdown["ok"])
+                self.assertTrue(shutdown["result"]["shutdownRequested"])
+                process.wait(timeout=3)
             finally:
                 if process.poll() is None:
                     process.send_signal(signal.SIGINT)
