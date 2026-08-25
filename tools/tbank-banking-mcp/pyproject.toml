@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "travel-assistant-tbank-banking-mcp"
+version = "0.13.1"
+description = "Experimental MCP facade for T-Bank phone auth, read-only aggregates and travel personalization."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "requests>=2.32,<3",
+]
+
+[project.scripts]
+tbank-banking-mcp = "src.server:main"
+tbank-auth-broker = "src.auth_broker:main"
+tbank-hotels-mobile-auth-probe = "src.mobile_hotels_auth_probe:main"
+tbank-mcp-safe-smoke = "src.safe_smoke:main"
+
+[tool.setuptools.packages.find]
+include = ["src", "src.*"]
+
+[tool.setuptools]
+include-package-data = true
+license-files = ["LICENSE.upstream"]
+
+[tool.setuptools.package-data]
+src = ["ca/roots/*.pem"]
+
+[tool.setuptools.data-files]
+"share/doc/travel-assistant-tbank-banking-mcp" = ["UPSTREAM.md"]

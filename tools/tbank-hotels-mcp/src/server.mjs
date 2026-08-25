@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
 import { createHash, createPrivateKey, randomUUID, sign } from "node:crypto";
+import { readFileSync, statSync } from "node:fs";
+import { createConnection } from "node:net";
+import { isAbsolute } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 
 const SERVER_NAME = "tbank-hotels-api-mcp";
-const SERVER_VERSION = "0.8.0";
+const SERVER_VERSION = "0.22.0";
 const MCP_PROTOCOL_VERSION = "2025-03-26";
 const DEFAULT_TIMEOUT_MS = 15_000;
 const MAX_TIMEOUT_MS = 60_000;
@@ -21,18 +24,25 @@ const MAX_PLAN_OPTIONS = 50;
 const MAX_ROOMS = 8;
 const MAX_ACTIVE_JOURNEYS = 100;
 const MAX_ACTIVE_BOOKING_DRAFTS = 100;
+const MAX_ACTIVE_BOOKING_REFERENCES = 500;
 const MAX_TRACKED_MUTATION_EXECUTIONS = 500;
 const MAX_LOCATION_CACHES = 20;
 const LOCATION_PAGE_SIZE = 100;
 const MAX_LOCATION_PAGES = 50;
 const LOCATION_COLLECTION_BUDGET_MS = 10_000;
 const MAX_PROVIDER_RESPONSE_BYTES = 2 * 1_024 * 1_024;
+const MAX_SERVICE_JWT_KEY_BYTES = 64 * 1_024;
 const SEARCH_PAGE_SIZE = 50;
 const MAX_SEARCH_REQUESTS = 20;
 const MAX_SEARCH_LOADING_POLLS = 3;
 const SEARCH_LOADING_POLL_DELAY_MS = 200;
 const SEARCH_COLLECTION_BUDGET_MS = 11_000;
 const MIN_SEARCH_REQUEST_BUDGET_MS = 1_000;
+const DEFAULT_MAX_PROVIDER_CONCURRENCY = 2;
+const MAX_PROVIDER_CONCURRENCY = 8;
+const MAX_PROVIDER_REQUEST_QUEUE = 32;
+const SEARCH_CACHE_TTL_MS = 30_000;
+const MAX_SEARCH_CACHE_ENTRIES = 50;
 const CHECKOUT_REQUEST_BUDGET_MS = 13_000;
 const CHECKOUT_FIRST_ATTEMPT_MS = 8_000;
 const RATES_REQUEST_BUDGET_MS = 13_000;
@@ -40,9 +50,20 @@ const RATES_FIRST_ATTEMPT_MS = 5_000;
 
 const journeysById = new Map();
 const bookingDraftsById = new Map();
+const bookingReferencesById = new Map();
 const mutationExecutionsByHash = new Map();
+const hotelSearchCacheByKey = new Map();
+const inFlightHotelSearchByKey = new Map();
 let cachedServiceJwt;
 const locationCatalogByCountry = new Map();
+let authBrokerConnector = createConnection;
+let activeProviderRequests = 0;
+const providerRequestQueue = [];
+let searchCacheTransport = globalThis.fetch;
+
+export function setAuthBrokerConnectorForTests(connector) {
+  authBrokerConnector = connector ?? createConnection;
+}
 
 const text = (value) => ({ type: "text", text: typeof value === "string" ? value : JSON.stringify(value, null, 2) });
 
@@ -77,12 +98,59 @@ const providerGuest = objectSchema({
   childrenAge: { type: "array", maxItems: 16, items: { type: "integer", minimum: 0, maximum: 17 } },
 }, ["adultsCount"]);
 
+const SEARCH_FILTER_IDS = [
+  "accommodation_types",
+  "chains",
+  "free_cancellation_allowed",
+  "payment_card_not_required",
+  "meal_types",
+  "payment_places",
+  "price",
+  "stars",
+  "photos_available",
+  "districts",
+  "hotel_entertainments",
+  "hotel_facilities",
+  "room_facilities",
+  "bed_types",
+  "review_rating",
+  "special_offer",
+];
+
+const searchFilterId = { type: "string", enum: SEARCH_FILTER_IDS };
+const arraySearchFilter = objectSchema({
+  $objectType: { type: "string", const: "array" },
+  filterId: searchFilterId,
+  values: { type: "array", items: { type: "string" } },
+}, ["$objectType", "filterId", "values"]);
+const booleanSearchFilter = objectSchema({
+  $objectType: { type: "string", const: "boolean" },
+  filterId: searchFilterId,
+  value: { type: "boolean" },
+}, ["$objectType", "filterId", "value"]);
+const radioSearchFilter = objectSchema({
+  $objectType: { type: "string", const: "radio" },
+  filterId: searchFilterId,
+  value: { type: "string", minLength: 1 },
+  values: { anyOf: [{ type: "array", items: { type: "string" } }, { type: "null" }] },
+}, ["$objectType", "filterId", "value"]);
+const rangeSearchFilter = objectSchema({
+  $objectType: { type: "string", const: "range" },
+  filterId: searchFilterId,
+  min: { type: "number" },
+  max: { type: "number" },
+}, ["$objectType", "filterId", "min", "max"]);
+const providerSearchFilter = {
+  oneOf: [arraySearchFilter, booleanSearchFilter, radioSearchFilter, rangeSearchFilter],
+  description: "Строгий discriminator-контракт Hotels API. Не угадывайте форму фильтра: используйте $objectType и соответствующие поля.",
+};
+
 const providerSearchPayload = objectSchema({
   destinationId: { type: "integer", minimum: 1, description: "Provider destinationId, не SEO regionId." },
   checkinDate: isoDate,
   checkoutDate: isoDate,
   guests: { type: "array", minItems: 1, maxItems: MAX_ROOMS, items: providerGuest },
-  filters: { type: "array", items: { type: "object", additionalProperties: true } },
+  filters: { type: "array", items: providerSearchFilter },
   sort: { type: "object", additionalProperties: true },
   offset: { type: "integer", minimum: 0 },
   limit: { type: "integer", minimum: 0 },
@@ -116,6 +184,7 @@ const planStayInput = {
     checkoutDate: isoDate,
     rooms: { type: "array", minItems: 1, maxItems: MAX_ROOMS, items: journeyRoom, description: "Один элемент на комнату." },
     hotelName: { type: "string", minLength: 1, maxLength: 250, description: "Необязательное название конкретного отеля внутри выбранной локации. Глобальный поиск без локации не заявлен контрактом." },
+    breakfastIncluded: { type: "boolean", default: false, description: "Если true, MCP применяет подтверждённый provider-фильтр meal_types=breakfast до построения journey. Не заменяйте этот параметр низкоуровневым перебором filters." },
     ranking: rankingStrategy,
     maxOptions: { type: "integer", minimum: 1, maximum: MAX_PLAN_OPTIONS, default: DEFAULT_PLAN_OPTIONS, description: "Ограничивает число вариантов в ответе plan_stay, но не размер собираемой MCP выборки." },
     language: languageSchema(),
@@ -241,12 +310,12 @@ const tools = [
   },
   {
     name: "tbank_hotels_get_customer",
-    description: "Получает данные авторизованного клиента через GET /api/v1/auth/customerdata. service_jwt не является customer context и будет отклонён локально; не используйте этот tool для автозаполнения гостя без отдельной пользовательской авторизации.",
+    description: "Получает персональные данные текущего авторизованного клиента через GET /api/v1/auth/customerdata. При настроенном auth broker использует общую mobile session с live-подтверждённым Bearer-only профилем. Вызывайте только по явному пользовательскому запросу на автозаполнение.",
     inputSchema: objectSchema({}),
   },
   {
     name: "tbank_hotels_search",
-    description: "Низкоуровневый поиск по подтверждённому provider destinationId. Для обычного запроса по названию города используйте tbank_hotels_plan_stay.",
+    description: "Низкоуровневый поиск по подтверждённому provider destinationId. filters имеют строгий discriminator-контракт; не угадывайте и не перебирайте альтернативные формы. Для обычного запроса по городу или завтраку используйте tbank_hotels_plan_stay. При отказе filtered provider request tool намеренно возвращает структурированный success-результат со status=requirements_unavailable; клиент обязан проверять status, а не только isError.",
     inputSchema: objectSchema({ payload: providerSearchPayload, language: languageSchema() }, ["payload"]),
   },
   {
@@ -260,7 +329,7 @@ const tools = [
   },
   {
     name: "tbank_hotels_plan_stay",
-    description: "Основной agent-facing поиск. Принимает название локации, даты и комнаты, сам разрешает destinationId, собирает bounded paginated/partial provider results и создаёт short-lived journeyId. Ranking применяется локально: production search пока отклоняет provider sort. Для конкретного отеля передайте hotelName вместе с локацией.",
+    description: "Основной agent-facing поиск. Принимает название локации, даты, комнаты и semantic breakfastIncluded, сам разрешает destinationId, применяет обязательные условия до поиска, собирает bounded paginated/partial provider results и создаёт short-lived journeyId. Не вызывайте get_search_filters или low-level search для завтрака. Ranking применяется локально: production search пока отклоняет provider sort. Для конкретного отеля передайте hotelName вместе с локацией.",
     inputSchema: planStayInput,
   },
   {
@@ -270,7 +339,7 @@ const tools = [
   },
   {
     name: "tbank_hotels_compare_stay_options",
-    description: "Сравнивает 2–5 вариантов по provider facts. Для запроса лучших вариантов передайте ranking и не выбирайте optionIds вручную: ranking применяется ко всей journey-выборке. optionIds предназначены только для явно названных пользователем вариантов. Без ranking наследуется стратегия plan_stay.",
+    description: "Сравнивает 2–5 вариантов по provider facts внутри той же отфильтрованной journey-выборки и возвращает готовые comparisonRows и comparisonTableMarkdown. В пользовательском ответе покажите comparisonTableMarkdown целиком: не удаляйте колонки, не округляйте и не изменяйте ratingsCount/price/cancellation facts. Не подмешивайте другие journey-варианты без запроса пользователя. Для запроса лучших вариантов передайте ranking и не выбирайте optionIds вручную: ranking применяется ко всей journey-выборке. optionIds предназначены только для явно названных пользователем вариантов. Без ranking наследуется стратегия plan_stay.",
     inputSchema: objectSchema({ journeyId: identifierSchema("Непрозрачный journeyId."), optionIds: { type: "array", minItems: 2, maxItems: 5, items: identifierSchema("optionId из journey."), description: "Только явно выбранные пользователем варианты. Не используйте для top/best: передайте ranking." }, ranking: inheritedRankingStrategy, limit: { type: "integer", minimum: 2, maximum: 5, default: 5 } }, ["journeyId"]),
   },
   {
@@ -280,10 +349,10 @@ const tools = [
   },
   {
     name: "tbank_hotels_get_selected_stay_rates",
-    description: "Загружает бронируемые тарифы выбранного journey-варианта. hotelId, даты и гости берутся из journey; клиент может передать только optional provider filters. Один timeout повторяется внутри общего бюджета. После исчерпания бюджета tool возвращает rates_temporarily_unavailable и запрещает автоматический повтор. Если provider вернул пустой rates, tool возвращает no_bookable_rates и запрещает запрашивать guest PII или создавать draft по search-feed цене.",
+    description: "Загружает бронируемые тарифы выбранного journey-варианта. hotelId, даты и гости берутся из journey. filters — неподтверждённый untyped pass-through rates-контракт: не угадывайте его и не передавайте без точных provider-данных. Один timeout повторяется внутри общего бюджета. После исчерпания бюджета tool возвращает rates_temporarily_unavailable и запрещает автоматический повтор. Если provider вернул пустой rates, tool возвращает no_bookable_rates и запрещает запрашивать guest PII или создавать draft по search-feed цене.",
     inputSchema: objectSchema({
       journeyId: identifierSchema("Непрозрачный journeyId."),
-      filters: { type: "array", items: { type: "object", additionalProperties: true }, description: "Необязательные подтверждённые provider filters." },
+      filters: { type: "array", items: { type: "object", additionalProperties: true }, description: "Неподтверждённый untyped pass-through для rates endpoint. Не угадывайте форму; поле следует опускать без точного provider-контракта." },
       apiVersion: rateApiVersionSchema(),
       language: languageSchema(),
     }, ["journeyId"]),
@@ -320,8 +389,8 @@ const tools = [
   },
   {
     name: "tbank_hotels_get_booking_overview",
-    description: "Возвращает карточку заказа и, по запросу, voucher. Ошибка voucher не скрывает основные данные брони.",
-    inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа."), includeVoucher: { type: "boolean", default: true }, apiVersion: bookingApiVersionSchema() }, ["orderId"]),
+    description: "Возвращает карточку заказа. PDF voucher никогда не встраивается в MCP-ответ; при includeVoucher=true возвращается только указание использовать отдельный безопасный local handoff.",
+    inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа."), includeVoucher: { type: "boolean", default: false }, apiVersion: bookingApiVersionSchema() }, ["orderId"]),
   },
   {
     name: "tbank_hotels_preview_cancellation",
@@ -340,7 +409,7 @@ const tools = [
   },
   {
     name: "tbank_hotels_get_filter_availability",
-    description: "Возвращает доступность фильтров для точных параметров поиска.",
+    description: "Возвращает доступность фильтров для точных параметров поиска. filters имеют строгий discriminator-контракт; не угадывайте альтернативные формы. Для semantic breakfast-запроса используйте plan_stay, а не этот low-level tool. При отказе filtered provider request tool намеренно возвращает структурированный success-результат со status=requirements_unavailable; клиент обязан проверять status, а не только isError.",
     inputSchema: objectSchema({ payload: providerSearchPayload, language: languageSchema() }, ["payload"]),
   },
   {
@@ -395,18 +464,45 @@ const tools = [
   },
   {
     name: "tbank_hotels_get_booking",
-    description: "Получает существующую бронь по orderId. По умолчанию используется v3.",
-    inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа."), apiVersion: bookingApiVersionSchema(), language: languageSchema() }, ["orderId"]),
+    description: "Получает существующую бронь. В mobile broker-режиме используйте process-local bookingRef из tbank_hotels_list_bookings: provider orderId не попадает в tool arguments или ответ. Для прямого API-профиля передайте orderId.",
+    inputSchema: {
+      ...objectSchema({
+        bookingRef: { type: "string", pattern: "^booking_[a-f0-9]{24}$", description: "Непрозрачный process-local bookingRef из tbank_hotels_list_bookings." },
+        orderId: identifierSchema("Provider orderId только для прямого API-профиля без mobile auth broker."),
+        apiVersion: bookingApiVersionSchema(),
+        language: languageSchema(),
+      }),
+      anyOf: [{ required: ["bookingRef"] }, { required: ["orderId"] }],
+    },
   },
   {
     name: "tbank_hotels_list_bookings",
-    description: "Возвращает выбранные категории активных, отменённых и завершённых броней без знания provider DTO.",
+    description: "Возвращает детали выбранных категорий броней текущего авторизованного клиента. Ответ содержит личную историю поездок; не используйте этот tool для краткой сводки без деталей — вызывайте tbank_hotels_summarize_bookings. В mobile broker-режиме provider orderId заменяется на process-local bookingRef для последующего tbank_hotels_get_booking; raw orderId не раскрывается модели.",
     inputSchema: bookingsListInput,
   },
   {
+    name: "tbank_hotels_summarize_bookings",
+    description: "Privacy-first сводка собственных бронирований: возвращает только количества активных, отменённых и завершённых записей. Не возвращает отели, города, даты, стоимость, гостей, bookingRef или provider identifiers. Используйте для просьб «кратко», «без личных данных» или «сколько у меня броней».",
+    inputSchema: objectSchema({}),
+  },
+  {
     name: "tbank_hotels_get_voucher",
-    description: "Получает voucher существующей брони. Результат может содержать персональные данные и документ бронирования.",
+    description: "Отключённый legacy-вызов: binary voucher нельзя помещать в MCP JSON или контекст модели. Используйте tbank_hotels_save_voucher с bookingRef.",
     inputSchema: objectSchema({ orderId: identifierSchema("Идентификатор заказа.") }, ["orderId"]),
+  },
+  {
+    name: "tbank_hotels_save_voucher",
+    description: "По явному запросу пользователя безопасно сохраняет PDF voucher собственной брони через local auth broker. Принимает только непрозрачный bookingRef, возвращает путь и метаданные; PDF, provider orderId, PII и credentials не попадают в MCP JSON. Файл owner-only и автоматически удаляется по TTL.",
+    inputSchema: objectSchema({
+      bookingRef: { type: "string", pattern: "^booking_[a-f0-9]{24}$", description: "Непрозрачный process-local bookingRef из tbank_hotels_list_bookings." },
+    }, ["bookingRef"]),
+  },
+  {
+    name: "tbank_hotels_create_payment_handoff_preview",
+    description: "Создаёт через общий local auth broker одноразовый короткоживущий paymentHandoffRef для собственной брони. Broker выполняет один read booking v1 и связывает наблюдаемые paymentPrice и raw paymentStatus; status не интерпретируется как разрешение оплаты. Capability поглощается при первом Banking preview. Не возвращает provider orderId/paymentToken и не выполняет payment setup или оплату.",
+    inputSchema: objectSchema({
+      bookingRef: { type: "string", pattern: "^booking_[a-f0-9]{24}$", description: "Непрозрачный process-local bookingRef из tbank_hotels_list_bookings." },
+    }, ["bookingRef"]),
   },
   {
     name: "tbank_hotels_get_reservation",
@@ -537,7 +633,7 @@ function configuredHeaders() {
   const rawHeaders = process.env.TBANK_HOTELS_AUTH_HEADERS_JSON;
   const token = process.env.TBANK_HOTELS_AUTH_TOKEN;
   const header = process.env.TBANK_HOTELS_AUTH_HEADER;
-  const serviceJwtKey = process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  const serviceJwtKey = serviceJwtConfigured();
   if (rawHeaders && (token || header || serviceJwtKey)) throw new Error("Configure exactly one auth profile: TBANK_HOTELS_AUTH_HEADERS_JSON, TBANK_HOTELS_AUTH_TOKEN, or TBANK_HOTELS_JWT_PRIVATE_KEY.");
   if (serviceJwtKey && (token || header)) throw new Error("Configure either TBANK_HOTELS_AUTH_TOKEN or TBANK_HOTELS_JWT_PRIVATE_KEY, not both.");
   if (rawHeaders) {
@@ -567,7 +663,7 @@ function serviceJwtSignature() {
   const audience = requiredAuthSetting("TBANK_HOTELS_JWT_AUDIENCE");
   const audiences = audience.split(",").map((value) => value.trim()).filter(Boolean);
   if (!audiences.length) throw new Error("TBANK_HOTELS_JWT_AUDIENCE must contain at least one audience.");
-  const pem = normalizedServiceJwtPrivateKey(process.env.TBANK_HOTELS_JWT_PRIVATE_KEY);
+  const pem = normalizedServiceJwtPrivateKey(serviceJwtPrivateKeyMaterial());
   const fingerprint = createHash("sha256").update(`${issuer}\u0000${audiences.join(",")}\u0000${pem}`).digest("hex");
   if (cachedServiceJwt && cachedServiceJwt.fingerprint === fingerprint && cachedServiceJwt.expiresAt > now) return cachedServiceJwt.value;
   const header = base64UrlJson({ alg: "RS384", typ: "JWT" });
@@ -581,7 +677,7 @@ function serviceJwtSignature() {
   try {
     signature = sign("RSA-SHA384", Buffer.from(signingInput), createPrivateKey(pem)).toString("base64url");
   } catch {
-    throw new Error("Unable to create Hotels service JWT from TBANK_HOTELS_JWT_PRIVATE_KEY.");
+    throw new Error("Unable to create Hotels service JWT from the configured private key.");
   }
   const value = `${signingInput}.${signature}`;
   cachedServiceJwt = { value, fingerprint, expiresAt: now + SERVICE_JWT_REFRESH_MS };
@@ -590,12 +686,34 @@ function serviceJwtSignature() {
 
 function requiredAuthSetting(name) {
   const value = process.env[name];
-  if (!value || !value.trim()) throw new Error(`${name} is required when TBANK_HOTELS_JWT_PRIVATE_KEY is configured.`);
+  if (!value || !value.trim()) throw new Error(`${name} is required when service JWT authentication is configured.`);
   return value.trim();
 }
 
-function normalizedServiceJwtPrivateKey() {
-  const key = requiredAuthSetting("TBANK_HOTELS_JWT_PRIVATE_KEY").replace(/\\n/g, "\n").trim();
+function serviceJwtConfigured() {
+  return Boolean(process.env.TBANK_HOTELS_JWT_PRIVATE_KEY || process.env.TBANK_HOTELS_JWT_PRIVATE_KEY_FILE);
+}
+
+function serviceJwtPrivateKeyMaterial() {
+  const inlineKey = process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  const keyFile = process.env.TBANK_HOTELS_JWT_PRIVATE_KEY_FILE;
+  if (inlineKey && keyFile) throw new Error("Configure either TBANK_HOTELS_JWT_PRIVATE_KEY or TBANK_HOTELS_JWT_PRIVATE_KEY_FILE, not both.");
+  if (inlineKey) return inlineKey;
+  if (!keyFile || !keyFile.trim()) throw new Error("A service JWT private key is required.");
+  const resolvedPath = keyFile.trim();
+  if (!isAbsolute(resolvedPath)) throw new Error("TBANK_HOTELS_JWT_PRIVATE_KEY_FILE must be an absolute path.");
+  let metadata;
+  try { metadata = statSync(resolvedPath); } catch { throw new Error("Unable to read the configured service JWT private key file."); }
+  if (!metadata.isFile() || metadata.size < 1 || metadata.size > MAX_SERVICE_JWT_KEY_BYTES) throw new Error("The configured service JWT private key file is invalid or too large.");
+  if (process.platform !== "win32" && (metadata.mode & 0o077) !== 0) {
+    throw new Error("The configured service JWT private key file must be owner-only (mode 0600 or stricter).");
+  }
+  try { return readFileSync(resolvedPath, "utf8"); } catch { throw new Error("Unable to read the configured service JWT private key file."); }
+}
+
+function normalizedServiceJwtPrivateKey(material) {
+  const key = String(material ?? "").replace(/\\n/g, "\n").trim();
+  if (!key) throw new Error("The configured service JWT private key is empty.");
   if (key.includes("-----BEGIN")) return key;
   return `-----BEGIN RSA PRIVATE KEY-----\n${key}\n-----END RSA PRIVATE KEY-----`;
 }
@@ -631,11 +749,97 @@ function timeoutMs() {
   return value;
 }
 
+function maxProviderConcurrency() {
+  const configured = process.env.TBANK_HOTELS_MAX_CONCURRENT_REQUESTS;
+  if (!configured) return DEFAULT_MAX_PROVIDER_CONCURRENCY;
+  const value = Number(configured);
+  if (!Number.isInteger(value) || value < 1 || value > MAX_PROVIDER_CONCURRENCY) {
+    throw new Error(`TBANK_HOTELS_MAX_CONCURRENT_REQUESTS must be an integer from 1 to ${MAX_PROVIDER_CONCURRENCY}.`);
+  }
+  return value;
+}
+
+async function withProviderRequestSlot(operation) {
+  const concurrency = maxProviderConcurrency();
+  if (activeProviderRequests >= concurrency) {
+    if (providerRequestQueue.length >= MAX_PROVIDER_REQUEST_QUEUE) {
+      const error = new Error("Hotels provider request queue is full. Retry later instead of starting parallel tool calls.");
+      error.code = "HOTELS_API_LOCAL_OVERLOAD";
+      throw error;
+    }
+    await new Promise((resolve) => providerRequestQueue.push(resolve));
+  }
+  activeProviderRequests += 1;
+  try {
+    return await operation();
+  } finally {
+    activeProviderRequests -= 1;
+    providerRequestQueue.shift()?.();
+  }
+}
+
 function configuredAuthMode() {
-  if (process.env.TBANK_HOTELS_JWT_PRIVATE_KEY) return "service_jwt";
+  if (serviceJwtConfigured()) return "service_jwt";
   if (process.env.TBANK_HOTELS_AUTH_HEADERS_JSON) return "static_headers";
   if (process.env.TBANK_HOTELS_AUTH_TOKEN) return "static_token";
   return "not_configured";
+}
+
+function authBrokerSocket() {
+  const configured = process.env.TBANK_AUTH_BROKER_SOCKET;
+  return configured && configured.trim() ? configured.trim() : null;
+}
+
+function authBrokerTimeoutMs() {
+  const configured = process.env.TBANK_AUTH_BROKER_TIMEOUT_MS;
+  if (!configured) return 45_000;
+  const parsed = Number(configured);
+  if (!Number.isInteger(parsed) || parsed < 1_000 || parsed > 120_000) {
+    throw new Error("TBANK_AUTH_BROKER_TIMEOUT_MS must be an integer from 1000 to 120000.");
+  }
+  return parsed;
+}
+
+function authBrokerRequest(method, params = {}, requestTimeoutMs = authBrokerTimeoutMs()) {
+  const socketPath = authBrokerSocket();
+  if (!socketPath) throw new Error("T-Bank auth broker is not configured.");
+  return new Promise((resolve, reject) => {
+    const client = authBrokerConnector(socketPath);
+    let response = "";
+    let settled = false;
+    const finish = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      client.destroy();
+      callback(value);
+    };
+    const timer = setTimeout(() => finish(reject, new Error("T-Bank auth broker timed out.")), requestTimeoutMs);
+    client.setEncoding("utf8");
+    client.on("connect", () => client.write(`${JSON.stringify({ version: 2, client: "hotels", method, params })}\n`));
+    client.on("data", (chunk) => {
+      response += chunk;
+      if (Buffer.byteLength(response) > MAX_PROVIDER_RESPONSE_BYTES) {
+        finish(reject, new Error("T-Bank auth broker response exceeded the safe size limit."));
+        return;
+      }
+      const newline = response.indexOf("\n");
+      if (newline < 0) return;
+      try {
+        const parsed = JSON.parse(response.slice(0, newline));
+        if (!parsed || parsed.ok !== true || !parsed.result || typeof parsed.result !== "object") {
+          throw new Error(typeof parsed?.error === "string" ? parsed.error : "T-Bank auth broker request failed.");
+        }
+        finish(resolve, parsed.result);
+      } catch (error) {
+        finish(reject, new Error(String(error.message || "T-Bank auth broker returned an invalid response.").slice(0, 240)));
+      }
+    });
+    client.on("error", () => finish(reject, new Error("T-Bank auth broker is unavailable.")));
+    client.on("end", () => {
+      if (!settled) finish(reject, new Error("T-Bank auth broker closed the connection without a response."));
+    });
+  });
 }
 
 function mutationRequiredHeaders(action) {
@@ -663,7 +867,7 @@ function mutationExecutionReadiness(action) {
   }
 }
 
-function connectionStatus() {
+async function connectionStatus() {
   const hasBaseUrl = Boolean(process.env.TBANK_HOTELS_API_BASE_URL);
   const authMode = configuredAuthMode();
   let transportError = null;
@@ -676,8 +880,34 @@ function connectionStatus() {
   }
   const transport = !hasBaseUrl ? "not_configured" : transportError ? "invalid_configuration" : "configured";
   const authentication = authMode === "not_configured" ? "not_configured" : authenticationError ? "invalid_configuration" : "configured";
-  const searchReady = transport === "configured" && authentication === "configured";
-  const customerReadiness = authMode === "service_jwt" || authMode === "not_configured" ? "not_configured" : "unverified";
+  let configuredProviderConcurrency = null;
+  let loadProtectionError = null;
+  try { configuredProviderConcurrency = maxProviderConcurrency(); }
+  catch (error) { loadProtectionError = error.message; }
+  const searchReady = transport === "configured" && authentication === "configured" && !loadProtectionError;
+  const sharedMobileAuth = Boolean(authBrokerSocket());
+  let brokerProbe = null;
+  let brokerError = null;
+  if (sharedMobileAuth) {
+    try { brokerProbe = await authBrokerRequest("status", {}, 1_500); }
+    catch (error) { brokerError = error.message; }
+  }
+  const brokerReachable = Boolean(brokerProbe);
+  const brokerSessionConfigured = brokerProbe?.sessionConfigured === true;
+  const brokerVerifiedOperations = new Set(Array.isArray(brokerProbe?.verifiedOperations) ? brokerProbe.verifiedOperations : brokerProbe?.supportedOperations ?? []);
+  const brokerSupportedOperations = new Set(Array.isArray(brokerProbe?.supportedOperations) ? brokerProbe.supportedOperations : []);
+  const brokerCanReadCustomer = brokerReachable && brokerSessionConfigured && brokerVerifiedOperations.has("hotels.get_customer");
+  const brokerCanListBookings = brokerReachable && brokerSessionConfigured && brokerVerifiedOperations.has("hotels.list_bookings");
+  const brokerCanReadBookingV1 = brokerReachable && brokerSessionConfigured && brokerVerifiedOperations.has("hotels.get_booking_v1");
+  const brokerCanSaveVoucherV1 = brokerReachable && brokerSessionConfigured && brokerVerifiedOperations.has("hotels.save_voucher_v1");
+  const brokerCanCreatePaymentHandoff = brokerReachable && brokerSessionConfigured && brokerSupportedOperations.has("hotels.create_payment_handoff");
+  const directCustomerAuth = authMode === "static_headers" || authMode === "static_token";
+  const customerReadiness = sharedMobileAuth
+    ? !brokerReachable ? "broker_unavailable"
+      : !brokerSessionConfigured ? "mobile_login_required"
+      : brokerCanReadCustomer && brokerCanListBookings ? "mobile_read_only_ready"
+      : "partial_read_only_unverified"
+    : directCustomerAuth ? "unverified" : "not_configured";
   const bookingExecution = mutationExecutionReadiness("booking");
   return {
     serverVersion: SERVER_VERSION,
@@ -688,22 +918,67 @@ function connectionStatus() {
     authMode,
     customerContext: customerReadiness,
     customerReadiness,
-    canReadCustomer: customerReadiness === "unverified",
+    canReadCustomer: brokerCanReadCustomer || directCustomerAuth,
+    canListBookings: brokerCanListBookings || directCustomerAuth,
+    canReadBookingV1: brokerCanReadBookingV1 || directCustomerAuth,
+    canSaveVoucher: brokerCanSaveVoucherV1,
+    canCreatePaymentHandoff: brokerCanCreatePaymentHandoff,
+    paymentHandoffPreview: {
+      available: brokerCanCreatePaymentHandoff,
+      bookingBindingSupported: brokerCanCreatePaymentHandoff,
+      amountBindingVerified: false,
+      paymentStatusObservation: brokerCanCreatePaymentHandoff ? "available_at_handoff" : "not_available",
+      providerRequestsPerformed: false,
+      amountBindingAvailableAtHandoff: brokerCanCreatePaymentHandoff,
+      rawPaymentStatusAvailableAtHandoff: brokerCanCreatePaymentHandoff,
+      providerReadOnCreate: brokerCanCreatePaymentHandoff,
+      singleUse: true,
+    },
+    mobileAuth: {
+      configured: sharedMobileAuth,
+      provider: sharedMobileAuth ? "local_auth_broker" : "none",
+      reachable: brokerReachable,
+      sessionConfigured: brokerSessionConfigured,
+      sessionOwnerOnly: brokerProbe?.sessionOwnerOnly ?? null,
+      verified: brokerCanReadCustomer && brokerCanListBookings && brokerCanReadBookingV1,
+      verifiedOperations: [...brokerVerifiedOperations].filter((operation) => operation === "hotels.get_customer" || operation === "hotels.list_bookings" || operation === "hotels.get_booking_v1" || operation === "hotels.save_voucher_v1"),
+      supportedOperations: brokerReachable ? (brokerProbe.supportedOperations ?? []) : [],
+    },
     bookingExecution,
+    loadProtection: {
+      status: loadProtectionError ? "invalid_configuration" : "configured",
+      maxConcurrentProviderRequests: configuredProviderConcurrency,
+      maxQueuedProviderRequests: MAX_PROVIDER_REQUEST_QUEUE,
+      activeProviderRequests,
+      queuedProviderRequests: providerRequestQueue.length,
+      identicalSearchCacheTtlMs: SEARCH_CACHE_TTL_MS,
+      cachedSearches: hotelSearchCacheByKey.size,
+      inFlightSearches: inFlightHotelSearchByKey.size,
+    },
     mutationsEnabled: mutationsEnabled(),
     diagnostics: {
       transport: transportError,
       authentication: authenticationError,
+      authBroker: brokerError,
+      loadProtection: loadProtectionError,
     },
     browserDependency: false,
     storedUserSession: false,
+    sharedMobileSessionConfigured: brokerSessionConfigured,
     note: "Значения URL, токенов и auth-заголовков намеренно не раскрываются.",
   };
 }
 
-function getCustomer() {
+async function getCustomer() {
+  if (authBrokerSocket()) {
+    const result = await authBrokerRequest("hotels.get_customer");
+    return result.customer;
+  }
   if (configuredAuthMode() === "service_jwt") {
     throw new Error("Customer context is not configured. service_jwt authenticates the MCP service and cannot autofill booking guest data.");
+  }
+  if (configuredAuthMode() === "not_configured") {
+    throw new Error("Customer context is not configured. Complete local mobile login and configure the auth broker, or provide an approved static customer auth profile.");
   }
   return apiRequest("GET", "/api/v1/auth/customerdata");
 }
@@ -731,6 +1006,9 @@ function cleanupJourneys() {
   }
   for (const [draftId, draft] of bookingDraftsById.entries()) {
     if (draft.expiresAt <= now) bookingDraftsById.delete(draftId);
+  }
+  for (const [bookingRef, reference] of bookingReferencesById.entries()) {
+    if (reference.expiresAt <= now) bookingReferencesById.delete(bookingRef);
   }
   for (const [requestHashValue, execution] of mutationExecutionsByHash.entries()) {
     if (execution.expiresAt <= now) mutationExecutionsByHash.delete(requestHashValue);
@@ -776,6 +1054,99 @@ function bookingDraftById(bookingDraftId) {
   return draft;
 }
 
+function bookingReferenceForOrderId(orderId) {
+  cleanupJourneys();
+  for (const [bookingRef, reference] of bookingReferencesById.entries()) {
+    if (reference.orderId === orderId) return bookingRef;
+  }
+  const bookingRef = `booking_${randomUUID().replaceAll("-", "").slice(0, 24)}`;
+  storeBounded(bookingReferencesById, bookingRef, {
+    orderId,
+    expiresAt: Date.now() + JOURNEY_TTL_MS,
+  }, MAX_ACTIVE_BOOKING_REFERENCES);
+  return bookingRef;
+}
+
+function orderIdForBookingReference(bookingRef) {
+  cleanupJourneys();
+  if (typeof bookingRef !== "string" || !/^booking_[a-f0-9]{24}$/.test(bookingRef)) {
+    throw new Error("bookingRef must be an opaque reference returned by tbank_hotels_list_bookings.");
+  }
+  const reference = bookingReferencesById.get(bookingRef);
+  if (!reference) throw new Error("Unknown or expired bookingRef. Call tbank_hotels_list_bookings again.");
+  return reference.orderId;
+}
+
+function withoutProviderBookingIdentifiers(value) {
+  if (Array.isArray(value)) return value.map(withoutProviderBookingIdentifiers);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key]) => !providerBookingIdentifierKey(key))
+    .map(([key, nested]) => [key, withoutProviderBookingIdentifiers(nested)]));
+}
+
+function providerBookingIdentifierKey(key) {
+  const normalized = String(key).replace(/[^a-z0-9]/gi, "").toLowerCase();
+  return [
+    "orderid", "bookingid", "reservationid", "taskid", "paymentid",
+    "transactionid", "customerid", "userid", "sessionid", "ssoid", "siebelid",
+    "ordernumber", "bookingnumber", "reservationnumber", "confirmationnumber",
+    "orderref", "bookingref", "reservationref", "providerref", "bookhash",
+  ].some((suffix) => normalized.endsWith(suffix)) || normalized.includes("token");
+}
+
+function bookingListWithReferences(bookings) {
+  const root = bookings?.payload && typeof bookings.payload === "object" && !Array.isArray(bookings.payload)
+    ? bookings.payload
+    : bookings;
+  if (!root || typeof root !== "object" || Array.isArray(root)) {
+    throw new Error("Hotels booking list response has an unsupported shape.");
+  }
+  const normalized = { ...root };
+  for (const listName of ["activeList", "cancelledList", "completedList"]) {
+    const list = root[listName];
+    if (!Array.isArray(list)) throw new Error(`Hotels booking list response does not contain ${listName}.`);
+    normalized[listName] = list.map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) throw new Error(`Hotels booking list ${listName} contains an invalid item.`);
+      const orderId = brokerIdentifier(item.orderId, "provider orderId");
+      return {
+        ...withoutProviderBookingIdentifiers(item),
+        bookingRef: bookingReferenceForOrderId(orderId),
+      };
+    });
+  }
+  return root === bookings ? normalized : { ...withoutProviderBookingIdentifiers(bookings), payload: normalized };
+}
+
+function bookingListSummary(bookings) {
+  const root = bookings?.payload && typeof bookings.payload === "object" && !Array.isArray(bookings.payload)
+    ? bookings.payload
+    : bookings;
+  if (!root || typeof root !== "object" || Array.isArray(root)) {
+    throw new Error("Hotels booking list response has an unsupported shape.");
+  }
+  const counts = {};
+  for (const [outputName, listName] of [["activeCount", "activeList"], ["cancelledCount", "cancelledList"], ["completedCount", "completedList"]]) {
+    if (!Array.isArray(root[listName])) throw new Error(`Hotels booking list response does not contain ${listName}.`);
+    counts[outputName] = root[listName].length;
+  }
+  return {
+    status: "ready",
+    ...counts,
+    detailsIncluded: false,
+    personalTravelFactsIncluded: false,
+    bookingReferencesIncluded: false,
+  };
+}
+
+function bookingWithReference(booking, bookingRef) {
+  const sanitized = withoutProviderBookingIdentifiers(booking);
+  if (!sanitized || typeof sanitized !== "object" || Array.isArray(sanitized)) {
+    throw new Error("Hotels booking response has an unsupported shape.");
+  }
+  return { ...sanitized, bookingRef };
+}
+
 function journeyById(journeyId) {
   cleanupJourneys();
   if (typeof journeyId !== "string" || !journeyId) throw new Error("journeyId must be a non-empty string.");
@@ -786,6 +1157,32 @@ function journeyById(journeyId) {
 
 function optional(object, key) {
   return object && typeof object === "object" ? object[key] ?? null : null;
+}
+
+function displayedPriceBreakfastEvidence(mealName) {
+  if (typeof mealName !== "string" || !mealName.trim()) return "not_confirmed_for_displayed_price";
+  const normalized = normalizedText(mealName);
+  const explicitlyExcluded = normalized.includes("breakfast not included")
+    || normalized.includes("without breakfast")
+    || normalized.includes("no breakfast")
+    || normalized.includes("meal not included")
+    || normalized.includes("meals not included")
+    || normalized.includes("without meals")
+    || normalized.includes("no meals")
+    || normalized === "room only"
+    || normalized.includes("завтрак не включен")
+    || normalized.includes("без завтрака")
+    || normalized.includes("питание не включено")
+    || normalized.includes("без питания");
+  if (explicitlyExcluded) return "excluded_by_meal_name";
+  const explicitlyIncluded = normalized === "breakfast"
+    || normalized === "завтрак"
+    || normalized.includes("breakfast included")
+    || normalized.includes("includes breakfast")
+    || normalized.includes("завтрак включен")
+    || normalized.includes("завтрак входит")
+    || normalized.includes("с завтраком");
+  return explicitlyIncluded ? "confirmed_by_meal_name" : "not_confirmed_for_displayed_price";
 }
 
 function stayOption(option) {
@@ -802,6 +1199,7 @@ function stayOption(option) {
     price: optional(rate, "shownPrice"),
     freeCancellationUntil: optional(rate, "freeCancellationUntil"),
     mealName: optional(rate, "mealName"),
+    displayedPriceBreakfastEvidence: displayedPriceBreakfastEvidence(optional(rate, "mealName")),
     paymentPlace: optional(rate, "paymentPlace"),
     availableRoomsCount: optional(rate, "availableRoomsCount"),
     review: review ? { rating: optional(review, "rating"), ratingsCount: optional(review, "ratingsCount") } : null,
@@ -817,12 +1215,46 @@ function stayRateOption(rateOption) {
     paymentPrice: optional(rate, "paymentPrice"),
     paymentPlace: optional(rate, "paymentPlace"),
     mealName: optional(rate, "mealName"),
+    displayedPriceBreakfastEvidence: displayedPriceBreakfastEvidence(optional(rate, "mealName")),
     availableRoomsCount: optional(rate, "availableRoomsCount"),
     isNonRefundable: optional(rate, "isNonRefundable"),
     isCreditCardDataRequired: optional(rate, "isCreditCardDataRequired"),
     cancellationPolicyRules: optional(rate, "cancellationPolicyRules"),
     cashback: optional(rate, "cashback"),
   };
+}
+
+function stayComparisonRow(option) {
+  const facts = stayOption(option);
+  return {
+    hotelName: facts.hotelName,
+    destination: facts.destination,
+    starRating: facts.starRating,
+    reviewRating: facts.review?.rating ?? null,
+    ratingsCount: facts.review?.ratingsCount ?? null,
+    priceAmount: numericProviderFact(facts.price),
+    priceCurrency: providerCurrency(facts.price),
+    freeCancellationUntil: facts.freeCancellationUntil,
+    mealName: facts.mealName,
+    displayedPriceBreakfastEvidence: facts.displayedPriceBreakfastEvidence,
+  };
+}
+
+function markdownCell(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  return String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
+}
+
+function comparisonTableMarkdown(rows) {
+  const header = "| Отель | Локация | Звёзды | Рейтинг | Отзывов | Цена | Бесплатная отмена | Питание |";
+  const divider = "| --- | --- | ---: | ---: | ---: | ---: | --- | --- |";
+  const body = rows.map((row) => {
+    const price = row.priceAmount === null
+      ? null
+      : `${row.priceAmount}${row.priceCurrency ? ` ${row.priceCurrency}` : ""}`;
+    return `| ${markdownCell(row.hotelName)} | ${markdownCell(row.destination)} | ${markdownCell(row.starRating)} | ${markdownCell(row.reviewRating)} | ${markdownCell(row.ratingsCount)} | ${markdownCell(price)} | ${markdownCell(row.freeCancellationUntil)} | ${markdownCell(row.mealName)} |`;
+  });
+  return [header, divider, ...body].join("\n");
 }
 
 function normalizedText(value) {
@@ -851,6 +1283,8 @@ function dateOnly(value, name) {
 }
 
 function validatedPlanInput(args) {
+  requestObject(args, "arguments");
+  assertOnlyKeys(args, ["destination", "destinationId", "countryName", "checkinDate", "checkoutDate", "rooms", "hotelName", "breakfastIncluded", "ranking", "maxOptions", "language"], "arguments");
   const destination = typeof args.destination === "string" ? args.destination.trim() : "";
   const destinationId = args.destinationId;
   if (!destination && (!Number.isInteger(destinationId) || destinationId <= 0)) throw new Error("Provide destination as a location name or a positive destinationId from destination resolution.");
@@ -878,6 +1312,7 @@ function validatedPlanInput(args) {
   if (args.countryName != null && (!countryName || countryName.length > 120)) throw new Error("countryName must contain 1 to 120 characters.");
   const ranking = args.ranking ?? "provider_order";
   if (!["provider_order", "lowest_price", "highest_rating"].includes(ranking)) throw new Error("ranking must be provider_order, lowest_price, or highest_rating.");
+  if (args.breakfastIncluded !== undefined && typeof args.breakfastIncluded !== "boolean") throw new Error("breakfastIncluded must be a boolean.");
   return {
     destination,
     destinationId: destinationId ?? null,
@@ -886,14 +1321,52 @@ function validatedPlanInput(args) {
     checkoutDate: args.checkoutDate,
     rooms,
     hotelName,
+    breakfastIncluded: args.breakfastIncluded === true,
     ranking,
     maxOptions: boundedInteger(args.maxOptions, "maxOptions", DEFAULT_PLAN_OPTIONS, 1, MAX_PLAN_OPTIONS),
     language: args.language,
   };
 }
 
+function validatedSearchFilters(filtersValue, name = "payload.filters") {
+  if (filtersValue === undefined) return undefined;
+  if (!Array.isArray(filtersValue)) throw new Error(`${name} must be an array.`);
+  return filtersValue.map((filterValue, index) => {
+    const itemName = `${name}[${index}]`;
+    const filter = requestObject(filterValue, itemName);
+    if (!SEARCH_FILTER_IDS.includes(filter.filterId)) throw new Error(`${itemName}.filterId is unsupported.`);
+    switch (filter.$objectType) {
+      case "array":
+        assertOnlyKeys(filter, ["$objectType", "filterId", "values"], itemName);
+        if (!Array.isArray(filter.values) || filter.values.some((value) => typeof value !== "string")) throw new Error(`${itemName}.values must be an array of strings.`);
+        break;
+      case "boolean":
+        assertOnlyKeys(filter, ["$objectType", "filterId", "value"], itemName);
+        if (typeof filter.value !== "boolean") throw new Error(`${itemName}.value must be a boolean.`);
+        break;
+      case "radio":
+        assertOnlyKeys(filter, ["$objectType", "filterId", "value", "values"], itemName);
+        if (typeof filter.value !== "string" || !filter.value) throw new Error(`${itemName}.value must be a non-empty string.`);
+        if (filter.values !== undefined && filter.values !== null && (!Array.isArray(filter.values) || filter.values.some((value) => typeof value !== "string"))) {
+          throw new Error(`${itemName}.values must be an array of strings or null.`);
+        }
+        break;
+      case "range":
+        assertOnlyKeys(filter, ["$objectType", "filterId", "min", "max"], itemName);
+        if (typeof filter.min !== "number" || !Number.isFinite(filter.min) || typeof filter.max !== "number" || !Number.isFinite(filter.max)) {
+          throw new Error(`${itemName}.min and ${itemName}.max must be finite numbers.`);
+        }
+        break;
+      default:
+        throw new Error(`${itemName}.$objectType must be array, boolean, radio, or range.`);
+    }
+    return structuredClone(filter);
+  });
+}
+
 function validatedProviderSearchRequest(payloadValue) {
   const body = requestObject(payloadValue);
+  assertOnlyKeys(body, ["destinationId", "checkinDate", "checkoutDate", "guests", "filters", "sort", "offset", "limit"], "payload");
   if (!Number.isInteger(body.destinationId) || body.destinationId <= 0) throw new Error("payload.destinationId must be a positive integer.");
   const checkin = dateOnly(body.checkinDate, "payload.checkinDate");
   const checkout = dateOnly(body.checkoutDate, "payload.checkoutDate");
@@ -901,16 +1374,75 @@ function validatedProviderSearchRequest(payloadValue) {
   if (!Array.isArray(body.guests) || body.guests.length < 1 || body.guests.length > MAX_ROOMS) throw new Error(`payload.guests must contain 1 to ${MAX_ROOMS} room guest groups.`);
   body.guests.forEach((guest, index) => {
     requestObject(guest, `payload.guests[${index}]`);
+    assertOnlyKeys(guest, ["adultsCount", "childrenAge"], `payload.guests[${index}]`);
     if (!Number.isInteger(guest.adultsCount) || guest.adultsCount < 1 || guest.adultsCount > 16) throw new Error(`payload.guests[${index}].adultsCount must be an integer from 1 to 16.`);
     if (guest.childrenAge !== undefined && (!Array.isArray(guest.childrenAge) || guest.childrenAge.length > 16 || guest.childrenAge.some((age) => !Number.isInteger(age) || age < 0 || age > 17))) {
       throw new Error(`payload.guests[${index}].childrenAge must contain integer ages from 0 to 17.`);
     }
   });
-  return body;
+  const filters = validatedSearchFilters(body.filters);
+  if (body.sort !== undefined) requestObject(body.sort, "payload.sort");
+  optionalNonNegativeInteger(body.offset, "payload.offset");
+  optionalNonNegativeInteger(body.limit, "payload.limit");
+  return { ...body, ...(filters === undefined ? {} : { filters }) };
 }
 
 function providerSearchRequest(method, path, args) {
   return apiRequest(method, path, { ...args, payload: validatedProviderSearchRequest(args.payload) });
+}
+
+function requiredStayConditions(input) {
+  return {
+    breakfastIncluded: input.breakfastIncluded,
+  };
+}
+
+function appliedStayConditions(input) {
+  return {
+    breakfastIncluded: input.breakfastIncluded
+      ? { required: true, applied: true, source: "provider_search_filter", filterId: "meal_types", value: "breakfast" }
+      : { required: false, applied: false, source: "not_requested" },
+  };
+}
+
+function providerConditionFailure(error) {
+  return error?.code === "HOTELS_API_TIMEOUT" || error?.code === "HOTELS_API_NETWORK" || error?.code === "HOTELS_API_HTTP";
+}
+
+function providerConditionUnavailable(error, requiredConditions) {
+  const providerHttpStatus = Number.isInteger(error?.httpStatus) ? error.httpStatus : null;
+  const reason = error?.code === "HOTELS_API_TIMEOUT"
+    ? "provider_timeout"
+    : error?.code === "HOTELS_API_NETWORK"
+      ? "provider_unreachable"
+      : providerHttpStatus === 401 || providerHttpStatus === 403
+        ? "provider_auth_rejected"
+        : (providerHttpStatus ?? 0) >= 500
+          ? "provider_unavailable"
+          : "provider_rejected_required_request";
+  return {
+    status: "requirements_unavailable",
+    reason,
+    requiredConditions,
+    retryAllowed: false,
+    lowLevelFallbackAllowed: false,
+    providerHttpStatus,
+    nextStep: reason === "provider_auth_rejected"
+      ? "Do not retry or weaken the required condition. Check the configured Hotels search authentication profile outside the model conversation, then start a new search after readiness is restored."
+      : "Do not retry by guessing low-level filter payloads and do not present unfiltered hotels as satisfying the requirement. Report that the required filtered search is temporarily unavailable.",
+  };
+}
+
+async function guardedProviderSearchRequest(method, path, args) {
+  const body = validatedProviderSearchRequest(args.payload);
+  try {
+    return await apiRequest(method, path, { ...args, payload: body });
+  } catch (error) {
+    if (body.filters?.length && providerConditionFailure(error)) {
+      return providerConditionUnavailable(error, { providerFilters: body.filters });
+    }
+    throw error;
+  }
 }
 
 function locationCandidate(location) {
@@ -1079,7 +1611,7 @@ function optionalCount(value) {
   return Number.isInteger(value) && value >= 0 ? value : null;
 }
 
-async function collectHotelSearch(searchRequest, ranking, language) {
+async function collectHotelSearchUncached(searchRequest, ranking, language) {
   const hotelsByKey = new Map();
   const visitedOffsets = new Set([0]);
   const startedAt = Date.now();
@@ -1177,6 +1709,52 @@ async function collectHotelSearch(searchRequest, ranking, language) {
   };
 }
 
+function resetSearchCacheForChangedTransport() {
+  if (searchCacheTransport === globalThis.fetch) return;
+  hotelSearchCacheByKey.clear();
+  inFlightHotelSearchByKey.clear();
+  searchCacheTransport = globalThis.fetch;
+}
+
+function hotelSearchCacheKey(searchRequest, ranking, language) {
+  const origin = baseUrl().href;
+  return createHash("sha256")
+    .update(JSON.stringify({ origin, authMode: configuredAuthMode(), searchRequest, ranking, language: language ?? null }))
+    .digest("hex");
+}
+
+function collectedSearchCopy(search, cacheStatus) {
+  return {
+    hotels: structuredClone(search.hotels),
+    metadata: { ...search.metadata, cacheStatus },
+  };
+}
+
+async function collectHotelSearch(searchRequest, ranking, language) {
+  resetSearchCacheForChangedTransport();
+  const key = hotelSearchCacheKey(searchRequest, ranking, language);
+  const now = Date.now();
+  const cached = hotelSearchCacheByKey.get(key);
+  if (cached?.expiresAt > now) return collectedSearchCopy(cached.search, "hit");
+  if (cached) hotelSearchCacheByKey.delete(key);
+
+  const inFlight = inFlightHotelSearchByKey.get(key);
+  if (inFlight) return collectedSearchCopy(await inFlight, "coalesced");
+
+  const pending = collectHotelSearchUncached(searchRequest, ranking, language);
+  inFlightHotelSearchByKey.set(key, pending);
+  try {
+    const search = await pending;
+    storeBounded(hotelSearchCacheByKey, key, {
+      expiresAt: Date.now() + SEARCH_CACHE_TTL_MS,
+      search: collectedSearchCopy(search, "stored"),
+    }, MAX_SEARCH_CACHE_ENTRIES);
+    return collectedSearchCopy(search, "miss");
+  } finally {
+    inFlightHotelSearchByKey.delete(key);
+  }
+}
+
 async function planStay(args) {
   const input = validatedPlanInput(args);
   let destination = input.destinationId ? { destinationId: input.destinationId, name: input.destination || null, countryName: input.countryName } : null;
@@ -1198,10 +1776,33 @@ async function planStay(args) {
     checkinDate: input.checkinDate,
     checkoutDate: input.checkoutDate,
     guests: input.rooms.map((room) => ({ adultsCount: room.adults, childrenAge: room.childrenAges })),
-    filters: [],
+    filters: input.breakfastIncluded
+      ? [{ $objectType: "array", filterId: "meal_types", values: ["breakfast"] }]
+      : [],
   };
-  const search = await collectHotelSearch(searchRequest, input.ranking, input.language);
+  let search;
+  try {
+    search = await collectHotelSearch(searchRequest, input.ranking, input.language);
+  } catch (error) {
+    if (input.breakfastIncluded && providerConditionFailure(error)) {
+      return providerConditionUnavailable(error, requiredStayConditions(input));
+    }
+    throw error;
+  }
   const hotels = search.hotels;
+  if (input.breakfastIncluded && hotels.length === 0) {
+    return {
+      status: "no_matching_stays",
+      reason: "no_hotels_matched_required_conditions",
+      resolvedDestination: destination,
+      requiredConditions: requiredStayConditions(input),
+      conditionsApplied: appliedStayConditions(input),
+      searchCoverage: search.metadata,
+      retryAllowed: false,
+      lowLevelFallbackAllowed: false,
+      nextStep: "Report that no matching hotels were returned. Do not remove the breakfast requirement or run low-level filter experiments unless the user explicitly changes the request.",
+    };
+  }
   const nameMatch = hotelsByName(hotels, input.hotelName);
   if (nameMatch.matchMode === "not_found") {
     return {
@@ -1210,6 +1811,8 @@ async function planStay(args) {
       hotelNameQuery: input.hotelName,
       searchedHotelsCount: hotels.length,
       searchCoverage: search.metadata,
+      requiredConditions: requiredStayConditions(input),
+      conditionsApplied: appliedStayConditions(input),
       suggestions: nameMatch.suggestions,
       nextStep: "Ask the user to confirm one suggested provider hotel name or search the location without hotelName.",
     };
@@ -1226,11 +1829,13 @@ async function planStay(args) {
     resolvedDestination: destination,
     hotelNameMatch: nameMatch.matchMode,
     ranking: input.ranking,
+    requiredConditions: requiredStayConditions(input),
+    conditionsApplied: appliedStayConditions(input),
     totalOptions: options.length,
     returnedOptions: displayedOptions.length,
     searchCoverage: search.metadata,
     options: displayedOptions.map(stayOption),
-    note: "Контекст хранится только в текущем MCP-процессе до expiresAt и не содержит токен или auth headers.",
+    note: "Контекст хранится только в текущем MCP-процессе до expiresAt и не содержит токен или auth headers. conditionsApplied подтверждает применение provider-фильтра ко всей journey; утверждайте включение завтрака в показанную цену только при displayedPriceBreakfastEvidence=confirmed_by_meal_name.",
   };
 }
 
@@ -1247,6 +1852,8 @@ function getStayOptions(args) {
     totalOptions: journey.options.length,
     returnedOptions: options.length,
     searchCoverage: journey.searchMetadata,
+    requiredConditions: requiredStayConditions(journey.planInput),
+    conditionsApplied: appliedStayConditions(journey.planInput),
     options: options.map(stayOption),
   };
 }
@@ -1273,13 +1880,25 @@ function compareStayOptions(args) {
     selectionStrategy = ranking;
     if (selected.length < 2) throw new Error("At least two stay options are required for comparison.");
   }
+  const comparisonRows = selected.map(stayComparisonRow);
   return {
     journeyId: args.journeyId,
     selectionStrategy,
     selectionScope: selectionStrategy === "explicit" ? "explicit_options" : "all_journey_options",
     searchCoverage: journey.searchMetadata,
+    requiredConditions: requiredStayConditions(journey.planInput),
+    conditionsApplied: appliedStayConditions(journey.planInput),
     comparison: selected.map(stayOption),
-    note: "null означает, что соответствующий provider fact отсутствует или не был однозначно извлечён из search response.",
+    comparisonRows,
+    comparisonTableMarkdown: comparisonTableMarkdown(comparisonRows),
+    presentationGuidance: {
+      source: "Copy comparisonTableMarkdown into the user-facing answer and explain it from comparisonRows.",
+      scope: "Use only hotels in comparisonRows unless the user explicitly asks for alternatives.",
+      fields: ["hotelName", "destination", "starRating", "reviewRating", "ratingsCount", "priceAmount", "priceCurrency", "freeCancellationUntil", "mealName", "displayedPriceBreakfastEvidence"],
+      breakfastFacts: "confirmed_by_meal_name means included in the displayed price; excluded_by_meal_name means explicitly excluded; not_confirmed_for_displayed_price means unknown for that price.",
+      factIntegrity: "Do not round, reinterpret, or replace ratingsCount, priceAmount, freeCancellationUntil, mealName, or evidence.",
+    },
+    note: "null означает, что соответствующий provider fact отсутствует или не был однозначно извлечён из search response. Используйте displayedPriceBreakfastEvidence как трёхсостоянийное доказательство для показанной цены; conditionsApplied относится только к отбору journey.",
   };
 }
 
@@ -1584,8 +2203,16 @@ async function bookingOverview(args) {
   const orderId = value(args.orderId, "orderId");
   const booking = await apiRequest("GET", `/api/${apiVersion}/hotels/bookings/${orderId}`);
   if (args.includeVoucher === false) return { booking, voucher: { requested: false } };
-  try { return { booking, voucher: await apiRequest("GET", `/api/v1/hotels/bookings/voucher/${orderId}`) }; }
-  catch (error) { return { booking, voucher: { available: false, reason: error.message } }; }
+  return {
+    booking,
+    voucher: {
+      requested: true,
+      documentContentIncluded: false,
+      separateHandoffRequired: true,
+      availableViaTool: authBrokerSocket() ? "tbank_hotels_save_voucher" : null,
+      note: "Binary voucher is never fetched or embedded by booking_overview. Use the local broker handoff only after an explicit user request.",
+    },
+  };
 }
 
 async function previewCancellation(args) {
@@ -1603,6 +2230,13 @@ function value(value, name) {
   if (typeof value !== "string" || !value.trim()) throw new Error(`${name} must be a non-empty string.`);
   if (value.length > 512 || value.includes("/") || value.includes("?")) throw new Error(`${name} contains unsupported path characters.`);
   return encodeURIComponent(value);
+}
+
+function brokerIdentifier(identifier, name) {
+  if (typeof identifier !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(identifier)) {
+    throw new Error(`${name} contains unsupported characters.`);
+  }
+  return identifier;
 }
 
 function requestObject(value, name = "payload") {
@@ -1904,36 +2538,38 @@ async function apiRequest(method, path, { payload: body, query, language, reques
     headers["X-User-Language"] = language;
   }
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  let response;
-  try {
-    const effectiveTimeoutMs = requestTimeoutMs === undefined ? timeoutMs() : Math.min(timeoutMs(), Math.max(1, Math.floor(requestTimeoutMs)));
-    response = await fetch(target, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), redirect: "error", signal: AbortSignal.timeout(effectiveTimeoutMs) });
-  } catch (error) {
-    if (error.name === "TimeoutError") {
-      const timeoutError = new Error("Hotels API request timed out.");
-      timeoutError.code = "HOTELS_API_TIMEOUT";
-      throw timeoutError;
+  return withProviderRequestSlot(async () => {
+    let response;
+    try {
+      const effectiveTimeoutMs = requestTimeoutMs === undefined ? timeoutMs() : Math.min(timeoutMs(), Math.max(1, Math.floor(requestTimeoutMs)));
+      response = await fetch(target, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), redirect: "error", signal: AbortSignal.timeout(effectiveTimeoutMs) });
+    } catch (error) {
+      if (error.name === "TimeoutError") {
+        const timeoutError = new Error("Hotels API request timed out.");
+        timeoutError.code = "HOTELS_API_TIMEOUT";
+        throw timeoutError;
+      }
+      const networkCode = safeDiagnosticToken(error?.cause?.code);
+      const networkError = new Error(`Unable to reach Hotels API${networkCode ? ` (${networkCode})` : ""}.`);
+      networkError.code = "HOTELS_API_NETWORK";
+      throw networkError;
     }
-    const networkCode = safeDiagnosticToken(error?.cause?.code);
-    const networkError = new Error(`Unable to reach Hotels API${networkCode ? ` (${networkCode})` : ""}.`);
-    networkError.code = "HOTELS_API_NETWORK";
-    throw networkError;
-  }
-  const responseText = await boundedResponseText(response);
-  let responseBody = null;
-  if (responseText) {
-    try { responseBody = JSON.parse(responseText); } catch { responseBody = responseText; }
-  }
-  if (!response.ok) {
-    const code = providerErrorCode(responseBody);
-    const requestId = safeDiagnosticToken(response.headers.get("x-request-id")) || safeDiagnosticToken(response.headers.get("x-correlation-id"));
-    const details = [code ? `code: ${code}` : null, requestId ? `requestId: ${requestId}` : null].filter(Boolean);
-    const providerError = new Error(`Hotels API returned HTTP ${response.status}${details.length ? ` (${details.join(", ")})` : ""}.`);
-    providerError.code = "HOTELS_API_HTTP";
-    providerError.httpStatus = response.status;
-    throw providerError;
-  }
-  return { status: response.status, data: responseBody };
+    const responseText = await boundedResponseText(response);
+    let responseBody = null;
+    if (responseText) {
+      try { responseBody = JSON.parse(responseText); } catch { responseBody = responseText; }
+    }
+    if (!response.ok) {
+      const code = providerErrorCode(responseBody);
+      const requestId = safeDiagnosticToken(response.headers.get("x-request-id")) || safeDiagnosticToken(response.headers.get("x-correlation-id"));
+      const details = [code ? `code: ${code}` : null, requestId ? `requestId: ${requestId}` : null].filter(Boolean);
+      const providerError = new Error(`Hotels API returned HTTP ${response.status}${details.length ? ` (${details.join(", ")})` : ""}.`);
+      providerError.code = "HOTELS_API_HTTP";
+      providerError.httpStatus = response.status;
+      throw providerError;
+    }
+    return { status: response.status, data: responseBody };
+  });
 }
 
 function version(args, fallback, allowed) {
@@ -1949,7 +2585,7 @@ export async function callTool(name, args = {}) {
   switch (name) {
     case "tbank_hotels_connection_status": return connectionStatus();
     case "tbank_hotels_get_customer": return getCustomer();
-    case "tbank_hotels_search": return providerSearchRequest("POST", "/api/v1/hotels/search", args);
+    case "tbank_hotels_search": return guardedProviderSearchRequest("POST", "/api/v1/hotels/search", args);
     case "tbank_hotels_resolve_destination": return resolveDestination(args);
     case "tbank_hotels_plan_stay": return planStay(args);
     case "tbank_hotels_get_stay_options": return getStayOptions(args);
@@ -1966,7 +2602,7 @@ export async function callTool(name, args = {}) {
     case "tbank_hotels_preview_cancellation": return previewCancellation(args);
     case "tbank_hotels_repeat_stay_plan": return repeatStayPlan(args);
     case "tbank_hotels_get_search_filters": return apiRequest("GET", `/api/${version(args, "v1", ["v1", "v2"])}/hotels/search-filters`);
-    case "tbank_hotels_get_filter_availability": return providerSearchRequest("POST", "/api/v1/hotels/search-filters-availability", args);
+    case "tbank_hotels_get_filter_availability": return guardedProviderSearchRequest("POST", "/api/v1/hotels/search-filters-availability", args);
     case "tbank_hotels_search_map": return providerSearchRequest("POST", "/api/v1/hotels/map/search", args);
     case "tbank_hotels_get_map_hotels": return apiRequest("POST", "/api/v1/hotels/map/hotels", args);
     case "tbank_hotels_search_points_of_interest": {
@@ -1980,9 +2616,64 @@ export async function callTool(name, args = {}) {
     case "tbank_hotels_get_max_cashback": return apiRequest("GET", "/api/v1/hotels/cashback/max-percent");
     case "tbank_hotels_validate_promocode": return apiRequest("POST", "/api/v1/hotels/promocodes/validate", args);
     case "tbank_hotels_get_rate_upgrade": return apiRequest("POST", `/api/v1/hotels/rates/${value(args.bookHash, "bookHash")}/upgrade`, args);
-    case "tbank_hotels_get_booking": { const v = version(args, "v3", ["v1", "v2", "v3"]); return apiRequest("GET", `/api/${v}/hotels/bookings/${value(args.orderId, "orderId")}`, args); }
-    case "tbank_hotels_list_bookings": return apiRequest("POST", "/api/v1/hotels/bookings/booking_list", { payload: validatedBookingsListArgs(args) });
-    case "tbank_hotels_get_voucher": return apiRequest("GET", `/api/v1/hotels/bookings/voucher/${value(args.orderId, "orderId")}`);
+    case "tbank_hotels_get_booking": {
+      const v = version(args, authBrokerSocket() ? "v1" : "v3", ["v1", "v2", "v3"]);
+      if (authBrokerSocket()) {
+        if (v !== "v1") throw new Error("Mobile auth broker supports tbank_hotels_get_booking only with apiVersion=v1.");
+        if (args.orderId !== undefined) throw new Error("Mobile auth broker mode does not accept provider orderId. Use bookingRef from tbank_hotels_list_bookings.");
+        const bookingRef = args.bookingRef;
+        const orderId = orderIdForBookingReference(bookingRef);
+        const result = await authBrokerRequest("hotels.get_booking_v1", { bookingId: orderId });
+        return bookingWithReference(result.booking, bookingRef);
+      }
+      if (args.bookingRef !== undefined) throw new Error("bookingRef is available only with the mobile auth broker. Direct API profiles require orderId.");
+      return apiRequest("GET", `/api/${v}/hotels/bookings/${value(args.orderId, "orderId")}`, args);
+    }
+    case "tbank_hotels_list_bookings": {
+      const payload = validatedBookingsListArgs(args);
+      if (authBrokerSocket()) {
+        const result = await authBrokerRequest("hotels.list_bookings", payload);
+        return bookingListWithReferences(result.bookings);
+      }
+      return apiRequest("POST", "/api/v1/hotels/bookings/booking_list", { payload });
+    }
+    case "tbank_hotels_summarize_bookings": {
+      const payload = { isActiveRequired: true, isCancelledRequired: true, isCompletedRequired: true };
+      if (authBrokerSocket()) {
+        const result = await authBrokerRequest("hotels.list_bookings", payload);
+        return bookingListSummary(result.bookings);
+      }
+      return bookingListSummary(await apiRequest("POST", "/api/v1/hotels/bookings/booking_list", { payload }));
+    }
+    case "tbank_hotels_get_voucher": throw new Error("Inline voucher delivery is disabled because PDF content must not enter MCP JSON. Use tbank_hotels_save_voucher with bookingRef and the local auth broker.");
+    case "tbank_hotels_save_voucher": {
+      if (!authBrokerSocket()) throw new Error("Safe voucher handoff requires the local mobile auth broker.");
+      if (args.orderId !== undefined) throw new Error("Provider orderId is not accepted. Use bookingRef from tbank_hotels_list_bookings.");
+      const bookingRef = args.bookingRef;
+      const orderId = orderIdForBookingReference(bookingRef);
+      const result = await authBrokerRequest("hotels.save_voucher_v1", { bookingId: orderId });
+      if (!result?.voucher || result.voucher.documentContentIncluded !== false) {
+        throw new Error("Auth broker returned an unsafe voucher response.");
+      }
+      return { status: "saved_locally", bookingRef, ...result };
+    }
+    case "tbank_hotels_create_payment_handoff_preview": {
+      if (!authBrokerSocket()) throw new Error("Hotel payment handoff preview requires the shared local auth broker.");
+      if (args.orderId !== undefined) throw new Error("Provider orderId is not accepted. Use bookingRef from tbank_hotels_list_bookings.");
+      const bookingRef = args.bookingRef;
+      const orderId = orderIdForBookingReference(bookingRef);
+      const result = await authBrokerRequest("hotels.create_payment_handoff", { bookingId: orderId });
+      if (!result || result.bookingBindingVerified !== true || typeof result.paymentHandoffRef !== "string") {
+        throw new Error("Auth broker returned an invalid hotel payment handoff.");
+      }
+      return {
+        status: "preview_ready",
+        bookingRef,
+        ...result,
+        paymentSetupPerformed: false,
+        paymentExecutionPerformed: false,
+      };
+    }
     case "tbank_hotels_get_reservation": return apiRequest("GET", "/api/v1/hotels/bookings/getReservation", args);
     case "tbank_hotels_get_evo_booking": return apiRequest("GET", `/api/v1/hotels/bookings/evo/${value(args.orderId, "orderId")}`);
     case "tbank_hotels_get_bnpl_offer": return apiRequest("POST", `/api/v1/hotels/bookings/evo/${value(args.orderId, "orderId")}/bnpl_offer`, { language: args.language });
@@ -2080,6 +2771,14 @@ function error(id, code, message) { return { jsonrpc: "2.0", id, error: { code, 
 function write(message) { process.stdout.write(`${JSON.stringify(message)}\n`); }
 
 function toolAnnotations(tool) {
+  if (tool.name === "tbank_hotels_save_voucher" || tool.name === "tbank_hotels_create_payment_handoff_preview") {
+    return {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    };
+  }
   const mutating = tool._execute === true || tool.name === "tbank_hotels_confirm_booking";
   return {
     readOnlyHint: !mutating,

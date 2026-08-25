@@ -23,6 +23,7 @@ README является входной картой проекта: он пом�
 ├── services/            # Backend-модули; services/backend содержит основу на Kotlin + Ktor
 ├── docs/                # Продуктовая, архитектурная и инженерная документация, а также roadmap
 ├── tests/               # Будущие тесты, fixtures и E2E-сценарии
+├── tools/               # Изолированные evaluation и MCP-инструменты
 └── scripts/             # Будущие скрипты разработки и автоматизации
 ```
 
@@ -49,6 +50,9 @@ README является входной картой проекта: он пом�
 - `docs/guides/corporate-transfer-readiness.md` — checklist переноса репозитория и выбора внутреннего semantic deployment без внешних model calls.
 - `tools/semantic-evaluation/README.md` — rights-safe harness для агрегированной проверки качества semantic `GLAMPING` без хранения provider content в репозитории.
 - `tools/tbank-hotels-mcp/README.md` — API-driven MCP для поиска, тарифов, авторизованных заказов, бронирования и оплаты в разделе «Отели» Т-Банка; браузер не требуется.
+- `tools/tbank-banking-mcp/README.md` — отдельный experimental MCP для локального phone auth, read-only банковских агрегатов, spending-based travel profile и безопасного payment handoff preview.
+- `tools/tbank-mcp-local/README.md` — общий secret-free setup, offline doctor, launcher, client config generator и versioned contract manifests для отдельного или совместного подключения двух MCP.
+- `docs/guides/tbank-mobile-auth-and-hotel-payment-research.md` — проверяемая endpoint matrix и безопасный план исследования общей mobile auth и Hotels payment linkage.
 - `docs/reviews/README.md` — индекс отчетов о проверках и правила чтения исторических и текущих отчетов.
 - `docs/reviews/*.md` — исторический журнал проверок и чисток; читать через `docs/reviews/README.md`.
 - `docs/decisions/README.md` — индекс принятых ADR и правила ведения архитектурных решений.

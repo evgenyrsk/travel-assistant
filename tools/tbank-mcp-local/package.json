@@ -1,0 +1,20 @@
+{
+  "name": "@travel-assistant/tbank-mcp-local",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Local launcher, doctor and contract tooling for T-Bank MCP servers.",
+  "type": "module",
+  "bin": {
+    "tbank-mcp-local": "src/cli.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "doctor": "node src/cli.mjs doctor --profile combined",
+    "contracts:update": "node src/cli.mjs contracts update",
+    "contracts:check": "node src/cli.mjs contracts check",
+    "test": "node src/cli.mjs verify",
+    "verify": "node src/cli.mjs verify"
+  }
+}

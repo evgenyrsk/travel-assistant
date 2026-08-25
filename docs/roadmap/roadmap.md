@@ -1105,6 +1105,131 @@ gateway implementation, corporate auth/workload identity, model weights,
 probe, evaluation и rollout требуют отдельных задач после появления внешних
 входных данных.
 
+### Параллельный experimental toolstream — T-Bank Banking MCP
+
+**Статус:** первый безопасный срез реализован отдельно от core roadmap stages.
+
+`tools/tbank-banking-mcp` добавляет локальный phone auth вне LLM, read-only
+счета и агрегаты расходов, spending-based travel profile за 90 дней и
+`preview_only` hotel payment intent. Он подключается вторым MCP рядом с Hotels
+MCP и не меняет Kotlin backend, public API, product MVP или provider ranking.
+
+Реальные payment calls, передача banking session в Hotels API, автоматическая
+персонализация и production rollout не активированы. Следующий разрешённый срез
+для этого toolstream — sandbox/read-only проверка phone auth и агрегатов, затем
+отдельный contract/security gate для связи Hotels `orderId/payment setup` с
+banking payment, idempotency, reconciliation и trusted human confirmation.
+Архитектурная граница зафиксирована в `ADR-0003`.
+
+Опциональный локальный auth broker реализует первый совместимый срез: оба MCP
+остаются независимо подключаемыми, broker единолично обновляет mobile session,
+а Hotels allowlist ограничен route-level подтверждёнными `get_customer`,
+`list_bookings`, `get_booking_v1` и voucher. Voucher выдаётся только через
+owner-only local handoff: binary content не входит в MCP JSON. Расширение endpoint
+matrix и payment linkage ведётся по
+`docs/guides/tbank-mobile-auth-and-hotel-payment-research.md`; неизвестные
+routes и реальные mutations остаются заблокированы. Решение зафиксировано в
+`ADR-0004`.
+
+После внешнего review локальный hardening обновлён до Banking MCP `0.5.0` и
+Hotels MCP `0.11.0`: broker protocol v2 разделяет client scopes, session refresh
+защищён межпроцессной блокировкой, readiness проверяет доступность broker,
+добавлены bounded state, усиленная redaction, owner-only socket hardening и
+локальный `--logout`. Для следующего шага добавлен отдельный CLI-пробник с
+фиксированными read-only Hotels routes и тремя ограниченными auth profiles; он
+не читает response bodies и не доступен модели. Probe `1.1` подтвердил auth
+effect для `customerdata` и `booking_list`: unauthenticated control получил
+`401`, а Bearer-only — `200`; дополнительные session/cookie/device/IP данные не
+потребовались. Эти два reads подключены через broker в Banking MCP `0.5.0` и
+Hotels MCP `0.11.0`; обезличенный end-to-end smoke подтвердил
+`mobile_read_only_ready` и получение обоих provider payloads без вывода PII или
+order identifiers. Следующий разрешённый шаг toolstream — route-level проверка
+оставшихся order reads при наличии собственных identifiers; booking/payment
+mutations остаются отдельным gate.
+
+Текущий локальный checkpoint toolstream: Hotels MCP `0.22.0`, Banking/broker
+`0.13.1`, local toolkit `0.5.0`. Safe voucher handoff реализован и проверен
+только на fixture/fake transport после ранее зафиксированного read-only auth
+evidence. Hotels search
+journey теперь принимает semantic `breakfastIncluded`, применяет подтверждённый
+`meal_types=breakfast` до поиска и сравнения, строго валидирует четыре
+discriminator-формы low-level filters и запрещает автоматический unfiltered
+fallback или перебор payload после отказа обязательного фильтра. Qwen 3.8 Max
+review дал `READY`; локальный P3 hardening дополнительно разделил
+provider auth rejection, закрыл network/condition test gaps и задокументировал
+неподтверждённые rates filters. После восстановления `searchReady=true` первый
+естественный breakfast smoke прошёл двумя journey-tools без low-level перебора
+и writes; control search также прошёл двумя journey tools. Smoke выявил UX gap:
+модель скрывала основные сравнительные поля и могла смешать неподтверждённый и
+исключённый завтрак. В `0.15.3` evidence стал трёхсостоянийным, а compare response
+получил обязательный presentation scope. Повторный control сохранил scope, но
+модель всё ещё скрыла сложный provider price. В `0.16.0` сохранены плоские
+`comparisonRows` и добавлен крупный compatibility batch: key-file auth без PEM
+в config, одноразовый setup, offline doctor, launcher/config generator для
+Hotels-only/Banking-only/combined, manifests и clean-restart conformance обоих
+MCP. Первый полный естественный прогон подтвердил search, breakfast, rates и
+preview-only flows, но обнаружил одну подмену `ratingsCount` в текстовом выводе
+и отсутствие broker после client restart. В `0.17.0` compare возвращает готовую
+Markdown-таблицу с правилом неизменности provider facts, а toolkit `0.2.0`
+привязывает broker lifecycle к Banking launcher в combined profile. Повтор
+подтвердил исправление comparison и broker lifecycle, но выявил избыточное
+раскрытие travel history и абсолютных банковских агрегатов в privacy-запросах.
+Hotels `0.18.0` добавляет count-only booking summary, а Banking `0.8.1` — один
+portfolio travel profile без счетов, абсолютных сумм, разбивки категорий и booking
+history. Первый повтор подтвердил Hotels summary и выявил, что Banking-ответ
+раскрывал количество счетов и неверно говорил, что категории не использовались.
+В `0.8.1` количество счетов исключено, а provenance явно разделяет внутреннее
+использование агрегированных категорий и отсутствие их разбивки в ответе.
+Повтор privacy-кейса 5 прошёл, после чего выполнен release-focused review.
+Release-focused review подтвердил отсутствие P0–P2. В patch checkpoint
+`0.18.1` / `0.2.1` закрыты все семь P3: component-scoped env, актуальные
+версии и test counts, локальные ignore-правила, owner-only key enforcement и
+расширенное удаление provider booking identifiers. Следующий portability gate —
+Codex CLI также подтверждён: оба MCP зарегистрированы без env-секретов,
+combined doctor готов, встроенный tool discovery нашёл оба status-tool и
+локальные `connection_status` вернули Hotels `0.18.1` / Banking `0.8.1` без
+provider requests. OpenCode и Codex входят в подтверждённую acceptance matrix,
+Claude Code исключён решением владельца. Следующий шаг — статическая офлайн-
+цепочка hotel order → Hotels payment state → Banking payment preview.
+В Hotels `0.20.0` / Banking `0.11.0` следующий безопасный участок этой цепочки
+закрыт общим broker capability: Hotels преобразует собственный process-local
+`bookingRef` в короткоживущий `paymentHandoffRef`, Banking проверяет capability у
+того же broker и не получает provider `orderId/paymentToken`. Binding брони
+подтверждён локально. Один явно разрешённый structure-only capture собственной
+активной брони подтвердил пути booking v1 `paymentPrice.amount/currency` и raw
+`paymentStatus` без сохранения значений. Broker теперь связывает эти facts с
+capability, а Banking больше не принимает сумму от модели. Raw status не
+интерпретируется, а paymentPrice не считается автоматически задолженностью или
+разрешённой суммой списания.
+Для следующего contract intake local toolkit `0.3.0` добавляет полностью
+офлайн-команду `inspect-booking-fixture`: она удаляет значения и динамические
+identifiers из уже имеющегося JSON собственной брони и оставляет только
+наблюдаемую структуру. Следующий gate — получить просмотренный владельцем
+structure-only отчёт и проверить наличие подтверждённых amount, currency и
+payment-state facts; исходный fixture не входит в репозиторий или prompt.
+Если исходного fixture нет, тот же toolkit может только по явному
+`--acknowledge-read-own-data` выполнить два bounded Hotels reads собственной
+брони через broker и сразу записать structure-only результат без raw
+persistence. Этот capture не является MCP-tool и не разрешает writes.
+External review payment handoff не выявил P0/P1 и подтвердил `preview_only` GO.
+В следующем локальном hardening checkpoint исправлен request accounting,
+readiness привязан к активной mobile session, raw status переименован в
+`paymentStatusObservation`, capability стал одноразовым, маскирование коротких
+dynamic keys усилено, а негативные и bounded-store тесты добавлены. Эти
+изменения не активируют payment setup или execution.
+Следующий offline hardening делает сумму decimal-safe внутри MCP-контракта,
+добавляет freshness window, проверку process-local source account до поглощения
+capability и единый fail-closed readiness report. Локальная команда
+`payment-readiness` фиксирует оставшиеся provider/security blockers и запрещает
+автоматический retry после неизвестного исхода. Статический аудит подтверждает,
+что банковский `/v1/pay` и известные marketplace payment-gateway flows не
+доказывают Hotels payment contract и не переиспользуются.
+Review этого checkpoint не выявил P0–P2. В patch follow-up `payloadHash`
+защищён per-process pepper, а ошибка после поглощения невалидного capability
+содержит однозначный recovery-шаг создать новый handoff.
+Реальная оплата, booking/payment setup, мутации и remote transport этим
+checkpoint не активированы.
+
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 
 ## 8. Связанные документы и audit trail

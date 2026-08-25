@@ -1,0 +1,182 @@
+{
+  "manifestVersion": 1,
+  "component": "banking",
+  "protocolVersion": "2025-03-26",
+  "serverInfo": {
+    "name": "tbank-banking-mcp",
+    "version": "0.13.1"
+  },
+  "tools": [
+    {
+      "name": "tbank_banking_build_portfolio_travel_profile",
+      "description": "Privacy-first профиль предпочтений по всем доступным счетам. Сам получает bounded агрегаты, использует агрегированные категории внутри процесса и возвращает только tier, confidence, ценовой диапазон и ranking — без accountRef, количества/названий счетов, абсолютных сумм, разбивки категорий и истории бронирований. Не утверждайте, что категории не использовались: они использованы, но не раскрыты. Используйте для обычных просьб про обезличенный travel-профиль; не вызывайте list_accounts/spending_summary дополнительно.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "minimum": 30,
+            "maximum": 366,
+            "default": 90
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_banking_build_travel_profile",
+      "description": "Профиль по одному явно выбранному account_ref; может вернуть агрегированные абсолютные суммы. Для обычного обезличенного профиля по всем счетам используйте tbank_banking_build_portfolio_travel_profile.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "account_ref": {
+            "type": "string",
+            "pattern": "^acct_[a-f0-9]{16}$"
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 30,
+            "maximum": 366,
+            "default": 90
+          }
+        },
+        "required": [
+          "account_ref"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_banking_connection_status",
+      "description": "Локальная readiness-диагностика без обращения к банковскому API.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_banking_list_accounts",
+      "description": "Счета текущего пользователя без токенов, cookies и реквизитов карт.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_banking_payment_status",
+      "description": "Состояние локального payment intent; банковский payment status пока не запрашивается.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_intent_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "payment_intent_id"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_banking_prepare_hotel_payment_handoff_preview",
+      "description": "Безопасный меж-MCP preview оплаты отеля. Принимает только одноразовый короткоживущий paymentHandoffRef и account_ref; сумму, валюту и raw paymentStatus получает из связанной booking v1 карточки через broker. Первый вызов атомарно поглощает capability; для повторного preview нужен новый handoff. Не принимает bookingRef, provider orderId, paymentToken или сумму от модели, не выполняет payment setup и не переводит деньги. paymentStatus не интерпретируется как разрешение оплаты.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payment_handoff_ref": {
+            "type": "string",
+            "pattern": "^payment_handoff_[a-f0-9]{24}$"
+          },
+          "source_account_ref": {
+            "type": "string",
+            "pattern": "^acct_[a-f0-9]{16}$"
+          }
+        },
+        "required": [
+          "payment_handoff_ref",
+          "source_account_ref"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_banking_spending_summary",
+      "description": "Агрегированные расходы, поступления и категории; raw transactions не возвращаются.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "account_ref": {
+            "type": "string",
+            "pattern": "^acct_[a-f0-9]{16}$"
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 366,
+            "default": 90
+          }
+        },
+        "required": [
+          "account_ref"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    }
+  ]
+}

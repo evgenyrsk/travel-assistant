@@ -32,3 +32,8 @@ coverage/
 # Temporary files
 .tmp/
 tmp/
+
+# Local MCP captures and client configuration
+/opencode.json
+/request.txt
+/tools/tbank-hotels-mcp/message*.txt

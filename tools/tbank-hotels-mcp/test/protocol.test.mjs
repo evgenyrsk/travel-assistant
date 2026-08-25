@@ -1,10 +1,23 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createHash, generateKeyPairSync, verify } from "node:crypto";
+import { EventEmitter } from "node:events";
+import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
 import test from "node:test";
-import { callTool } from "../src/server.mjs";
+import { callTool, setAuthBrokerConnectorForTests } from "../src/server.mjs";
 
 const serverPath = new URL("../src/server.mjs", import.meta.url).pathname;
+
+// Direct callTool tests execute in this process. Remove all real Hotels/broker
+// settings before any test can observe a developer's credentials or local
+// auth broker; individual tests install only their own fixtures afterwards.
+for (const name of Object.keys(process.env)) {
+  if (name.startsWith("TBANK_HOTELS_") || name.startsWith("TBANK_AUTH_BROKER_")) {
+    delete process.env[name];
+  }
+}
 
 function startServer(env = {}) {
   const child = spawn(process.execPath, [serverPath], {
@@ -61,7 +74,7 @@ test("does not inherit Hotels credentials from the parent process", async (t) =>
   t.after(() => server.child.kill());
   const result = await server.request({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "tbank_hotels_connection_status", arguments: {} } });
   const status = JSON.parse(result.result.content[0].text);
-  assert.equal(status.serverVersion, "0.8.0");
+  assert.equal(status.serverVersion, "0.22.0");
   assert.equal(status.ready, false);
   assert.equal(status.searchReady, false);
   assert.equal(status.transport, "not_configured");
@@ -74,7 +87,7 @@ test("reports API MCP metadata and no browser tools", async (t) => {
   t.after(() => server.child.kill());
   const initialized = await server.request({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-03-26" } });
   assert.equal(initialized.result.serverInfo.name, "tbank-hotels-api-mcp");
-  assert.equal(initialized.result.serverInfo.version, "0.8.0");
+  assert.equal(initialized.result.serverInfo.version, "0.22.0");
   const listed = await server.request({ jsonrpc: "2.0", id: 2, method: "tools/list" });
   const names = listed.result.tools.map((tool) => tool.name);
   assert.ok(names.includes("tbank_hotels_search"));
@@ -86,8 +99,14 @@ test("reports API MCP metadata and no browser tools", async (t) => {
   const planTool = listed.result.tools.find((tool) => tool.name === "tbank_hotels_plan_stay");
   assert.ok(planTool.inputSchema.properties.destination);
   assert.ok(planTool.inputSchema.properties.rooms);
+  assert.equal(planTool.inputSchema.properties.breakfastIncluded.type, "boolean");
   assert.ok(!planTool.inputSchema.properties.searchRequest);
   assert.equal(planTool.annotations.readOnlyHint, true);
+  const lowLevelSearch = listed.result.tools.find((tool) => tool.name === "tbank_hotels_search");
+  const filterSchema = lowLevelSearch.inputSchema.properties.payload.properties.filters.items;
+  assert.equal(filterSchema.oneOf.length, 4);
+  assert.deepEqual(filterSchema.oneOf.map((schema) => schema.properties.$objectType.const), ["array", "boolean", "radio", "range"]);
+  assert.ok(filterSchema.oneOf.every((schema) => schema.additionalProperties === false));
   const executeBooking = listed.result.tools.find((tool) => tool.name === "tbank_hotels_execute_booking");
   assert.equal(executeBooking.annotations.readOnlyHint, false);
   assert.equal(executeBooking.annotations.destructiveHint, true);
@@ -98,6 +117,18 @@ test("reports API MCP metadata and no browser tools", async (t) => {
   assert.deepEqual(bookingPreview.inputSchema.required, ["journeyId"]);
   assert.ok(!bookingPreview.inputSchema.properties.bookingData);
   assert.equal(bookingPreview.annotations.readOnlyHint, true);
+  const saveVoucher = listed.result.tools.find((tool) => tool.name === "tbank_hotels_save_voucher");
+  assert.deepEqual(saveVoucher.inputSchema.required, ["bookingRef"]);
+  assert.ok(!saveVoucher.inputSchema.properties.orderId);
+  assert.equal(saveVoucher.annotations.readOnlyHint, false);
+  assert.equal(saveVoucher.annotations.destructiveHint, false);
+  assert.equal(saveVoucher.annotations.idempotentHint, false);
+  const paymentHandoff = listed.result.tools.find((tool) => tool.name === "tbank_hotels_create_payment_handoff_preview");
+  assert.deepEqual(paymentHandoff.inputSchema.required, ["bookingRef"]);
+  assert.ok(!paymentHandoff.inputSchema.properties.orderId);
+  assert.equal(paymentHandoff.annotations.readOnlyHint, false);
+  assert.equal(paymentHandoff.annotations.destructiveHint, false);
+  assert.equal(paymentHandoff.annotations.idempotentHint, false);
   const seoSearch = listed.result.tools.find((tool) => tool.name === "tbank_hotels_search_seo");
   assert.equal(seoSearch.inputSchema.type, "object");
   assert.equal(seoSearch.inputSchema.oneOf.length, 3);
@@ -145,6 +176,296 @@ test("rejects journey operations for an unknown context without network access",
   assert.match(result.result.content[0].text, /Unknown or expired journeyId/);
 });
 
+test("applies the breakfast requirement before search and preserves it during comparison", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  const requestBodies = [];
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async (_url, options) => {
+    requestBodies.push(JSON.parse(options.body));
+    return new Response(JSON.stringify({ payload: {
+      hotels: [
+        { hotelId: "hotel-a", hotelName: "Hotel A", review: { rating: 9.1 }, rateForHotelsFeed: { mealName: null } },
+        { hotelId: "hotel-b", hotelName: "Hotel B", review: { rating: 9.7 }, rateForHotelsFeed: { mealName: "Breakfast" } },
+      ],
+      hotelsTotalCount: 2,
+      filteredHotelsCount: 2,
+      isLoadingCompleted: true,
+    } }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const plan = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-09-01",
+    checkoutDate: "2099-09-02",
+    rooms: [{ adults: 2 }],
+    breakfastIncluded: true,
+    ranking: "highest_rating",
+  });
+  assert.equal(plan.status, "ready");
+  assert.equal(requestBodies.length, 1);
+  assert.deepEqual(requestBodies[0].filters, [{ $objectType: "array", filterId: "meal_types", values: ["breakfast"] }]);
+  assert.deepEqual(plan.requiredConditions, { breakfastIncluded: true });
+  assert.deepEqual(plan.conditionsApplied.breakfastIncluded, {
+    required: true,
+    applied: true,
+    source: "provider_search_filter",
+    filterId: "meal_types",
+    value: "breakfast",
+  });
+  assert.equal(plan.options[0].displayedPriceBreakfastEvidence, "confirmed_by_meal_name");
+  assert.equal(plan.options[1].displayedPriceBreakfastEvidence, "not_confirmed_for_displayed_price");
+  const listedOptions = await callTool("tbank_hotels_get_stay_options", { journeyId: plan.journeyId, limit: 2 });
+  assert.deepEqual(listedOptions.requiredConditions, plan.requiredConditions);
+  assert.deepEqual(listedOptions.conditionsApplied, plan.conditionsApplied);
+  const comparison = await callTool("tbank_hotels_compare_stay_options", { journeyId: plan.journeyId, limit: 2 });
+  assert.deepEqual(comparison.comparison.map((option) => option.hotelName), ["Hotel B", "Hotel A"]);
+  assert.deepEqual(comparison.requiredConditions, plan.requiredConditions);
+  assert.deepEqual(comparison.conditionsApplied, plan.conditionsApplied);
+  const repeated = await callTool("tbank_hotels_repeat_stay_plan", {
+    journeyId: plan.journeyId,
+    checkinDate: "2099-10-01",
+    checkoutDate: "2099-10-02",
+  });
+  assert.equal(requestBodies.length, 2);
+  assert.deepEqual(requestBodies[1].filters, [{ $objectType: "array", filterId: "meal_types", values: ["breakfast"] }]);
+  assert.deepEqual(repeated.requiredConditions, { breakfastIncluded: true });
+  assert.equal(repeated.conditionsApplied.breakfastIncluded.source, "provider_search_filter");
+});
+
+test("validates all search filter discriminator variants locally", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async () => {
+    requests += 1;
+    return new Response(JSON.stringify({ payload: {} }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+  const base = { destinationId: 17039, checkinDate: "2099-09-01", checkoutDate: "2099-09-02", guests: [{ adultsCount: 2 }] };
+  const filters = [
+    { $objectType: "array", filterId: "meal_types", values: ["breakfast"] },
+    { $objectType: "boolean", filterId: "free_cancellation_allowed", value: true },
+    { $objectType: "radio", filterId: "payment_places", value: "now", values: null },
+    { $objectType: "range", filterId: "price", min: 5000, max: 10000 },
+  ];
+  for (const filter of filters) await callTool("tbank_hotels_search", { payload: { ...base, filters: [filter] } });
+  assert.equal(requests, 4);
+
+  await assert.rejects(
+    callTool("tbank_hotels_search", { payload: { ...base, filters: [{ filterId: "meal_types", values: ["breakfast"] }] } }),
+    /\$objectType must be array, boolean, radio, or range/,
+  );
+  await assert.rejects(
+    callTool("tbank_hotels_search", { payload: { ...base, filters: [{ $objectType: "array", filterId: "meal_types", values: ["breakfast"], value: true }] } }),
+    /unsupported fields: value/,
+  );
+  assert.equal(requests, 4);
+});
+
+test("does not fall back or invite retries when a required breakfast search fails", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async () => {
+    requests += 1;
+    return new Response(JSON.stringify({ errorCode: "filter_unavailable" }), { status: 500, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const result = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-09-01",
+    checkoutDate: "2099-09-02",
+    rooms: [{ adults: 2 }],
+    breakfastIncluded: true,
+  });
+  assert.equal(requests, 1);
+  assert.equal(result.status, "requirements_unavailable");
+  assert.equal(result.reason, "provider_unavailable");
+  assert.equal(result.retryAllowed, false);
+  assert.equal(result.lowLevelFallbackAllowed, false);
+  assert.deepEqual(result.requiredConditions, { breakfastIncluded: true });
+  assert.match(result.nextStep, /Do not retry/);
+});
+
+test("distinguishes provider auth rejection for a required breakfast search", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async () => {
+    requests += 1;
+    return new Response(JSON.stringify({ errorCode: "unauthorized" }), { status: 401, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const result = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-09-01",
+    checkoutDate: "2099-09-02",
+    rooms: [{ adults: 2 }],
+    breakfastIncluded: true,
+  });
+  assert.equal(requests, 1);
+  assert.equal(result.status, "requirements_unavailable");
+  assert.equal(result.reason, "provider_auth_rejected");
+  assert.equal(result.providerHttpStatus, 401);
+  assert.equal(result.retryAllowed, false);
+  assert.equal(result.lowLevelFallbackAllowed, false);
+  assert.equal(result.options, undefined);
+  assert.match(result.nextStep, /authentication profile/);
+});
+
+test("fails closed after a network error in a required breakfast search", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async () => {
+    requests += 1;
+    throw new TypeError("simulated network failure");
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const result = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-09-01",
+    checkoutDate: "2099-09-02",
+    rooms: [{ adults: 2 }],
+    breakfastIncluded: true,
+  });
+  assert.equal(requests, 1);
+  assert.equal(result.status, "requirements_unavailable");
+  assert.equal(result.reason, "provider_unreachable");
+  assert.equal(result.retryAllowed, false);
+  assert.equal(result.lowLevelFallbackAllowed, false);
+  assert.equal(result.options, undefined);
+});
+
+test("returns a no-retry result for a failed low-level filtered availability request", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  let responseStatus = 503;
+  globalThis.fetch = async () => {
+    requests += 1;
+    return new Response(JSON.stringify({ errorCode: "temporary_failure" }), { status: responseStatus, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+  const result = await callTool("tbank_hotels_get_filter_availability", { payload: {
+    destinationId: 17039,
+    checkinDate: "2099-09-01",
+    checkoutDate: "2099-09-02",
+    guests: [{ adultsCount: 2 }],
+    filters: [{ $objectType: "array", filterId: "meal_types", values: ["breakfast"] }],
+  } });
+  assert.equal(requests, 1);
+  assert.equal(result.status, "requirements_unavailable");
+  assert.equal(result.retryAllowed, false);
+  assert.equal(result.lowLevelFallbackAllowed, false);
+  assert.equal(result.providerHttpStatus, 503);
+  assert.equal(result.reason, "provider_unavailable");
+
+  responseStatus = 400;
+  const rejected = await callTool("tbank_hotels_search", { payload: {
+    destinationId: 17039,
+    checkinDate: "2099-10-01",
+    checkoutDate: "2099-10-02",
+    guests: [{ adultsCount: 2 }],
+    filters: [{ $objectType: "array", filterId: "meal_types", values: ["breakfast"] }],
+  } });
+  assert.equal(requests, 2);
+  assert.equal(rejected.reason, "provider_rejected_required_request");
+  assert.equal(rejected.providerHttpStatus, 400);
+});
+
+test("returns no_matching_stays without weakening an empty breakfast search", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async () => {
+    requests += 1;
+    return new Response(JSON.stringify({ payload: {
+      hotels: [], hotelsTotalCount: 0, filteredHotelsCount: 0, isLoadingCompleted: true,
+    } }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+  const result = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-09-01",
+    checkoutDate: "2099-09-02",
+    rooms: [{ adults: 2 }],
+    breakfastIncluded: true,
+  });
+  assert.equal(requests, 1);
+  assert.equal(result.status, "no_matching_stays");
+  assert.equal(result.retryAllowed, false);
+  assert.equal(result.lowLevelFallbackAllowed, false);
+  assert.deepEqual(result.requiredConditions, { breakfastIncluded: true });
+});
+
 test("journey flow hides provider identity while carrying a selected option to rates", async (t) => {
   const savedFetch = globalThis.fetch;
   const environmentNames = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_AUTH_HEADER", "TBANK_HOTELS_AUTH_HEADERS_JSON", "TBANK_HOTELS_JWT_PRIVATE_KEY", "TBANK_HOTELS_JWT_ISSUER", "TBANK_HOTELS_JWT_AUDIENCE", "TBANK_HOTELS_ENABLE_MUTATIONS"];
@@ -168,7 +489,7 @@ test("journey flow hides provider identity while carrying a selected option to r
     if (String(url).endsWith("/api/v1/hotels/search")) {
       return new Response(JSON.stringify({ payload: { hotels: [
         { hotelId: "provider-1", hotelName: "First Hotel", hotelChain: null, starRating: 4, areaLocation: { destinationName: "Moscow" }, hotelLocation: { address: "Street 1" }, rateForHotelsFeed: { shownPrice: { value: 100 }, availableRoomsCount: 2, freeCancellationUntil: null, mealName: "Breakfast", paymentPlace: "ONLINE" }, review: { rating: 9.1, ratingsCount: 100 }, cashback: null },
-        { hotelId: "provider-2", hotelName: "Second Hotel", hotelChain: null, starRating: 5, areaLocation: { destinationName: "Moscow" }, hotelLocation: { address: "Street 2" }, rateForHotelsFeed: { shownPrice: { value: 200 }, availableRoomsCount: 1, freeCancellationUntil: null, mealName: null, paymentPlace: "ONLINE" }, review: null, cashback: null },
+        { hotelId: "provider-2", hotelName: "Second Hotel", hotelChain: null, starRating: 5, areaLocation: { destinationName: "Moscow" }, hotelLocation: { address: "Street 2" }, rateForHotelsFeed: { shownPrice: { value: 200 }, availableRoomsCount: 1, freeCancellationUntil: null, mealName: "Meals not included", paymentPlace: "ONLINE" }, review: null, cashback: null },
       ] } }), { status: 200, headers: { "content-type": "application/json" } });
     }
     if (String(url).endsWith("/api/v3/hotels/provider-2/rates")) {
@@ -195,6 +516,44 @@ test("journey flow hides provider identity while carrying a selected option to r
   const comparison = await callTool("tbank_hotels_compare_stay_options", { journeyId: plan.journeyId, ranking: "highest_rating", limit: 2 });
   assert.equal(comparison.selectionStrategy, "highest_rating");
   assert.deepEqual(comparison.comparison.map((option) => option.hotelName), ["First Hotel", "Second Hotel"]);
+  assert.equal(comparison.comparison[0].displayedPriceBreakfastEvidence, "confirmed_by_meal_name");
+  assert.equal(comparison.comparison[1].displayedPriceBreakfastEvidence, "excluded_by_meal_name");
+  assert.deepEqual(comparison.comparisonRows, [
+    {
+      hotelName: "First Hotel",
+      destination: "Moscow",
+      starRating: 4,
+      reviewRating: 9.1,
+      ratingsCount: 100,
+      priceAmount: 100,
+      priceCurrency: null,
+      freeCancellationUntil: null,
+      mealName: "Breakfast",
+      displayedPriceBreakfastEvidence: "confirmed_by_meal_name",
+    },
+    {
+      hotelName: "Second Hotel",
+      destination: "Moscow",
+      starRating: 5,
+      reviewRating: null,
+      ratingsCount: null,
+      priceAmount: 200,
+      priceCurrency: null,
+      freeCancellationUntil: null,
+      mealName: "Meals not included",
+      displayedPriceBreakfastEvidence: "excluded_by_meal_name",
+    },
+  ]);
+  assert.equal(comparison.comparisonTableMarkdown, [
+    "| Отель | Локация | Звёзды | Рейтинг | Отзывов | Цена | Бесплатная отмена | Питание |",
+    "| --- | --- | ---: | ---: | ---: | ---: | --- | --- |",
+    "| First Hotel | Moscow | 4 | 9.1 | 100 | 100 | — | Breakfast |",
+    "| Second Hotel | Moscow | 5 | — | — | 200 | — | Meals not included |",
+  ].join("\n"));
+  assert.equal(comparison.presentationGuidance.source, "Copy comparisonTableMarkdown into the user-facing answer and explain it from comparisonRows.");
+  assert.equal(comparison.presentationGuidance.scope, "Use only hotels in comparisonRows unless the user explicitly asks for alternatives.");
+  assert.match(comparison.presentationGuidance.factIntegrity, /Do not round/);
+  assert.deepEqual(comparison.presentationGuidance.fields, ["hotelName", "destination", "starRating", "reviewRating", "ratingsCount", "priceAmount", "priceCurrency", "freeCancellationUntil", "mealName", "displayedPriceBreakfastEvidence"]);
   await callTool("tbank_hotels_select_stay_option", { journeyId: plan.journeyId, optionId: plan.options[0].optionId });
   const rates = await callTool("tbank_hotels_get_selected_stay_rates", { journeyId: plan.journeyId });
   assert.equal(rates.status, "ready");
@@ -202,6 +561,7 @@ test("journey flow hides provider identity while carrying a selected option to r
   assert.equal(rates.attempts, 1);
   assert.equal(rates.failureKind, null);
   assert.equal(rates.selectedOption.hotelName, "First Hotel");
+  assert.equal(rates.rateOptions[0].displayedPriceBreakfastEvidence, "confirmed_by_meal_name");
   const ratesCall = calls.find((call) => call.url.endsWith("/api/v3/hotels/provider-1/rates"));
   assert.deepEqual(JSON.parse(ratesCall.options.body), {
     checkInDate: "2099-09-01",
@@ -210,6 +570,7 @@ test("journey flow hides provider identity while carrying a selected option to r
   });
   const selectedRate = await callTool("tbank_hotels_select_stay_rate", { journeyId: plan.journeyId, rateOptionId: rates.rateOptions[0].rateOptionId });
   assert.equal(selectedRate.selectedRate.mealName, "Breakfast");
+  assert.equal(selectedRate.selectedRate.displayedPriceBreakfastEvidence, "confirmed_by_meal_name");
   assert.equal(selectedRate.executionAvailable, true);
   const bookingPreview = await callTool("tbank_hotels_create_booking_preview", { journeyId: plan.journeyId });
   assert.equal(bookingPreview.status, "preview_only");
@@ -537,6 +898,7 @@ test("collects paginated search results, ranks locally, and inherits ranking for
     providerSort: null,
     rankingAppliedLocally: "highest_rating",
     stoppedReason: null,
+    cacheStatus: "miss",
   });
 
   const comparison = await callTool("tbank_hotels_compare_stay_options", {
@@ -1061,6 +1423,326 @@ test("does not expose configured auth secrets", async (t) => {
   assert.doesNotMatch(result.result.content[0].text, /super-secret|Authorization/);
 });
 
+test("does not report payment handoff ready before mobile login", async (t) => {
+  setAuthBrokerConnectorForTests(() => {
+    const connection = new EventEmitter();
+    connection.setEncoding = () => {};
+    connection.destroy = () => {};
+    connection.write = (request) => {
+      const parsed = JSON.parse(request.trim());
+      assert.equal(parsed.method, "status");
+      queueMicrotask(() => connection.emit("data", `${JSON.stringify({
+        ok: true,
+        result: {
+          protocolVersion: 2,
+          sessionConfigured: false,
+          sessionOwnerOnly: null,
+          supportedOperations: ["hotels.create_payment_handoff"],
+          verifiedOperations: [],
+        },
+      })}\n`));
+    };
+    queueMicrotask(() => connection.emit("connect"));
+    return connection;
+  });
+  t.after(() => setAuthBrokerConnectorForTests());
+  const previousSocket = process.env.TBANK_AUTH_BROKER_SOCKET;
+  process.env.TBANK_AUTH_BROKER_SOCKET = "/local/test/auth.sock";
+  t.after(() => {
+    if (previousSocket === undefined) delete process.env.TBANK_AUTH_BROKER_SOCKET;
+    else process.env.TBANK_AUTH_BROKER_SOCKET = previousSocket;
+  });
+
+  const status = await callTool("tbank_hotels_connection_status");
+  assert.equal(status.customerReadiness, "mobile_login_required");
+  assert.equal(status.canCreatePaymentHandoff, false);
+  assert.equal(status.paymentHandoffPreview.available, false);
+  assert.equal(status.paymentHandoffPreview.bookingBindingSupported, false);
+  assert.equal(status.paymentHandoffPreview.paymentStatusObservation, "not_available");
+});
+
+test("can read verified customer and booking data through the optional local mobile auth broker", async (t) => {
+  const requests = [];
+  setAuthBrokerConnectorForTests(() => {
+    const connection = new EventEmitter();
+    connection.setEncoding = () => {};
+    connection.destroy = () => {};
+    connection.write = (request) => {
+      const parsed = JSON.parse(request.trim());
+      requests.push(parsed);
+      assert.equal(parsed.version, 2);
+      assert.equal(parsed.client, "hotels");
+      let result;
+      if (parsed.method === "status") {
+        result = {
+          protocolVersion: 2,
+          sessionConfigured: true,
+          sessionOwnerOnly: true,
+          supportedOperations: ["hotels.create_payment_handoff", "hotels.get_booking_v1", "hotels.get_customer", "hotels.list_bookings", "hotels.save_voucher_v1"],
+          verifiedOperations: ["hotels.get_booking_v1", "hotels.get_customer", "hotels.list_bookings", "hotels.save_voucher_v1"],
+        };
+      } else if (parsed.method === "hotels.get_customer") {
+        result = { customer: { customer: { firstName: "Ada", lastName: "Lovelace" }, isContactCreationNeeded: false } };
+      } else if (parsed.method === "hotels.list_bookings") {
+        if (parsed.params.isCancelledRequired) {
+          assert.deepEqual(parsed.params, { isActiveRequired: true, isCancelledRequired: true, isCompletedRequired: true });
+          result = { bookings: {
+            activeList: [{ orderId: "summary-order-1", hotelName: "Sensitive Hotel", city: "Sensitive City" }],
+            cancelledList: [{ orderId: "summary-order-2", hotelName: "Sensitive Hotel 2" }],
+            completedList: [{ orderId: "summary-order-3" }, { orderId: "summary-order-4" }],
+          } };
+        } else {
+          assert.deepEqual(parsed.params, { isActiveRequired: true, isCancelledRequired: false, isCompletedRequired: true });
+          result = { bookings: {
+            activeList: [{ orderId: "order-1", hotelName: "Hotel", internalStatus: "confirmed" }],
+            cancelledList: [],
+            completedList: [],
+          } };
+        }
+      } else if (parsed.method === "hotels.save_voucher_v1") {
+        assert.equal(parsed.params.bookingId, "order-1");
+        result = {
+          voucher: {
+            voucherRef: "voucher_0123456789abcdef01234567",
+            localPath: "/private/tmp/voucher_0123456789abcdef01234567.pdf",
+            contentType: "application/pdf",
+            sizeBytes: 512,
+            expiresAt: "2099-09-15T12:00:00+00:00",
+            ownerOnly: true,
+            containsPersonalData: true,
+            documentContentIncluded: false,
+            credentialsExposed: false,
+          },
+          handling: "Show the local path only.",
+        };
+      } else if (parsed.method === "hotels.create_payment_handoff") {
+        assert.equal(parsed.params.bookingId, "order-1");
+        result = {
+          paymentHandoffRef: "payment_handoff_0123456789abcdef01234567",
+          bookingBindingVerified: true,
+          amountBindingVerified: true,
+          amountDecimal: "8663.25",
+          currency: "RUB",
+          paymentStatusObservation: { rawStatus: "CREATED", interpretation: "not_interpreted" },
+          factsObservedAtEpoch: 1_000,
+          factsMaxAgeSeconds: 300,
+          expiresAtEpoch: 1_300,
+          providerRequestsPerformed: true,
+        };
+      } else {
+        assert.equal(parsed.params.bookingId, "order-1");
+        result = { booking: {
+          orderId: "order-1",
+          bookingId: "provider-booking-1",
+          providerOrderId: "provider-order-1",
+          reservationId: "reservation-1",
+          paymentToken: "payment-token-1",
+          nested: { confirmationNumber: "confirmation-1", hotelId: "hotel-safe-1" },
+          status: "CONFIRMED",
+        } };
+      }
+      queueMicrotask(() => connection.emit("data", `${JSON.stringify({ ok: true, result })}\n`));
+    };
+    queueMicrotask(() => connection.emit("connect"));
+    return connection;
+  });
+  t.after(() => setAuthBrokerConnectorForTests());
+  const names = [
+    "TBANK_AUTH_BROKER_SOCKET", "TBANK_AUTH_BROKER_TIMEOUT_MS", "TBANK_HOTELS_API_BASE_URL",
+    "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_AUTH_HEADER", "TBANK_HOTELS_AUTH_HEADERS_JSON",
+    "TBANK_HOTELS_JWT_PRIVATE_KEY", "TBANK_HOTELS_JWT_ISSUER", "TBANK_HOTELS_JWT_AUDIENCE",
+    "TBANK_HOTELS_JWT_AUTH_HEADER", "TBANK_HOTELS_JWT_AUTH_PREFIX", "TBANK_HOTELS_ENABLE_MUTATIONS",
+  ];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  for (const name of names) delete process.env[name];
+  process.env.TBANK_AUTH_BROKER_SOCKET = "/local/test/auth.sock";
+  t.after(() => {
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const status = await callTool("tbank_hotels_connection_status");
+  assert.equal(status.mobileAuth.configured, true);
+  assert.equal(status.mobileAuth.reachable, true);
+  assert.equal(status.mobileAuth.sessionConfigured, true);
+  assert.equal(status.mobileAuth.verified, true);
+  assert.deepEqual(status.mobileAuth.verifiedOperations, ["hotels.get_booking_v1", "hotels.get_customer", "hotels.list_bookings", "hotels.save_voucher_v1"]);
+  assert.equal(status.canReadBookingV1, true);
+  assert.equal(status.canReadCustomer, true);
+  assert.equal(status.canListBookings, true);
+  assert.equal(status.canSaveVoucher, true);
+  assert.equal(status.canCreatePaymentHandoff, true);
+  assert.equal(status.paymentHandoffPreview.bookingBindingSupported, true);
+  assert.equal(status.paymentHandoffPreview.amountBindingVerified, false);
+  assert.equal(status.paymentHandoffPreview.paymentStatusObservation, "available_at_handoff");
+  assert.equal(status.paymentHandoffPreview.singleUse, true);
+  assert.equal(status.customerReadiness, "mobile_read_only_ready");
+  assert.equal(status.searchReady, false);
+  const customer = await callTool("tbank_hotels_get_customer");
+  assert.equal(customer.customer.firstName, "Ada");
+  const summary = await callTool("tbank_hotels_summarize_bookings", {});
+  assert.deepEqual(summary, {
+    status: "ready",
+    activeCount: 1,
+    cancelledCount: 1,
+    completedCount: 2,
+    detailsIncluded: false,
+    personalTravelFactsIncluded: false,
+    bookingReferencesIncluded: false,
+  });
+  assert.doesNotMatch(JSON.stringify(summary), /Sensitive|summary-order|Hotel|City/);
+  const bookings = await callTool("tbank_hotels_list_bookings", {
+    isActiveRequired: true,
+    isCancelledRequired: false,
+    isCompletedRequired: true,
+  });
+  assert.equal(bookings.activeList.length, 1);
+  assert.match(bookings.activeList[0].bookingRef, /^booking_[a-f0-9]{24}$/);
+  assert.equal(bookings.activeList[0].orderId, undefined);
+  assert.doesNotMatch(JSON.stringify(bookings), /order-1/);
+  const booking = await callTool("tbank_hotels_get_booking", { bookingRef: bookings.activeList[0].bookingRef });
+  assert.equal(booking.bookingRef, bookings.activeList[0].bookingRef);
+  assert.equal(booking.status, "CONFIRMED");
+  assert.equal(booking.orderId, undefined);
+  assert.equal(booking.bookingId, undefined);
+  assert.equal(booking.nested.hotelId, "hotel-safe-1");
+  assert.doesNotMatch(JSON.stringify(booking), /order-1|provider-booking-1|provider-order-1|reservation-1|payment-token-1|confirmation-1/);
+  const handoff = await callTool("tbank_hotels_create_payment_handoff_preview", { bookingRef: bookings.activeList[0].bookingRef });
+  assert.equal(handoff.status, "preview_ready");
+  assert.equal(handoff.bookingRef, bookings.activeList[0].bookingRef);
+  assert.equal(handoff.paymentHandoffRef, "payment_handoff_0123456789abcdef01234567");
+  assert.equal(handoff.bookingBindingVerified, true);
+  assert.equal(handoff.amountBindingVerified, true);
+  assert.equal(handoff.amountDecimal, "8663.25");
+  assert.equal(handoff.currency, "RUB");
+  assert.equal(handoff.paymentStatusObservation.rawStatus, "CREATED");
+  assert.equal(handoff.paymentStatusObservation.interpretation, "not_interpreted");
+  assert.equal(handoff.providerRequestsPerformed, true);
+  assert.equal(handoff.paymentSetupPerformed, false);
+  assert.equal(handoff.paymentExecutionPerformed, false);
+  assert.doesNotMatch(JSON.stringify(handoff), /order-1|payment-token-1/);
+  const voucher = await callTool("tbank_hotels_save_voucher", { bookingRef: bookings.activeList[0].bookingRef });
+  assert.equal(voucher.status, "saved_locally");
+  assert.equal(voucher.bookingRef, bookings.activeList[0].bookingRef);
+  assert.equal(voucher.voucher.documentContentIncluded, false);
+  assert.equal(voucher.voucher.contentType, "application/pdf");
+  assert.doesNotMatch(JSON.stringify(voucher), /order-1|%PDF|base64/);
+  assert.deepEqual(requests.map(({ method }) => method), [
+    "status",
+    "hotels.get_customer",
+    "hotels.list_bookings",
+    "hotels.list_bookings",
+    "hotels.get_booking_v1",
+    "hotels.create_payment_handoff",
+    "hotels.save_voucher_v1",
+  ]);
+});
+
+test("never fetches or embeds voucher PDF through legacy and overview tools", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const savedBaseUrl = process.env.TBANK_HOTELS_API_BASE_URL;
+  const savedToken = process.env.TBANK_HOTELS_AUTH_TOKEN;
+  let calls = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  globalThis.fetch = async (url) => {
+    calls += 1;
+    assert.match(String(url), /\/api\/v3\/hotels\/bookings\/order-1$/);
+    return new Response(JSON.stringify({ status: "CONFIRMED" }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    if (savedBaseUrl === undefined) delete process.env.TBANK_HOTELS_API_BASE_URL; else process.env.TBANK_HOTELS_API_BASE_URL = savedBaseUrl;
+    if (savedToken === undefined) delete process.env.TBANK_HOTELS_AUTH_TOKEN; else process.env.TBANK_HOTELS_AUTH_TOKEN = savedToken;
+  });
+
+  await assert.rejects(callTool("tbank_hotels_get_voucher", { orderId: "order-1" }), /Inline voucher delivery is disabled/);
+  assert.equal(calls, 0);
+  const overview = await callTool("tbank_hotels_get_booking_overview", { orderId: "order-1", includeVoucher: true });
+  assert.equal(calls, 1);
+  assert.equal(overview.voucher.documentContentIncluded, false);
+  assert.equal(overview.voucher.separateHandoffRequired, true);
+  assert.equal(overview.voucher.availableViaTool, null);
+  assert.doesNotMatch(JSON.stringify(overview), /%PDF|base64/);
+});
+
+test("allows a broker read to exceed the former three-second timeout", async (t) => {
+  setAuthBrokerConnectorForTests(() => {
+    const connection = new EventEmitter();
+    connection.setEncoding = () => {};
+    connection.destroy = () => {};
+    connection.write = (request) => {
+      const parsed = JSON.parse(request.trim());
+      const result = parsed.method === "hotels.list_bookings"
+        ? { bookings: { activeList: [{ orderId: "slow-order" }], cancelledList: [], completedList: [] } }
+        : { booking: { orderId: "slow-order" } };
+      const delay = parsed.method === "hotels.get_booking_v1" ? 3_100 : 0;
+      setTimeout(() => connection.emit("data", `${JSON.stringify({ ok: true, result })}\n`), delay);
+    };
+    queueMicrotask(() => connection.emit("connect"));
+    return connection;
+  });
+  t.after(() => setAuthBrokerConnectorForTests());
+  const names = ["TBANK_AUTH_BROKER_SOCKET", "TBANK_AUTH_BROKER_TIMEOUT_MS"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  process.env.TBANK_AUTH_BROKER_SOCKET = "/local/test/auth.sock";
+  delete process.env.TBANK_AUTH_BROKER_TIMEOUT_MS;
+  t.after(() => {
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const bookings = await callTool("tbank_hotels_list_bookings", {
+    isActiveRequired: true,
+    isCancelledRequired: false,
+    isCompletedRequired: false,
+  });
+  const booking = await callTool("tbank_hotels_get_booking", { bookingRef: bookings.activeList[0].bookingRef });
+  assert.equal(booking.bookingRef, bookings.activeList[0].bookingRef);
+  assert.equal(booking.orderId, undefined);
+});
+
+test("reports an unreachable auth broker and rejects unsupported booking identifiers locally", async (t) => {
+  let connectionCount = 0;
+  setAuthBrokerConnectorForTests(() => {
+    connectionCount += 1;
+    const connection = new EventEmitter();
+    connection.setEncoding = () => {};
+    connection.destroy = () => {};
+    queueMicrotask(() => connection.emit("error", new Error("unavailable")));
+    return connection;
+  });
+  t.after(() => setAuthBrokerConnectorForTests());
+  const previous = process.env.TBANK_AUTH_BROKER_SOCKET;
+  process.env.TBANK_AUTH_BROKER_SOCKET = "/local/test/missing.sock";
+  t.after(() => {
+    if (previous === undefined) delete process.env.TBANK_AUTH_BROKER_SOCKET;
+    else process.env.TBANK_AUTH_BROKER_SOCKET = previous;
+  });
+
+  const status = await callTool("tbank_hotels_connection_status");
+  assert.equal(status.customerReadiness, "broker_unavailable");
+  assert.equal(status.mobileAuth.reachable, false);
+  assert.equal(status.canReadBookingV1, false);
+  await assert.rejects(callTool("tbank_hotels_get_booking", { bookingRef: "booking_invalid" }), /opaque reference/);
+  assert.equal(connectionCount, 1);
+});
+
+test("rejects customer autofill locally when no customer auth profile exists", async () => {
+  const names = ["TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_AUTH_HEADERS_JSON", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  for (const name of names) delete process.env[name];
+  try {
+    await assert.rejects(callTool("tbank_hotels_get_customer"), /Customer context is not configured/);
+  } finally {
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  }
+});
+
 test("connection status validates service JWT configuration without making a network request", async (t) => {
   const server = startServer({
     TBANK_HOTELS_API_BASE_URL: "https://hotels.example.test",
@@ -1088,6 +1770,27 @@ test("connection status validates service JWT configuration without making a net
   assert.doesNotMatch(customer.result.content[0].text, /not-a-private-key/);
 });
 
+test("rejects a service JWT key file readable by group or others", async (t) => {
+  if (process.platform === "win32") return t.skip("POSIX file modes are not available on Windows");
+  const keyDirectory = mkdtempSync(resolve(tmpdir(), "hotels-jwt-permissions-"));
+  const keyFile = resolve(keyDirectory, "service-key.pem");
+  writeFileSync(keyFile, "fixture-key", { mode: 0o600 });
+  chmodSync(keyFile, 0o644);
+  const server = startServer({
+    TBANK_HOTELS_API_BASE_URL: "https://hotels.example.test",
+    TBANK_HOTELS_JWT_PRIVATE_KEY_FILE: keyFile,
+    TBANK_HOTELS_JWT_ISSUER: "HOTELSSEARCHAPI",
+    TBANK_HOTELS_JWT_AUDIENCE: "HOTELSAPI",
+  });
+  t.after(() => server.child.kill());
+  const result = await server.request({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "tbank_hotels_connection_status", arguments: {} } });
+  const status = JSON.parse(result.result.content[0].text);
+  assert.equal(status.searchReady, false);
+  assert.equal(status.authentication, "invalid_configuration");
+  assert.match(status.diagnostics.authentication, /owner-only/);
+  assert.doesNotMatch(result.result.content[0].text, /fixture-key|service-key\.pem/);
+});
+
 test("creates the configured HotelsApiPrivate RS384 service JWT without exposing its key", async (t) => {
   const savedFetch = globalThis.fetch;
   const names = [
@@ -1096,6 +1799,7 @@ test("creates the configured HotelsApiPrivate RS384 service JWT without exposing
     "TBANK_HOTELS_AUTH_HEADER",
     "TBANK_HOTELS_AUTH_HEADERS_JSON",
     "TBANK_HOTELS_JWT_PRIVATE_KEY",
+    "TBANK_HOTELS_JWT_PRIVATE_KEY_FILE",
     "TBANK_HOTELS_JWT_ISSUER",
     "TBANK_HOTELS_JWT_AUDIENCE",
     "TBANK_HOTELS_JWT_AUTH_HEADER",
@@ -1104,9 +1808,13 @@ test("creates the configured HotelsApiPrivate RS384 service JWT without exposing
   ];
   const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  const keyDirectory = mkdtempSync(resolve(tmpdir(), "hotels-jwt-key-"));
+  const keyFile = resolve(keyDirectory, "service-key.pem");
+  writeFileSync(keyFile, privateKey.export({ type: "pkcs1", format: "pem" }), { mode: 0o600 });
   const calls = [];
   process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-private.example.test/";
-  process.env.TBANK_HOTELS_JWT_PRIVATE_KEY = privateKey.export({ type: "pkcs1", format: "pem" }).toString();
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  process.env.TBANK_HOTELS_JWT_PRIVATE_KEY_FILE = keyFile;
   process.env.TBANK_HOTELS_JWT_ISSUER = "HOTELSSEARCHAPI";
   process.env.TBANK_HOTELS_JWT_AUDIENCE = "HOTELSAPI";
   delete process.env.TBANK_HOTELS_AUTH_TOKEN;
@@ -1195,8 +1903,9 @@ test("rejects an expired prepared mutation before reaching transport", async (t)
   });
   t.after(() => server.child.kill());
   const payload = { bookHash: "hash", guestContact: { email: "person@example.test", phone: "+70000000000" }, rooms: [] };
-  const preparedAt = new Date(Date.now() - 10 * 60 * 1_000).toISOString();
-  const expiresAt = new Date(Date.now() - 5 * 60 * 1_000).toISOString();
+  const expiredWindowStart = Date.now() - 10 * 60 * 1_000;
+  const preparedAt = new Date(expiredWindowStart).toISOString();
+  const expiresAt = new Date(expiredWindowStart + 5 * 60 * 1_000).toISOString();
   const material = JSON.stringify({ action: "booking", path: "/api/v1/hotels/bookings/tasks/create", payload, preparedAt, expiresAt });
   const requestHash = createHash("sha256").update(material).digest("hex");
   const confirmation = `CONFIRM_TBANK_HOTELS_BOOKING_${requestHash.slice(0, 12)}`;
@@ -1204,4 +1913,110 @@ test("rejects an expired prepared mutation before reaching transport", async (t)
   assert.equal(executed.result.isError, true);
   assert.match(executed.result.content[0].text, /has expired/);
   assert.doesNotMatch(executed.result.content[0].text, /BASE_URL/);
+});
+
+test("limits concurrent provider requests inside one MCP process", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_MAX_CONCURRENT_REQUESTS"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-load-guard.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  process.env.TBANK_HOTELS_MAX_CONCURRENT_REQUESTS = "2";
+  let active = 0;
+  let maximumActive = 0;
+  let requestCount = 0;
+  globalThis.fetch = async () => {
+    requestCount += 1;
+    active += 1;
+    maximumActive = Math.max(maximumActive, active);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    active -= 1;
+    return new Response(JSON.stringify({ payload: { filters: [] } }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  await Promise.all(Array.from({ length: 6 }, () => callTool("tbank_hotels_get_search_filters", { apiVersion: "v1" })));
+
+  assert.equal(requestCount, 6);
+  assert.equal(maximumActive, 2);
+  const status = await callTool("tbank_hotels_connection_status", {});
+  assert.equal(status.loadProtection.status, "configured");
+  assert.equal(status.loadProtection.maxConcurrentProviderRequests, 2);
+  assert.equal(status.loadProtection.activeProviderRequests, 0);
+  assert.equal(status.loadProtection.queuedProviderRequests, 0);
+});
+
+test("coalesces concurrent identical searches and reuses the short cache", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_MAX_CONCURRENT_REQUESTS"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-search-cache.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  process.env.TBANK_HOTELS_MAX_CONCURRENT_REQUESTS = "2";
+  let searchRequests = 0;
+  globalThis.fetch = async (url) => {
+    assert.equal(new URL(url).pathname, "/api/v1/hotels/search");
+    searchRequests += 1;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    return new Response(JSON.stringify({ payload: {
+      hotels: [{ hotelId: "hotel-cache", hotelName: "Cached Hotel", review: { rating: 9.1 } }],
+      filteredHotelsCount: 1,
+      hotelsTotalCount: 1,
+      isLoadingCompleted: true,
+      nextOffset: null,
+    } }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+  const args = {
+    destinationId: 17039,
+    checkinDate: "2099-10-01",
+    checkoutDate: "2099-10-02",
+    rooms: [{ adults: 2 }],
+    maxOptions: 1,
+    ranking: "provider_order",
+  };
+
+  const concurrent = await Promise.all([
+    callTool("tbank_hotels_plan_stay", args),
+    callTool("tbank_hotels_plan_stay", args),
+  ]);
+  const cached = await callTool("tbank_hotels_plan_stay", args);
+
+  assert.equal(searchRequests, 1);
+  assert.deepEqual(new Set(concurrent.map((plan) => plan.searchCoverage.cacheStatus)), new Set(["miss", "coalesced"]));
+  assert.equal(cached.searchCoverage.cacheStatus, "hit");
+  assert.notEqual(concurrent[0].journeyId, concurrent[1].journeyId);
+  assert.notEqual(concurrent[0].options[0].optionId, concurrent[1].options[0].optionId);
+});
+
+test("marks search unready for an invalid local concurrency setting", async (t) => {
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_MAX_CONCURRENT_REQUESTS"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-invalid-guard.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  process.env.TBANK_HOTELS_MAX_CONCURRENT_REQUESTS = "0";
+  t.after(() => {
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const status = await callTool("tbank_hotels_connection_status", {});
+
+  assert.equal(status.searchReady, false);
+  assert.equal(status.loadProtection.status, "invalid_configuration");
+  assert.match(status.diagnostics.loadProtection, /must be an integer from 1 to 8/);
 });

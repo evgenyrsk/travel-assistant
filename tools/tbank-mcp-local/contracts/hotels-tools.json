@@ -1,0 +1,5193 @@
+{
+  "manifestVersion": 1,
+  "component": "hotels",
+  "protocolVersion": "2025-03-26",
+  "serverInfo": {
+    "name": "tbank-hotels-api-mcp",
+    "version": "0.22.0"
+  },
+  "tools": [
+    {
+      "name": "tbank_hotels_check_ls_order",
+      "description": "Проверяет статус LS-заказа по orderId.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          }
+        },
+        "required": [
+          "orderId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_compare_stay_options",
+      "description": "Сравнивает 2–5 вариантов по provider facts внутри той же отфильтрованной journey-выборки и возвращает готовые comparisonRows и comparisonTableMarkdown. В пользовательском ответе покажите comparisonTableMarkdown целиком: не удаляйте колонки, не округляйте и не изменяйте ratingsCount/price/cancellation facts. Не подмешивайте другие journey-варианты без запроса пользователя. Для запроса лучших вариантов передайте ranking и не выбирайте optionIds вручную: ranking применяется ко всей journey-выборке. optionIds предназначены только для явно названных пользователем вариантов. Без ranking наследуется стратегия plan_stay.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId."
+          },
+          "optionIds": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 5,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512,
+              "description": "optionId из journey."
+            },
+            "description": "Только явно выбранные пользователем варианты. Не используйте для top/best: передайте ranking."
+          },
+          "ranking": {
+            "type": "string",
+            "enum": [
+              "provider_order",
+              "lowest_price",
+              "highest_rating"
+            ],
+            "description": "Если значение не передано, используется ranking исходного plan_stay."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 5,
+            "default": 5
+          }
+        },
+        "required": [
+          "journeyId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_confirm_booking",
+      "description": "Создаёт бронь черновика только после непосредственного явного подтверждения пользователя и при готовом доверенном execution profile. Данные карты и OTP не принимаются.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookingDraftId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookingDraftId."
+          },
+          "preparedRequestHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "confirmation": {
+            "type": "string"
+          },
+          "preparedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          }
+        },
+        "required": [
+          "bookingDraftId",
+          "preparedRequestHash",
+          "confirmation",
+          "preparedAt",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_connection_status",
+      "description": "Показывает раздельную готовность read-only поиска, customer reads и booking execution. Секреты, значения заголовков и токены никогда не возвращаются.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_create_booking_draft",
+      "description": "Создаёт черновик только для явно намеренного реального бронирования и поэтому принимает guest PII. Для безопасного preview без оформления используйте tbank_hotels_create_booking_preview. Достаточность имён всех проживающих OpenAPI не подтверждает, поэтому MCP возвращает guestCoverage без выдумывания требования. HTTP create-запрос не выполняется; executionAvailable учитывает activation, auth profile и обязательные доверенные headers.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId."
+          },
+          "bookingData": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "checkOutId": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "guestContact": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "phone": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "comment": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "phone"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "rooms": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "guests": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "firstName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "lastName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "childAge": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "firstName",
+                              "lastName"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "guests"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "paymentData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "creditCardId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string"
+                          },
+                          "lastName": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "firstName",
+                          "lastName"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "arrivalTime": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "from": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "to": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentMeans": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "payment_form",
+                          "on_us",
+                          "off_us",
+                          "dolyame"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "promocode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "extraServices": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "earlyCheckInId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lateCheckOutId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "guaranteedRefundSelected": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "guestContact",
+                  "rooms"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "checkOutId": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "guestContact": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "phone": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "comment": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "phone"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "rooms": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "guests": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "firstName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "lastName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "childAge": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "firstName",
+                              "lastName"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "guests"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "paymentData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "creditCardId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string"
+                          },
+                          "lastName": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "firstName",
+                          "lastName"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "arrivalTime": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "from": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "to": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentMeans": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "payment_form",
+                          "on_us",
+                          "off_us",
+                          "dolyame"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "promocode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "extraServices": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "earlyCheckInId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lateCheckOutId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "guaranteedRefundSelected": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "userData": {
+                    "type": "object",
+                    "properties": {
+                      "ssoId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "siebelId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "phoneNumber": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "userIp": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "guestContact",
+                  "rooms",
+                  "userData",
+                  "userIp"
+                ],
+                "additionalProperties": false
+              }
+            ],
+            "description": "CreateBookingsApiRequest без bookHash; MCP связывает выбранный тариф самостоятельно."
+          }
+        },
+        "required": [
+          "journeyId",
+          "bookingData"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_create_booking_preview",
+      "description": "Создаёт безопасный локальный preview выбранного отеля, тарифа и состава гостей без ФИО, email и телефона. Не создаёт booking draft, не вызывает Hotels API и не запрашивает PII. Используйте для preview-only сценария, особенно когда executionAvailable=false.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId с выбранным rateOptionId."
+          }
+        },
+        "required": [
+          "journeyId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_create_payment_handoff_preview",
+      "description": "Создаёт через общий local auth broker одноразовый короткоживущий paymentHandoffRef для собственной брони. Broker выполняет один read booking v1 и связывает наблюдаемые paymentPrice и raw paymentStatus; status не интерпретируется как разрешение оплаты. Capability поглощается при первом Banking preview. Не возвращает provider orderId/paymentToken и не выполняет payment setup или оплату.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookingRef": {
+            "type": "string",
+            "pattern": "^booking_[a-f0-9]{24}$",
+            "description": "Непрозрачный process-local bookingRef из tbank_hotels_list_bookings."
+          }
+        },
+        "required": [
+          "bookingRef"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_execute_apply_promocode",
+      "description": "Применяет или удаляет промокод у тарифа после непосредственного явного подтверждения пользователя. HTTP write требует готового доверенного execution profile.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookHash из ответа Hotels API."
+          },
+          "promocode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preparedRequestHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "requestHash из соответствующего prepare-вызова."
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Точная фраза подтверждения из соответствующего prepare-вызова после явного согласия пользователя."
+          },
+          "preparedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          }
+        },
+        "required": [
+          "bookHash",
+          "promocode",
+          "preparedRequestHash",
+          "confirmation",
+          "preparedAt",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_execute_booking",
+      "description": "Создаёт задачу бронирования только после непосредственного явного подтверждения пользователя. HTTP write требует готового доверенного execution profile.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "bookHash": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Хеш выбранного тарифа."
+                  },
+                  "checkOutId": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "guestContact": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "phone": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "comment": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "phone"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "rooms": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "guests": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "firstName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "lastName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "childAge": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "firstName",
+                              "lastName"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "guests"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "paymentData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "creditCardId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string"
+                          },
+                          "lastName": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "firstName",
+                          "lastName"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "arrivalTime": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "from": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "to": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentMeans": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "payment_form",
+                          "on_us",
+                          "off_us",
+                          "dolyame"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "promocode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "extraServices": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "earlyCheckInId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lateCheckOutId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "guaranteedRefundSelected": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "bookHash",
+                  "guestContact",
+                  "rooms"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "bookHash": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Хеш выбранного тарифа."
+                  },
+                  "checkOutId": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "guestContact": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "phone": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "comment": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "phone"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "rooms": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "guests": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "firstName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "lastName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "childAge": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "firstName",
+                              "lastName"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "guests"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "paymentData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "creditCardId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string"
+                          },
+                          "lastName": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "firstName",
+                          "lastName"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "arrivalTime": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "from": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "to": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentMeans": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "payment_form",
+                          "on_us",
+                          "off_us",
+                          "dolyame"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "promocode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "extraServices": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "earlyCheckInId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lateCheckOutId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "guaranteedRefundSelected": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "userData": {
+                    "type": "object",
+                    "properties": {
+                      "ssoId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "siebelId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "phoneNumber": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "userIp": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "bookHash",
+                  "guestContact",
+                  "rooms",
+                  "userData",
+                  "userIp"
+                ],
+                "additionalProperties": false
+              }
+            ],
+            "description": "CreateBookingsApiRequest или CreateBookingsWithTcsUserDataApiRequest."
+          },
+          "preparedRequestHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "requestHash из соответствующего prepare-вызова."
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Точная фраза подтверждения из соответствующего prepare-вызова после явного согласия пользователя."
+          },
+          "preparedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          }
+        },
+        "required": [
+          "payload",
+          "preparedRequestHash",
+          "confirmation",
+          "preparedAt",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_execute_cancel_booking",
+      "description": "Отменяет бронь только после непосредственного явного подтверждения пользователя. HTTP write требует готового доверенного execution profile.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          },
+          "preparedRequestHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "requestHash из соответствующего prepare-вызова."
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Точная фраза подтверждения из соответствующего prepare-вызова после явного согласия пользователя."
+          },
+          "preparedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          }
+        },
+        "required": [
+          "orderId",
+          "preparedRequestHash",
+          "confirmation",
+          "preparedAt",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_execute_ls_booking",
+      "description": "Создаёт LS-задачу бронирования только после непосредственного явного подтверждения пользователя. HTTP write требует готового доверенного execution profile.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "properties": {
+              "bookHash": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Хеш выбранного тарифа."
+              },
+              "checkOutId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "guestContact": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "phone": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "comment": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "email",
+                  "phone"
+                ],
+                "additionalProperties": false
+              },
+              "rooms": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "guests": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "lastName": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "childAge": {
+                            "anyOf": [
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "firstName",
+                          "lastName"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "guests"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "contactData": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "firstName": {
+                        "type": "string"
+                      },
+                      "lastName": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "firstName",
+                      "lastName"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "arrivalTime": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "from": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "to": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "promocode": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "extraServices": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "earlyCheckInId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "lateCheckOutId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "guaranteedRefundSelected": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "bookHash",
+              "guestContact",
+              "rooms"
+            ],
+            "additionalProperties": false
+          },
+          "preparedRequestHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "requestHash из соответствующего prepare-вызова."
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Точная фраза подтверждения из соответствующего prepare-вызова после явного согласия пользователя."
+          },
+          "preparedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          }
+        },
+        "required": [
+          "payload",
+          "preparedRequestHash",
+          "confirmation",
+          "preparedAt",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_execute_payment_setup",
+      "description": "Запрашивает provider payment token без request body только после непосредственного явного подтверждения пользователя. MCP не принимает данные карты. HTTP write требует готового доверенного execution profile.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          },
+          "preparedRequestHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "requestHash из соответствующего prepare-вызова."
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Точная фраза подтверждения из соответствующего prepare-вызова после явного согласия пользователя."
+          },
+          "preparedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          }
+        },
+        "required": [
+          "orderId",
+          "preparedRequestHash",
+          "confirmation",
+          "preparedAt",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_execute_update_extra_services",
+      "description": "Заменяет список дополнительных услуг тарифа после непосредственного явного подтверждения пользователя. HTTP write требует готового доверенного execution profile.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookHash из ответа Hotels API."
+          },
+          "extraServiceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "preparedRequestHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "requestHash из соответствующего prepare-вызова."
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Точная фраза подтверждения из соответствующего prepare-вызова после явного согласия пользователя."
+          },
+          "preparedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp from the corresponding prepare response; pass it back unchanged."
+          }
+        },
+        "required": [
+          "bookHash",
+          "extraServiceIds",
+          "preparedRequestHash",
+          "confirmation",
+          "preparedAt",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_available_tranche_amount",
+      "description": "Проверяет доступную сумму рассрочки по счетам без знания provider DTO. Не подключает рассрочку и не создаёт платёж.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "accounts": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "properties": {
+                "accountId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "balance": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "accountId",
+                "type",
+                "balance"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "accounts"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_bnpl_offer",
+      "description": "Получает предложение рассрочки по существующему заказу. Не подключает рассрочку и не списывает средства.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "orderId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_booking",
+      "description": "Получает существующую бронь. В mobile broker-режиме используйте process-local bookingRef из tbank_hotels_list_bookings: provider orderId не попадает в tool arguments или ответ. Для прямого API-профиля передайте orderId.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookingRef": {
+            "type": "string",
+            "pattern": "^booking_[a-f0-9]{24}$",
+            "description": "Непрозрачный process-local bookingRef из tbank_hotels_list_bookings."
+          },
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Provider orderId только для прямого API-профиля без mobile auth broker."
+          },
+          "apiVersion": {
+            "type": "string",
+            "enum": [
+              "v1",
+              "v2",
+              "v3"
+            ],
+            "default": "v3"
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "bookingRef"
+            ]
+          },
+          {
+            "required": [
+              "orderId"
+            ]
+          }
+        ]
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_booking_overview",
+      "description": "Возвращает карточку заказа. PDF voucher никогда не встраивается в MCP-ответ; при includeVoucher=true возвращается только указание использовать отдельный безопасный local handoff.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          },
+          "includeVoucher": {
+            "type": "boolean",
+            "default": false
+          },
+          "apiVersion": {
+            "type": "string",
+            "enum": [
+              "v1",
+              "v2",
+              "v3"
+            ],
+            "default": "v3"
+          }
+        },
+        "required": [
+          "orderId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_booking_task_status",
+      "description": "Получает статус асинхронной задачи создания бронирования.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор задачи."
+          }
+        },
+        "required": [
+          "taskId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_cashback_percent",
+      "description": "Получает процент кэшбэка по bookHash для авторизованного счёта.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookHash из ответа Hotels API."
+          }
+        },
+        "required": [
+          "bookHash"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_customer",
+      "description": "Получает персональные данные текущего авторизованного клиента через GET /api/v1/auth/customerdata. При настроенном auth broker использует общую mobile session с live-подтверждённым Bearer-only профилем. Вызывайте только по явному пользовательскому запросу на автозаполнение.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_deeplink_token",
+      "description": "Получает токен для general или Hotels URL deeplink. Не создаёт бронирование.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "general",
+              "hotels-urls"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_evo_booking",
+      "description": "Получает EVO booking-данные по orderId.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          }
+        },
+        "required": [
+          "orderId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_filter_availability",
+      "description": "Возвращает доступность фильтров для точных параметров поиска. filters имеют строгий discriminator-контракт; не угадывайте альтернативные формы. Для semantic breakfast-запроса используйте plan_stay, а не этот low-level tool. При отказе filtered provider request tool намеренно возвращает структурированный success-результат со status=requirements_unavailable; клиент обязан проверять status, а не только isError.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "properties": {
+              "destinationId": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Provider destinationId, не SEO regionId."
+              },
+              "checkinDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Календарная дата в формате YYYY-MM-DD."
+              },
+              "checkoutDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Календарная дата в формате YYYY-MM-DD."
+              },
+              "guests": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "adultsCount": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 16
+                    },
+                    "childrenAge": {
+                      "type": "array",
+                      "maxItems": 16,
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 17
+                      }
+                    }
+                  },
+                  "required": [
+                    "adultsCount"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "filters": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "array"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "values"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "boolean"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "value": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "radio"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "value": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "values": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "range"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "min",
+                        "max"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ],
+                  "description": "Строгий discriminator-контракт Hotels API. Не угадывайте форму фильтра: используйте $objectType и соответствующие поля."
+                }
+              },
+              "sort": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "destinationId",
+              "checkinDate",
+              "checkoutDate",
+              "guests"
+            ],
+            "additionalProperties": false
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_hotel",
+      "description": "Получает provider-карточку отеля по hotelId.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "hotelId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор отеля из Hotels API."
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "hotelId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_hotel_rates",
+      "description": "Получает номера и тарифы выбранного отеля. По умолчанию используется v3; payload соответствует POST /api/v3/hotels/{hotelId}/rates.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "hotelId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор отеля из Hotels API."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          },
+          "apiVersion": {
+            "type": "string",
+            "enum": [
+              "v2",
+              "v3"
+            ],
+            "default": "v3"
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "hotelId",
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_map_hotels",
+      "description": "Возвращает отели для области карты. payload соответствует контракту POST /api/v1/hotels/map/hotels.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_max_cashback",
+      "description": "Получает максимальный доступный процент кэшбэка.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_partner_redirect_url",
+      "description": "Получает redirect URL партнёра по partnerAlias. Сам переход и внешняя покупка не выполняются.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "partnerAlias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Псевдоним партнёра."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "partnerAlias",
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_rate",
+      "description": "Получает актуальный checkout rate по bookHash. По умолчанию используется v3.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookHash из ответа Hotels API."
+          },
+          "apiVersion": {
+            "type": "string",
+            "enum": [
+              "v2",
+              "v3"
+            ],
+            "default": "v3"
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "bookHash"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_rate_upgrade",
+      "description": "Получает доступное улучшение тарифа по bookHash. Не применяет изменение.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookHash из ответа Hotels API."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "bookHash",
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_reservation",
+      "description": "Получает reservation-данные бронирования. Параметры query должны соответствовать GET /api/v1/hotels/bookings/getReservation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_review_order_status",
+      "description": "Проверяет, доступно ли действие с отзывом для конкретного заказа. Запрос не изменяет отзыв или лайк.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          }
+        },
+        "required": [
+          "orderId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_reviews",
+      "description": "Возвращает ratings, summary, feedback, feedback-filters или order-status для отеля. Запрос не изменяет лайки или отзывы.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "hotelId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор отеля."
+          },
+          "resource": {
+            "type": "string",
+            "enum": [
+              "ratings",
+              "summary",
+              "feedback",
+              "feedback-filters"
+            ]
+          },
+          "query": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "hotelId",
+          "resource"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_search_filters",
+      "description": "Возвращает каталог доступных фильтров Hotels API.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "apiVersion": {
+            "type": "string",
+            "enum": [
+              "v1",
+              "v2"
+            ],
+            "default": "v1"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_selected_stay_rates",
+      "description": "Загружает бронируемые тарифы выбранного journey-варианта. hotelId, даты и гости берутся из journey. filters — неподтверждённый untyped pass-through rates-контракт: не угадывайте его и не передавайте без точных provider-данных. Один timeout повторяется внутри общего бюджета. После исчерпания бюджета tool возвращает rates_temporarily_unavailable и запрещает автоматический повтор. Если provider вернул пустой rates, tool возвращает no_bookable_rates и запрещает запрашивать guest PII или создавать draft по search-feed цене.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId."
+          },
+          "filters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Неподтверждённый untyped pass-through для rates endpoint. Не угадывайте форму; поле следует опускать без точного provider-контракта."
+          },
+          "apiVersion": {
+            "type": "string",
+            "enum": [
+              "v2",
+              "v3"
+            ],
+            "default": "v3"
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "journeyId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_seo_resource",
+      "description": "Получает публичные SEO-данные: отель, регион, фильтры, locations, location-by-slug, комнаты или slug отеля.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "hotel",
+              "region",
+              "available-filters",
+              "locations",
+              "location-by-slug",
+              "rooms",
+              "slug-by-hotel"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "hotelId, regionId или locationId, если это требуется выбранным resource."
+          },
+          "query": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "resource"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_stay_options",
+      "description": "Возвращает нормализованные provider facts вариантов из journey-контекста без provider hotelId. Если ranking не передан, наследует ranking исходного plan_stay.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId из tbank_hotels_plan_stay."
+          },
+          "ranking": {
+            "type": "string",
+            "enum": [
+              "provider_order",
+              "lowest_price",
+              "highest_rating"
+            ],
+            "description": "Если значение не передано, используется ranking исходного plan_stay."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 20
+          }
+        },
+        "required": [
+          "journeyId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_get_voucher",
+      "description": "Отключённый legacy-вызов: binary voucher нельзя помещать в MCP JSON или контекст модели. Используйте tbank_hotels_save_voucher с bookingRef.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          }
+        },
+        "required": [
+          "orderId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_list_bookings",
+      "description": "Возвращает детали выбранных категорий броней текущего авторизованного клиента. Ответ содержит личную историю поездок; не используйте этот tool для краткой сводки без деталей — вызывайте tbank_hotels_summarize_bookings. В mobile broker-режиме provider orderId заменяется на process-local bookingRef для последующего tbank_hotels_get_booking; raw orderId не раскрывается модели.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "isActiveRequired": {
+            "type": "boolean",
+            "description": "Вернуть активные бронирования."
+          },
+          "isCancelledRequired": {
+            "type": "boolean",
+            "description": "Вернуть отменённые бронирования за поддерживаемый provider период."
+          },
+          "isCompletedRequired": {
+            "type": "boolean",
+            "description": "Provider-флаг выгрузки завершённых бронирований; семантика фиксируется Hotels API."
+          }
+        },
+        "required": [
+          "isActiveRequired",
+          "isCancelledRequired",
+          "isCompletedRequired"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_plan_stay",
+      "description": "Основной agent-facing поиск. Принимает название локации, даты, комнаты и semantic breakfastIncluded, сам разрешает destinationId, применяет обязательные условия до поиска, собирает bounded paginated/partial provider results и создаёт short-lived journeyId. Не вызывайте get_search_filters или low-level search для завтрака. Ranking применяется локально: production search пока отклоняет provider sort. Для конкретного отеля передайте hotelName вместе с локацией.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Название города или локации, например Москва. MCP сам разрешит destinationId."
+          },
+          "destinationId": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Используйте только после выбора кандидата из resolve_destination или clarification_required."
+          },
+          "countryName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Необязательное название страны для разрешения одноимённых локаций."
+          },
+          "checkinDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Календарная дата в формате YYYY-MM-DD."
+          },
+          "checkoutDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Календарная дата в формате YYYY-MM-DD."
+          },
+          "rooms": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "properties": {
+                "adults": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 16,
+                  "description": "Количество взрослых в комнате."
+                },
+                "childrenAges": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 17
+                  },
+                  "description": "Возраст каждого ребёнка, 0–17."
+                }
+              },
+              "required": [
+                "adults"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Один элемент на комнату."
+          },
+          "hotelName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 250,
+            "description": "Необязательное название конкретного отеля внутри выбранной локации. Глобальный поиск без локации не заявлен контрактом."
+          },
+          "breakfastIncluded": {
+            "type": "boolean",
+            "default": false,
+            "description": "Если true, MCP применяет подтверждённый provider-фильтр meal_types=breakfast до построения journey. Не заменяйте этот параметр низкоуровневым перебором filters."
+          },
+          "ranking": {
+            "type": "string",
+            "enum": [
+              "provider_order",
+              "lowest_price",
+              "highest_rating"
+            ],
+            "default": "provider_order",
+            "description": "provider_order сохраняет порядок Hotels API; остальные стратегии сортируют только по доступным provider facts."
+          },
+          "maxOptions": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 20,
+            "description": "Ограничивает число вариантов в ответе plan_stay, но не размер собираемой MCP выборки."
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "checkinDate",
+          "checkoutDate",
+          "rooms"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "destination"
+            ]
+          },
+          {
+            "required": [
+              "destinationId"
+            ]
+          }
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_prepare_apply_promocode",
+      "description": "Создаёт stateless preview применения или удаления промокода у тарифа. Не создаёт бронь. Если execution profile не готов, возвращается preview_only без confirmation/hash.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookHash из ответа Hotels API."
+          },
+          "promocode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Промокод или null для снятия промокода, если это поддерживает provider."
+          }
+        },
+        "required": [
+          "bookHash",
+          "promocode"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_prepare_booking",
+      "description": "Создаёт stateless preview создания брони. Не делает HTTP-запрос и не резервирует номер. Если execution profile не готов, возвращается preview_only без confirmation/hash.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "bookHash": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Хеш выбранного тарифа."
+                  },
+                  "checkOutId": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "guestContact": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "phone": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "comment": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "phone"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "rooms": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "guests": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "firstName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "lastName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "childAge": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "firstName",
+                              "lastName"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "guests"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "paymentData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "creditCardId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string"
+                          },
+                          "lastName": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "firstName",
+                          "lastName"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "arrivalTime": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "from": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "to": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentMeans": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "payment_form",
+                          "on_us",
+                          "off_us",
+                          "dolyame"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "promocode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "extraServices": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "earlyCheckInId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lateCheckOutId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "guaranteedRefundSelected": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "bookHash",
+                  "guestContact",
+                  "rooms"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "bookHash": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Хеш выбранного тарифа."
+                  },
+                  "checkOutId": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "guestContact": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "phone": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "comment": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "phone"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "rooms": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "guests": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "firstName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "lastName": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "childAge": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "firstName",
+                              "lastName"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "guests"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "paymentData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "creditCardId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "contactData": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string"
+                          },
+                          "lastName": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "firstName",
+                          "lastName"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "arrivalTime": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "from": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "to": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "paymentMeans": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "payment_form",
+                          "on_us",
+                          "off_us",
+                          "dolyame"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "promocode": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "extraServices": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "earlyCheckInId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lateCheckOutId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "guaranteedRefundSelected": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "userData": {
+                    "type": "object",
+                    "properties": {
+                      "ssoId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "siebelId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "phoneNumber": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "userIp": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "bookHash",
+                  "guestContact",
+                  "rooms",
+                  "userData",
+                  "userIp"
+                ],
+                "additionalProperties": false
+              }
+            ],
+            "description": "CreateBookingsApiRequest или CreateBookingsWithTcsUserDataApiRequest."
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_prepare_cancel_booking",
+      "description": "Создаёт stateless preview отмены брони. Не отменяет заказ. Если execution profile не готов, возвращается preview_only без confirmation/hash.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          }
+        },
+        "required": [
+          "orderId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_prepare_draft_booking",
+      "description": "Подготавливает финальное подтверждение после свежей проверки checkout. Если booking execution profile не готов, возвращает только preview с executionAvailable=false и не выдаёт confirmation/hash — не просите пользователя подтверждать невозможное действие.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookingDraftId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookingDraftId."
+          }
+        },
+        "required": [
+          "bookingDraftId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_prepare_ls_booking",
+      "description": "Создаёт stateless preview создания LS-брони. Не делает HTTP-запрос и не резервирует номер. Если execution profile не готов, возвращается preview_only без confirmation/hash.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "properties": {
+              "bookHash": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Хеш выбранного тарифа."
+              },
+              "checkOutId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "guestContact": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "phone": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "comment": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "email",
+                  "phone"
+                ],
+                "additionalProperties": false
+              },
+              "rooms": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "guests": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "firstName": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "lastName": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "childAge": {
+                            "anyOf": [
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "firstName",
+                          "lastName"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "guests"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "contactData": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "firstName": {
+                        "type": "string"
+                      },
+                      "lastName": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "firstName",
+                      "lastName"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "arrivalTime": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "from": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "to": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "promocode": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "extraServices": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "earlyCheckInId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "lateCheckOutId": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "guaranteedRefundSelected": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "bookHash",
+              "guestContact",
+              "rooms"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_prepare_payment_setup",
+      "description": "Создаёт stateless preview подготовки оплаты без request body. Не создаёт платёж и не списывает средства. Если execution profile не готов, возвращается preview_only без confirmation/hash.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          }
+        },
+        "required": [
+          "orderId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_prepare_update_extra_services",
+      "description": "Создаёт stateless preview замены списка дополнительных услуг тарифа. Если execution profile не готов, возвращается preview_only без confirmation/hash.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookHash из ответа Hotels API."
+          },
+          "extraServiceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "bookHash",
+          "extraServiceIds"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_preview_cancellation",
+      "description": "Загружает текущие provider-данные брони для просмотра условий отмены. Не рассчитывает сумму возврата и не отменяет заказ.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Идентификатор заказа."
+          },
+          "apiVersion": {
+            "type": "string",
+            "enum": [
+              "v1",
+              "v2",
+              "v3"
+            ],
+            "default": "v3"
+          }
+        },
+        "required": [
+          "orderId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_repeat_stay_plan",
+      "description": "Запускает новый поиск по параметрам текущего journey с новыми датами, не меняя предыдущий контекст.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId."
+          },
+          "checkinDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Календарная дата в формате YYYY-MM-DD."
+          },
+          "checkoutDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Календарная дата в формате YYYY-MM-DD."
+          }
+        },
+        "required": [
+          "journeyId",
+          "checkinDate",
+          "checkoutDate"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_resolve_destination",
+      "description": "Разрешает название города или локации в provider destinationId через каталог SEO locations. Не выполняет поиск отелей.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Название, например Москва или Moscow."
+          },
+          "countryName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "maxCandidates": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 5
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_save_voucher",
+      "description": "По явному запросу пользователя безопасно сохраняет PDF voucher собственной брони через local auth broker. Принимает только непрозрачный bookingRef, возвращает путь и метаданные; PDF, provider orderId, PII и credentials не попадают в MCP JSON. Файл owner-only и автоматически удаляется по TTL.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookingRef": {
+            "type": "string",
+            "pattern": "^booking_[a-f0-9]{24}$",
+            "description": "Непрозрачный process-local bookingRef из tbank_hotels_list_bookings."
+          }
+        },
+        "required": [
+          "bookingRef"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_search",
+      "description": "Низкоуровневый поиск по подтверждённому provider destinationId. filters имеют строгий discriminator-контракт; не угадывайте и не перебирайте альтернативные формы. Для обычного запроса по городу или завтраку используйте tbank_hotels_plan_stay. При отказе filtered provider request tool намеренно возвращает структурированный success-результат со status=requirements_unavailable; клиент обязан проверять status, а не только isError.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "properties": {
+              "destinationId": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Provider destinationId, не SEO regionId."
+              },
+              "checkinDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Календарная дата в формате YYYY-MM-DD."
+              },
+              "checkoutDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Календарная дата в формате YYYY-MM-DD."
+              },
+              "guests": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "adultsCount": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 16
+                    },
+                    "childrenAge": {
+                      "type": "array",
+                      "maxItems": 16,
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 17
+                      }
+                    }
+                  },
+                  "required": [
+                    "adultsCount"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "filters": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "array"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "values"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "boolean"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "value": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "radio"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "value": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "values": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "range"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "min",
+                        "max"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ],
+                  "description": "Строгий discriminator-контракт Hotels API. Не угадывайте форму фильтра: используйте $objectType и соответствующие поля."
+                }
+              },
+              "sort": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "destinationId",
+              "checkinDate",
+              "checkoutDate",
+              "guests"
+            ],
+            "additionalProperties": false
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_search_map",
+      "description": "Возвращает поисковые данные для карты отелей. payload соответствует SearchParametersListApiRequest.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "properties": {
+              "destinationId": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Provider destinationId, не SEO regionId."
+              },
+              "checkinDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Календарная дата в формате YYYY-MM-DD."
+              },
+              "checkoutDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Календарная дата в формате YYYY-MM-DD."
+              },
+              "guests": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "adultsCount": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 16
+                    },
+                    "childrenAge": {
+                      "type": "array",
+                      "maxItems": 16,
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 17
+                      }
+                    }
+                  },
+                  "required": [
+                    "adultsCount"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "filters": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "array"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "values"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "boolean"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "value": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "radio"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "value": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "values": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "$objectType": {
+                          "type": "string",
+                          "const": "range"
+                        },
+                        "filterId": {
+                          "type": "string",
+                          "enum": [
+                            "accommodation_types",
+                            "chains",
+                            "free_cancellation_allowed",
+                            "payment_card_not_required",
+                            "meal_types",
+                            "payment_places",
+                            "price",
+                            "stars",
+                            "photos_available",
+                            "districts",
+                            "hotel_entertainments",
+                            "hotel_facilities",
+                            "room_facilities",
+                            "bed_types",
+                            "review_rating",
+                            "special_offer"
+                          ]
+                        },
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "$objectType",
+                        "filterId",
+                        "min",
+                        "max"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ],
+                  "description": "Строгий discriminator-контракт Hotels API. Не угадывайте форму фильтра: используйте $objectType и соответствующие поля."
+                }
+              },
+              "sort": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "destinationId",
+              "checkinDate",
+              "checkoutDate",
+              "guests"
+            ],
+            "additionalProperties": false
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_search_points_of_interest",
+      "description": "Ищет точки интереса, ориентиры или группы ориентиров. mode: search, landmarks или groups.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "search",
+              "landmarks",
+              "groups"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "mode",
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_search_seo",
+      "description": "Выполняет versioned SEO hotel search: v1 использует destinationId, v2 — locationId, v3 — country и location. Название города в provider ID разрешайте через resolve_destination.",
+      "inputSchema": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "apiVersion": {
+                "type": "string",
+                "const": "v1"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "destinationId": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "hostelIsNeeded": {
+                    "type": "boolean"
+                  },
+                  "guesthouseIsNeeded": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "destinationId"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "apiVersion",
+              "payload"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "apiVersion": {
+                "type": "string",
+                "const": "v2"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "locationId": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "offset": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "filter": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "locationId"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "apiVersion",
+              "payload"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "apiVersion": {
+                "type": "string",
+                "const": "v3",
+                "default": "v3"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "country": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "location": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "offset": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "filter": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "country",
+                  "location"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "payload"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_search_urls",
+      "description": "Создаёт поисковый URL Hotels API из параметров. По умолчанию используется v3.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          },
+          "apiVersion": {
+            "type": "string",
+            "enum": [
+              "v1",
+              "v2",
+              "v3"
+            ],
+            "default": "v3"
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_select_stay_option",
+      "description": "Выбирает один вариант в journey-контексте. Не резервирует номер и не выполняет HTTP write-запрос.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId."
+          },
+          "optionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "optionId из journey."
+          }
+        },
+        "required": [
+          "journeyId",
+          "optionId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_select_stay_rate",
+      "description": "Выбирает конкретный тариф ранее выбранного отеля. Не создаёт бронирование.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId."
+          },
+          "rateOptionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "rateOptionId из tbank_hotels_get_selected_stay_rates."
+          }
+        },
+        "required": [
+          "journeyId",
+          "rateOptionId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_summarize_bookings",
+      "description": "Privacy-first сводка собственных бронирований: возвращает только количества активных, отменённых и завершённых записей. Не возвращает отели, города, даты, стоимость, гостей, bookingRef или provider identifiers. Используйте для просьб «кратко», «без личных данных» или «сколько у меня броней».",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_validate_checkout",
+      "description": "Перед бронированием повторно получает checkout rate черновика. Один timeout безопасно повторяется внутри tool; успешная проверка действует 5 минут.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bookingDraftId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный bookingDraftId."
+          }
+        },
+        "required": [
+          "bookingDraftId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_validate_promocode",
+      "description": "Проверяет промокод без создания брони. payload соответствует POST /api/v1/hotels/promocodes/validate.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "description": "Payload в точном формате соответствующего Hotels API контракта.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    }
+  ]
+}
