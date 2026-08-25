@@ -2,7 +2,7 @@
 
 ## Current focus
 
-Закоммитить и отправить clean-checkout repair, затем подтвердить GitHub-hosted pass.
+Задача завершена; local и GitHub-hosted `core` проходят после clean-checkout repair.
 
 ## Completed
 
@@ -27,6 +27,8 @@
 - Root cause: bare `return` наследовал status `1` от пустой проверки untracked files.
 - Добавлен explicit `return 0` для clean checkout без untracked files.
 - `sh -n scripts/verify.sh`, `./scripts/verify.sh docs` и полный `./scripts/verify.sh core` после repair прошли.
+- Repair commit `558373b` отправлен в pull-request branch.
+- GitHub Actions run `32824450278` прошёл на Ubuntu с Java 17 и Node.js 22; job duration 2m47s.
 
 ## Blocker
 
@@ -34,4 +36,4 @@ None.
 
 ## Next action
 
-Создать отдельный repair commit, push и дождаться результата pull-request workflow.
+None. Следующая существенная задача заменяет active state в своей branch/worktree.

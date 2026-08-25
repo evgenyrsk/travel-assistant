@@ -10,4 +10,4 @@
 | Complete persistent state and final scope review | Verification and review | completed |
 | Diagnose first GitHub-hosted CI failure | Published workflow run | completed |
 | Repair clean-checkout gate and rerun local verification | Failure evidence | completed |
-| Push repair and confirm GitHub-hosted pass | Local verification | in progress |
+| Push repair and confirm GitHub-hosted pass | Local verification | completed |

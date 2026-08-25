@@ -1,6 +1,6 @@
 # Active task
 
-**Статус:** in progress
+**Статус:** completed
 
 ## Goal
 
@@ -15,7 +15,7 @@
 - [x] Workflow имеет read-only repository permissions, не использует secrets и не активирует REAL provider modes.
 - [x] Применимая development documentation описывает CI gate без создания нового source of truth.
 - [x] Локальная syntax/behavior verification и independent read-only review завершены; findings исправлены.
-- [ ] Первый GitHub-hosted `Verify core` проходит на clean checkout.
+- [x] Первый GitHub-hosted `Verify core` проходит на clean checkout после repair.
 
 ## Constraints
 

@@ -11,7 +11,8 @@
 | Secret and REAL-provider activation review | yes | passed for workflow candidate; no secret expressions or provider modes |
 | Independent read-only review | yes | accepted after Node.js 20 → 22 repair |
 | First GitHub-hosted `Verify core` | yes | failed in run `32822469845`; clean-checkout docs gate returned exit code 1 |
-| Clean-checkout repair | yes | shell syntax, `docs`, and full local `core` passed; hosted rerun pending |
+| Clean-checkout repair | yes | shell syntax, `docs`, and full local `core` passed |
+| Post-repair GitHub-hosted `Verify core` | yes | passed in run `32824450278` on Java 17 and Node.js 22 |
 
 ## Recovery history
 
@@ -20,8 +21,8 @@
 
 ## Unresolved failures
 
-- Hosted CI остаётся red до push repair и успешного повторного run.
+None.
 
 ## Environment note
 
-GitHub-hosted execution будет доступен после публикации workflow в repository. Локально `core` прошёл на доступном Node.js v25.8.1; CI явно provision Node.js 22 LTS, которая удовлетворяет package constraint `>=20`.
+Локально `core` прошёл на доступном Node.js v25.8.1. GitHub-hosted run `32824450278` отдельно подтвердил CI path на provisioned Node.js 22 LTS и Java 17.
