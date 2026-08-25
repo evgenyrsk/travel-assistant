@@ -7,7 +7,7 @@ profile=${1:-core}
 
 check_untracked_whitespace() {
   untracked_files=$(git -C "$repository_root" ls-files --others --exclude-standard)
-  [ -n "$untracked_files" ] || return
+  [ -n "$untracked_files" ] || return 0
 
   saved_ifs=$IFS
   IFS='

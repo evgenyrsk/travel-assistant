@@ -2,7 +2,7 @@
 
 ## Current focus
 
-Задача завершена; CI candidate готов к commit/pull request в рамках существующего Git workflow.
+Закоммитить и отправить clean-checkout repair, затем подтвердить GitHub-hosted pass.
 
 ## Completed
 
@@ -22,6 +22,11 @@
 - Финальный `./scripts/verify.sh core` после repair прошёл.
 - Independent reviewer принял repair без новых findings.
 - Acceptance criteria, secrets/provider boundaries и final worktree scope проверены.
+- Первый pull-request run `32822469845` завершился до backend checks с exit code 1.
+- Ошибка воспроизведена локально на clean worktree через `./scripts/verify.sh docs`.
+- Root cause: bare `return` наследовал status `1` от пустой проверки untracked files.
+- Добавлен explicit `return 0` для clean checkout без untracked files.
+- `sh -n scripts/verify.sh`, `./scripts/verify.sh docs` и полный `./scripts/verify.sh core` после repair прошли.
 
 ## Blocker
 
@@ -29,4 +34,4 @@ None.
 
 ## Next action
 
-None. Следующая существенная задача заменяет active state в своей branch/worktree.
+Создать отдельный repair commit, push и дождаться результата pull-request workflow.
