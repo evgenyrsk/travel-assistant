@@ -67,8 +67,10 @@ Publication hardening локального read-only/preview-only release candid
 - Hotels `0.28.0` использует anonymous read-only search по умолчанию; service
   JWT/static token остаются опциональными, customer reads — через mobile broker.
 - Toolkit `0.12.0` поддерживает setup без JWT key и сохраняет мутации закрытыми.
-- Registry names и public preview metadata подготовлены; npm/GitHub login на
-  текущей машине отсутствует или недействителен.
+- `tbank-hotels-mcp@0.28.0` и `tbank-mcp-local@0.12.0` опубликованы в публичном
+  npm registry. Обе версии подтверждены через registry metadata и установлены
+  обратно в чистое временное окружение; Hotels MCP ответил на `initialize`,
+  toolkit выполнил локальный `payment-readiness` без provider requests.
 - Финальный anonymous-publication gate пройден: toolkit 17/17, Hotels 60/60,
   Banking 52/52, contracts/conformance и весь repository verify зелёные;
   provider requests 0. Оба npm publish dry-run содержат ровно по 8 файлов.
@@ -81,5 +83,5 @@ evidence. Это не блокирует read-only/preview-only выпуск и 
 
 ## Next action
 
-Выполнить npm/PyPI/GitHub login, затем upload и fresh-install matrix в
-Codex/OpenCode.
+Опубликовать Banking `0.17.0` в PyPI, затем выполнить fresh-machine client
+matrix в Codex/OpenCode и оформить GitHub release metadata.

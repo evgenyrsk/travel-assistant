@@ -14,4 +14,6 @@
 | Repository-wide gate | yes | `./scripts/verify.sh all` passed outside restricted sandbox |
 | `git diff --check` | yes | passed |
 | npm publish dry-run | yes | Hotels 0.28.0 and toolkit 0.12.0 passed; 8 allowlisted files each |
+| Public npm registry | yes | `tbank-hotels-mcp@0.28.0` and `tbank-mcp-local@0.12.0` published and visible via registry metadata |
+| Fresh npm install | yes | both packages installed from registry outside checkout; Hotels initialize and toolkit local readiness command passed; 0 provider requests |
 | Provider requests | must be 0 | 0; verify и docs gate полностью offline |

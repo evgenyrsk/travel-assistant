@@ -10,7 +10,8 @@
 
 ## Установка developer preview
 
-После публикации трёх пакетов локальная установка выглядит так:
+Два npm-пакета developer preview уже опубликованы. Полная combined-установка
+после отдельной публикации Banking package выглядит так:
 
 ```bash
 npm install --global tbank-hotels-mcp tbank-mcp-local
@@ -152,14 +153,16 @@ Gate также проверяет два installable artifact candidates без
 - Banking wheel собирается из изолированной копии, не содержит session/env/test
   файлов, устанавливается вне checkout и отвечает на `initialize`.
 
-Registry metadata подготовлена для публичного developer preview, но сами
-пакеты ещё не загружены. Все три artifact candidates устанавливаются во
-временный каталог вне checkout; launcher находит отдельные runtime-команды из
-`PATH`, а phone login входит в Banking wheel. Npm-пакеты публикуются с
+`tbank-hotels-mcp@0.28.0` и `tbank-mcp-local@0.12.0` опубликованы в публичном
+npm registry и повторно установлены оттуда в чистый временный каталог вне
+checkout. Banking wheel пока остаётся локальным artifact candidate; launcher
+находит отдельные runtime-команды из `PATH`, а phone login входит в Banking
+wheel. Npm-пакеты опубликованы с
 `UNLICENSED`: это разрешает установку preview из registry, но не предоставляет
-отдельную open-source лицензию на повторное использование кода. До upload
-остаются registry login, checksums и fresh-machine проверка в OpenCode/Codex.
-SBOM, provenance и выбор публичной лицензии остаются гейтом stable release.
+отдельную open-source лицензию на повторное использование кода. До полного
+combined release остаются PyPI upload Banking package и fresh-machine проверка
+в OpenCode/Codex. SBOM, provenance и выбор публичной лицензии остаются гейтом
+stable release.
 
 Текущую границу готовности реальной hotel payment можно проверить отдельно:
 

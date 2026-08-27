@@ -271,7 +271,7 @@ export TBANK_HOTELS_MAX_CONCURRENT_REQUESTS=2
 число cached/in-flight searches. Вызов остаётся локальным и не обращается к
 Hotels API.
 
-После registry-публикации установка выполняется одной командой:
+Публичная установка developer preview выполняется одной командой:
 
 ```bash
 npm install --global tbank-hotels-mcp

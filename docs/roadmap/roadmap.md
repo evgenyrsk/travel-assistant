@@ -1365,9 +1365,12 @@ Developer-preview publication checkpoint `0.28.0/0.17.0/0.12.0` делает
 `https://hotels.tbank.ru/api`, `Authorization` не отправляется. Service JWT и
 static token остаются только опциональными integration overrides, а customer
 reads используют локальную mobile session через broker. Anonymous mode не
-разрешает booking/payment mutations. Registry metadata и installable artifacts
-подготовлены; upload, checksums и fresh-machine client matrix остаются
-следующими release gates.
+разрешает booking/payment mutations. `tbank-hotels-mcp@0.28.0` и
+`tbank-mcp-local@0.12.0` опубликованы в публичном npm registry и установлены
+обратно из registry в чистое временное окружение; Hotels MCP подтвердил
+`initialize`, toolkit — локальный `payment-readiness` без provider requests.
+Для полного combined release остаются PyPI upload Banking package и
+fresh-machine client matrix.
 
 Финальный Qwen-аудит не выявил P0–P2 и подтвердил готовность read-only и
 preview-only tiers. Follow-up закрыл четыре P3: version consistency теперь
