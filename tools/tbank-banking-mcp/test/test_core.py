@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from src.auth_broker import BrokerService, _safe_error_message as broker_safe_error
 from src.auth_broker_client import AuthBrokerClient
+from src.curated_session import CuratedMobileSession
 from src.payment_intents import PaymentIntentStore
 from src.payment_handoffs import PaymentHandoffStore
 from src.server import (
@@ -57,6 +58,33 @@ class _FakeSessionManager:
 
     def get(self):
         return _FakeSession()
+
+
+class CuratedSessionBoundaryTest(unittest.TestCase):
+    def test_runtime_facade_exposes_only_allowlisted_read_operations(self):
+        session = CuratedMobileSession(_FakeSession())
+        allowed = {
+            "list_accounts",
+            "spending_categories",
+            "hotel_booking",
+            "hotel_voucher",
+            "hotel_customer_data",
+            "hotel_bookings_list",
+        }
+        public = {name for name in dir(session) if not name.startswith("_")}
+        self.assertEqual(public, allowed)
+        for forbidden in (
+            "pay",
+            "confirm_payment",
+            "transfer",
+            "resolve_recipient",
+            "login",
+            "confirm_step",
+            "access_token",
+            "mobile_sessionid",
+            "_http",
+        ):
+            self.assertFalse(hasattr(session, forbidden), forbidden)
 
 
 class TravelProfileTest(unittest.TestCase):
@@ -280,6 +308,7 @@ class BankingPrivacyTest(unittest.TestCase):
         profile = result["portfolioTravelProfile"]
         self.assertEqual(profile["tier"], "balanced")
         self.assertEqual(profile["travelSignal"], "high")
+        self.assertEqual(profile["travelSpendSignal"], "high")
         self.assertEqual(profile["coverage"], {
             "scope": "available_accounts",
             "complete": True,
@@ -289,6 +318,15 @@ class BankingPrivacyTest(unittest.TestCase):
         self.assertFalse(profile["privacy"]["categoryBreakdownIncluded"])
         self.assertFalse(profile["privacy"]["absoluteAmountsIncluded"])
         self.assertFalse(profile["privacy"]["bookingHistoryUsed"])
+        self.assertEqual(profile["hotelPreferences"], profile["hotelDefaults"])
+        self.assertEqual(profile["hotelSearchUsage"]["targetArgument"], "hotelPreferences")
+        self.assertEqual(profile["hotelSearchUsage"]["targetTool"], "tbank_hotels_plan_personalized_stay")
+        self.assertTrue(profile["hotelSearchUsage"]["passWithoutTransformation"])
+        self.assertEqual(profile["hotelSearchUsage"]["doNotCallBefore"], [
+            "tbank_banking_list_accounts",
+            "tbank_banking_spending_summary",
+        ])
+        self.assertIn("preferencesApplied.applied", profile["hotelSearchUsage"]["applicationEvidence"])
         rendered = json.dumps(result)
         self.assertNotIn("account-main", rendered)
         self.assertNotIn("account-travel", rendered)

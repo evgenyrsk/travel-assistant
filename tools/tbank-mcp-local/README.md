@@ -1,21 +1,54 @@
 # T-Bank MCP local toolkit
 
+> Неофициальный developer preview. Booking/payment execution отключён, а
+> mobile login выполняется только локально вне MCP/LLM.
+
 **Роль:** единая локальная точка setup, doctor, запуска и проверки контрактов
 для отдельных Hotels и Banking MCP. Toolkit не объединяет их tool surface или
 полномочия, не является MCP-сервером и не выполняет provider-запросы в
 `setup`, `doctor`, `client-config` или `contracts`.
 
+## Установка developer preview
+
+После публикации трёх пакетов локальная установка выглядит так:
+
+```bash
+npm install --global tbank-hotels-mcp tbank-mcp-local
+pipx install travel-assistant-tbank-banking-mcp
+```
+
+Для Hotels-only достаточно двух npm packages. Banking/combined профиль требует
+Python package и один локальный телефонный вход.
+
 ## Одноразовая настройка
 
-Service JWT key остаётся отдельным owner-only PEM-файлом. В локальную
-конфигурацию записываются только путь, approved API URL и несекретные JWT
-metadata:
+Для разработки команды ниже можно запускать как
+`node tools/tbank-mcp-local/src/cli.mjs`. Установленный toolkit предоставляет
+эквивалентную команду `tbank-mcp-local`; дальнейшие примеры используют её.
+Toolkit ищет `tbank-hotels-mcp`, `tbank-banking-mcp`, `tbank-auth-broker` и
+`tbank-banking-login` в `PATH`, а внутри repository checkout сохраняет
+development fallback. При нестандартной установке допустимы только явные
+абсолютные executable overrides `TBANK_MCP_HOTELS_EXECUTABLE`,
+`TBANK_MCP_BANKING_EXECUTABLE`, `TBANK_MCP_BROKER_EXECUTABLE` и
+`TBANK_MCP_LOGIN_EXECUTABLE`.
+
+Для developer-preview anonymous search достаточно transport URL:
+
+```bash
+tbank-mcp-local setup \
+  --profile combined \
+  --hotels-api-base-url 'https://hotels.tbank.ru/api'
+```
+
+Если владелец интеграции выдал service JWT key, его можно добавить как
+необязательный owner-only PEM-файл. В локальную конфигурацию записывается только
+путь, а не ключ:
 
 ```bash
 chmod 600 '/absolute/secure/path/hotels-rsa-key.pem'
-node tools/tbank-mcp-local/src/cli.mjs setup \
+tbank-mcp-local setup \
   --profile combined \
-  --hotels-api-base-url 'https://<approved-hotels-origin>/' \
+  --hotels-api-base-url 'https://hotels.tbank.ru/api' \
   --hotels-jwt-key-file '/absolute/secure/path/hotels-rsa-key.pem'
 ```
 
@@ -23,23 +56,34 @@ node tools/tbank-mcp-local/src/cli.mjs setup \
 Mobile tokens в неё не копируются: Banking продолжает использовать отдельный
 owner-only session store.
 
+Если для Hotels существует секция в local config, launcher считает её
+каноничным transport/auth-профилем: старый inline PEM, token, auth headers,
+`TBANK_HOTELS_ENABLE_MUTATIONS` или mutation execution profile из shell/`.env`
+не могут конфликтовать с
+key-file и не требуют ручного `unset`. Без key-file используется anonymous
+read-only search. Явный `TBANK_HOTELS_API_BASE_URL`
+остаётся transport override, чтобы launcher не подменял уже проверенный origin
+устаревшим URL из local config. При отсутствии override используется URL из
+local config. Полностью environment-driven Hotels сохраняется для запуска без
+local config.
+
 Телефонная авторизация выполняется один раз в обычном Terminal, без передачи
 номера, SMS-кода, пароля или PIN модели и без записи номера в shell history:
 
 ```bash
-node tools/tbank-mcp-local/src/cli.mjs login
+tbank-mcp-local login
 ```
 
 Завершить локальную mobile session можно так же коротко:
 
 ```bash
-node tools/tbank-mcp-local/src/cli.mjs logout
+tbank-mcp-local logout
 ```
 
 ## Offline doctor
 
 ```bash
-node tools/tbank-mcp-local/src/cli.mjs doctor --profile combined
+tbank-mcp-local doctor --profile combined
 ```
 
 Doctor проверяет версии runtime, локальные executables, наличие transport
@@ -49,13 +93,15 @@ configuration, key/session files и broker socket. Он не создаёт JWT,
 
 ## Подключение клиентов
 
-Toolkit выдаёт готовую secret-free регистрацию. Сгенерированные команды всегда
+Toolkit выдаёт готовую secret-free регистрацию. Текущая acceptance matrix
+включает OpenCode и Codex CLI; генератор Claude Code сохраняется как
+необязательный профиль, но его подключение не требуется. Сгенерированные команды всегда
 запускают отдельные MCP-процессы через общий локальный launcher:
 
 ```bash
-node tools/tbank-mcp-local/src/cli.mjs client-config --client opencode --profile combined
-node tools/tbank-mcp-local/src/cli.mjs client-config --client codex --profile combined
-node tools/tbank-mcp-local/src/cli.mjs client-config --client claude --profile combined
+tbank-mcp-local client-config --client opencode --profile combined
+tbank-mcp-local client-config --client codex --profile combined
+tbank-mcp-local client-config --client claude --profile combined
 ```
 
 Допустимые профили: `hotels`, `banking`, `combined`. В сгенерированной combined-
@@ -70,8 +116,8 @@ Broker завершается автоматически при `logout`. Для
 остановки без удаления mobile session доступны команды:
 
 ```bash
-node tools/tbank-mcp-local/src/cli.mjs run broker
-node tools/tbank-mcp-local/src/cli.mjs stop-broker
+tbank-mcp-local run broker
+tbank-mcp-local stop-broker
 ```
 
 ## Versioned contracts
@@ -91,11 +137,29 @@ framing, чистый `stdout`, EOF shutdown и стабильный контр�
 
 Одна команда выполняет весь локальный release gate: unit/protocol tests Hotels,
 Banking и toolkit, manifests и conformance. Родительские `TBANK_*` credentials
-изолируются, provider API не вызывается:
+изолируются, regression-тест проверяет конфликт stale inline PEM с каноничным
+key-file, provider API не вызывается:
 
 ```bash
 npm --prefix tools/tbank-mcp-local run verify
 ```
+
+Gate также проверяет два installable artifact candidates без сети:
+
+- Hotels npm tarball содержит только `package.json`, `README.md` и runtime
+  server, устанавливается во временный каталог вне checkout и отвечает на
+  `initialize` через установленную bin-команду;
+- Banking wheel собирается из изолированной копии, не содержит session/env/test
+  файлов, устанавливается вне checkout и отвечает на `initialize`.
+
+Registry metadata подготовлена для публичного developer preview, но сами
+пакеты ещё не загружены. Все три artifact candidates устанавливаются во
+временный каталог вне checkout; launcher находит отдельные runtime-команды из
+`PATH`, а phone login входит в Banking wheel. Npm-пакеты публикуются с
+`UNLICENSED`: это разрешает установку preview из registry, но не предоставляет
+отдельную open-source лицензию на повторное использование кода. До upload
+остаются registry login, checksums и fresh-machine проверка в OpenCode/Codex.
+SBOM, provenance и выбор публичной лицензии остаются гейтом stable release.
 
 Текущую границу готовности реальной hotel payment можно проверить отдельно:
 
@@ -108,6 +172,13 @@ node tools/tbank-mcp-local/src/cli.mjs payment-readiness
 которые остаются запрещены. Пока `readyForPaymentExecution=false`, нельзя
 вызывать Hotels payment setup, переиспользовать банковский `/v1/pay` как оплату
 отеля или автоматически повторять операцию после неизвестного исхода.
+
+После офлайн-сверки `HotelsApi.Payments` отчёт версии `2.0` фиксирует hosted
+payment form как целевой публичный маршрут и считает request/response schemas и
+payment task states подтверждёнными. Raw-card, fingerprint и 3-D Secure
+endpoints исключены из MCP. Оставшиеся blockers относятся к внешнему origin,
+customer access, trusted client IP, idempotency/reconciliation, owner-bound
+выдаче payment link и явному non-production разрешению.
 
 Естественные пользовательские сценарии для последующего bounded smoke собраны
 в [`docs/human-smoke-cases.md`](docs/human-smoke-cases.md), а независимый

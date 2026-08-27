@@ -4,7 +4,7 @@
   "protocolVersion": "2025-03-26",
   "serverInfo": {
     "name": "tbank-hotels-api-mcp",
-    "version": "0.22.0"
+    "version": "0.28.0"
   },
   "tools": [
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "tbank_hotels_compare_stay_options",
-      "description": "Сравнивает 2–5 вариантов по provider facts внутри той же отфильтрованной journey-выборки и возвращает готовые comparisonRows и comparisonTableMarkdown. В пользовательском ответе покажите comparisonTableMarkdown целиком: не удаляйте колонки, не округляйте и не изменяйте ratingsCount/price/cancellation facts. Не подмешивайте другие journey-варианты без запроса пользователя. Для запроса лучших вариантов передайте ranking и не выбирайте optionIds вручную: ranking применяется ко всей journey-выборке. optionIds предназначены только для явно названных пользователем вариантов. Без ranking наследуется стратегия plan_stay.",
+      "description": "Сравнивает 2–5 вариантов и возвращает готовые comparisonRows и comparisonTableMarkdown. Первый вызов ранжирует всю journey. Следующий вызов по умолчанию ранжирует только предыдущую показанную comparison-пятёрку, поэтому фразы «среди этих/ранее найденных вариантов» не вводят невидимый отель. Для намеренного пересчёта всей выборки передайте scope=all_journey_options; scope=previous_comparison требует предыдущего сравнения. optionIds задают явное подмножество, а ranking применяется внутри него. При применённом ценовом профиле preferenceAlternatives отдельно возвращает лучшие варианты ниже и выше мягкого диапазона.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -55,14 +55,23 @@
               "maxLength": 512,
               "description": "optionId из journey."
             },
-            "description": "Только явно выбранные пользователем варианты. Не используйте для top/best: передайте ranking."
+            "description": "Явное подмножество вариантов; ranking, если передан, применяется только внутри него."
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "previous_comparison",
+              "all_journey_options"
+            ],
+            "description": "Опустите для естественного continuation: после первого сравнения используется previous_comparison. Укажите all_journey_options только если пользователь явно просит пересчитать всю найденную выборку."
           },
           "ranking": {
             "type": "string",
             "enum": [
               "provider_order",
               "lowest_price",
-              "highest_rating"
+              "highest_rating",
+              "best_value"
             ],
             "description": "Если значение не передано, используется ranking исходного plan_stay."
           },
@@ -152,7 +161,7 @@
     },
     {
       "name": "tbank_hotels_create_booking_draft",
-      "description": "Создаёт черновик только для явно намеренного реального бронирования и поэтому принимает guest PII. Для безопасного preview без оформления используйте tbank_hotels_create_booking_preview. Достаточность имён всех проживающих OpenAPI не подтверждает, поэтому MCP возвращает guestCoverage без выдумывания требования. HTTP create-запрос не выполняется; executionAvailable учитывает activation, auth profile и обязательные доверенные headers.",
+      "description": "Создаёт черновик только для явно намеренного реального бронирования и поэтому принимает guest PII. До разбора и сохранения PII проверяет готовность booking execution; при executionAvailable=false возвращает безопасный отказ без bookingDraftId и без сохранения данных. Для preview без оформления используйте tbank_hotels_create_booking_preview. Достаточность имён всех проживающих OpenAPI не подтверждает, поэтому MCP возвращает guestCoverage без выдумывания требования. HTTP create-запрос не выполняется.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -256,12 +265,15 @@
                           "creditCardId": {
                             "anyOf": [
                               {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                               },
                               {
                                 "type": "null"
                               }
-                            ]
+                            ],
+                            "description": "Provider card UUID. Raw card number, CVV/CVC, PIN and OTP are never accepted by this MCP."
                           }
                         },
                         "required": [],
@@ -357,7 +369,8 @@
                           "payment_form",
                           "on_us",
                           "off_us",
-                          "dolyame"
+                          "dolyame",
+                          "pos"
                         ]
                       },
                       {
@@ -413,6 +426,16 @@
                         },
                         "required": [],
                         "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isBusinessTrip": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
                       },
                       {
                         "type": "null"
@@ -518,12 +541,15 @@
                           "creditCardId": {
                             "anyOf": [
                               {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                               },
                               {
                                 "type": "null"
                               }
-                            ]
+                            ],
+                            "description": "Provider card UUID. Raw card number, CVV/CVC, PIN and OTP are never accepted by this MCP."
                           }
                         },
                         "required": [],
@@ -619,7 +645,8 @@
                           "payment_form",
                           "on_us",
                           "off_us",
-                          "dolyame"
+                          "dolyame",
+                          "pos"
                         ]
                       },
                       {
@@ -675,6 +702,16 @@
                         },
                         "required": [],
                         "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isBusinessTrip": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
                       },
                       {
                         "type": "null"
@@ -751,7 +788,59 @@
     },
     {
       "name": "tbank_hotels_create_booking_preview",
-      "description": "Создаёт безопасный локальный preview выбранного отеля, тарифа и состава гостей без ФИО, email и телефона. Не создаёт booking draft, не вызывает Hotels API и не запрашивает PII. Используйте для preview-only сценария, особенно когда executionAvailable=false.",
+      "description": "Создаёт безопасный локальный preview выбранного отеля, тарифа и состава гостей без ФИО, email и телефона. Требует уже завершённый tbank_hotels_get_selected_stay_rates и отдельный tbank_hotels_select_stay_rate; не вызывайте preview одновременно с rates или до выбора rateOptionId. Не создаёт booking draft, не вызывает Hotels API и не запрашивает PII. В обычном пользовательском ответе не раскрывайте внутренние имена заголовков или конфигурационные blockers; достаточно сообщить, что реальная бронь не создавалась.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId с выбранным rateOptionId."
+          }
+        },
+        "required": [
+          "journeyId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_create_checkout_handoff",
+      "description": "Создаёт безопасный переход из выбранного hotel/rate preview на публичную страницу конкретного выбранного отеля. Для обычного сценария одной комнаты без детей URL сохраняет выбранный отель, даты и число взрослых через подтверждённые public-параметры dateFrom/dateTo/guests; сложный состав гостей не угадывается. Не принимает и не передаёт ФИО, контакты, bookHash, токены, данные карты, OTP или 3-D Secure; не создаёт бронь и не запускает оплату. Точный тариф не переносится и не резервируется: пользователь выбирает актуальный тариф во внешнем интерфейсе.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId с выбранным rateOptionId."
+          }
+        },
+        "required": [
+          "journeyId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_create_payment_form_preview",
+      "description": "Создаёт локальный preview безопасного hosted payment form flow для выбранного тарифа. Не принимает ФИО, email, телефон, PAN, CVV/CVC, PIN, OTP, browser fingerprint или redirect URL; не вызывает Hotels API, не создаёт бронь и не запускает оплату. Возвращает подтверждённые состояния payment task без внутренних имён headers или blockers; полная диагностика доступна только в connection_status. Пока executionAvailable=false, покажите preview и остановитесь без запроса финального подтверждения.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -965,12 +1054,15 @@
                           "creditCardId": {
                             "anyOf": [
                               {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                               },
                               {
                                 "type": "null"
                               }
-                            ]
+                            ],
+                            "description": "Provider card UUID. Raw card number, CVV/CVC, PIN and OTP are never accepted by this MCP."
                           }
                         },
                         "required": [],
@@ -1066,7 +1158,8 @@
                           "payment_form",
                           "on_us",
                           "off_us",
-                          "dolyame"
+                          "dolyame",
+                          "pos"
                         ]
                       },
                       {
@@ -1122,6 +1215,16 @@
                         },
                         "required": [],
                         "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isBusinessTrip": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
                       },
                       {
                         "type": "null"
@@ -1233,12 +1336,15 @@
                           "creditCardId": {
                             "anyOf": [
                               {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                               },
                               {
                                 "type": "null"
                               }
-                            ]
+                            ],
+                            "description": "Provider card UUID. Raw card number, CVV/CVC, PIN and OTP are never accepted by this MCP."
                           }
                         },
                         "required": [],
@@ -1334,7 +1440,8 @@
                           "payment_form",
                           "on_us",
                           "off_us",
-                          "dolyame"
+                          "dolyame",
+                          "pos"
                         ]
                       },
                       {
@@ -1390,6 +1497,16 @@
                         },
                         "required": [],
                         "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isBusinessTrip": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
                       },
                       {
                         "type": "null"
@@ -1761,6 +1878,16 @@
                     "type": "null"
                   }
                 ]
+              },
+              "isBusinessTrip": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -2049,15 +2176,20 @@
     },
     {
       "name": "tbank_hotels_get_booking_overview",
-      "description": "Возвращает карточку заказа. PDF voucher никогда не встраивается в MCP-ответ; при includeVoucher=true возвращается только указание использовать отдельный безопасный local handoff.",
+      "description": "Возвращает карточку собственной брони. В mobile broker-режиме принимает только process-local bookingRef из tbank_hotels_list_bookings и читает booking v1 без раскрытия provider orderId. Для прямого API-профиля принимает orderId. PDF voucher никогда не встраивается в MCP-ответ; при includeVoucher=true возвращается только указание использовать отдельный безопасный local handoff.",
       "inputSchema": {
         "type": "object",
         "properties": {
+          "bookingRef": {
+            "type": "string",
+            "pattern": "^booking_[a-f0-9]{24}$",
+            "description": "Непрозрачный process-local bookingRef из tbank_hotels_list_bookings."
+          },
           "orderId": {
             "type": "string",
             "minLength": 1,
             "maxLength": 512,
-            "description": "Идентификатор заказа."
+            "description": "Provider orderId только для прямого API-профиля без mobile auth broker."
           },
           "includeVoucher": {
             "type": "boolean",
@@ -2073,10 +2205,20 @@
             "default": "v3"
           }
         },
-        "required": [
-          "orderId"
-        ],
-        "additionalProperties": false
+        "required": [],
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "bookingRef"
+            ]
+          },
+          {
+            "required": [
+              "orderId"
+            ]
+          }
+        ]
       },
       "outputSchema": null,
       "annotations": {
@@ -2838,7 +2980,7 @@
     },
     {
       "name": "tbank_hotels_get_selected_stay_rates",
-      "description": "Загружает бронируемые тарифы выбранного journey-варианта. hotelId, даты и гости берутся из journey. filters — неподтверждённый untyped pass-through rates-контракт: не угадывайте его и не передавайте без точных provider-данных. Один timeout повторяется внутри общего бюджета. После исчерпания бюджета tool возвращает rates_temporarily_unavailable и запрещает автоматический повтор. Если provider вернул пустой rates, tool возвращает no_bookable_rates и запрещает запрашивать guest PII или создавать draft по search-feed цене.",
+      "description": "Загружает бронируемые тарифы выбранного journey-варианта. hotelId, даты и гости берутся из journey. rateNumber стабилен во всех следующих ответах journey: показывайте ratesTableMarkdown ровно один раз и не перенумеровывайте отфильтрованное подмножество. Если запрос пользователя уже задаёт критерий выбора, завершите select_stay_rate → create_booking_preview и дайте один итоговый ответ вместо предварительной и повторной таблиц; не вызывайте rates и preview параллельно. filters — неподтверждённый untyped pass-through rates-контракт: не угадывайте его и не передавайте без точных provider-данных. Один timeout повторяется внутри общего бюджета. После исчерпания бюджета tool возвращает rates_temporarily_unavailable и запрещает автоматический повтор. Если provider вернул пустой rates, tool возвращает no_bookable_rates и запрещает запрашивать guest PII или создавать draft по search-feed цене.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2944,7 +3086,8 @@
             "enum": [
               "provider_order",
               "lowest_price",
-              "highest_rating"
+              "highest_rating",
+              "best_value"
             ],
             "description": "Если значение не передано, используется ranking исходного plan_stay."
           },
@@ -3029,8 +3172,8 @@
       }
     },
     {
-      "name": "tbank_hotels_plan_stay",
-      "description": "Основной agent-facing поиск. Принимает название локации, даты, комнаты и semantic breakfastIncluded, сам разрешает destinationId, применяет обязательные условия до поиска, собирает bounded paginated/partial provider results и создаёт short-lived journeyId. Не вызывайте get_search_filters или low-level search для завтрака. Ranking применяется локально: production search пока отклоняет provider sort. Для конкретного отеля передайте hotelName вместе с локацией.",
+      "name": "tbank_hotels_plan_personalized_stay",
+      "description": "Основной tool для естественных запросов «используй мой обезличенный профиль». Полностью повторяет semantic hotel journey, но обязательно требует hotelPreferences из tbank_banking_build_portfolio_travel_profile и поэтому не позволяет спутать generic best_value с применённым пользовательским профилем. Передавайте hotelPreferences без преобразований; применение можно утверждать только при preferencesApplied.applied=true.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3105,15 +3248,244 @@
             "default": false,
             "description": "Если true, MCP применяет подтверждённый provider-фильтр meal_types=breakfast до построения journey. Не заменяйте этот параметр низкоуровневым перебором filters."
           },
+          "hotelPreferences": {
+            "type": "object",
+            "properties": {
+              "pricePerNight": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Мягкая нижняя граница цены за ночь."
+                  },
+                  "max": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Мягкая верхняя граница цены за ночь."
+                  },
+                  "currency": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z]{3}$",
+                    "description": "ISO-like код валюты диапазона, например RUB."
+                  }
+                },
+                "required": [
+                  "min",
+                  "max",
+                  "currency"
+                ],
+                "additionalProperties": false
+              },
+              "ranking": {
+                "type": "string",
+                "enum": [
+                  "best_value"
+                ],
+                "description": "Privacy-safe ranking из Banking travel profile."
+              },
+              "showAlternativesOutsideBand": {
+                "type": "boolean",
+                "const": true,
+                "description": "Всегда true: варианты вне мягкого диапазона сохраняются как явно помеченные альтернативы."
+              }
+            },
+            "required": [
+              "pricePerNight",
+              "ranking",
+              "showAlternativesOutsideBand"
+            ],
+            "additionalProperties": false,
+            "description": "Необязательные privacy-safe hotelDefaults из tbank_banking_build_portfolio_travel_profile. Это мягкие локальные предпочтения: они не отправляются provider и не скрывают варианты вне диапазона."
+          },
           "ranking": {
             "type": "string",
             "enum": [
               "provider_order",
               "lowest_price",
-              "highest_rating"
+              "highest_rating",
+              "best_value"
             ],
-            "default": "provider_order",
-            "description": "provider_order сохраняет порядок Hotels API; остальные стратегии сортируют только по доступным provider facts."
+            "description": "Если значение опущено, используется hotelPreferences.ranking либо provider_order. lowest_price/highest_rating используют provider facts; best_value — прозрачный локальный score рейтинга, числа отзывов и цены с необязательным мягким hotelPreferences диапазоном."
+          },
+          "maxOptions": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 20,
+            "description": "Ограничивает число вариантов в ответе plan_stay, но не размер собираемой MCP выборки."
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "checkinDate",
+          "checkoutDate",
+          "rooms",
+          "hotelPreferences"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "destination"
+            ]
+          },
+          {
+            "required": [
+              "destinationId"
+            ]
+          }
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_plan_stay",
+      "description": "Основной agent-facing поиск. Принимает название локации, даты, комнаты, semantic breakfastIncluded и необязательные privacy-safe hotelPreferences из Banking portfolio profile. Если пользователь просит применить профиль, передайте объект hotelPreferences из tbank_banking_build_portfolio_travel_profile без преобразований: ranking=best_value без hotelPreferences не считается применением профиля, и это нельзя утверждать. Сам разрешает destinationId, включая безопасный внутренний fallback при несовпадении локализованного countryName; после clarification_required или search_unavailable не вызывайте resolve_destination с альтернативными написаниями и не перебирайте локации автоматически. Применяет обязательные условия до поиска, собирает bounded paginated/partial provider results и создаёт short-lived journeyId. hotelPreferences — мягкое локальное ранжирование: диапазон цены за ночь не отправляется provider и не скрывает альтернативы; provider shownPrice трактуется как полная цена поездки, а MCP вычисляет отдельную цену за ночь. При provider network/DNS/timeout/HTTP failure возвращает terminal search_unavailable с retryAllowed=false: не повторяйте поиск, не обходите MCP и не перебирайте low-level tools. Для конкретного отеля передайте hotelName вместе с локацией.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Название города или локации, например Москва. MCP сам разрешит destinationId."
+          },
+          "destinationId": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Используйте только после выбора кандидата из resolve_destination или clarification_required."
+          },
+          "countryName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Необязательное название страны для разрешения одноимённых локаций."
+          },
+          "checkinDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Календарная дата в формате YYYY-MM-DD."
+          },
+          "checkoutDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Календарная дата в формате YYYY-MM-DD."
+          },
+          "rooms": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "properties": {
+                "adults": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 16,
+                  "description": "Количество взрослых в комнате."
+                },
+                "childrenAges": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 17
+                  },
+                  "description": "Возраст каждого ребёнка, 0–17."
+                }
+              },
+              "required": [
+                "adults"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Один элемент на комнату."
+          },
+          "hotelName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 250,
+            "description": "Необязательное название конкретного отеля внутри выбранной локации. Глобальный поиск без локации не заявлен контрактом."
+          },
+          "breakfastIncluded": {
+            "type": "boolean",
+            "default": false,
+            "description": "Если true, MCP применяет подтверждённый provider-фильтр meal_types=breakfast до построения journey. Не заменяйте этот параметр низкоуровневым перебором filters."
+          },
+          "hotelPreferences": {
+            "type": "object",
+            "properties": {
+              "pricePerNight": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Мягкая нижняя граница цены за ночь."
+                  },
+                  "max": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "Мягкая верхняя граница цены за ночь."
+                  },
+                  "currency": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z]{3}$",
+                    "description": "ISO-like код валюты диапазона, например RUB."
+                  }
+                },
+                "required": [
+                  "min",
+                  "max",
+                  "currency"
+                ],
+                "additionalProperties": false
+              },
+              "ranking": {
+                "type": "string",
+                "enum": [
+                  "best_value"
+                ],
+                "description": "Privacy-safe ranking из Banking travel profile."
+              },
+              "showAlternativesOutsideBand": {
+                "type": "boolean",
+                "const": true,
+                "description": "Всегда true: варианты вне мягкого диапазона сохраняются как явно помеченные альтернативы."
+              }
+            },
+            "required": [
+              "pricePerNight",
+              "ranking",
+              "showAlternativesOutsideBand"
+            ],
+            "additionalProperties": false,
+            "description": "Необязательные privacy-safe hotelDefaults из tbank_banking_build_portfolio_travel_profile. Это мягкие локальные предпочтения: они не отправляются provider и не скрывают варианты вне диапазона."
+          },
+          "ranking": {
+            "type": "string",
+            "enum": [
+              "provider_order",
+              "lowest_price",
+              "highest_rating",
+              "best_value"
+            ],
+            "description": "Если значение опущено, используется hotelPreferences.ranking либо provider_order. lowest_price/highest_rating используют provider facts; best_value — прозрачный локальный score рейтинга, числа отзывов и цены с необязательным мягким hotelPreferences диапазоном."
           },
           "maxOptions": {
             "type": "integer",
@@ -3299,12 +3671,15 @@
                           "creditCardId": {
                             "anyOf": [
                               {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                               },
                               {
                                 "type": "null"
                               }
-                            ]
+                            ],
+                            "description": "Provider card UUID. Raw card number, CVV/CVC, PIN and OTP are never accepted by this MCP."
                           }
                         },
                         "required": [],
@@ -3400,7 +3775,8 @@
                           "payment_form",
                           "on_us",
                           "off_us",
-                          "dolyame"
+                          "dolyame",
+                          "pos"
                         ]
                       },
                       {
@@ -3456,6 +3832,16 @@
                         },
                         "required": [],
                         "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isBusinessTrip": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
                       },
                       {
                         "type": "null"
@@ -3567,12 +3953,15 @@
                           "creditCardId": {
                             "anyOf": [
                               {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                               },
                               {
                                 "type": "null"
                               }
-                            ]
+                            ],
+                            "description": "Provider card UUID. Raw card number, CVV/CVC, PIN and OTP are never accepted by this MCP."
                           }
                         },
                         "required": [],
@@ -3668,7 +4057,8 @@
                           "payment_form",
                           "on_us",
                           "off_us",
-                          "dolyame"
+                          "dolyame",
+                          "pos"
                         ]
                       },
                       {
@@ -3724,6 +4114,16 @@
                         },
                         "required": [],
                         "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isBusinessTrip": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
                       },
                       {
                         "type": "null"
@@ -4075,6 +4475,16 @@
                     "type": "null"
                   }
                 ]
+              },
+              "isBusinessTrip": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -4160,15 +4570,20 @@
     },
     {
       "name": "tbank_hotels_preview_cancellation",
-      "description": "Загружает текущие provider-данные брони для просмотра условий отмены. Не рассчитывает сумму возврата и не отменяет заказ.",
+      "description": "Загружает текущие provider-данные собственной брони для просмотра условий отмены. В mobile broker-режиме принимает только bookingRef и читает booking v1; для прямого API-профиля принимает orderId. Не рассчитывает сумму возврата и не отменяет заказ.",
       "inputSchema": {
         "type": "object",
         "properties": {
+          "bookingRef": {
+            "type": "string",
+            "pattern": "^booking_[a-f0-9]{24}$",
+            "description": "Непрозрачный process-local bookingRef из tbank_hotels_list_bookings."
+          },
           "orderId": {
             "type": "string",
             "minLength": 1,
             "maxLength": 512,
-            "description": "Идентификатор заказа."
+            "description": "Provider orderId только для прямого API-профиля без mobile auth broker."
           },
           "apiVersion": {
             "type": "string",
@@ -4180,10 +4595,20 @@
             "default": "v3"
           }
         },
-        "required": [
-          "orderId"
-        ],
-        "additionalProperties": false
+        "required": [],
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "bookingRef"
+            ]
+          },
+          {
+            "required": [
+              "orderId"
+            ]
+          }
+        ]
       },
       "outputSchema": null,
       "annotations": {
@@ -5090,7 +5515,7 @@
     },
     {
       "name": "tbank_hotels_select_stay_rate",
-      "description": "Выбирает конкретный тариф ранее выбранного отеля. Не создаёт бронирование.",
+      "description": "Выбирает конкретный тариф ранее выбранного отеля и возвращает его исходный стабильный rateNumber. Не создаёт бронирование и не перенумеровывает тарифы.",
       "inputSchema": {
         "type": "object",
         "properties": {

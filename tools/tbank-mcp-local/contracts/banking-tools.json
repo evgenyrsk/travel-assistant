@@ -4,12 +4,12 @@
   "protocolVersion": "2025-03-26",
   "serverInfo": {
     "name": "tbank-banking-mcp",
-    "version": "0.14.0"
+    "version": "0.17.0"
   },
   "tools": [
     {
       "name": "tbank_banking_build_portfolio_travel_profile",
-      "description": "Privacy-first профиль предпочтений по всем доступным счетам. Сам получает bounded агрегаты, использует агрегированные категории внутри процесса и возвращает только tier, confidence, ценовой диапазон и ranking — без accountRef, количества/названий счетов, абсолютных сумм, разбивки категорий и истории бронирований. Не утверждайте, что категории не использовались: они использованы, но не раскрыты. Используйте для обычных просьб про обезличенный travel-профиль; не вызывайте list_accounts/spending_summary дополнительно.",
+      "description": "Privacy-first профиль предпочтений по всем доступным счетам. Сам получает bounded агрегаты, использует агрегированные категории внутри процесса и возвращает только tier, confidence, ценовой диапазон и ranking — без accountRef, количества/названий счетов, абсолютных сумм, разбивки категорий и истории бронирований. Для следующего персонализированного поиска передайте возвращённый hotelPreferences без преобразований в одноимённый аргумент tbank_hotels_plan_personalized_stay; generic ranking=best_value без этого объекта не означает применение профиля. Утверждайте применение только если Hotels вернул preferencesApplied.applied=true. Не утверждайте, что категории не использовались: они использованы, но не раскрыты. travelSpendSignal означает долю travel-категорий в расходах, а не частоту поездок или доход. Используйте для обычных просьб про обезличенный travel-профиль; не вызывайте list_accounts/spending_summary дополнительно.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -80,7 +80,7 @@
     },
     {
       "name": "tbank_banking_list_accounts",
-      "description": "Счета текущего пользователя без токенов, cookies и реквизитов карт.",
+      "description": "Счета текущего пользователя без токенов, cookies и реквизитов карт. Вызывайте только если пользователь явно просит показать/выбрать счёт или следующий явно выбранный low-level/payment-preview tool требует account_ref. Не вызывайте перед tbank_banking_build_portfolio_travel_profile: portfolio tool сам читает bounded агрегаты и лишний list_accounts нарушает privacy-first flow.",
       "inputSchema": {
         "type": "object",
         "properties": {},

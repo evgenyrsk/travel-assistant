@@ -1,45 +1,52 @@
 # Active task
 
-**Статус:** completed
+**Статус:** developer-preview publication preparation in progress
 
 ## Goal
 
-Устранить зависимость combined Hotels/Banking MCP от порядка lazy-start: общий
-mobile auth broker должен автоматически запускаться при первом обращении к
-любому из двух MCP и корректно останавливаться через lifecycle/logout.
+Подготовить experimental Hotels/Banking MCP toolstream к публичному
+read-only/preview-only выпуску: разделить крупные runtime-обязанности, сузить
+поставляемую Banking mobile-поверхность и добавить безопасный переход из
+выбранного journey в официальный checkout без передачи card data модели и без
+provider mutations.
 
 ## Acceptance criteria
 
-- [x] Сгенерированная combined-конфигурация обеспечивает broker для обоих MCP.
-- [x] Hotels customer read работает, даже если Banking MCP ещё не запускался.
-- [x] Banking read работает, даже если Hotels MCP ещё не запускался.
-- [x] Одновременно запущенные MCP переиспользуют один owner-only broker.
-- [x] Завершение одного MCP не обрывает auth второго.
-- [x] Broker корректно завершается lifecycle-командой и перед logout.
-- [x] Существующий `--with-broker` остаётся обратно совместимым.
-- [x] Offline tests, manifests, conformance и diff hygiene проходят без provider calls.
+- [x] Hotels stdio entrypoint, tool schemas и runtime orchestration разделены
+  без изменения существующих tool contracts.
+- [x] Новый checkout handoff не принимает PII, PAN, CVC/CVV, OTP, PIN, mobile
+  tokens, provider `paymentUrl` или доверенные headers как tool arguments.
+- [x] Checkout handoff ведёт на public page выбранного отеля; для одной комнаты
+  без детей переносит только подтверждённые даты и число взрослых, не переносит
+  exact rate, secrets или PII.
+- [x] Номера тарифов стабильны во всём journey, а готовая таблица имеет
+  однократную presentation-семантику.
+- [x] Follow-up «среди показанных» не вводит отель из-за пределов предыдущей comparison-группы.
+- [x] Персонализированный hotel search требует явный privacy-safe `hotelPreferences`.
+- [x] Публичный Banking MCP не включает денежные, marketplace, grocery и
+  messenger tools как MCP-поверхность; packaged-code риск имеет
+  явный минимальный boundary и regression gate.
+- [x] Прямое booking/payment execution остаётся fail-closed и не блокирует
+  read-only/preview-only release.
+- [x] Manifests, документация и offline release gate нового checkpoint синхронизированы.
+- [x] Portable launcher, packaged phone login и artifact allowlists проверены вне checkout.
+- [x] Внутренний publication review завершён.
+- [x] Независимый fresh-context review публикационного checkpoint завершён.
+- [x] Anonymous read-only search не требует JWT и не отправляет Authorization.
+- [ ] Registry packages загружены после npm/PyPI/GitHub login.
 
 ## Constraints
 
-- Сохранить отдельные MCP и scoped broker allowlist по ADR-0003/ADR-0004.
-- Не передавать mobile credentials через MCP arguments или client config.
-- Не выполнять provider calls, booking/payment mutations или live retries при реализации.
+- Hotels и Banking остаются раздельными MCP по ADR-0003/ADR-0004.
+- Не выполнять provider/live calls, production booking/payment/cancel/update.
+- Не читать и не выводить секреты или платёжные реквизиты.
+- Не переносить internal API endpoints в публичную MCP-поверхность.
+- Не менять Kotlin backend и public Travel Assistant OpenAPI.
 
 ## Out of scope
 
-- Remote transport, Keychain, server-side revoke и production daemon manager.
-- Расширение broker allowlist и real booking/payment execution.
-- Изменение core Kotlin backend или публичного OpenAPI.
-
-## Definition of Done
-
-- Lazy-start order покрыт тестами для Hotels-first и Banking-first.
-- Broker lifecycle не оставляет stale socket после явной остановки.
-- Документация и версии синхронизированы.
-- Полный MCP offline gate проходит; live smoke повторяется только после restart клиента.
-
-## Task-specific escalation triggers
-
-- Требуется изменить ADR boundary или передавать credentials модели.
-- Нужен production/system daemon, privileged install или external cost.
-- Надёжный lifecycle невозможен без несовместимого client contract change.
+- Активация production execution.
+- Direct-card flow с PAN/CVV через LLM/MCP.
+- Remote transport, Docker и OS credential store.
+- Утверждение фактической auth-схемы без bounded external evidence.
+- Активация raw-card, Banking `/v1/pay` или direct payment execution.

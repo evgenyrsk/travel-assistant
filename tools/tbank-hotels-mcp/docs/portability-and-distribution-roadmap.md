@@ -5,7 +5,7 @@
 MCP-клиентам и приложениям. Документ не меняет основной product roadmap,
 hotel-only MVP или порядок этапов Kotlin backend.
 
-**Статус:** `In progress`. Локальный toolkit `0.2.1` закрыл часть P0–P3 без
+**Статус:** `In progress`. Локальный toolkit `0.12.0` закрыл часть P0–P3 без
 активации remote transport или execution capabilities.
 
 **Принятое решение от 2026-08-24:** сначала довести и стабилизировать локальный
@@ -46,8 +46,8 @@ bundle не должен объединять их полномочия. Это 
 
 | Область | Сейчас | Ограничение для распространения |
 | --- | --- | --- |
-| Hotels MCP | Node.js 20+, `stdio`, package bin, protocol `2025-03-26` | Package помечен `private`; нет release artifacts и client matrix |
-| Banking MCP | Python 3.11+, editable install, `stdio`, protocol `2025-03-26` | Нет опубликованного wheel и кроссплатформенного secure storage |
+| Hotels MCP | Node.js 20+, `stdio`, package bin, protocol `2025-03-26`; anonymous read-only search; npm tarball candidate устанавливается и запускается вне checkout | Registry metadata подготовлена, upload не выполнен; нет checksums/SBOM/provenance и client matrix |
+| Banking MCP | Python 3.11+, `stdio`, protocol `2025-03-26`; wheel candidate собирается, устанавливается и запускается вне checkout | Wheel не опубликован; нет кроссплатформенного secure storage и release metadata |
 | Общая авторизация | Локальный broker через owner-only Unix socket | Unix socket и session-файл не подходят как remote/multi-tenant boundary |
 | Состояние journey | Process-local opaque handles с TTL | После перезапуска теряется; для нескольких HTTP instances нужен общий secure store |
 | Read-only функции | Search, customer reads и агрегаты прошли ограниченные smoke/fake gates | Нужен повторный независимый review и воспроизводимый compatibility suite |
@@ -65,7 +65,7 @@ MCP с Python на Node.js только ради упаковки не план�
 - MCP-клиент запускает каждый выбранный сервер как отдельный `stdio` subprocess.
 - JSON-RPC выводится только в `stdout`; диагностика — только в `stderr`.
 - Секреты не передаются в arguments tools, prompt или command-line flags.
-- Hotels search может работать автономно с service/static auth profile.
+- Hotels search может работать автономно без auth; service/static auth остаётся опциональным integration override.
 - Banking MCP может работать автономно с локальной mobile session.
 - При совместном использовании один локальный auth broker владеет refresh и
   выдаёт обоим MCP только allowlisted высокоуровневые операции.
@@ -162,12 +162,22 @@ fake transport; изменения схем обнаруживаются CI до
 
 **Статус:** `In progress`.
 
-- [ ] Публиковать Hotels как versioned npm package с bin-командой; до этого
-  сохранить запуск по абсолютному локальному пути.
-- [ ] Публиковать Banking как versioned wheel для `pipx`/`uvx`; editable
-  install оставить только для разработки.
+- [ ] Загрузить подготовленный Hotels versioned npm package с bin-командой;
+  до upload сохранить запуск по абсолютному локальному пути.
+- [ ] Загрузить подготовленный Banking versioned wheel для `pipx`/`uvx`;
+  editable install оставить только для разработки.
+- [x] Проверять локальный Hotels npm tarball и Banking wheel в изолированных
+  временных каталогах: allowlisted contents, установка вне checkout и MCP
+  `initialize` без provider network.
 - [x] Добавить общий launcher/config generator, который регистрирует один или
   два MCP, не объединяя servers и credentials.
+- [x] Убрать runtime-зависимость launcher от checkout: установленные Hotels,
+  Banking, broker и phone-login команды разрешаются из `PATH`, абсолютные
+  overrides валидируются, repository layout остаётся development fallback.
+- [x] Включить phone login в Banking wheel как `tbank-banking-login` и
+  проверить entry point вне checkout.
+- [x] Ограничить npm artifact toolkit allowlist-набором runtime, manifests и
+  публичного README; tests и внутренние review-материалы не публикуются.
 - [ ] Перенести mobile session из обычного файла в storage adapter: OS
   Keychain по умолчанию, file fallback только с явным предупреждением.
 - [ ] Добавить pinned dependencies/lockfiles, release checksums, SBOM,
@@ -250,15 +260,20 @@ recovery, audit trail и kill switch; production activation разрешаетс
 
 ## 5. Порядок ближайших задач
 
-До начала P0 функциональный план остаётся таким:
+Ближайший порядок для локального read-only/preview-only release:
 
 1. [x] Завершить безопасный voucher PDF flow только на fixture/fake transport.
-2. [ ] Зафиксировать статическую цепочку hotel order → Hotels payment state →
+2. [x] Зафиксировать статическую цепочку hotel order → Hotels payment state →
    Banking payment preview без provider-вызовов.
-3. [ ] Провести повторный независимый review текущих Hotels/Banking/broker changes.
-4. [ ] После закрытия локальных findings активировать P0 и P1 для read-only tier.
-5. [ ] P2–P3 выполнить до объявления публичного или внутреннего portable release.
-6. [ ] P4–P5 начинать отдельными задачами; P6 не следует автоматически ни из
+3. [x] Добавить typed profile-to-search contract, мягкий `best_value`,
+   presentation facts и локальные artifact candidates.
+4. [ ] Провести повторный независимый review текущих Hotels/Banking/broker
+   изменений и закрыть release-blocking findings.
+5. [ ] Прогнать шесть естественных smoke-кейсов в OpenCode и Codex CLI после
+   offline gate; Claude Code не входит в текущую acceptance matrix.
+6. [ ] Завершить P1–P3 до объявления portable release: fresh-machine install,
+   macOS/Linux/client matrix, secure storage, checksums, SBOM и provenance.
+7. [ ] P4–P5 начинать отдельными задачами; P6 не следует автоматически ни из
    одного предыдущего этапа.
 
 ## 6. Решения, которые не нужно принимать сейчас

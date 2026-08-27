@@ -402,7 +402,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.acknowledge_read_own_data:
         raise SystemExit("Refusing live reads without --acknowledge-read-own-data")
     try:
-        session = SessionManager().get()
+        session = SessionManager().get_probe_session()
         report = MobileHotelsAuthProbe(session).run(
             order_id=args.order_id,
             task_id=args.task_id,

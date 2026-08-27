@@ -223,7 +223,7 @@ class MobileHotelsAuthProbeTest(unittest.TestCase):
     def test_cli_reports_missing_login_without_traceback(self):
         stderr = StringIO()
         with patch("src.mobile_hotels_auth_probe.SessionManager") as manager:
-            manager.return_value.get.side_effect = RuntimeError("AUTH_REQUIRED: run the local phone login CLI first")
+            manager.return_value.get_probe_session.side_effect = RuntimeError("AUTH_REQUIRED: run the local phone login CLI first")
             with redirect_stderr(stderr):
                 result = main(["--acknowledge-read-own-data"])
         self.assertEqual(result, 2)

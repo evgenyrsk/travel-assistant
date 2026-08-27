@@ -1,5 +1,9 @@
 # T-Bank Banking MCP
 
+> Неофициальный developer preview. Пакет использует неофициальный mobile API,
+> не заявляет одобрение или поддержку со стороны Т-Банка и не экспортирует
+> реальные платежи или переводы.
+
 Отдельный experimental MCP для локальной авторизации по номеру телефона,
 read-only банковских агрегатов и персонализации поиска отелей. Он подключается
 к MCP-клиенту рядом с `tbank-hotels-mcp` и не расширяет полномочия Hotels MCP.
@@ -29,15 +33,34 @@ Mobile API является неофициальным capture-driven контр
 считать production-ready только потому, что локальная авторизация прошла.
 Provenance и лицензия описаны в [UPSTREAM.md](UPSTREAM.md).
 
+Большой vendored `upstream/client.py` сохранён как совместимая реализация
+mobile login/refresh, но MCP server и auth broker больше не получают этот
+объект целиком. `CuratedMobileSession` предоставляет runtime только шесть
+allowlisted read-операций; payment, transfer, marketplace, messenger,
+login/OTP и credential-поля через обычный runtime object graph недоступны.
+Raw session используется только локальным login CLI и явно запускаемым
+read-only auth probe вне MCP.
+
 ## Установка
 
 Нужен Python 3.11+:
+
+```bash
+pipx install travel-assistant-tbank-banking-mcp
+```
+
+Editable install нужен только для разработки из checkout:
 
 ```bash
 cd /absolute/path/to/travel-assistant/tools/tbank-banking-mcp
 python3 -m venv .venv
 .venv/bin/pip install -e .
 ```
+
+Устанавливаемый wheel дополнительно предоставляет четыре обычные команды:
+`tbank-banking-mcp`, `tbank-auth-broker`, `tbank-banking-login` и
+`tbank-hotels-mobile-auth-probe`. Поэтому после registry-публикации или установки
+локально собранного wheel checkout репозитория для запуска не нужен.
 
 Для постоянного standalone/combined подключения используйте общий local
 toolkit: [`../tbank-mcp-local/README.md`](../tbank-mcp-local/README.md). Он не
@@ -49,8 +72,7 @@ secret-free регистрацию для OpenCode, Codex CLI и Claude Code.
 Вход выполняется напрямую в терминале, а не MCP-tool вызовом:
 
 ```bash
-cd /absolute/path/to/travel-assistant/tools/tbank-banking-mcp
-.venv/bin/python login_cli.py +7XXXXXXXXXX
+tbank-banking-login
 ```
 
 SMS-код, пароль и PIN вводятся скрыто. Они не передаются модели. По умолчанию
@@ -67,7 +89,7 @@ login CLI и MCP-процесса.
 стороне банка, потому что официальный revoke/logout endpoint не подтверждён:
 
 ```bash
-.venv/bin/python login_cli.py --logout
+tbank-banking-login --logout
 ```
 
 После logout перезапустите MCP-клиенты.
@@ -300,9 +322,19 @@ MCP при этом остаются независимыми:
    анализирует агрегированные категории доступных счетов и возвращает модели только обезличенный профиль,
    ценовой диапазон и уровень уверенности.
 2. Агент предлагает использовать диапазон и получает согласие пользователя.
-3. `tbank_hotels_plan_stay` выполняет обычный поиск с пользовательским бюджетом.
-4. Результаты вне диапазона не скрываются; профиль влияет только на default и
-   объяснимое ранжирование.
+3. Готовый объект `hotelPreferences` из ответа передаётся без преобразований в
+   одноимённый аргумент `tbank_hotels_plan_personalized_stay`; `hotelDefaults` сохранён как
+   совместимый alias. Счета, категории и суммы между MCP не передаются.
+4. Hotels MCP применяет `best_value` локально и сохраняет диапазон мягким:
+   результаты вне него не скрываются, а provider search body не получает
+   ценовой фильтр.
+
+`best_value` является объяснимым MCP-derived score на основе provider rating,
+числа отзывов и цены. Он не является банковской оценкой, provider sort или
+оценкой дохода пользователя. Пользовательский `ranking`, переданный явно,
+имеет приоритет над profile default. Наличие одного `ranking=best_value` не
+доказывает применение профиля: агент проверяет
+`preferencesApplied.applied=true` в ответе Hotels.
 
 Низкоуровневые `tbank_banking_list_accounts`,
 `tbank_banking_spending_summary` и `tbank_banking_build_travel_profile` нужны
@@ -385,4 +417,6 @@ python3 -m compileall -q src login_cli.py test
 
 MCP transport реализован без зависимости от Python MCP SDK; runtime-зависимость
 только `requests`. Unit/protocol-тесты не выполняют сетевые запросы и не читают
-пользовательскую сессию.
+пользовательскую сессию. Отдельный offline packaging test собирает wheel в
+изолированной временной директории, проверяет его содержимое, устанавливает
+вне checkout и выполняет MCP `initialize` без provider-сети.

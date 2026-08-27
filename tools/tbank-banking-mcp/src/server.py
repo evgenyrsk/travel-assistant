@@ -19,7 +19,7 @@ from .upstream.observability import redact_text
 
 
 SERVER_NAME = "tbank-banking-mcp"
-SERVER_VERSION = "0.14.0"
+SERVER_VERSION = "0.17.0"
 MCP_PROTOCOL_VERSION = "2025-03-26"
 MAX_PORTFOLIO_ACCOUNTS = 20
 _sessions = None
@@ -73,7 +73,8 @@ def _json(value: Any) -> str:
 def _safe_error(error: Exception) -> str:
     text = redact_text(str(error))
     text = re.sub(r"\b[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\b", "REDACTED_SESSION", text)
-    text = re.sub(r"(?i)(authorization|bearer|access_token|refresh_token|sessionid|cookie)(\s*[:=]\s*)\S+", r"\1\2REDACTED", text)
+    text = re.sub(r"(?i)(authorization\s*[:=]\s*)(?:bearer\s+)?\S+", r"\1REDACTED", text)
+    text = re.sub(r"(?i)(bearer|access_token|refresh_token|sessionid|cookie)(\s*[:=]?\s*)\S+", r"\1\2REDACTED", text)
     text = re.sub(r"(?<!\d)(?:\+7|7|8)\d{10}(?!\d)", "REDACTED_PHONE", text)
     text = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", "REDACTED_EMAIL", text)
     text = re.sub(r"\b[A-Za-z0-9_-]{40,}\b", "REDACTED_SECRET", text)
@@ -110,7 +111,7 @@ def _normalized_accounts(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return result
 
 
-def connection_status(_: dict[str, Any]) -> str:
+def _connection_status(_: dict[str, Any]) -> str:
     metadata = _session_metadata()
     broker = _broker_client()
     broker_status = "not_configured"
@@ -149,6 +150,13 @@ def connection_status(_: dict[str, Any]) -> str:
             "credentialsExposedToModel": False,
         }
     )
+
+
+def connection_status(arguments: dict[str, Any]) -> str:
+    try:
+        return _connection_status(arguments)
+    except Exception as error:
+        return _safe_error(error)
 
 
 def list_accounts(_: dict[str, Any]) -> str:
@@ -231,6 +239,7 @@ def portfolio_travel_profile(arguments: dict[str, Any]) -> str:
         if not candidates:
             raise RuntimeError("No eligible account aggregates were available for a portfolio travel profile")
         share, _, selected = max(candidates, key=lambda candidate: (candidate[0], candidate[1]))
+        hotel_preferences = selected["hotelDefaults"]
         return _json({
             "ok": True,
             "portfolioTravelProfile": {
@@ -240,7 +249,17 @@ def portfolio_travel_profile(arguments: dict[str, Any]) -> str:
                 "periodDays": days,
                 "currency": selected["currency"],
                 "travelSignal": _travel_signal_band(share),
-                "hotelDefaults": selected["hotelDefaults"],
+                "travelSpendSignal": _travel_signal_band(share),
+                "hotelDefaults": hotel_preferences,
+                "hotelPreferences": hotel_preferences,
+                "hotelSearchUsage": {
+                    "targetTool": "tbank_hotels_plan_personalized_stay",
+                    "targetArgument": "hotelPreferences",
+                    "passWithoutTransformation": True,
+                    "applicationEvidence": "Hotels response preferencesApplied.applied must be true before claiming the profile was applied.",
+                    "priceBasis": "pricePerNight",
+                    "doNotCallBefore": ["tbank_banking_list_accounts", "tbank_banking_spending_summary"],
+                },
                 "coverage": {
                     "scope": "available_accounts",
                     "complete": skipped == 0,
@@ -259,6 +278,7 @@ def portfolio_travel_profile(arguments: dict[str, Any]) -> str:
                 },
                 "explanation": (
                     "Профиль вычислен по агрегированным категориям расходов среди доступных счетов. "
+                    "travelSpendSignal отражает долю travel-категорий в агрегированных расходах, а не частоту поездок или доход. "
                     "Разбивка категорий, количество и состав счетов, абсолютные суммы и операции не раскрываются; "
                     "история бронирований не используется."
                 ),
@@ -337,7 +357,7 @@ def _tool(name: str, description: str, schema: dict[str, Any], handler: ToolHand
 TOOLS = [
     _tool("tbank_banking_connection_status", "Локальная readiness-диагностика без обращения к банковскому API.",
           _object_schema({}), connection_status),
-    _tool("tbank_banking_list_accounts", "Счета текущего пользователя без токенов, cookies и реквизитов карт.",
+    _tool("tbank_banking_list_accounts", "Счета текущего пользователя без токенов, cookies и реквизитов карт. Вызывайте только если пользователь явно просит показать/выбрать счёт или следующий явно выбранный low-level/payment-preview tool требует account_ref. Не вызывайте перед tbank_banking_build_portfolio_travel_profile: portfolio tool сам читает bounded агрегаты и лишний list_accounts нарушает privacy-first flow.",
           _object_schema({}), list_accounts),
     _tool(
         "tbank_banking_spending_summary",
@@ -357,7 +377,7 @@ TOOLS = [
     ),
     _tool(
         "tbank_banking_build_portfolio_travel_profile",
-        "Privacy-first профиль предпочтений по всем доступным счетам. Сам получает bounded агрегаты, использует агрегированные категории внутри процесса и возвращает только tier, confidence, ценовой диапазон и ranking — без accountRef, количества/названий счетов, абсолютных сумм, разбивки категорий и истории бронирований. Не утверждайте, что категории не использовались: они использованы, но не раскрыты. Используйте для обычных просьб про обезличенный travel-профиль; не вызывайте list_accounts/spending_summary дополнительно.",
+        "Privacy-first профиль предпочтений по всем доступным счетам. Сам получает bounded агрегаты, использует агрегированные категории внутри процесса и возвращает только tier, confidence, ценовой диапазон и ranking — без accountRef, количества/названий счетов, абсолютных сумм, разбивки категорий и истории бронирований. Для следующего персонализированного поиска передайте возвращённый hotelPreferences без преобразований в одноимённый аргумент tbank_hotels_plan_personalized_stay; generic ranking=best_value без этого объекта не означает применение профиля. Утверждайте применение только если Hotels вернул preferencesApplied.applied=true. Не утверждайте, что категории не использовались: они использованы, но не раскрыты. travelSpendSignal означает долю travel-категорий в расходах, а не частоту поездок или доход. Используйте для обычных просьб про обезличенный travel-профиль; не вызывайте list_accounts/spending_summary дополнительно.",
         _object_schema({"days": {"type": "integer", "minimum": 30, "maximum": 366, "default": 90}}),
         portfolio_travel_profile,
     ),
@@ -423,7 +443,7 @@ def handle(request: dict[str, Any]) -> dict[str, Any] | None:
             text = tool["handler"](arguments)
             return _response(request_id, {"content": [{"type": "text", "text": text}], "isError": False})
         except Exception as error:
-            return _response(request_id, {"content": [{"type": "text", "text": str(error)[:240]}], "isError": True})
+            return _response(request_id, {"content": [{"type": "text", "text": _safe_error(error)}], "isError": True})
     return _error(request_id, -32601, "Method not found.")
 
 

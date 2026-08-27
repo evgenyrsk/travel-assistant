@@ -1147,10 +1147,16 @@ order identifiers. Следующий разрешённый шаг toolstream �
 оставшихся order reads при наличии собственных identifiers; booking/payment
 mutations остаются отдельным gate.
 
-Текущий локальный checkpoint toolstream: Hotels MCP `0.22.0`, Banking/broker
-`0.14.0`, local toolkit `0.6.0`. Safe voucher handoff реализован и проверен
+Текущий локальный checkpoint toolstream: Hotels MCP `0.28.0`, Banking/broker
+`0.17.0`, local toolkit `0.12.0`. Safe voucher handoff реализован и проверен
 только на fixture/fake transport после ранее зафиксированного read-only auth
-evidence. Hotels search
+evidence. Публичная граница оформления закреплена в `ADR-0005`: после выбора
+тарифа Hotels MCP создаёт безопасный hosted-checkout handoff без PII,
+`bookHash`, payment credentials и provider write; точный тариф не считается
+перенесённым или зарезервированным. Hotels entrypoint, stdio framing, tool
+contracts, config и runtime разделены на модули. Banking server и broker
+получают только `CuratedMobileSession` с allowlisted read-операциями, хотя
+vendored mobile client сохранён для совместимого phone login/refresh. Hotels search
 journey теперь принимает semantic `breakfastIncluded`, применяет подтверждённый
 `meal_types=breakfast` до поиска и сравнения, строго валидирует четыре
 discriminator-формы low-level filters и запрещает автоматический unfiltered
@@ -1237,6 +1243,141 @@ MCP обеспечивает один persistent local broker для Hotels-firs
 одновременного старта; закрытие одного MCP не обрывает session, а `logout` и
 `stop-broker` выполняют явное graceful shutdown. Provider API при проверке этого
 изменения не вызывались.
+
+Следующий локальный release-candidate slice добавил прямой privacy-safe handoff
+`hotelDefaults` → `hotelPreferences`: Hotels принимает только ценовой диапазон,
+`best_value` и разрешение показывать альтернативы, не получает счета,
+категории или абсолютные суммы и не превращает профиль в provider price filter.
+Детерминированный `best_value_v2` отделён от provider facts, варианты вне
+диапазона остаются видимыми. Presentation-поля для денег, времени и отмены
+сохраняют точные факты и исходное UTC-смещение без догадок о timezone отеля.
+Смена только локального ranking переиспользует тот же короткий search cache и
+не увеличивает provider traffic. Offline gate дополнен устанавливаемыми вне
+checkout npm tarball candidate для Hotels и wheel candidate для Banking. Это
+не считается публикацией или portable release: независимый review, шесть
+естественных smoke-кейсов, fresh-machine/client/OS matrix, secure storage,
+checksums, SBOM и provenance ещё не закрыты. Execution tiers и remote transport
+не активированы.
+
+Независимый Qwen 3.8 Max review этого release candidate дал `CONDITIONAL
+READY` и не обнаружил P0–P2. Локальный follow-up закрыл все P3: overview и
+cancellation preview используют opaque `bookingRef` через mobile broker,
+legacy broker без явного `verifiedOperations` не получает customer readiness,
+а booking draft не разбирает и не сохраняет guest PII при недоступном
+execution. Historical payment report синхронизирован с одноразовой consume
+семантикой. Следующий gate остаётся прежним: полный offline regression, затем
+естественный read-only/preview-only smoke после рестарта клиента; writes и
+remote transport не активированы.
+
+Первый post-review live smoke не прошёл штатный tool path: stale inline PEM из
+родительского OpenCode environment смешался с каноничным key-file local config.
+Toolkit `0.6.3` делает configured Hotels auth-profile авторитетным, отбрасывает
+родительские auth credentials и mutation activation, но сохраняет явный
+transport URL. Это исправляет регрессию `0.6.2`, которая подменила рабочий
+`https://hotels.tbank.ru/` устаревшим private origin из local config и вызвала
+DNS `ENOTFOUND`. Выполненный моделью ad-hoc direct provider driver не считается
+acceptance evidence. Повтор начинается с одного обычного кейса после полного
+рестарта; обход MCP и model-side изменение config запрещены. Hotels `0.23.1` возвращает
+для такого сбоя terminal `search_unavailable` с запретом retry/low-level
+fallback, а status явно ограничивает `searchReady` локальной конфигурацией.
+Acceptance остаётся pending до полного рестарта MCP-клиента и повторного
+естественного smoke через исправленный effective transport URL.
+
+Следующий live smoke подтвердил transport/auth/customer-read и portfolio
+flows, но выявил две ошибки композиции. Модель вызвала booking preview до
+выбора тарифа, а в двухночном персонализированном поиске не передала
+`hotelPreferences`, хотя заявила применение профиля; дополнительно provider
+`shownPrice` total ошибочно сравнивался с диапазоном за ночь. Hotels `0.23.2`
+разделяет `totalPriceDisplay` и MCP-derived `pricePerNightDisplay`, использует
+цену за ночь в `best_value` и `pricePreferenceFit` и требует последовательность
+rates → select rate → preview в tool guidance. Banking `0.14.1` возвращает
+готовый `hotelPreferences` и точное правило передачи без преобразований;
+применение можно утверждать только при `preferencesApplied.applied=true`.
+Toolkit `0.6.4` синхронизирует versioned manifests. Повторный personalized
+smoke остаётся acceptance gate; writes не активированы.
+
+Повторный natural-language smoke подтвердил исправление total/per-night,
+точный profile handoff, последовательный rates-preview и customer/banking
+reads. Он также показал, что `best_value_v1` чрезмерно награждал цену ниже
+нижней границы: far-below вариант мог возглавить мягкий диапазон. Hotels
+`0.23.3` заменяет его band-aware `best_value_v2`, нормализует отсутствующую
+звёздность и не раскрывает внутренние trusted-header blockers в обычном
+preview. Toolkit `0.6.5` синхронизирует manifests; нужен один focused live
+repeat персонализированного поиска после restart клиента.
+
+Focused repeat подтвердил `best_value_v2`, но выявил model-side location retry:
+локализованный `countryName=Россия` вернул пустой каталог, после чего модель
+перебрала несколько вариантов `resolve_destination`. Hotels `0.23.4` выполняет
+этот bounded fallback внутри исходного `plan_stay`, локально сопоставляет
+русское и международное название страны и запрещает автоматический перебор
+после terminal clarification. Toolkit `0.6.6` синхронизирует manifests; нужен
+один короткий repeat Казани, writes остаются отключены.
+
+Финальный Kazan repeat прошёл через portfolio profile → один `plan_stay` →
+compare без отдельных resolver-вызовов, retry или writes. Live evidence
+подтвердил `preferencesApplied.applied=true`, корректный total/per-night и
+band-aware top-5. Одна строка поясняющего текста модели неверно пересказала
+review rating при корректной MCP-таблице; это зафиксировано как неблокирующий
+P3 presentation issue. Локальный read-only/preview-only release candidate готов
+к финальному independent review; mutations по-прежнему NO-GO.
+
+Следующий contract-intake checkpoint сверил предоставленные владельцем
+Swagger-экспорты `HotelsApi` и `HotelsApi.Payments` полностью офлайн. Booking
+DTO дополнен подтверждёнными `paymentMeans=pos`, `isBusinessTrip` и UUID card
+reference. Для будущей публичной оплаты выбран hosted payment form; raw-card,
+fingerprint и 3-D Secure endpoints намеренно исключены из MCP. Hotels добавляет
+локальный `tbank_hotels_create_payment_form_preview` и отдельный
+`paymentFormExecution` readiness без PII, credentials или provider-вызовов.
+Owner-provided production origin зафиксирован без сетевой проверки; execution
+остаётся `NO-GO`: нет доступного non-production origin, Swagger не подтверждает
+customer auth, доверенный источник client IP, idempotency, recovery после
+timeout до `taskId` и безопасный owner-bound handoff `paymentUrl`. Полная
+матрица и activation gates находятся в
+`tools/tbank-hotels-mcp/docs/booking-payment-contract-readiness.md`.
+
+Post-smoke hardening `0.27.0/0.16.0/0.10.0` закрыл ошибки
+естественной композиции. Повторное сравнение без явного scope
+теперь остаётся в предыдущей показанной comparison-группе; выход на
+всю journey требует `scope=all_journey_options`. Privacy-first portfolio flow
+ведёт в отдельный `tbank_hotels_plan_personalized_stay`, где
+`hotelPreferences` обязателен; лишние account/summary calls прямо запрещены
+в tool guidance. Checkout handoff больше не ведёт на generic entry point:
+он сохраняет выбор отеля, даты и число взрослых для простой occupancy через
+подтверждённые public query-параметры. Сложный состав гостей переносится только
+в подтверждённой части, а exact rate и бронь не переносятся. Номера тарифов
+стабильны во всём journey, а готовая таблица предназначена для однократного
+показа. Full offline gate остаётся обязательным без provider requests;
+booking/payment execution остаётся `NO-GO`.
+
+Publication hardening `0.27.0/0.17.0/0.11.0` устраняет техническую зависимость
+локального launcher от repository checkout. Launcher разрешает отдельно
+установленные Hotels, Banking, auth broker и phone-login команды через `PATH`
+или проверенные абсолютные overrides; repository layout остаётся только
+development fallback. Phone login включён в Banking wheel как отдельный
+terminal entry point, а toolkit npm artifact ограничен runtime/manifests/README.
+Artifact tests устанавливают пакеты вне checkout и проверяют MCP initialize и
+login/logout без provider network. Фактическая registry-публикация всё ещё
+требует решения владельца по лицензии, package namespace и аудитории service
+JWT credentials; booking/payment execution остаётся `NO-GO`.
+
+Developer-preview publication checkpoint `0.28.0/0.17.0/0.12.0` делает
+публичный Hotels search анонимным по умолчанию: достаточно настроить
+`https://hotels.tbank.ru/api`, `Authorization` не отправляется. Service JWT и
+static token остаются только опциональными integration overrides, а customer
+reads используют локальную mobile session через broker. Anonymous mode не
+разрешает booking/payment mutations. Registry metadata и installable artifacts
+подготовлены; upload, checksums и fresh-machine client matrix остаются
+следующими release gates.
+
+Финальный Qwen-аудит не выявил P0–P2 и подтвердил готовность read-only и
+preview-only tiers. Follow-up закрыл четыре P3: version consistency теперь
+проверяется автоматически, нестандартные MCP annotations объявляются рядом с
+tools, runtime использует единый handler registry с полным contract test, а
+локальный Banking editable install синхронизирован с `0.16.0`. Полный offline
+gate предыдущего checkpoint: toolkit 14/14, Hotels 58/58, Banking 52/52, без
+provider requests. Для `0.27.0/0.16.0/0.10.0` добавлен отдельный offline gate.
+Следующий разрешённый шаг — bounded human live smoke после чистого перезапуска;
+booking/payment execution остаётся отдельным `NO-GO` gate.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

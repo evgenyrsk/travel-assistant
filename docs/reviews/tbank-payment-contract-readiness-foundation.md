@@ -16,8 +16,10 @@
 
 - capability переносит `amountDecimal`, локальное время наблюдения и окно
   свежести;
-- Banking отклоняет невалидную/протухшую сумму и неизвестный `accountRef` до
-  атомарного поглощения handoff;
+- Banking проверяет неизвестный `accountRef` до поглощения handoff; сам handoff
+  поглощается атомарно, после чего Banking проверяет сумму и свежесть фактов.
+  При отказе capability намеренно не восстанавливается: для повторной попытки
+  нужен новый handoff;
 - payment intent возвращает fail-closed `executionReadiness`, запрещает
   автоматический retry и отмечает отсутствие reconciliation;
 - `tbank-mcp-local payment-readiness` показывает закрытые gates и недостающие

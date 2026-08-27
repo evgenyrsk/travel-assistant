@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { accessSync, chmodSync, constants, existsSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, isAbsolute, resolve } from "node:path";
+import { delimiter, dirname, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { createConnection } from "node:net";
@@ -13,11 +13,58 @@ import { paymentReadinessReport } from "./payment-readiness.mjs";
 
 const localRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryRoot = resolve(localRoot, "../..");
-const hotelsServer = resolve(repositoryRoot, "tools/tbank-hotels-mcp/src/server.mjs");
+const developmentHotelsServer = resolve(repositoryRoot, "tools/tbank-hotels-mcp/src/server.mjs");
 const bankingRoot = resolve(repositoryRoot, "tools/tbank-banking-mcp");
-const bankingExecutable = resolve(bankingRoot, ".venv/bin/tbank-banking-mcp");
-const brokerExecutable = resolve(bankingRoot, ".venv/bin/tbank-auth-broker");
+const developmentBankingExecutable = resolve(bankingRoot, ".venv/bin/tbank-banking-mcp");
+const developmentBrokerExecutable = resolve(bankingRoot, ".venv/bin/tbank-auth-broker");
+const developmentLoginExecutable = resolve(bankingRoot, ".venv/bin/tbank-banking-login");
 const contractsDirectory = resolve(localRoot, "contracts");
+
+const runtimeExecutableSettings = {
+  hotels: { environmentName: "TBANK_MCP_HOTELS_EXECUTABLE", commandName: "tbank-hotels-mcp" },
+  banking: { environmentName: "TBANK_MCP_BANKING_EXECUTABLE", commandName: "tbank-banking-mcp" },
+  broker: { environmentName: "TBANK_MCP_BROKER_EXECUTABLE", commandName: "tbank-auth-broker" },
+  login: { environmentName: "TBANK_MCP_LOGIN_EXECUTABLE", commandName: "tbank-banking-login" },
+};
+
+function executableOnPath(commandName, environment) {
+  for (const directory of String(environment.PATH ?? "").split(delimiter)) {
+    if (!directory) continue;
+    const candidate = resolve(directory, commandName);
+    if (!existsSync(candidate) || !statSync(candidate).isFile()) continue;
+    try { accessSync(candidate, constants.X_OK); } catch { continue; }
+    return candidate;
+  }
+  return null;
+}
+
+export function resolveRuntimeCommand(component, environment = process.env, { includeDevelopmentFallback = true } = {}) {
+  const setting = runtimeExecutableSettings[component];
+  if (!setting) throw new Error("component must be hotels, banking, broker, or login.");
+  const explicit = environment[setting.environmentName]?.trim();
+  if (explicit) {
+    if (!isAbsolute(explicit) || !existsSync(explicit) || !statSync(explicit).isFile()) {
+      throw new Error(`${setting.environmentName} must point to an absolute executable file.`);
+    }
+    try { accessSync(explicit, constants.X_OK); } catch { throw new Error(`${setting.environmentName} must point to an executable file.`); }
+    return { command: explicit, args: [], source: "explicit_environment" };
+  }
+  if (includeDevelopmentFallback && component === "hotels" && existsSync(developmentHotelsServer)) {
+    return { command: process.execPath, args: [developmentHotelsServer], source: "repository_checkout" };
+  }
+  const developmentExecutable = component === "banking"
+    ? developmentBankingExecutable
+    : component === "broker"
+      ? developmentBrokerExecutable
+      : component === "login"
+        ? developmentLoginExecutable
+        : null;
+  if (includeDevelopmentFallback && developmentExecutable && existsSync(developmentExecutable)) {
+    return { command: developmentExecutable, args: [], source: "repository_checkout" };
+  }
+  const installed = executableOnPath(setting.commandName, environment);
+  return installed ? { command: installed, args: [], source: "installed_path" } : null;
+}
 
 function defaultConfigPath() {
   return process.env.TBANK_MCP_LOCAL_CONFIG || resolve(homedir(), ".config/tbank-mcp/config.json");
@@ -57,14 +104,16 @@ function setup(args) {
   if (components.includes("hotels")) {
     const apiBaseUrl = argumentValue(args, "--hotels-api-base-url");
     if (!apiBaseUrl || !/^https:\/\//.test(apiBaseUrl)) throw new Error("--hotels-api-base-url must be an approved HTTPS URL.");
-    const jwtPrivateKeyFile = absoluteExistingFile(argumentValue(args, "--hotels-jwt-key-file"), "--hotels-jwt-key-file");
+    const jwtPrivateKeyArgument = argumentValue(args, "--hotels-jwt-key-file");
     config.hotels = {
       apiBaseUrl,
-      jwtIssuer: argumentValue(args, "--hotels-jwt-issuer") ?? "HOTELSSEARCHAPI",
-      jwtAudience: argumentValue(args, "--hotels-jwt-audience") ?? "HOTELSAPI",
-      jwtPrivateKeyFile,
       maxConcurrentRequests: 2,
     };
+    if (jwtPrivateKeyArgument) {
+      config.hotels.jwtIssuer = argumentValue(args, "--hotels-jwt-issuer") ?? "HOTELSSEARCHAPI";
+      config.hotels.jwtAudience = argumentValue(args, "--hotels-jwt-audience") ?? "HOTELSAPI";
+      config.hotels.jwtPrivateKeyFile = absoluteExistingFile(jwtPrivateKeyArgument, "--hotels-jwt-key-file");
+    }
   }
   if (components.includes("banking")) {
     config.banking = {
@@ -75,25 +124,41 @@ function setup(args) {
   mkdirSync(dirname(configPath), { recursive: true, mode: 0o700 });
   writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
   chmodSync(configPath, 0o600);
-  process.stdout.write(`Local MCP config created at ${configPath}. It contains paths and non-secret JWT metadata, not private key material or mobile tokens.\n`);
+  process.stdout.write(`Local MCP config created at ${configPath}. It contains transport settings and optional credential paths, not private key material or mobile tokens.\n`);
 }
 
 export function runtimeEnvironment(component, config) {
   const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith("TBANK_")));
+  const configuredHotelsProfile = component === "hotels" && Boolean(config.hotels);
+  const configuredHotelsBlockedParentVariables = new Set([
+    "TBANK_HOTELS_AUTH_TOKEN",
+    "TBANK_HOTELS_AUTH_HEADER",
+    "TBANK_HOTELS_AUTH_HEADERS_JSON",
+    "TBANK_HOTELS_JWT_PRIVATE_KEY",
+    "TBANK_HOTELS_JWT_PRIVATE_KEY_FILE",
+    "TBANK_HOTELS_JWT_ISSUER",
+    "TBANK_HOTELS_JWT_AUDIENCE",
+    "TBANK_HOTELS_ENABLE_MUTATIONS",
+    "TBANK_HOTELS_MUTATION_EXECUTION_PROFILE",
+  ]);
   const inheritedPrefixes = component === "hotels"
     ? ["TBANK_HOTELS_", "TBANK_AUTH_BROKER_"]
     : component === "broker"
       ? ["TBANK_BANKING_SESSION", "TBANK_AUTH_BROKER_", "TBANK_HOTELS_VOUCHER_"]
       : ["TBANK_BANKING_", "TBANK_AUTH_BROKER_"];
   for (const [name, value] of Object.entries(process.env)) {
-    if (inheritedPrefixes.some((prefix) => name.startsWith(prefix))) env[name] = value;
+    if (!inheritedPrefixes.some((prefix) => name.startsWith(prefix))) continue;
+    if (configuredHotelsProfile && configuredHotelsBlockedParentVariables.has(name)) continue;
+    env[name] = value;
   }
   if (component === "hotels" && config.hotels) {
     env.TBANK_HOTELS_API_BASE_URL ??= config.hotels.apiBaseUrl;
-    env.TBANK_HOTELS_JWT_ISSUER ??= config.hotels.jwtIssuer;
-    env.TBANK_HOTELS_JWT_AUDIENCE ??= config.hotels.jwtAudience;
-    env.TBANK_HOTELS_JWT_PRIVATE_KEY_FILE ??= config.hotels.jwtPrivateKeyFile;
-    env.TBANK_HOTELS_MAX_CONCURRENT_REQUESTS ??= String(config.hotels.maxConcurrentRequests ?? 2);
+    if (config.hotels.jwtPrivateKeyFile) {
+      env.TBANK_HOTELS_JWT_ISSUER = config.hotels.jwtIssuer;
+      env.TBANK_HOTELS_JWT_AUDIENCE = config.hotels.jwtAudience;
+      env.TBANK_HOTELS_JWT_PRIVATE_KEY_FILE = config.hotels.jwtPrivateKeyFile;
+    }
+    env.TBANK_HOTELS_MAX_CONCURRENT_REQUESTS = String(config.hotels.maxConcurrentRequests ?? 2);
   }
   if (config.banking && component !== "hotels") {
     env.TBANK_BANKING_SESSION ??= config.banking.sessionFile;
@@ -107,14 +172,11 @@ export function runtimeEnvironment(component, config) {
 async function runInteractiveLogin(logout = false) {
   const config = readConfig();
   if (logout) await stopBroker(config);
-  const python = resolve(bankingRoot, ".venv/bin/python");
-  const loginScript = resolve(bankingRoot, "login_cli.py");
-  if (!existsSync(python) || !existsSync(loginScript)) {
+  const login = resolveRuntimeCommand("login");
+  if (!login) {
     throw new Error("Banking local environment is missing. Run the documented installation first.");
   }
-  const args = logout ? [loginScript, "--logout"] : [loginScript];
-  const child = spawn(python, args, {
-    cwd: bankingRoot,
+  const child = spawn(login.command, [...login.args, ...(logout ? ["--logout"] : [])], {
     stdio: "inherit",
     env: runtimeEnvironment("banking", config),
   });
@@ -218,8 +280,9 @@ async function ensureBroker(config) {
   const socketPath = process.env.TBANK_AUTH_BROKER_SOCKET ?? config.banking?.brokerSocket;
   if (!socketPath) throw new Error("Combined mobile auth is not configured. Run setup with the combined profile first.");
   if (await brokerStatus(socketPath)) return { started: false };
-  if (!existsSync(brokerExecutable)) throw new Error("Auth broker executable is missing. Run the documented local installation first.");
-  const broker = spawn(brokerExecutable, [], {
+  const brokerCommand = resolveRuntimeCommand("broker");
+  if (!brokerCommand) throw new Error("Auth broker executable is missing. Run the documented local installation first.");
+  const broker = spawn(brokerCommand.command, brokerCommand.args, {
     stdio: "ignore",
     env: runtimeEnvironment("broker", config),
     detached: true,
@@ -249,19 +312,14 @@ async function stopBroker(config) {
 
 async function runComponent(component, args = []) {
   const config = readConfig();
-  const commands = {
-    hotels: [process.execPath, [hotelsServer]],
-    banking: [bankingExecutable, []],
-    broker: [brokerExecutable, []],
-  };
-  const selected = commands[component];
-  if (!selected) throw new Error("component must be hotels, banking, or broker.");
-  if (!existsSync(selected[0])) throw new Error(`${component} executable is missing. Run the documented local installation first.`);
+  if (!["hotels", "banking", "broker"].includes(component)) throw new Error("component must be hotels, banking, or broker.");
+  const selected = resolveRuntimeCommand(component);
+  if (!selected) throw new Error(`${component} executable is missing. Run the documented installation first.`);
   const sharedMobileSessionConfigured = Boolean(config.banking?.sessionFile && config.banking?.brokerSocket);
   const brokerRequired = args.includes("--ensure-broker") || args.includes("--with-broker")
     || ((component === "hotels" || component === "banking") && sharedMobileSessionConfigured);
   if (brokerRequired) await ensureBroker(config);
-  const child = spawn(selected[0], selected[1], { stdio: "inherit", env: runtimeEnvironment(component, config) });
+  const child = spawn(selected.command, selected.args, { stdio: "inherit", env: runtimeEnvironment(component, config) });
   for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => {
     child.kill(signal);
   });
@@ -283,14 +341,16 @@ function doctor(args) {
   const config = readConfig();
   const checks = {};
   if (components.includes("hotels")) {
-    const hotels = config.hotels ?? {};
-    const keyPath = process.env.TBANK_HOTELS_JWT_PRIVATE_KEY_FILE ?? hotels.jwtPrivateKeyFile;
-    const inlineAuth = Boolean(process.env.TBANK_HOTELS_JWT_PRIVATE_KEY || process.env.TBANK_HOTELS_AUTH_TOKEN || process.env.TBANK_HOTELS_AUTH_HEADERS_JSON);
+    const hotelsEnvironment = runtimeEnvironment("hotels", config);
+    const keyPath = hotelsEnvironment.TBANK_HOTELS_JWT_PRIVATE_KEY_FILE;
+    const inlineAuth = Boolean(hotelsEnvironment.TBANK_HOTELS_JWT_PRIVATE_KEY || hotelsEnvironment.TBANK_HOTELS_AUTH_TOKEN || hotelsEnvironment.TBANK_HOTELS_AUTH_HEADERS_JSON);
+    const fileAuth = Boolean(keyPath);
     checks.hotels = {
       runtime: Number(process.versions.node.split(".")[0]) >= 20 ? "ready" : "unsupported",
-      server: existsSync(hotelsServer) ? "ready" : "missing",
-      transport: process.env.TBANK_HOTELS_API_BASE_URL || hotels.apiBaseUrl ? "configured" : "missing",
-      authentication: inlineAuth ? "configured_from_environment" : secureFileCheck(keyPath, true).status,
+      server: resolveRuntimeCommand("hotels") ? "ready" : "missing",
+      transport: hotelsEnvironment.TBANK_HOTELS_API_BASE_URL ? "configured" : "missing",
+      authentication: inlineAuth ? "configured_from_environment" : fileAuth ? secureFileCheck(keyPath, true).status : "not_required",
+      configurationSource: config.hotels ? "local_config" : "environment",
     };
   }
   if (components.includes("banking")) {
@@ -298,7 +358,7 @@ function doctor(args) {
     const sessionPath = process.env.TBANK_BANKING_SESSION ?? banking.sessionFile;
     const socketPath = process.env.TBANK_AUTH_BROKER_SOCKET ?? banking.brokerSocket;
     checks.banking = {
-      executable: existsSync(bankingExecutable) ? "ready" : "missing",
+      executable: resolveRuntimeCommand("banking") ? "ready" : "missing",
       session: secureFileCheck(sessionPath, true).status,
       brokerSocket: socketPath && existsSync(socketPath) ? "available" : "not_running",
     };
@@ -340,10 +400,9 @@ function cleanChildEnvironment() {
 }
 
 async function mcpManifest(component) {
-  const command = component === "hotels" ? process.execPath : bankingExecutable;
-  const commandArgs = component === "hotels" ? [hotelsServer] : [];
-  if (!existsSync(command)) throw new Error(`${component} executable is missing.`);
-  const child = spawn(command, commandArgs, { stdio: ["pipe", "pipe", "pipe"], env: cleanChildEnvironment() });
+  const selected = resolveRuntimeCommand(component);
+  if (!selected) throw new Error(`${component} executable is missing.`);
+  const child = spawn(selected.command, selected.args, { stdio: ["pipe", "pipe", "pipe"], env: cleanChildEnvironment() });
   let buffer = "";
   let stderr = "";
   const responses = new Map();
@@ -486,7 +545,7 @@ export async function main(argv = process.argv.slice(2)) {
   throw new Error("Usage: tbank-mcp-local setup|doctor|login|logout|run|client-config|inspect-booking-fixture|capture-booking-shape|payment-readiness|stop-broker|contracts|conformance|verify");
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main().catch((error) => {
     process.stderr.write(`${error.message}\n`);
     process.exitCode = 1;

@@ -1,26 +1,17 @@
 # Verification
 
-- `node --test tools/tbank-mcp-local/test/cli.test.mjs` вне sandbox: 11/11 pass.
-- `npm --prefix tools/tbank-mcp-local run verify`: pass; toolkit 11, Hotels 49,
-  Banking 48, manifests/conformance pass, providerRequestsPerformed=false.
-- `./scripts/verify.sh docs`: pass после исправления trailing whitespace.
-- `git diff --check`: pass.
-
 | Check | Required | Latest result |
 |---|---|---|
-| Hotels-first lazy startup | yes | passed offline Unix-socket test |
-| Banking-first lazy startup | yes | passed offline Unix-socket test |
-| Shared broker survives individual MCP EOF | yes | passed |
-| Explicit stop removes socket | yes | passed |
-| Toolkit/Hotels/Banking tests | yes | 11 + 49 + 48 passed |
-| Contract manifests and conformance | yes | passed |
+| Swagger JSON parse | yes | passed for both supplied files |
+| Local Swagger refs resolve | yes | passed for both supplied files |
+| Targeted Hotels protocol tests | yes | 60/60 passed, including anonymous search without Authorization |
+| Banking tests if handoff changes | conditional | 52/52 passed, including runtime/package metadata consistency |
+| Toolkit manifests/conformance | yes | 17/17, manifests match, both MCP conformance passed |
+| Full offline release gate | yes | 17 toolkit + 60 Hotels + 52 Banking passed outside restricted sandbox; 0 skipped, 0 provider requests |
+| Portable toolkit artifact | yes | exact allowlist, npm install outside checkout and client config passed |
+| Portable Banking login | yes | wheel contains entry point; installed logout passed outside checkout |
+| Documentation gate | yes | `./scripts/verify.sh docs` passed |
+| Repository-wide gate | yes | `./scripts/verify.sh all` passed outside restricted sandbox |
 | `git diff --check` | yes | passed |
-| Provider requests | yes | 0 during implementation checks |
-
-## Live acceptance
-
-- Hotels-first `tbank_hotels_summarize_bookings`: passed после restart клиента,
-  один tool, privacy-safe response, writes 0.
-- Banking-second `tbank_banking_build_portfolio_travel_profile(days=90)`: passed,
-  один tool, агрегированный профиль без account/amount/category disclosure,
-  payments/bookings 0.
+| npm publish dry-run | yes | Hotels 0.28.0 and toolkit 0.12.0 passed; 8 allowlisted files each |
+| Provider requests | must be 0 | 0; verify и docs gate полностью offline |

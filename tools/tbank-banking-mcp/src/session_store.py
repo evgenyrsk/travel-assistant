@@ -9,6 +9,7 @@ from dataclasses import fields
 from pathlib import Path
 from typing import Any
 
+from .curated_session import CuratedMobileSession
 from .upstream.client import MobileSession
 from .upstream.endpoints import APP_VERSION
 
@@ -108,7 +109,7 @@ class SessionManager:
         self._session: MobileSession | None = None
         self._mtime_ns: int | None = None
 
-    def get(self) -> MobileSession:
+    def _fresh_mobile_session(self) -> MobileSession:
         with exclusive_session_lock(self.path):
             mtime_ns = self.path.stat().st_mtime_ns if self.path.exists() else None
             if self._session is None or mtime_ns != self._mtime_ns:
@@ -120,6 +121,14 @@ class SessionManager:
                 self._mtime_ns = mtime_ns
             self._session.ensure_fresh()
             return self._session
+
+    def get(self) -> CuratedMobileSession:
+        """Return only the allowlisted read-only runtime surface."""
+        return CuratedMobileSession(self._fresh_mobile_session())
+
+    def get_probe_session(self) -> MobileSession:
+        """Return the raw session only to the explicit read-only research CLI."""
+        return self._fresh_mobile_session()
 
     def save(self, session: MobileSession) -> None:
         with exclusive_session_lock(self.path):

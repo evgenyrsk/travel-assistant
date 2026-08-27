@@ -8,16 +8,19 @@ Assistant или границы MVP v1.
 
 | Пункт | Состояние |
 | --- | --- |
-| Версия MCP | Hotels `0.22.0`, Banking/broker `0.14.0`, local toolkit `0.6.0` |
+| Версия MCP | Hotels `0.28.0`, Banking/broker `0.17.0`, local toolkit `0.12.0` |
 | Transport | stdio, Node.js 20+, без браузера и cookie |
 | Read-only search journey | Реализован и проверен fake transport tests; `breakfastIncluded` преобразуется в строгий provider filter без low-level перебора; production-like smoke новой версии ещё предстоит |
 | Safe booking preview | Реализован без PII, booking draft и HTTP-вызова |
+| Hosted payment form preview | Контракт и state machine сверены офлайн; локальный preview реализован без PII/payment credentials/HTTP, execution остаётся `NO-GO` |
+| Hosted checkout handoff | Реализован безопасный переход на выбранный отель: для одной комнаты без детей сохраняются даты и число взрослых; PII, `bookHash`, token/card data, exact rate и provider write не переносятся |
 | Customer reads | `GO`: `get_customer`, `list_bookings` и `get_booking_v1` прошли end-to-end read-only smoke через mobile broker; agent-facing order flow использует process-local `bookingRef` |
 | Voucher handoff | Реализован безопасный local handoff: broker проверяет PDF и сохраняет owner-only файл с TTL; документ не входит в MCP JSON; проверено только fixture/fake transport после ранее зафиксированного read-only auth evidence |
 | Реальные mutations | `NO-GO`; нужны подтверждённые auth/header/idempotency contracts и отдельное non-production approval |
-| Load safety | Per-process concurrency `2`, bounded queue `32`, 30-second identical-search coalescing/cache; проверено только fake transport |
-| Автоматические тесты | 49 Hotels + 48 Banking/broker/probe/smoke + 11 local toolkit tests и offline conformance обоих MCP; Unix-socket test выполняется вне ограниченной sandbox-среды |
-| Следующий шаг | Decimal-safe одноразовый handoff, freshness и source-account binding закрыты офлайн; следующий gate — официальный Hotels payment setup/gateway contract, status semantics, idempotency, reconciliation и trusted confirmation |
+| Load safety | Per-process concurrency `2`, bounded queue `32`, 30-second identical-search coalescing/cache; смена только локального ranking не повторяет provider search; проверено fake transport |
+| Персонализация | Banking возвращает готовый typed `hotelPreferences`; `best_value` и диапазон за ночь применяются локально и мягко только при `preferencesApplied.applied=true`, без передачи банковских агрегатов или price filter провайдеру; provider total и MCP-derived цена за ночь разделены |
+| Автоматические тесты | 60 Hotels + 52 Banking/broker/probe/smoke/packaging + 17 local toolkit tests и offline conformance обоих MCP; Unix-socket test выполняется вне ограниченной sandbox-среды |
+| Следующий шаг | Загрузить developer-preview пакеты после registry login, затем пройти fresh-machine/client matrix. Прямые booking/payment execution остаются отдельным future gate и не блокируют публичный read-only/preview/handoff release |
 
 Checkpoint и границы сохранены в
 `docs/reviews/tbank-hotels-mcp-0.8.0-progress-checkpoint.md`.
@@ -56,7 +59,8 @@ provider и обновляться перед бронированием.
 
 - непрозрачный `journeyId` создаётся после поиска;
 - search-контекст содержит параметры поиска и provider results; отдельный
-  booking draft может временно содержать переданные контактные данные гостя;
+  booking draft может временно содержать переданные контактные данные гостя
+  только после подтверждённой локальной готовности booking execution;
 - токен, auth headers, данные карты, пароль и OTP не сохраняются;
 - journey и booking draft имеют независимый TTL 60 минут;
 - перезапуск MCP удаляет контексты;
@@ -77,11 +81,11 @@ provider и обновляться перед бронированием.
 | Выбор | `tbank_hotels_select_stay_option` | Связывает выбранный option с контекстом | Реализовано |
 | Тарифы | `tbank_hotels_get_selected_stay_rates` | Загружает rates выбранного option без передачи `hotelId` и provider DTO | Реализовано |
 | Preview | `tbank_hotels_create_booking_preview` | Показывает выбранный stay/rate и occupancy без PII, draft и HTTP-вызова | Реализовано |
-| Checkout | `tbank_hotels_create_booking_draft` | Формирует черновик брони, не вызывая create endpoint | Реализовано; guest PII скрывается в preview |
+| Checkout | `tbank_hotels_create_booking_draft` | Формирует черновик брони, не вызывая create endpoint | Реализовано; при недоступном execution PII не сохраняется и draft не создаётся |
 | Проверка | `tbank_hotels_validate_checkout` | Повторно проверяет provider rate/availability перед действием | Реализовано |
 | Оформление | `tbank_hotels_prepare_draft_booking`, `tbank_hotels_confirm_booking` | Использует отдельное явное подтверждение | Реальные мутации `NO-GO` до закрытия auth/contract gaps |
-| Заказ | `tbank_hotels_get_booking_overview` | Сводит booking и optional voucher | Реализовано |
-| Отмена | `tbank_hotels_preview_cancellation` | Показывает provider данные до `prepare_cancel` | Реализовано |
+| Заказ | `tbank_hotels_get_booking_overview` | Сводит booking и optional voucher; в mobile broker-режиме принимает `bookingRef` | Реализовано |
+| Отмена | `tbank_hotels_preview_cancellation` | Показывает provider данные до `prepare_cancel`; в mobile broker-режиме принимает `bookingRef` | Реализовано |
 | Повтор | `tbank_hotels_repeat_stay_plan` | Создаёт новый поиск на основе текущего journey | Реализовано |
 | Мониторинг | price/availability alerts | Требует durable storage и scheduler | Вне текущего MCP среза |
 
@@ -91,6 +95,10 @@ provider и обновляться перед бронированием.
   в MCP arguments.
 - `plan_stay` принимает локацию, даты и комнаты в agent-facing форме; provider
   payload формируется внутри MCP и проверяется до сетевого вызова.
+- Обезличенный `hotelDefaults` Banking MCP передаётся как typed
+  `hotelPreferences`. Диапазон цены остаётся мягким, не превращается в provider
+  filter, а `best_value` отделяется от исходных provider facts как MCP-derived
+  score. Варианты вне диапазона не скрываются.
 - Обязательный завтрак задаётся semantic-полем `breakfastIncluded=true` и
   преобразуется внутри MCP в `meal_types=breakfast`. Клиент не должен получать
   каталог фильтров или угадывать low-level payload для этого сценария.
@@ -114,6 +122,9 @@ provider и обновляться перед бронированием.
   сценария.
 - Сравнение показывает только поля, фактически вернувшиеся от provider. Если
   поле не найдено или неоднозначно, оно помечается как `unknown`.
+- Деньги и время имеют отдельные presentation-поля. Timestamp сохраняет
+  исходное UTC-смещение и не называется локальным временем отеля без timezone-
+  факта; отсутствие cancellation fact показывается как «нет данных».
 - Никакой journey tool не создаёт бронь, оплату, отмену или изменение тарифа
   без существующего stateless `prepare → execute` подтверждения.
 - Booking draft удаляется после успешного `confirm_booking` или истечения TTL;
@@ -183,12 +194,20 @@ provider DTO; schema/runtime/tests согласованы.
 
 **Статус:** частично выполнен; оставшиеся пункты требуют владельца Hotels API.
 
-- [ ] Закрыть auth/customer-context вопросы для reads и mutations.
+- [ ] Закрыть auth/customer-context вопросы для mutations; mobile customer
+  reads уже подтверждены для allowlist операций.
 - [x] Типизировать доступные request schemas booking create, LS create, booking
   list, cancel, payment setup, promocode, extra services, tranches и BNPL.
+- [x] Сверить отдельный `HotelsApi.Payments`: hosted payment form create,
+  payment task status, response states и raw-card/3DS boundary; добавить
+  preview-only tool без PII и payment credentials.
 - [ ] Подтвердить происхождение обязательного `x-real-ip` и остальных customer
   headers для booking create вне browser session.
-- [ ] Подтвердить idempotency и timeout recovery для booking create.
+- [ ] Подтвердить idempotency и timeout recovery для booking/payment create,
+  включая timeout до получения provider taskId.
+- [ ] Подтвердить абсолютный payment origin, customer auth и owner-bound
+  payment-link handoff; полная матрица — в
+  [`booking-payment-contract-readiness.md`](booking-payment-contract-readiness.md).
 - [ ] Подтвердить JWT lifetime/rotation claims, dates, location pagination и
   public/private routing.
 
@@ -442,5 +461,6 @@ CLI без checkout репозитория, а real mutation activation оста
 Booking, payment, cancel, promocode и extra services остаются `NO-GO`, пока не
 закрыт Шаг 3, не подготовлен изолированный sandbox и владелец API не дал
 отдельное явное разрешение на конкретный non-production сценарий. Runtime
-дополнительно требует `TBANK_HOTELS_ENABLE_MUTATIONS=true`; по умолчанию флаг
-выключен.
+дополнительно требует `TBANK_HOTELS_ENABLE_MUTATIONS=true` и отдельный
+`non_production_v1_reviewed` execution profile; production profile отсутствует.
+По умолчанию оба гейта выключены.

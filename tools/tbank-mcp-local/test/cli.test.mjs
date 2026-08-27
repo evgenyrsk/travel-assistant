@@ -4,10 +4,11 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { execFileSync, spawn } from "node:child_process";
 import test from "node:test";
-import { runtimeEnvironment } from "../src/cli.mjs";
+import { resolveRuntimeCommand, runtimeEnvironment } from "../src/cli.mjs";
 import { captureOwnBookingStructure } from "../src/booking-shape-capture.mjs";
 
 const cli = new URL("../src/cli.mjs", import.meta.url).pathname;
+const hotelsPackageVersion = JSON.parse(readFileSync(new URL("../../tbank-hotels-mcp/package.json", import.meta.url), "utf8")).version;
 
 function execute(args, env = {}) {
   return execFileSync(process.execPath, [cli, ...args], {
@@ -33,6 +34,25 @@ test("setup stores only a private-key path in an owner-only config", () => {
   assert.equal(statSync(configFile).mode & 0o077, 0);
 });
 
+test("setup supports anonymous Hotels search without a JWT key", () => {
+  const directory = mkdtempSync(resolve(tmpdir(), "tbank-mcp-anonymous-"));
+  const configFile = resolve(directory, "config.json");
+  execute([
+    "setup", "--profile", "hotels", "--config", configFile,
+    "--hotels-api-base-url", "https://hotels.example.test/",
+  ]);
+  const config = JSON.parse(readFileSync(configFile, "utf8"));
+  assert.equal(config.hotels.apiBaseUrl, "https://hotels.example.test/");
+  assert.equal(config.hotels.jwtPrivateKeyFile, undefined);
+  assert.equal(statSync(configFile).mode & 0o077, 0);
+
+  const doctor = JSON.parse(execute(["doctor", "--profile", "hotels"], {
+    TBANK_MCP_LOCAL_CONFIG: configFile,
+  }));
+  assert.equal(doctor.ready, true);
+  assert.equal(doctor.checks.hotels.authentication, "not_required");
+});
+
 test("doctor is offline and reports readiness without secret values", () => {
   const directory = mkdtempSync(resolve(tmpdir(), "tbank-mcp-doctor-"));
   const keyFile = resolve(directory, "service-key.pem");
@@ -46,11 +66,17 @@ test("doctor is offline and reports readiness without secret values", () => {
     hotels: { apiBaseUrl: "https://hotels.example.test/", jwtIssuer: "issuer", jwtAudience: "audience", jwtPrivateKeyFile: keyFile },
     banking: { sessionFile, brokerSocket: resolve(directory, "missing.sock") },
   }), { mode: 0o600 });
-  const output = execute(["doctor", "--profile", "combined"], { TBANK_MCP_LOCAL_CONFIG: configFile });
+  const output = execute(["doctor", "--profile", "combined"], {
+    TBANK_MCP_LOCAL_CONFIG: configFile,
+    TBANK_HOTELS_JWT_PRIVATE_KEY: "stale-inline-private-material",
+    TBANK_HOTELS_ENABLE_MUTATIONS: "true",
+    TBANK_HOTELS_MUTATION_EXECUTION_PROFILE: "non_production_v1_reviewed",
+  });
   const report = JSON.parse(output);
   assert.equal(report.providerRequestsPerformed, false);
   assert.equal(report.secretsExposed, false);
   assert.equal(report.checks.hotels.authentication, "ready");
+  assert.equal(report.checks.hotels.configurationSource, "local_config");
   assert.equal(report.checks.banking.session, "ready");
   assert.doesNotMatch(output, /private-material|session-material/);
 });
@@ -64,6 +90,26 @@ test("generates secret-free client registration for all supported local clients"
     assert.match(output, /ensure-broker/);
     assert.doesNotMatch(output, /PRIVATE_KEY|AUTH_TOKEN|session\.json/);
   }
+});
+
+test("resolves installed runtime commands without a repository checkout", () => {
+  const directory = mkdtempSync(resolve(tmpdir(), "tbank-runtime-command-"));
+  const installedLogin = resolve(directory, "tbank-banking-login");
+  const explicitBanking = resolve(directory, "custom-banking");
+  writeFileSync(installedLogin, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+  writeFileSync(explicitBanking, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+
+  const login = resolveRuntimeCommand("login", { PATH: directory }, { includeDevelopmentFallback: false });
+  assert.deepEqual(login, { command: installedLogin, args: [], source: "installed_path" });
+  const banking = resolveRuntimeCommand("banking", {
+    PATH: "",
+    TBANK_MCP_BANKING_EXECUTABLE: explicitBanking,
+  });
+  assert.deepEqual(banking, { command: explicitBanking, args: [], source: "explicit_environment" });
+  assert.throws(
+    () => resolveRuntimeCommand("broker", { PATH: "", TBANK_MCP_BROKER_EXECUTABLE: "relative-broker" }),
+    /absolute executable file/,
+  );
 });
 
 test("combined profile does not inject Banking session into Hotels", () => {
@@ -91,6 +137,146 @@ test("combined profile does not inject Banking session into Hotels", () => {
     if (previousSession === undefined) delete process.env.TBANK_BANKING_SESSION;
     else process.env.TBANK_BANKING_SESSION = previousSession;
   }
+});
+
+test("configured Hotels profile preserves an explicit transport URL but ignores conflicting parent auth and mutation variables", () => {
+  const names = [
+    "TBANK_HOTELS_API_BASE_URL",
+    "TBANK_HOTELS_AUTH_TOKEN",
+    "TBANK_HOTELS_AUTH_HEADERS_JSON",
+    "TBANK_HOTELS_JWT_PRIVATE_KEY",
+    "TBANK_HOTELS_JWT_PRIVATE_KEY_FILE",
+    "TBANK_HOTELS_JWT_ISSUER",
+    "TBANK_HOTELS_JWT_AUDIENCE",
+    "TBANK_HOTELS_ENABLE_MUTATIONS",
+    "TBANK_HOTELS_MUTATION_EXECUTION_PROFILE",
+  ];
+  const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  Object.assign(process.env, {
+    TBANK_HOTELS_API_BASE_URL: "https://runtime.example.test/",
+    TBANK_HOTELS_AUTH_TOKEN: "stale-token",
+    TBANK_HOTELS_AUTH_HEADERS_JSON: "{\"Authorization\":\"stale\"}",
+    TBANK_HOTELS_JWT_PRIVATE_KEY: "stale-inline-key",
+    TBANK_HOTELS_JWT_PRIVATE_KEY_FILE: "/private/tmp/stale-key.pem",
+    TBANK_HOTELS_JWT_ISSUER: "stale-issuer",
+    TBANK_HOTELS_JWT_AUDIENCE: "stale-audience",
+    TBANK_HOTELS_ENABLE_MUTATIONS: "true",
+    TBANK_HOTELS_MUTATION_EXECUTION_PROFILE: "non_production_v1_reviewed",
+  });
+  try {
+    const config = {
+      hotels: {
+        apiBaseUrl: "https://hotels.example.test/",
+        jwtIssuer: "issuer",
+        jwtAudience: "audience",
+        jwtPrivateKeyFile: "/private/tmp/service-key.pem",
+        maxConcurrentRequests: 2,
+      },
+    };
+    const hotels = runtimeEnvironment("hotels", config);
+    assert.equal(hotels.TBANK_HOTELS_API_BASE_URL, "https://runtime.example.test/");
+    assert.equal(hotels.TBANK_HOTELS_JWT_PRIVATE_KEY_FILE, config.hotels.jwtPrivateKeyFile);
+    assert.equal(hotels.TBANK_HOTELS_JWT_ISSUER, config.hotels.jwtIssuer);
+    assert.equal(hotels.TBANK_HOTELS_JWT_AUDIENCE, config.hotels.jwtAudience);
+    assert.equal(hotels.TBANK_HOTELS_AUTH_TOKEN, undefined);
+    assert.equal(hotels.TBANK_HOTELS_AUTH_HEADERS_JSON, undefined);
+    assert.equal(hotels.TBANK_HOTELS_JWT_PRIVATE_KEY, undefined);
+    assert.equal(hotels.TBANK_HOTELS_ENABLE_MUTATIONS, undefined);
+    assert.equal(hotels.TBANK_HOTELS_MUTATION_EXECUTION_PROFILE, undefined);
+  } finally {
+    for (const [name, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  }
+});
+
+test("Hotels npm artifact contains only runtime files and public README", () => {
+  const directory = mkdtempSync(resolve(tmpdir(), "tbank-hotels-pack-"));
+  const project = new URL("../../tbank-hotels-mcp", import.meta.url).pathname;
+  const output = execFileSync("npm", ["pack", "--dry-run", "--json", "--cache", resolve(directory, "npm-cache")], {
+    cwd: project,
+    encoding: "utf8",
+    env: { PATH: process.env.PATH, HOME: process.env.HOME },
+  });
+  const report = JSON.parse(output)[0];
+  assert.equal(report.version, hotelsPackageVersion);
+  const paths = report.files.map(({ path }) => path).sort();
+  assert.deepEqual(paths, [
+    "README.md",
+    "package.json",
+    "src/checkout-handoff.mjs",
+    "src/config.mjs",
+    "src/runtime.mjs",
+    "src/server.mjs",
+    "src/stdio-server.mjs",
+    "src/tool-contracts.mjs",
+  ]);
+  assert.equal(paths.some((path) => /message|test|\.env|private|session/i.test(path)), false);
+});
+
+test("Hotels npm artifact installs and initializes outside the repository checkout", () => {
+  const directory = mkdtempSync(resolve(tmpdir(), "tbank-hotels-install-"));
+  const project = new URL("../../tbank-hotels-mcp", import.meta.url).pathname;
+  const cache = resolve(directory, "npm-cache");
+  const packed = JSON.parse(execFileSync("npm", ["pack", "--json", "--pack-destination", directory, "--cache", cache], {
+    cwd: project,
+    encoding: "utf8",
+    env: { PATH: process.env.PATH, HOME: process.env.HOME },
+  }))[0];
+  const archive = resolve(directory, packed.filename);
+  const installation = resolve(directory, "installation");
+  execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--cache", cache, "--prefix", installation, archive], {
+    cwd: directory,
+    encoding: "utf8",
+    env: { PATH: process.env.PATH, HOME: process.env.HOME },
+  });
+  const executable = resolve(installation, "node_modules/.bin/tbank-hotels-mcp");
+  const output = execFileSync(executable, [], {
+    cwd: directory,
+    encoding: "utf8",
+    input: `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} })}\n`,
+    env: { PATH: process.env.PATH, HOME: process.env.HOME, NODE_ENV: "test" },
+  });
+  assert.equal(JSON.parse(output.trim()).result.serverInfo.version, hotelsPackageVersion);
+});
+
+test("toolkit npm artifact contains only portable runtime and installs outside checkout", () => {
+  const directory = mkdtempSync(resolve(tmpdir(), "tbank-toolkit-install-"));
+  const project = new URL("..", import.meta.url).pathname;
+  const cache = resolve(directory, "npm-cache");
+  const packed = JSON.parse(execFileSync("npm", ["pack", "--json", "--pack-destination", directory, "--cache", cache], {
+    cwd: project,
+    encoding: "utf8",
+    env: { PATH: process.env.PATH, HOME: process.env.HOME },
+  }))[0];
+  const paths = packed.files.map(({ path }) => path).sort();
+  assert.deepEqual(paths, [
+    "README.md",
+    "contracts/banking-tools.json",
+    "contracts/hotels-tools.json",
+    "package.json",
+    "src/booking-shape-capture.mjs",
+    "src/cli.mjs",
+    "src/fixture-shape.mjs",
+    "src/payment-readiness.mjs",
+  ]);
+  assert.equal(paths.some((path) => /test|qwen|private|session|\.env/i.test(path)), false);
+
+  const installation = resolve(directory, "installation");
+  execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--cache", cache, "--prefix", installation, resolve(directory, packed.filename)], {
+    cwd: directory,
+    encoding: "utf8",
+    env: { PATH: process.env.PATH, HOME: process.env.HOME },
+  });
+  const executable = resolve(installation, "node_modules/.bin/tbank-mcp-local");
+  const output = execFileSync(executable, ["client-config", "--client", "opencode", "--profile", "hotels"], {
+    cwd: directory,
+    encoding: "utf8",
+    env: { PATH: process.env.PATH, HOME: process.env.HOME },
+  });
+  const config = JSON.parse(output);
+  assert.equal(config.mcp["tbank-hotels"].type, "local");
+  assert.match(config.mcp["tbank-hotels"].command.join(" "), /tbank-mcp-local.*run.*hotels/);
 });
 
 test("booking fixture inspection exposes structure without source values", () => {
