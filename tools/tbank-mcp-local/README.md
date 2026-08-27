@@ -10,28 +10,39 @@
 
 ## Установка и подключение одной командой
 
-Для полного профиля Hotels + Banking в OpenCode нужна одна команда:
+Команда сама устанавливает Hotels + Banking в приватный локальный runtime,
+регистрирует оба MCP и запускает мобильный вход в терминале.
+
+### Cursor
 
 ```bash
-npx -y tbank-mcp-local@0.13.1 connect --client opencode --profile combined
+npx -y tbank-mcp-local@0.14.0 connect cursor
 ```
 
-Она устанавливает фиксированные совместимые версии обоих MCP в приватный
-локальный runtime, создаёт secret-free конфигурацию, регистрирует два отдельных
-MCP в OpenCode и запускает локальный телефонный вход. Номер телефона, SMS-код,
-пароль и PIN вводятся непосредственно в терминале и не передаются модели.
-После завершения нужно только полностью перезапустить OpenCode.
+Завершите вход в терминале и полностью перезапустите Cursor. Откройте Agent и
+пишите обычным языком, например: «Найди отели в Казани на выходные».
 
-Для Codex CLI используется та же команда с другим клиентом:
+### Codex
 
 ```bash
-npx -y tbank-mcp-local@0.13.1 connect --client codex --profile combined
+npx -y tbank-mcp-local@0.14.0 connect codex
 ```
 
-Для анонимного поиска отелей без Banking и мобильной авторизации:
+Завершите вход в терминале и перезапустите Codex. Проверить подключение можно
+командой `codex mcp list`, после чего задавайте обычные запросы в Codex.
+
+Номер телефона, SMS-код, пароль и PIN вводятся непосредственно в терминале и не
+передаются модели. Для OpenCode используется тот же короткий формат:
 
 ```bash
-npx -y tbank-mcp-local@0.13.1 connect --client opencode --profile hotels
+npx -y tbank-mcp-local@0.14.0 connect opencode
+```
+
+Для анонимного поиска отелей без Banking и мобильной авторизации добавьте
+`--profile hotels`, например:
+
+```bash
+npx -y tbank-mcp-local@0.14.0 connect cursor --profile hotels
 ```
 
 Автоустановка поддерживает macOS/Linux, Node.js 20+ и Python 3.11+ для
@@ -114,7 +125,7 @@ configuration, key/session files и broker socket. Он не создаёт JWT,
 ## Ручное подключение клиентов
 
 Toolkit выдаёт готовую secret-free регистрацию. Текущая acceptance matrix
-включает OpenCode и Codex CLI; генератор Claude Code сохраняется как
+включает Cursor, OpenCode и Codex CLI; генератор Claude Code сохраняется как
 необязательный профиль, но его подключение не требуется. Сгенерированные команды всегда
 запускают отдельные MCP-процессы через общий локальный launcher:
 
@@ -173,14 +184,14 @@ Gate также проверяет два installable artifact candidates без
   файлов, устанавливается вне checkout и отвечает на `initialize`.
 
 Совместимый набор публикации: `tbank-hotels-mcp@0.28.0`,
-`travel-assistant-tbank-banking-mcp@0.17.0` и `tbank-mcp-local@0.13.1`.
+`travel-assistant-tbank-banking-mcp@0.17.0` и `tbank-mcp-local@0.14.0`.
 Автоматический `connect` устанавливает их в owner-only runtime и закрепляет
 абсолютные executable paths в локальном конфиге, поэтому глобальные npm/pipx
 команды и repository checkout не нужны. Npm-пакеты опубликованы с
 `UNLICENSED`: это разрешает установку preview из registry, но не предоставляет
 отдельную open-source лицензию на повторное использование кода. До полного
 stable release остаются выбор публичной лицензии, SBOM/provenance и remote
-Streamable HTTP transport. Локальные OpenCode/Codex подключения работают через
+Streamable HTTP transport. Локальные Cursor/OpenCode/Codex подключения работают через
 stdio; ChatGPT web/mobile не может подключить такой локальный процесс напрямую.
 
 Текущую границу готовности реальной hotel payment можно проверить отдельно:

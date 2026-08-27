@@ -53,11 +53,12 @@ pipx install travel-assistant-tbank-banking-mcp
 которая сама создаёт изолированный Python runtime и подключает оба MCP:
 
 ```bash
-npx -y tbank-mcp-local@0.13.1 connect --client opencode --profile combined
+npx -y tbank-mcp-local@0.14.0 connect cursor
 ```
 
-Для Codex замените `opencode` на `codex`. Телефонный вход запускается внутри
-этой команды, но остаётся обычным terminal flow вне MCP/LLM.
+Для Codex используйте `connect codex`, для OpenCode — `connect opencode`.
+Телефонный вход запускается внутри этой команды, но остаётся обычным terminal
+flow вне MCP/LLM.
 
 Editable install нужен только для разработки из checkout:
 

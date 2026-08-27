@@ -140,6 +140,46 @@ test("builds explicit OpenCode and Codex registrations for both MCP servers", ()
     clientRegistrationCommands("opencode", "/bin/opencode", "/managed/tbank-mcp-local", "hotels")[0].args,
     ["mcp", "add", "tbank-hotels", "--", "/managed/tbank-mcp-local", "run", "hotels"],
   );
+  assert.deepEqual(clientRegistrationCommands("cursor", null, "/managed/tbank-mcp-local"), []);
+});
+
+test("connect writes a global Cursor stdio config and preserves unrelated servers", () => {
+  const directory = mkdtempSync(resolve(tmpdir(), "tbank-connect-cursor-"));
+  const runtime = resolve(directory, "runtime");
+  const configFile = resolve(directory, "config.json");
+  const cursorConfig = resolve(directory, ".cursor/mcp.json");
+  const paths = managedRuntimePaths(runtime);
+  for (const executable of [paths.toolkit, paths.hotels, paths.banking, paths.broker, paths.login]) {
+    mkdirSync(resolve(executable, ".."), { recursive: true, mode: 0o700 });
+    writeFileSync(executable, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+  }
+  mkdirSync(resolve(cursorConfig, ".."), { recursive: true, mode: 0o700 });
+  writeFileSync(cursorConfig, JSON.stringify({
+    mcpServers: { existing: { type: "stdio", command: "/existing/server" } },
+  }), { mode: 0o600 });
+
+  const output = execute([
+    "connect", "cursor", "--profile", "combined",
+    "--runtime-dir", runtime, "--config", configFile,
+    "--cursor-config", cursorConfig, "--skip-install", "--skip-login",
+  ], { HOME: directory, PATH: "" });
+  const report = JSON.parse(output);
+  const cursor = JSON.parse(readFileSync(cursorConfig, "utf8"));
+  assert.equal(report.client, "cursor");
+  assert.deepEqual(report.registeredComponents, ["hotels", "banking"]);
+  assert.equal(cursor.mcpServers.existing.command, "/existing/server");
+  assert.deepEqual(cursor.mcpServers["tbank-hotels"], {
+    type: "stdio",
+    command: paths.toolkit,
+    args: ["run", "hotels", "--ensure-broker"],
+  });
+  assert.deepEqual(cursor.mcpServers["tbank-banking"], {
+    type: "stdio",
+    command: paths.toolkit,
+    args: ["run", "banking", "--ensure-broker"],
+  });
+  assert.equal(statSync(cursorConfig).mode & 0o077, 0);
+  assert.doesNotMatch(readFileSync(cursorConfig, "utf8") + output, /token|password|private.?key|authorization/i);
 });
 
 test("connect registers a secret-free managed combined runtime without network or login", () => {
@@ -178,7 +218,7 @@ test("connect registers a secret-free managed combined runtime without network o
     `mcp add tbank-banking -- ${paths.toolkit} run banking --ensure-broker`,
   ]);
   assert.doesNotMatch(configText + output, /token|password|private.?key|authorization/i);
-  assert.deepEqual(publicPackageVersions, { hotels: "0.28.0", banking: "0.17.0", toolkit: "0.13.1" });
+  assert.deepEqual(publicPackageVersions, { hotels: "0.28.0", banking: "0.17.0", toolkit: "0.14.0" });
 });
 
 test("connect binds terminal login to the managed session path", () => {

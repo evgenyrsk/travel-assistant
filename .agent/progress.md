@@ -92,6 +92,12 @@ Publication hardening локального read-only/preview-only release candid
   Серверные данные не менялись; требуется повторный terminal login. Отдельный
   regression test теперь проверяет, что product `connect` всегда привязывает
   login к управляемым session/socket paths и игнорирует parent overrides.
+- Toolkit `0.14.0` добавляет `connect cursor` и короткий positional client для
+  Codex/OpenCode. Cursor config следует официальному global stdio shape,
+  объединяется с существующим `~/.cursor/mcp.json` и не хранит credentials.
+- `tbank-mcp-local@0.14.0` опубликован в npm. Изолированные fresh-install
+  проверки из npm/PyPI прошли для Cursor и Codex; обе регистрации содержат два
+  независимых MCP, login пропущен, provider requests 0.
 
 ## Blocker
 
@@ -101,6 +107,5 @@ evidence. Это не блокирует read-only/preview-only выпуск и 
 
 ## Next action
 
-Зафиксировать release commit/push. Повторный локальный phone login выполняется
-владельцем только в терминале; GitHub preview release metadata остаётся
-следующим отдельным publication checkpoint.
+Зафиксировать toolkit `0.14.0` release commit/push. GitHub preview release,
+stable license и remote ChatGPT transport остаются отдельными checkpoint.

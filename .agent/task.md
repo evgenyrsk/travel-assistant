@@ -1,6 +1,6 @@
 # Active task
 
-**Статус:** combined developer-preview published; local login recovery pending
+**Статус:** Cursor/Codex one-command installer published and verified
 
 ## Goal
 
@@ -36,6 +36,7 @@ provider mutations.
 - [x] Toolkit `0.13.1` загружен в npm и проверен fresh-install.
 - [x] Banking package `0.17.0` загружен в PyPI.
 - [x] One-command combined install проверен из public registries вне checkout.
+- [x] Короткие `connect cursor` и `connect codex` опубликованы и проверены.
 
 ## Constraints
 

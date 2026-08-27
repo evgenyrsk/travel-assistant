@@ -10,7 +10,7 @@ smoke-кейсов. Это review-only задача.
 Scope:
 - tools/tbank-hotels-mcp, ожидаемая версия 0.28.0;
 - tools/tbank-banking-mcp, ожидаемая версия 0.17.0;
-- tools/tbank-mcp-local, ожидаемая версия 0.13.1;
+- tools/tbank-mcp-local, ожидаемая версия 0.14.0;
 - ADR-0003, ADR-0004, ADR-0005;
 - tools/tbank-hotels-mcp/docs/journey-tools-plan.md;
 - tools/tbank-hotels-mcp/docs/booking-payment-contract-readiness.md;
@@ -36,7 +36,7 @@ Scope:
    domain runtime — отдельными модулями без cyclic imports и manifest drift.
 2. Secret boundaries: key-file path вместо PEM в client config, отсутствие
    secrets в args/stdout/errors/manifests, разделение Hotels и Banking env.
-3. Setup/doctor/client-config/connect UX для OpenCode и Codex CLI; Claude Code не
+3. Setup/doctor/client-config/connect UX для Cursor, OpenCode и Codex CLI; Claude Code не
    входит в acceptance matrix;
    standalone и combined profiles не должны объединять полномочия MCP.
    Combined config должен автоматически обеспечить один broker при Hotels-first,
@@ -48,6 +48,9 @@ Scope:
    запускать terminal-only mobile login, но номер, SMS-код, password/PIN и
    tokens не должны попадать в MCP args, config или stdout. Hotels-only профиль
    не должен требовать Python, mobile session или auth broker.
+   Cursor-регистрация должна безопасно объединяться с существующим глобальным
+   `~/.cursor/mcp.json`, сохранять чужие MCP entries и использовать официальный
+   stdio shape `type`/`command`/`args` без credentials.
 4. Offline guarantee команды verify: unit/protocol tests, manifests,
    conformance и ноль provider requests даже при credentials у parent process.
 5. Natural-language journey: обычный поиск, обязательный breakfast,

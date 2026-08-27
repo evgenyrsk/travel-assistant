@@ -6,7 +6,7 @@ import { spawn } from "node:child_process";
 export const publicPackageVersions = Object.freeze({
   hotels: "0.28.0",
   banking: "0.17.0",
-  toolkit: "0.13.1",
+  toolkit: "0.14.0",
 });
 
 function argumentValue(args, name) {
@@ -78,7 +78,8 @@ export function managedRuntimePaths(runtimeDirectory) {
 export function clientRegistrationCommands(client, clientExecutable, toolkitExecutable, profile = "combined") {
   const components = profile === "combined" ? ["hotels", "banking"] : profile === "hotels" ? ["hotels"] : profile === "banking" ? ["banking"] : null;
   if (!components) throw new Error("profile must be hotels, banking, or combined.");
-  if (!['opencode', 'codex'].includes(client)) throw new Error("connect currently supports opencode or codex.");
+  if (!['opencode', 'codex', 'cursor'].includes(client)) throw new Error("connect currently supports cursor, codex, or opencode.");
+  if (client === "cursor") return [];
   return components.flatMap((component) => {
     const name = `tbank-${component}`;
     const launcher = [toolkitExecutable, "run", component, ...(profile === "hotels" ? [] : ["--ensure-broker"])];
@@ -90,10 +91,28 @@ export function clientRegistrationCommands(client, clientExecutable, toolkitExec
   });
 }
 
+export function writeCursorRegistration(configPath, toolkitExecutable, profile = "combined") {
+  const components = profile === "combined" ? ["hotels", "banking"] : profile === "hotels" ? ["hotels"] : profile === "banking" ? ["banking"] : null;
+  if (!components) throw new Error("profile must be hotels, banking, or combined.");
+  const existing = readExistingConfig(configPath);
+  const mcpServers = { ...(existing.mcpServers ?? {}) };
+  for (const component of components) {
+    mcpServers[`tbank-${component}`] = {
+      type: "stdio",
+      command: toolkitExecutable,
+      args: ["run", component, ...(profile === "hotels" ? [] : ["--ensure-broker"])],
+    };
+  }
+  writePrivateJson(configPath, { ...existing, mcpServers });
+  return configPath;
+}
+
 export async function connect(args, environment = process.env) {
   if (process.platform === "win32") throw new Error("Automatic combined setup currently requires macOS or Linux because the shared auth broker uses a Unix socket.");
-  const client = argumentValue(args, "--client") ?? "opencode";
+  const positionalClient = args[0] && !args[0].startsWith("-") ? args[0] : undefined;
+  const client = argumentValue(args, "--client") ?? positionalClient ?? "opencode";
   const profile = argumentValue(args, "--profile") ?? "combined";
+  if (!['cursor', 'codex', 'opencode'].includes(client)) throw new Error("client must be cursor, codex, or opencode.");
   if (!['combined', 'hotels', 'banking'].includes(profile)) throw new Error("profile must be hotels, banking, or combined.");
   const userHome = environment.HOME ? resolve(environment.HOME) : homedir();
   const configPath = resolve(argumentValue(args, "--config") ?? environment.TBANK_MCP_LOCAL_CONFIG ?? resolve(userHome, ".config/tbank-mcp/config.json"));
@@ -102,10 +121,10 @@ export async function connect(args, environment = process.env) {
   const skipInstall = args.includes("--skip-install");
   const skipLogin = args.includes("--skip-login") || profile === "hotels";
   const clientArgument = argumentValue(args, "--client-executable");
-  const clientExecutable = clientArgument
+  const clientExecutable = client === "cursor" ? null : clientArgument
     ? checkedExecutable(resolve(clientArgument), "--client-executable")
     : executableOnPath(client, environment);
-  if (!clientExecutable) throw new Error(`${client} CLI is not installed or is not available in PATH.`);
+  if (client !== "cursor" && !clientExecutable) throw new Error(`${client} CLI is not installed or is not available in PATH.`);
 
   mkdirSync(paths.root, { recursive: true, mode: 0o700 });
   chmodSync(paths.root, 0o700);
@@ -154,8 +173,13 @@ export async function connect(args, environment = process.env) {
   };
   writePrivateJson(configPath, next);
 
-  for (const registration of clientRegistrationCommands(client, clientExecutable, paths.toolkit, profile)) {
-    await run(registration.command, registration.args, { env: environment, stdio: "inherit", allowFailure: registration.allowFailure });
+  if (client === "cursor") {
+    const cursorConfigPath = resolve(argumentValue(args, "--cursor-config") ?? resolve(userHome, ".cursor/mcp.json"));
+    writeCursorRegistration(cursorConfigPath, paths.toolkit, profile);
+  } else {
+    for (const registration of clientRegistrationCommands(client, clientExecutable, paths.toolkit, profile)) {
+      await run(registration.command, registration.args, { env: environment, stdio: "inherit", allowFailure: registration.allowFailure });
+    }
   }
 
   if (!skipLogin) {
@@ -175,7 +199,7 @@ export async function connect(args, environment = process.env) {
     mobileLoginMayContactProvider: !skipLogin,
     configContainsCredentials: false,
     providerRequestsPerformedByInstaller: false,
-    nextStep: `Restart ${client} and ask a natural-language hotel or spending-profile question.`,
+    nextStep: `Restart ${client === "cursor" ? "Cursor" : client} and ask a natural-language hotel or spending-profile question.`,
   };
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   return report;

@@ -1148,7 +1148,7 @@ order identifiers. Следующий разрешённый шаг toolstream �
 mutations остаются отдельным gate.
 
 Текущий локальный checkpoint toolstream: Hotels MCP `0.28.0`, Banking/broker
-`0.17.0`, local toolkit `0.13.1`. Safe voucher handoff реализован и проверен
+`0.17.0`, local toolkit `0.14.0`. Safe voucher handoff реализован и проверен
 только на fixture/fake transport после ранее зафиксированного read-only auth
 evidence. Публичная граница оформления закреплена в `ADR-0005`: после выбора
 тарифа Hotels MCP создаёт безопасный hosted-checkout handoff без PII,
@@ -1388,6 +1388,17 @@ Banking wheel `0.17.0` прошёл `twine check`, опубликован в PyP
 выполнялись. Local stdio read-only/preview-only combined developer preview
 считается опубликованным; remote ChatGPT transport, stable license,
 SBOM/provenance и production mutations остаются отдельными будущими gates.
+
+Toolkit `0.14.0` расширяет этот checkpoint поддержкой Cursor и коротким
+синтаксисом `connect cursor|codex|opencode`. Для Cursor installer безопасно
+объединяет два stdio server entry с существующим глобальным
+`~/.cursor/mcp.json`; для Codex сохраняется официальная CLI-регистрация. Одна
+команда включает установку совместимых версий, регистрацию и terminal-only
+mobile login; secrets не попадают в MCP config или model context.
+Версия опубликована в npm и установлена обратно из public registry в двух
+изолированных HOME: Cursor получил корректный global `mcp.json`, Codex — две
+enabled stdio-регистрации. Mobile login в release smoke был пропущен, provider
+requests не выполнялись.
 
 Финальный Qwen-аудит не выявил P0–P2 и подтвердил готовность read-only и
 preview-only tiers. Follow-up закрыл четыре P3: version consistency теперь
