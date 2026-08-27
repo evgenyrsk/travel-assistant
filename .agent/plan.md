@@ -21,5 +21,7 @@
 | Ограничить публикуемый toolkit allowlist-набором | completed |
 | Пройти publication offline gate | completed |
 | Выбрать preview namespace/audience и anonymous-search credential story | completed |
-| Синхронизировать metadata/docs/manifests и пройти финальный offline gate | in progress |
-| Выполнить registry login/upload и fresh-install matrix | pending |
+| Синхронизировать metadata/docs/manifests и пройти финальный offline gate | completed; 20 + 60 + 52 tests, contracts/conformance passed |
+| Выполнить registry login/upload и fresh-install matrix | completed for npm/PyPI, OpenCode and Codex |
+| Добавить one-command OpenCode/Codex combined installer | completed; offline test |
+| Опубликовать Banking 0.17.0 и toolkit 0.13.1 | completed; 0.13.0 deprecated/superseded |

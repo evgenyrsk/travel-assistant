@@ -8,20 +8,39 @@
 полномочия, не является MCP-сервером и не выполняет provider-запросы в
 `setup`, `doctor`, `client-config` или `contracts`.
 
-## Установка developer preview
+## Установка и подключение одной командой
 
-Два npm-пакета developer preview уже опубликованы. Полная combined-установка
-после отдельной публикации Banking package выглядит так:
+Для полного профиля Hotels + Banking в OpenCode нужна одна команда:
 
 ```bash
-npm install --global tbank-hotels-mcp tbank-mcp-local
-pipx install travel-assistant-tbank-banking-mcp
+npx -y tbank-mcp-local@0.13.1 connect --client opencode --profile combined
 ```
 
-Для Hotels-only достаточно двух npm packages. Banking/combined профиль требует
-Python package и один локальный телефонный вход.
+Она устанавливает фиксированные совместимые версии обоих MCP в приватный
+локальный runtime, создаёт secret-free конфигурацию, регистрирует два отдельных
+MCP в OpenCode и запускает локальный телефонный вход. Номер телефона, SMS-код,
+пароль и PIN вводятся непосредственно в терминале и не передаются модели.
+После завершения нужно только полностью перезапустить OpenCode.
 
-## Одноразовая настройка
+Для Codex CLI используется та же команда с другим клиентом:
+
+```bash
+npx -y tbank-mcp-local@0.13.1 connect --client codex --profile combined
+```
+
+Для анонимного поиска отелей без Banking и мобильной авторизации:
+
+```bash
+npx -y tbank-mcp-local@0.13.1 connect --client opencode --profile hotels
+```
+
+Автоустановка поддерживает macOS/Linux, Node.js 20+ и Python 3.11+ для
+combined/Banking профиля. Она не требует глобального npm/pip install или
+repository checkout. Профили `hotels`, `banking` и `combined` сохраняют
+раздельные MCP tool surface; combined лишь переиспользует один локальный auth
+broker.
+
+## Ручная настройка для разработки
 
 Для разработки команды ниже можно запускать как
 `node tools/tbank-mcp-local/src/cli.mjs`. Установленный toolkit предоставляет
@@ -92,7 +111,7 @@ configuration, key/session files и broker socket. Он не создаёт JWT,
 содержимое session в отчёт, не вызывает Hotels или Banking API и не печатает
 секреты.
 
-## Подключение клиентов
+## Ручное подключение клиентов
 
 Toolkit выдаёт готовую secret-free регистрацию. Текущая acceptance matrix
 включает OpenCode и Codex CLI; генератор Claude Code сохраняется как
@@ -153,16 +172,16 @@ Gate также проверяет два installable artifact candidates без
 - Banking wheel собирается из изолированной копии, не содержит session/env/test
   файлов, устанавливается вне checkout и отвечает на `initialize`.
 
-`tbank-hotels-mcp@0.28.0` и `tbank-mcp-local@0.12.0` опубликованы в публичном
-npm registry и повторно установлены оттуда в чистый временный каталог вне
-checkout. Banking wheel пока остаётся локальным artifact candidate; launcher
-находит отдельные runtime-команды из `PATH`, а phone login входит в Banking
-wheel. Npm-пакеты опубликованы с
+Совместимый набор публикации: `tbank-hotels-mcp@0.28.0`,
+`travel-assistant-tbank-banking-mcp@0.17.0` и `tbank-mcp-local@0.13.1`.
+Автоматический `connect` устанавливает их в owner-only runtime и закрепляет
+абсолютные executable paths в локальном конфиге, поэтому глобальные npm/pipx
+команды и repository checkout не нужны. Npm-пакеты опубликованы с
 `UNLICENSED`: это разрешает установку preview из registry, но не предоставляет
 отдельную open-source лицензию на повторное использование кода. До полного
-combined release остаются PyPI upload Banking package и fresh-machine проверка
-в OpenCode/Codex. SBOM, provenance и выбор публичной лицензии остаются гейтом
-stable release.
+stable release остаются выбор публичной лицензии, SBOM/provenance и remote
+Streamable HTTP transport. Локальные OpenCode/Codex подключения работают через
+stdio; ChatGPT web/mobile не может подключить такой локальный процесс напрямую.
 
 Текущую границу готовности реальной hotel payment можно проверить отдельно:
 

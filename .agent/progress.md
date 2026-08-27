@@ -74,6 +74,24 @@ Publication hardening локального read-only/preview-only release candid
 - Финальный anonymous-publication gate пройден: toolkit 17/17, Hotels 60/60,
   Banking 52/52, contracts/conformance и весь repository verify зелёные;
   provider requests 0. Оба npm publish dry-run содержат ровно по 8 файлов.
+- Toolkit `0.13.1` добавляет `connect --client opencode|codex --profile ...`:
+  он устанавливает фиксированные Hotels/Banking/toolkit versions в owner-only
+  runtime, сохраняет только executable paths/transport settings, регистрирует
+  два независимых MCP и запускает terminal-only mobile login.
+- `tbank-mcp-local@0.13.1` опубликован в npm и fresh-installed в изолированный
+  HOME. Hotels-only launcher ответил на `initialize` без broker/provider calls.
+  `0.13.0` superseded: registry smoke нашёл лишний broker requirement у
+  Hotels-only, исправление закреплено тестом до combined release.
+- Banking wheel `0.17.0` собран, прошёл `twine check`, опубликован в PyPI и
+  установлен публичным combined installer. Временный `.pypirc` удалён.
+- Чистые OpenCode и Codex CLI зарегистрировали Hotels/Banking из public
+  registries. Оба MCP ответили на `initialize`; mobile login в smoke был
+  отключён, provider requests 0.
+- Операционный инцидент release smoke: прямой installed `login --logout` был
+  запущен без изолированного HOME и удалил локальный session-файл владельца.
+  Серверные данные не менялись; требуется повторный terminal login. Отдельный
+  regression test теперь проверяет, что product `connect` всегда привязывает
+  login к управляемым session/socket paths и игнорирует parent overrides.
 
 ## Blocker
 
@@ -83,5 +101,6 @@ evidence. Это не блокирует read-only/preview-only выпуск и 
 
 ## Next action
 
-Опубликовать Banking `0.17.0` в PyPI, затем выполнить fresh-machine client
-matrix в Codex/OpenCode и оформить GitHub release metadata.
+Зафиксировать release commit/push. Повторный локальный phone login выполняется
+владельцем только в терминале; GitHub preview release metadata остаётся
+следующим отдельным publication checkpoint.

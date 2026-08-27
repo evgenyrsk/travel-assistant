@@ -10,6 +10,7 @@ import { inspectBookingFixture } from "./fixture-shape.mjs";
 import { writeStructureOnlyReport } from "./fixture-shape.mjs";
 import { captureOwnBookingStructure } from "./booking-shape-capture.mjs";
 import { paymentReadinessReport } from "./payment-readiness.mjs";
+import { connect } from "./connect.mjs";
 
 const localRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryRoot = resolve(localRoot, "../..");
@@ -38,7 +39,7 @@ function executableOnPath(commandName, environment) {
   return null;
 }
 
-export function resolveRuntimeCommand(component, environment = process.env, { includeDevelopmentFallback = true } = {}) {
+export function resolveRuntimeCommand(component, environment = process.env, { includeDevelopmentFallback = true, config = null } = {}) {
   const setting = runtimeExecutableSettings[component];
   if (!setting) throw new Error("component must be hotels, banking, broker, or login.");
   const explicit = environment[setting.environmentName]?.trim();
@@ -48,6 +49,14 @@ export function resolveRuntimeCommand(component, environment = process.env, { in
     }
     try { accessSync(explicit, constants.X_OK); } catch { throw new Error(`${setting.environmentName} must point to an executable file.`); }
     return { command: explicit, args: [], source: "explicit_environment" };
+  }
+  const configured = config?.runtimeExecutables?.[component];
+  if (configured) {
+    if (!isAbsolute(configured) || !existsSync(configured) || !statSync(configured).isFile()) {
+      throw new Error(`Configured ${component} runtime must point to an absolute executable file.`);
+    }
+    try { accessSync(configured, constants.X_OK); } catch { throw new Error(`Configured ${component} runtime must point to an executable file.`); }
+    return { command: configured, args: [], source: "managed_config" };
   }
   if (includeDevelopmentFallback && component === "hotels" && existsSync(developmentHotelsServer)) {
     return { command: process.execPath, args: [developmentHotelsServer], source: "repository_checkout" };
@@ -172,7 +181,7 @@ export function runtimeEnvironment(component, config) {
 async function runInteractiveLogin(logout = false) {
   const config = readConfig();
   if (logout) await stopBroker(config);
-  const login = resolveRuntimeCommand("login");
+  const login = resolveRuntimeCommand("login", process.env, { config });
   if (!login) {
     throw new Error("Banking local environment is missing. Run the documented installation first.");
   }
@@ -280,7 +289,7 @@ async function ensureBroker(config) {
   const socketPath = process.env.TBANK_AUTH_BROKER_SOCKET ?? config.banking?.brokerSocket;
   if (!socketPath) throw new Error("Combined mobile auth is not configured. Run setup with the combined profile first.");
   if (await brokerStatus(socketPath)) return { started: false };
-  const brokerCommand = resolveRuntimeCommand("broker");
+  const brokerCommand = resolveRuntimeCommand("broker", process.env, { config });
   if (!brokerCommand) throw new Error("Auth broker executable is missing. Run the documented local installation first.");
   const broker = spawn(brokerCommand.command, brokerCommand.args, {
     stdio: "ignore",
@@ -313,7 +322,7 @@ async function stopBroker(config) {
 async function runComponent(component, args = []) {
   const config = readConfig();
   if (!["hotels", "banking", "broker"].includes(component)) throw new Error("component must be hotels, banking, or broker.");
-  const selected = resolveRuntimeCommand(component);
+  const selected = resolveRuntimeCommand(component, process.env, { config });
   if (!selected) throw new Error(`${component} executable is missing. Run the documented installation first.`);
   const sharedMobileSessionConfigured = Boolean(config.banking?.sessionFile && config.banking?.brokerSocket);
   const brokerRequired = args.includes("--ensure-broker") || args.includes("--with-broker")
@@ -347,7 +356,7 @@ function doctor(args) {
     const fileAuth = Boolean(keyPath);
     checks.hotels = {
       runtime: Number(process.versions.node.split(".")[0]) >= 20 ? "ready" : "unsupported",
-      server: resolveRuntimeCommand("hotels") ? "ready" : "missing",
+      server: resolveRuntimeCommand("hotels", process.env, { config }) ? "ready" : "missing",
       transport: hotelsEnvironment.TBANK_HOTELS_API_BASE_URL ? "configured" : "missing",
       authentication: inlineAuth ? "configured_from_environment" : fileAuth ? secureFileCheck(keyPath, true).status : "not_required",
       configurationSource: config.hotels ? "local_config" : "environment",
@@ -358,7 +367,7 @@ function doctor(args) {
     const sessionPath = process.env.TBANK_BANKING_SESSION ?? banking.sessionFile;
     const socketPath = process.env.TBANK_AUTH_BROKER_SOCKET ?? banking.brokerSocket;
     checks.banking = {
-      executable: resolveRuntimeCommand("banking") ? "ready" : "missing",
+      executable: resolveRuntimeCommand("banking", process.env, { config }) ? "ready" : "missing",
       session: secureFileCheck(sessionPath, true).status,
       brokerSocket: socketPath && existsSync(socketPath) ? "available" : "not_running",
     };
@@ -518,6 +527,7 @@ async function contracts(action) {
 export async function main(argv = process.argv.slice(2)) {
   const [command, subcommand] = argv;
   if (command === "setup") return setup(argv.slice(1));
+  if (command === "connect") return connect(argv.slice(1));
   if (command === "doctor") return doctor(argv.slice(1));
   if (command === "login") return runInteractiveLogin(false);
   if (command === "logout") return runInteractiveLogin(true);
@@ -542,7 +552,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (command === "contracts") return contracts(subcommand);
   if (command === "conformance") return conformance();
   if (command === "verify") return verify();
-  throw new Error("Usage: tbank-mcp-local setup|doctor|login|logout|run|client-config|inspect-booking-fixture|capture-booking-shape|payment-readiness|stop-broker|contracts|conformance|verify");
+  throw new Error("Usage: tbank-mcp-local connect|setup|doctor|login|logout|run|client-config|inspect-booking-fixture|capture-booking-shape|payment-readiness|stop-broker|contracts|conformance|verify");
 }
 
 if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {

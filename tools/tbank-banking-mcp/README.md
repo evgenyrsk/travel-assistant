@@ -49,6 +49,16 @@ read-only auth probe вне MCP.
 pipx install travel-assistant-tbank-banking-mcp
 ```
 
+Для обычного пользователя рекомендуется единая автоустановка Hotels + Banking,
+которая сама создаёт изолированный Python runtime и подключает оба MCP:
+
+```bash
+npx -y tbank-mcp-local@0.13.1 connect --client opencode --profile combined
+```
+
+Для Codex замените `opencode` на `codex`. Телефонный вход запускается внутри
+этой команды, но остаётся обычным terminal flow вне MCP/LLM.
+
 Editable install нужен только для разработки из checkout:
 
 ```bash

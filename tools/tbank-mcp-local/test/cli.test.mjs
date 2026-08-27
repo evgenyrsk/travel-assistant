@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
-import { chmodSync, existsSync, linkSync, mkdtempSync, readFileSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { execFileSync, spawn } from "node:child_process";
 import test from "node:test";
 import { resolveRuntimeCommand, runtimeEnvironment } from "../src/cli.mjs";
 import { captureOwnBookingStructure } from "../src/booking-shape-capture.mjs";
+import { clientRegistrationCommands, managedRuntimePaths, publicPackageVersions } from "../src/connect.mjs";
 
 const cli = new URL("../src/cli.mjs", import.meta.url).pathname;
 const hotelsPackageVersion = JSON.parse(readFileSync(new URL("../../tbank-hotels-mcp/package.json", import.meta.url), "utf8")).version;
@@ -110,6 +111,108 @@ test("resolves installed runtime commands without a repository checkout", () => 
     () => resolveRuntimeCommand("broker", { PATH: "", TBANK_MCP_BROKER_EXECUTABLE: "relative-broker" }),
     /absolute executable file/,
   );
+
+  const managedHotels = resolve(directory, "managed-hotels");
+  writeFileSync(managedHotels, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+  assert.deepEqual(
+    resolveRuntimeCommand("hotels", { PATH: "" }, {
+      includeDevelopmentFallback: false,
+      config: { runtimeExecutables: { hotels: managedHotels } },
+    }),
+    { command: managedHotels, args: [], source: "managed_config" },
+  );
+});
+
+test("builds explicit OpenCode and Codex registrations for both MCP servers", () => {
+  const openCode = clientRegistrationCommands("opencode", "/bin/opencode", "/managed/tbank-mcp-local");
+  assert.deepEqual(openCode.map(({ args }) => args), [
+    ["mcp", "add", "tbank-hotels", "--", "/managed/tbank-mcp-local", "run", "hotels", "--ensure-broker"],
+    ["mcp", "add", "tbank-banking", "--", "/managed/tbank-mcp-local", "run", "banking", "--ensure-broker"],
+  ]);
+  const codex = clientRegistrationCommands("codex", "/bin/codex", "/managed/tbank-mcp-local");
+  assert.deepEqual(codex.map(({ args }) => args.slice(0, 4)), [
+    ["mcp", "remove", "tbank-hotels"],
+    ["mcp", "add", "tbank-hotels", "--"],
+    ["mcp", "remove", "tbank-banking"],
+    ["mcp", "add", "tbank-banking", "--"],
+  ]);
+  assert.deepEqual(
+    clientRegistrationCommands("opencode", "/bin/opencode", "/managed/tbank-mcp-local", "hotels")[0].args,
+    ["mcp", "add", "tbank-hotels", "--", "/managed/tbank-mcp-local", "run", "hotels"],
+  );
+});
+
+test("connect registers a secret-free managed combined runtime without network or login", () => {
+  const directory = mkdtempSync(resolve(tmpdir(), "tbank-connect-"));
+  const runtime = resolve(directory, "runtime");
+  const configFile = resolve(directory, "config.json");
+  const clientLog = resolve(directory, "client.log");
+  const client = resolve(directory, "opencode");
+  const paths = managedRuntimePaths(runtime);
+  for (const executable of [paths.toolkit, paths.hotels, paths.banking, paths.broker, paths.login]) {
+    mkdirSync(resolve(executable, ".."), { recursive: true, mode: 0o700 });
+    writeFileSync(executable, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+  }
+  writeFileSync(client, "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$TEST_CLIENT_LOG\"\n", { mode: 0o700 });
+  const output = execute([
+    "connect", "--client", "opencode", "--profile", "combined",
+    "--runtime-dir", runtime, "--config", configFile,
+    "--client-executable", client, "--skip-install", "--skip-login",
+  ], { HOME: directory, TEST_CLIENT_LOG: clientLog });
+  const report = JSON.parse(output);
+  const configText = readFileSync(configFile, "utf8");
+  const config = JSON.parse(configText);
+  assert.deepEqual(report.registeredComponents, ["hotels", "banking"]);
+  assert.equal(report.configContainsCredentials, false);
+  assert.equal(report.providerRequestsPerformedByInstaller, false);
+  assert.equal(report.mobileLoginCompleted, false);
+  assert.equal(config.hotels.apiBaseUrl, "https://hotels.tbank.ru/api");
+  assert.equal(config.runtimeExecutables.hotels, paths.hotels);
+  assert.equal(config.runtimeExecutables.banking, paths.banking);
+  assert.equal(config.runtimeExecutables.broker, paths.broker);
+  assert.equal(config.runtimeExecutables.login, paths.login);
+  assert.equal(statSync(configFile).mode & 0o077, 0);
+  assert.equal(statSync(runtime).mode & 0o077, 0);
+  assert.deepEqual(readFileSync(clientLog, "utf8").trim().split("\n"), [
+    `mcp add tbank-hotels -- ${paths.toolkit} run hotels --ensure-broker`,
+    `mcp add tbank-banking -- ${paths.toolkit} run banking --ensure-broker`,
+  ]);
+  assert.doesNotMatch(configText + output, /token|password|private.?key|authorization/i);
+  assert.deepEqual(publicPackageVersions, { hotels: "0.28.0", banking: "0.17.0", toolkit: "0.13.1" });
+});
+
+test("connect binds terminal login to the managed session path", () => {
+  const directory = mkdtempSync(resolve(tmpdir(), "tbank-connect-login-"));
+  const runtime = resolve(directory, "runtime");
+  const configFile = resolve(directory, "config.json");
+  const client = resolve(directory, "opencode");
+  const loginLog = resolve(directory, "login.log");
+  const paths = managedRuntimePaths(runtime);
+  for (const executable of [paths.toolkit, paths.hotels, paths.banking, paths.broker]) {
+    mkdirSync(resolve(executable, ".."), { recursive: true, mode: 0o700 });
+    writeFileSync(executable, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+  }
+  writeFileSync(paths.login, "#!/bin/sh\nprintf '%s\\n%s\\n' \"$TBANK_BANKING_SESSION\" \"$TBANK_AUTH_BROKER_SOCKET\" > \"$TEST_LOGIN_LOG\"\n", { mode: 0o700 });
+  writeFileSync(client, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+  const output = execute([
+    "connect", "--client", "opencode", "--profile", "combined",
+    "--runtime-dir", runtime, "--config", configFile,
+    "--client-executable", client, "--skip-install",
+  ], {
+    HOME: directory,
+    TEST_LOGIN_LOG: loginLog,
+    TBANK_BANKING_SESSION: "/must/not/be/used/session.json",
+    TBANK_AUTH_BROKER_SOCKET: "/must/not/be/used/auth.sock",
+  });
+  const report = JSON.parse(output);
+  const config = JSON.parse(readFileSync(configFile, "utf8"));
+  assert.equal(report.mobileLoginCompleted, true);
+  assert.equal(report.mobileLoginMayContactProvider, true);
+  assert.deepEqual(readFileSync(loginLog, "utf8").trim().split("\n"), [
+    config.banking.sessionFile,
+    config.banking.brokerSocket,
+  ]);
+  assert.doesNotMatch(readFileSync(loginLog, "utf8"), /must\/not\/be\/used/);
 });
 
 test("combined profile does not inject Banking session into Hotels", () => {
@@ -257,6 +360,7 @@ test("toolkit npm artifact contains only portable runtime and installs outside c
     "package.json",
     "src/booking-shape-capture.mjs",
     "src/cli.mjs",
+    "src/connect.mjs",
     "src/fixture-shape.mjs",
     "src/payment-readiness.mjs",
   ]);

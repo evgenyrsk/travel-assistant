@@ -1,6 +1,6 @@
 # Active task
 
-**Статус:** developer-preview publication preparation in progress
+**Статус:** combined developer-preview published; local login recovery pending
 
 ## Goal
 
@@ -33,7 +33,9 @@ provider mutations.
 - [x] Внутренний publication review завершён.
 - [x] Независимый fresh-context review публикационного checkpoint завершён.
 - [x] Anonymous read-only search не требует JWT и не отправляет Authorization.
-- [ ] Registry packages загружены после npm/PyPI/GitHub login.
+- [x] Toolkit `0.13.1` загружен в npm и проверен fresh-install.
+- [x] Banking package `0.17.0` загружен в PyPI.
+- [x] One-command combined install проверен из public registries вне checkout.
 
 ## Constraints
 

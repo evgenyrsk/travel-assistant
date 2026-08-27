@@ -10,7 +10,7 @@ smoke-кейсов. Это review-only задача.
 Scope:
 - tools/tbank-hotels-mcp, ожидаемая версия 0.28.0;
 - tools/tbank-banking-mcp, ожидаемая версия 0.17.0;
-- tools/tbank-mcp-local, ожидаемая версия 0.12.0;
+- tools/tbank-mcp-local, ожидаемая версия 0.13.1;
 - ADR-0003, ADR-0004, ADR-0005;
 - tools/tbank-hotels-mcp/docs/journey-tools-plan.md;
 - tools/tbank-hotels-mcp/docs/booking-payment-contract-readiness.md;
@@ -36,12 +36,18 @@ Scope:
    domain runtime — отдельными модулями без cyclic imports и manifest drift.
 2. Secret boundaries: key-file path вместо PEM в client config, отсутствие
    secrets в args/stdout/errors/manifests, разделение Hotels и Banking env.
-3. Setup/doctor/client-config UX для OpenCode и Codex CLI; Claude Code не
+3. Setup/doctor/client-config/connect UX для OpenCode и Codex CLI; Claude Code не
    входит в acceptance matrix;
    standalone и combined profiles не должны объединять полномочия MCP.
    Combined config должен автоматически обеспечить один broker при Hotels-first,
    Banking-first и одновременном lazy start; завершение одного MCP не должно
    обрывать session, а logout/stop-broker должны завершать broker явно.
+   `connect` должен устанавливать фиксированные версии в owner-only runtime,
+   хранить только абсолютные executable paths/transport settings и выполнять
+   secret-free регистрацию двух отдельных MCP. Combined/Banking профиль может
+   запускать terminal-only mobile login, но номер, SMS-код, password/PIN и
+   tokens не должны попадать в MCP args, config или stdout. Hotels-only профиль
+   не должен требовать Python, mobile session или auth broker.
 4. Offline guarantee команды verify: unit/protocol tests, manifests,
    conformance и ноль provider requests даже при credentials у parent process.
 5. Natural-language journey: обычный поиск, обязательный breakfast,
@@ -146,8 +152,8 @@ Scope:
     layout использовать только как development fallback. Phone login должен
     оставаться terminal CLI вне MCP tool surface. Не считать это registry-
     публикацией или полной fresh-machine release; отдельно проверить public
-    registry metadata, anonymous-search boundary, отсутствие registry upload,
-    checksums/SBOM/provenance и их честное описание как следующих gates.
+    registry metadata, anonymous-search boundary, результаты registry upload,
+    fresh install и честное описание отсутствующих checksums/SBOM/provenance.
 
 Для каждого finding укажи P0–P3, confidence, точный file:line evidence,
 impact, минимальный fix и regression test. Не называй отсутствие внешнего

@@ -1148,7 +1148,7 @@ order identifiers. Следующий разрешённый шаг toolstream �
 mutations остаются отдельным gate.
 
 Текущий локальный checkpoint toolstream: Hotels MCP `0.28.0`, Banking/broker
-`0.17.0`, local toolkit `0.12.0`. Safe voucher handoff реализован и проверен
+`0.17.0`, local toolkit `0.13.1`. Safe voucher handoff реализован и проверен
 только на fixture/fake transport после ранее зафиксированного read-only auth
 evidence. Публичная граница оформления закреплена в `ADR-0005`: после выбора
 тарифа Hotels MCP создаёт безопасный hosted-checkout handoff без PII,
@@ -1371,6 +1371,23 @@ reads используют локальную mobile session через broker. 
 `initialize`, toolkit — локальный `payment-readiness` без provider requests.
 Для полного combined release остаются PyPI upload Banking package и
 fresh-machine client matrix.
+
+Combined installer checkpoint `0.28.0/0.17.0/0.13.1` добавляет одну публичную
+команду `connect` для OpenCode/Codex. Она устанавливает фиксированные версии в
+owner-only runtime, сохраняет проверенные абсолютные executable paths,
+регистрирует Hotels и Banking как два отдельных MCP и запускает terminal-only
+mobile login. Hotels-only профиль не требует Python, mobile session или broker.
+Первая опубликованная `0.13.0` была superseded до объявления combined release:
+fresh-install gate обнаружил лишний `--ensure-broker` в Hotels-only
+регистрации; `0.13.1` исправляет это и имеет отдельный regression test.
+`tbank-mcp-local@0.13.1` опубликован и повторно проверен из npm вне checkout.
+Banking wheel `0.17.0` прошёл `twine check`, опубликован в PyPI и установлен
+обратно публичным `connect`. Чистые OpenCode и Codex CLI приняли обе
+регистрации; оба MCP ответили на `initialize`, installer/login regression
+использует управляемый session path. Provider requests в release smoke не
+выполнялись. Local stdio read-only/preview-only combined developer preview
+считается опубликованным; remote ChatGPT transport, stable license,
+SBOM/provenance и production mutations остаются отдельными будущими gates.
 
 Финальный Qwen-аудит не выявил P0–P2 и подтвердил готовность read-only и
 preview-only tiers. Follow-up закрыл четыре P3: version consistency теперь
