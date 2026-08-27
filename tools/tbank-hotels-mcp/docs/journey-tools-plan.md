@@ -8,7 +8,7 @@ Assistant или границы MVP v1.
 
 | Пункт | Состояние |
 | --- | --- |
-| Версия MCP | Hotels `0.28.0`, Banking/broker `0.17.0`, local toolkit `0.12.0` |
+| Версия MCP | Hotels `0.28.1`, Banking/broker `0.17.0`, local toolkit `0.14.1` |
 | Transport | stdio, Node.js 20+, без браузера и cookie |
 | Read-only search journey | Реализован и проверен fake transport tests; `breakfastIncluded` преобразуется в строгий provider filter без low-level перебора; production-like smoke новой версии ещё предстоит |
 | Safe booking preview | Реализован без PII, booking draft и HTTP-вызова |
@@ -19,8 +19,8 @@ Assistant или границы MVP v1.
 | Реальные mutations | `NO-GO`; нужны подтверждённые auth/header/idempotency contracts и отдельное non-production approval |
 | Load safety | Per-process concurrency `2`, bounded queue `32`, 30-second identical-search coalescing/cache; смена только локального ranking не повторяет provider search; проверено fake transport |
 | Персонализация | Banking возвращает готовый typed `hotelPreferences`; `best_value` и диапазон за ночь применяются локально и мягко только при `preferencesApplied.applied=true`, без передачи банковских агрегатов или price filter провайдеру; provider total и MCP-derived цена за ночь разделены |
-| Автоматические тесты | 60 Hotels + 52 Banking/broker/probe/smoke/packaging + 17 local toolkit tests и offline conformance обоих MCP; Unix-socket test выполняется вне ограниченной sandbox-среды |
-| Следующий шаг | Загрузить developer-preview пакеты после registry login, затем пройти fresh-machine/client matrix. Прямые booking/payment execution остаются отдельным future gate и не блокируют публичный read-only/preview/handoff release |
+| Автоматические тесты | 60 Hotels + 52 Banking/broker/probe/smoke/packaging + 21 local toolkit tests и offline conformance обоих MCP; Unix-socket test выполняется вне ограниченной sandbox-среды |
+| Следующий шаг | Повторить естественный checkout smoke на опубликованном patch `0.28.1/0.14.1` после чистого перезапуска клиента. Прямые booking/payment execution остаются отдельным future gate и не блокируют публичный read-only/preview/handoff release |
 
 Checkpoint и границы сохранены в
 `docs/reviews/tbank-hotels-mcp-0.8.0-progress-checkpoint.md`.

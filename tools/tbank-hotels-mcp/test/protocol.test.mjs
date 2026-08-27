@@ -117,6 +117,8 @@ test("reports API MCP metadata and no browser tools", async (t) => {
   const initialized = await server.request({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-03-26" } });
   assert.equal(initialized.result.serverInfo.name, "tbank-hotels-api-mcp");
   assert.equal(initialized.result.serverInfo.version, SERVER_VERSION);
+  assert.match(initialized.result.instructions, /tbank_hotels_create_checkout_handoff/);
+  assert.match(initialized.result.instructions, /remains available when direct booking execution is unavailable/);
   const listed = await server.request({ jsonrpc: "2.0", id: 2, method: "tools/list" });
   const names = listed.result.tools.map((tool) => tool.name);
   assert.ok(names.includes("tbank_hotels_search"));
@@ -147,6 +149,7 @@ test("reports API MCP metadata and no browser tools", async (t) => {
   assert.deepEqual(bookingPreview.inputSchema.required, ["journeyId"]);
   assert.ok(!bookingPreview.inputSchema.properties.bookingData);
   assert.equal(bookingPreview.annotations.readOnlyHint, true);
+  assert.match(bookingPreview.description, /tbank_hotels_create_checkout_handoff/);
   const paymentFormPreview = listed.result.tools.find((tool) => tool.name === "tbank_hotels_create_payment_form_preview");
   assert.deepEqual(paymentFormPreview.inputSchema.required, ["journeyId"]);
   assert.deepEqual(Object.keys(paymentFormPreview.inputSchema.properties), ["journeyId"]);
@@ -156,6 +159,8 @@ test("reports API MCP metadata and no browser tools", async (t) => {
   assert.deepEqual(checkoutHandoff.inputSchema.required, ["journeyId"]);
   assert.deepEqual(Object.keys(checkoutHandoff.inputSchema.properties), ["journeyId"]);
   assert.equal(checkoutHandoff.annotations.readOnlyHint, true);
+  assert.match(checkoutHandoff.description, /direct booking execution недоступен/);
+  assert.match(checkoutHandoff.description, /Покажите ссылку пользователю/);
   assert.doesNotMatch(JSON.stringify(checkoutHandoff.inputSchema), /pan|cvv|cvc|otp|pin|cardNumber|email|phone|bookHash/i);
   const saveVoucher = listed.result.tools.find((tool) => tool.name === "tbank_hotels_save_voucher");
   assert.deepEqual(saveVoucher.inputSchema.required, ["bookingRef"]);
@@ -1008,7 +1013,8 @@ test("does not retain guest PII while execution is unavailable and keeps an enab
   assert.equal(selectedRate.executionAvailable, false);
   assert.deepEqual(selectedRate.executionReadiness, { available: false, status: "not_available" });
   assert.doesNotMatch(JSON.stringify(selectedRate), /x-real-ip|missingRequiredHeaders/);
-  assert.match(selectedRate.nextStep, /without requesting guest PII/);
+  assert.match(selectedRate.nextStep, /tbank_hotels_create_checkout_handoff/);
+  assert.match(selectedRate.nextStep, /remains available while direct execution is unavailable/);
   const preview = await callTool("tbank_hotels_create_booking_preview", { journeyId: plan.journeyId });
   assert.equal(preview.status, "preview_only");
   assert.equal(preview.executionAvailable, false);
@@ -1016,7 +1022,9 @@ test("does not retain guest PII while execution is unavailable and keeps an enab
   assert.doesNotMatch(JSON.stringify(preview), /x-real-ip|missingRequiredHeaders/);
   assert.equal(preview.personalDataCollected, false);
   assert.equal(preview.httpRequestPerformed, false);
-  assert.match(preview.nextStep, /Do not request guest personal data/);
+  assert.match(preview.nextStep, /tbank_hotels_create_checkout_handoff/);
+  assert.match(preview.nextStep, /hostedCheckoutUrl/);
+  assert.doesNotMatch(preview.nextStep, /^Show this preview and stop/);
   assert.doesNotMatch(JSON.stringify(preview), /book-1|person@example|Ada|Lovelace/);
   const paymentPreview = await callTool("tbank_hotels_create_payment_form_preview", { journeyId: plan.journeyId });
   assert.equal(paymentPreview.status, "preview_only");

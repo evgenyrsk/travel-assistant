@@ -26,3 +26,4 @@
 | Добавить one-command OpenCode/Codex combined installer | completed; offline test |
 | Опубликовать Banking 0.17.0 и toolkit 0.13.1 | completed; 0.13.0 deprecated/superseded |
 | Добавить короткую one-command установку Cursor/Codex | completed; 0.14.0 published and fresh-installed |
+| Исправить natural-language checkout continuation и выпустить patch | completed; 0.28.1/0.14.1 published, fresh-installed and connected to Codex |

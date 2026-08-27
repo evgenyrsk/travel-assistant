@@ -1789,8 +1789,8 @@ function selectedStayRate(args) {
     executionAvailable: executionReadiness.available,
     executionReadiness: journeyExecutionReadiness(executionReadiness),
     nextStep: executionReadiness.available
-      ? "For a preview without personal data, call tbank_hotels_create_booking_preview. Collect guest PII and call tbank_hotels_create_booking_draft only after the user explicitly chooses real booking."
-      : "Call tbank_hotels_create_booking_preview without requesting guest PII. Execution is unavailable, so do not create a booking draft or ask for final confirmation.",
+      ? "If the user asks only for a preview, call tbank_hotels_create_booking_preview. If they ask to book, complete, continue or proceed to checkout, call tbank_hotels_create_checkout_handoff and show its hostedCheckoutUrl. Collect guest PII and create a booking draft only for an explicitly requested reviewed API-execution flow."
+      : "If the user asks only for a preview, call tbank_hotels_create_booking_preview. If they ask to book, complete, continue or proceed to checkout, call tbank_hotels_create_checkout_handoff and show its hostedCheckoutUrl. The safe external handoff remains available while direct execution is unavailable; do not request guest PII or final API confirmation.",
   };
 }
 
@@ -1822,8 +1822,8 @@ function createBookingPreview(args) {
     httpRequestPerformed: false,
     bookingDataRequiredForExecution: ["guestContact.email", "guestContact.phone", "rooms[].guests[].firstName", "rooms[].guests[].lastName"],
     nextStep: executionReadiness.available
-      ? "Show this preview without requesting personal data. Only if the user explicitly asks to make a real booking, collect required guest data and create a booking draft."
-      : "Show this preview and stop. Do not request guest personal data or final confirmation while booking execution is unavailable.",
+      ? "Show this preview without requesting personal data. If the user asks to continue in the trusted external interface, call tbank_hotels_create_checkout_handoff and show its hostedCheckoutUrl. Collect required guest data only for an explicitly requested reviewed API-execution flow."
+      : "If the user asks to book, complete, continue or proceed to checkout, call tbank_hotels_create_checkout_handoff and show its hostedCheckoutUrl. Otherwise show this preview and stop. Do not request guest personal data or final API confirmation while direct execution is unavailable.",
     note: "Локальный preview не резервирует номер, не проверяет checkout и не выполняет HTTP-запрос к Hotels API.",
   };
 }

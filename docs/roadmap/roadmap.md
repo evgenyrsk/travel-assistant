@@ -1147,8 +1147,8 @@ order identifiers. Следующий разрешённый шаг toolstream �
 оставшихся order reads при наличии собственных identifiers; booking/payment
 mutations остаются отдельным gate.
 
-Текущий локальный checkpoint toolstream: Hotels MCP `0.28.0`, Banking/broker
-`0.17.0`, local toolkit `0.14.0`. Safe voucher handoff реализован и проверен
+Текущий локальный checkpoint toolstream: Hotels MCP `0.28.1`, Banking/broker
+`0.17.0`, local toolkit `0.14.1`. Safe voucher handoff реализован и проверен
 только на fixture/fake transport после ранее зафиксированного read-only auth
 evidence. Публичная граница оформления закреплена в `ADR-0005`: после выбора
 тарифа Hotels MCP создаёт безопасный hosted-checkout handoff без PII,
@@ -1399,6 +1399,16 @@ mobile login; secrets не попадают в MCP config или model context.
 изолированных HOME: Cursor получил корректный global `mcp.json`, Codex — две
 enabled stdio-регистрации. Mobile login в release smoke был пропущен, provider
 requests не выполнялись.
+
+Checkout-orchestration patch `0.28.1/0.17.0/0.14.1` устраняет конфликт между
+локальным booking preview и публичным hosted checkout. После выбранного тарифа
+естественные запросы «оформить», «забронировать» или «продолжить» направляются
+в `tbank_hotels_create_checkout_handoff` даже при выключенном direct execution;
+модель обязана показать ссылку на выбранный отель вместо остановки на preview.
+Handoff по-прежнему не переносит exact rate, PII или payment credentials и не
+выполняет provider write. Hotels `0.28.1` и toolkit `0.14.1` опубликованы в
+public npm registry, установлены обратно вне checkout и локально подключены к
+Codex без повторного mobile login; provider requests не выполнялись.
 
 Финальный Qwen-аудит не выявил P0–P2 и подтвердил готовность read-only и
 preview-only tiers. Follow-up закрыл четыре P3: version consistency теперь

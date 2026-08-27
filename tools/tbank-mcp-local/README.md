@@ -16,7 +16,7 @@
 ### Cursor
 
 ```bash
-npx -y tbank-mcp-local@0.14.0 connect cursor
+npx -y tbank-mcp-local@0.14.1 connect cursor
 ```
 
 Завершите вход в терминале и полностью перезапустите Cursor. Откройте Agent и
@@ -25,7 +25,7 @@ npx -y tbank-mcp-local@0.14.0 connect cursor
 ### Codex
 
 ```bash
-npx -y tbank-mcp-local@0.14.0 connect codex
+npx -y tbank-mcp-local@0.14.1 connect codex
 ```
 
 Завершите вход в терминале и перезапустите Codex. Проверить подключение можно
@@ -35,14 +35,14 @@ npx -y tbank-mcp-local@0.14.0 connect codex
 передаются модели. Для OpenCode используется тот же короткий формат:
 
 ```bash
-npx -y tbank-mcp-local@0.14.0 connect opencode
+npx -y tbank-mcp-local@0.14.1 connect opencode
 ```
 
 Для анонимного поиска отелей без Banking и мобильной авторизации добавьте
 `--profile hotels`, например:
 
 ```bash
-npx -y tbank-mcp-local@0.14.0 connect cursor --profile hotels
+npx -y tbank-mcp-local@0.14.1 connect cursor --profile hotels
 ```
 
 Автоустановка поддерживает macOS/Linux, Node.js 20+ и Python 3.11+ для
@@ -183,8 +183,8 @@ Gate также проверяет два installable artifact candidates без
 - Banking wheel собирается из изолированной копии, не содержит session/env/test
   файлов, устанавливается вне checkout и отвечает на `initialize`.
 
-Совместимый набор публикации: `tbank-hotels-mcp@0.28.0`,
-`travel-assistant-tbank-banking-mcp@0.17.0` и `tbank-mcp-local@0.14.0`.
+Совместимый набор публикации: `tbank-hotels-mcp@0.28.1`,
+`travel-assistant-tbank-banking-mcp@0.17.0` и `tbank-mcp-local@0.14.1`.
 Автоматический `connect` устанавливает их в owner-only runtime и закрепляет
 абсолютные executable paths в локальном конфиге, поэтому глобальные npm/pipx
 команды и repository checkout не нужны. Npm-пакеты опубликованы с

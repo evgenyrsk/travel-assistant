@@ -37,7 +37,7 @@ export function startStdioServer({ callTool, tools, serverName, serverVersion, p
         protocolVersion,
         capabilities: { tools: { listChanged: false } },
         serverInfo: { name: serverName, version: serverVersion },
-        instructions: "API-driven T-Bank Hotels MCP. Configure the base URL and authentication only through environment variables. This server does not use a browser, cookies, local browser state, or stored user sessions. Calls that can create a booking, set up a payment, cancel a booking, apply a promocode, or update extra services are disabled by default and require both an explicit runtime activation and a time-limited prepare/execute confirmation protocol.",
+        instructions: "Use journey tools for natural-language hotel requests. After a rate is selected, requests to book, complete, continue or proceed to checkout must use tbank_hotels_create_checkout_handoff and show its hostedCheckoutUrl. This safe external handoff remains available when direct booking execution is unavailable; do not stop at booking preview. Never request guest or payment data for the handoff. API-driven T-Bank Hotels MCP; configure transport and authentication only through environment variables. Direct booking, payment, cancellation, promocode and extra-service mutations remain disabled by default and require reviewed activation plus prepare/execute confirmation.",
       }));
     }
     if (request.method === "ping") return write(response(request.id, {}));

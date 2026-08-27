@@ -2,7 +2,7 @@
 
 ## Current focus
 
-Publication hardening локального read-only/preview-only release candidate.
+Checkout-orchestration patch публичного read-only/preview-only release.
 
 ## Completed
 
@@ -98,6 +98,18 @@ Publication hardening локального read-only/preview-only release candid
 - `tbank-mcp-local@0.14.0` опубликован в npm. Изолированные fresh-install
   проверки из npm/PyPI прошли для Cursor и Codex; обе регистрации содержат два
   независимых MCP, login пропущен, provider requests 0.
+- Устранён конфликт guidance: запрос продолжить оформление после выбранного
+  тарифа теперь направляется в `tbank_hotels_create_checkout_handoff`, а
+  недоступность direct execution больше не обрывает безопасный внешний handoff.
+- Patch-версии подготовлены: Hotels `0.28.1`, Banking `0.17.0`, toolkit
+  `0.14.1`; targeted Hotels tests 60/60 зелёные.
+- Полный offline gate пройден без пропусков: toolkit 21/21, Hotels 60/60,
+  Banking 52/52, contracts/conformance и repository-wide checks зелёные;
+  provider requests 0.
+- `tbank-hotels-mcp@0.28.1` и `tbank-mcp-local@0.14.1` опубликованы в npm,
+  установлены обратно во временный runtime и подключены к локальному Codex без
+  повторного mobile login. Installed Hotels initialize подтвердил версию и
+  checkout-handoff instructions.
 
 ## Blocker
 
@@ -107,5 +119,7 @@ evidence. Это не блокирует read-only/preview-only выпуск и 
 
 ## Next action
 
-Зафиксировать toolkit `0.14.0` release commit/push. GitHub preview release,
-stable license и remote ChatGPT transport остаются отдельными checkpoint.
+Полностью перезапустить Codex и повторить естественный checkout smoke: после
+выбранного тарифа запрос «хочу оформить бронирование» должен вернуть ссылку на
+выбранный отель. GitHub preview release, stable license и remote ChatGPT
+transport остаются отдельными checkpoint.

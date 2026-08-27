@@ -23,4 +23,8 @@
 | Public combined Codex | yes | isolated CODEX_HOME, both MCP registrations enabled from npm/PyPI, mobile login skipped, provider requests 0 |
 | Cursor global MCP registration | yes | hermetic merge test and public fresh-install passed; existing entries preserved, owner-only file, no credentials |
 | Public toolkit 0.14.0 | yes | npm publish and registry metadata passed; public Cursor/Codex connect verified outside checkout |
+| Checkout orchestration patch | yes | Hotels 60/60; initialize and tool guidance route booking intent to hosted checkout instead of stopping at preview |
+| Full patch release gate | yes | toolkit 21/21, Hotels 60/60, Banking 52/52, repository-wide `verify.sh all`, manifests/conformance; 0 skipped and 0 provider requests |
+| npm publish dry-run 0.28.1/0.14.1 | yes | passed; Hotels 8 files, toolkit 9 allowlisted files |
+| Public patch 0.28.1/0.14.1 | yes | both packages published, fresh-installed from npm and Hotels initialize verified; local Codex registration updated without login/provider calls |
 | Provider requests | must be 0 | 0; verify и docs gate полностью offline |

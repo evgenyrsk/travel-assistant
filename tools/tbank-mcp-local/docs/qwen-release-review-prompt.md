@@ -8,9 +8,9 @@ smoke-кейсов. Это review-only задача.
 /Users/evgenyrsk/Projects/travel-assistant.
 
 Scope:
-- tools/tbank-hotels-mcp, ожидаемая версия 0.28.0;
+- tools/tbank-hotels-mcp, ожидаемая версия 0.28.1;
 - tools/tbank-banking-mcp, ожидаемая версия 0.17.0;
-- tools/tbank-mcp-local, ожидаемая версия 0.14.0;
+- tools/tbank-mcp-local, ожидаемая версия 0.14.1;
 - ADR-0003, ADR-0004, ADR-0005;
 - tools/tbank-hotels-mcp/docs/journey-tools-plan.md;
 - tools/tbank-hotels-mcp/docs/booking-payment-contract-readiness.md;

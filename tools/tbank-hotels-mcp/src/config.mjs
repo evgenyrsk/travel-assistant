@@ -1,5 +1,5 @@
 export const SERVER_NAME = "tbank-hotels-api-mcp";
-export const SERVER_VERSION = "0.28.0";
+export const SERVER_VERSION = "0.28.1";
 export const MCP_PROTOCOL_VERSION = "2025-03-26";
 export const DEFAULT_TIMEOUT_MS = 15_000;
 export const MAX_TIMEOUT_MS = 60_000;
