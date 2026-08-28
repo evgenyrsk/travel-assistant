@@ -5,7 +5,8 @@
 MCP-клиентам и приложениям. Документ не меняет основной product roadmap,
 hotel-only MVP или порядок этапов Kotlin backend.
 
-**Статус:** `In progress`. Локальный toolkit `0.12.0` закрыл часть P0–P3 без
+**Статус:** `In progress`. Локальный toolkit `0.15.0` закрыл локальную
+установку, раздельное/совместное подключение и versioned contracts без
 активации remote transport или execution capabilities.
 
 **Принятое решение от 2026-08-24:** сначала довести и стабилизировать локальный
@@ -46,8 +47,8 @@ bundle не должен объединять их полномочия. Это 
 
 | Область | Сейчас | Ограничение для распространения |
 | --- | --- | --- |
-| Hotels MCP | Node.js 20+, `stdio`, package bin, protocol `2025-03-26`; anonymous read-only search; npm tarball candidate устанавливается и запускается вне checkout | Registry metadata подготовлена, upload не выполнен; нет checksums/SBOM/provenance и client matrix |
-| Banking MCP | Python 3.11+, `stdio`, protocol `2025-03-26`; wheel candidate собирается, устанавливается и запускается вне checkout | Wheel не опубликован; нет кроссплатформенного secure storage и release metadata |
+| Hotels MCP | Node.js 20+, `stdio`, package bin, protocol `2025-03-26`; anonymous read-only search; `0.28.1` опубликована, `0.29.0` — локальный resumable-search candidate | Для нового candidate нужны review/smoke/upload; нет checksums/SBOM/provenance и полной OS/client matrix |
+| Banking MCP | Python 3.11+, `stdio`, protocol `2025-03-26`; `0.17.0` опубликована и устанавливается вне checkout | Нет кроссплатформенного secure storage, checksums/SBOM/provenance и полной OS matrix |
 | Общая авторизация | Локальный broker через owner-only Unix socket | Unix socket и session-файл не подходят как remote/multi-tenant boundary |
 | Состояние journey | Process-local opaque handles с TTL | После перезапуска теряется; для нескольких HTTP instances нужен общий secure store |
 | Read-only функции | Search, customer reads и агрегаты прошли ограниченные smoke/fake gates | Нужен повторный независимый review и воспроизводимый compatibility suite |
@@ -145,7 +146,7 @@ fake transport; изменения схем обнаруживаются CI до
 
 - [x] Проверить framing, EOF shutdown, clean restart и отсутствие постороннего
   `stdout`/`stderr` у обоих MCP; cancellation остаётся отдельной проверкой.
-- [ ] Проверить каждый MCP отдельно и оба вместе в OpenCode и Codex CLI;
+- [x] Проверить каждый MCP отдельно и оба вместе в OpenCode и Codex CLI;
   добавить ещё один независимый MCP client/Inspector. Claude Code исключён из
   текущей acceptance matrix решением владельца, но генератор config сохраняется.
 - [ ] Проверить macOS и Linux; Windows включить после выбора замены Unix socket
@@ -162,10 +163,10 @@ fake transport; изменения схем обнаруживаются CI до
 
 **Статус:** `In progress`.
 
-- [ ] Загрузить подготовленный Hotels versioned npm package с bin-командой;
-  до upload сохранить запуск по абсолютному локальному пути.
-- [ ] Загрузить подготовленный Banking versioned wheel для `pipx`/`uvx`;
-  editable install оставить только для разработки.
+- [x] Загрузить Hotels versioned npm package с bin-командой и проверить
+  fresh-install вне checkout; новая версия проходит тот же gate перед upload.
+- [x] Загрузить Banking versioned wheel в PyPI; editable install оставить
+  только для разработки.
 - [x] Проверять локальный Hotels npm tarball и Banking wheel в изолированных
   временных каталогах: allowlisted contents, установка вне checkout и MCP
   `initialize` без provider network.
@@ -267,10 +268,12 @@ recovery, audit trail и kill switch; production activation разрешаетс
    Banking payment preview без provider-вызовов.
 3. [x] Добавить typed profile-to-search contract, мягкий `best_value`,
    presentation facts и локальные artifact candidates.
-4. [ ] Провести повторный независимый review текущих Hotels/Banking/broker
+4. [x] Провести повторный независимый review текущих Hotels/Banking/broker
    изменений и закрыть release-blocking findings.
-5. [ ] Прогнать шесть естественных smoke-кейсов в OpenCode и Codex CLI после
-   offline gate; Claude Code не входит в текущую acceptance matrix.
+5. [ ] Current-worktree Codex smoke пройден для обычного/breakfast поиска,
+   preview/handoff, customer summary и Banking-personalized flow. После
+   публикации повторить короткий fresh-install smoke в Codex и OpenCode;
+   Claude Code не входит в текущую acceptance matrix.
 6. [ ] Завершить P1–P3 до объявления portable release: fresh-machine install,
    macOS/Linux/client matrix, secure storage, checksums, SBOM и provenance.
 7. [ ] P4–P5 начинать отдельными задачами; P6 не следует автоматически ни из

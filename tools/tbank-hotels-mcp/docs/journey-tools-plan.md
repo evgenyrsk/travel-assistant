@@ -8,9 +8,9 @@ Assistant или границы MVP v1.
 
 | Пункт | Состояние |
 | --- | --- |
-| Версия MCP | Hotels `0.28.1`, Banking/broker `0.17.0`, local toolkit `0.14.1` |
+| Версия MCP | Hotels `0.29.0`, Banking/broker `0.17.0`, local toolkit `0.15.0` |
 | Transport | stdio, Node.js 20+, без браузера и cookie |
-| Read-only search journey | Реализован и проверен fake transport tests; `breakfastIncluded` преобразуется в строгий provider filter без low-level перебора; production-like smoke новой версии ещё предстоит |
+| Read-only search journey | Реализован и проверен fake transport tests и bounded current-worktree smoke; `breakfastIncluded` преобразуется в строгий provider filter без low-level перебора |
 | Safe booking preview | Реализован без PII, booking draft и HTTP-вызова |
 | Hosted payment form preview | Контракт и state machine сверены офлайн; локальный preview реализован без PII/payment credentials/HTTP, execution остаётся `NO-GO` |
 | Hosted checkout handoff | Реализован безопасный переход на выбранный отель: для одной комнаты без детей сохраняются даты и число взрослых; PII, `bookHash`, token/card data, exact rate и provider write не переносятся |
@@ -19,8 +19,8 @@ Assistant или границы MVP v1.
 | Реальные mutations | `NO-GO`; нужны подтверждённые auth/header/idempotency contracts и отдельное non-production approval |
 | Load safety | Per-process concurrency `2`, bounded queue `32`, 30-second identical-search coalescing/cache; смена только локального ranking не повторяет provider search; проверено fake transport |
 | Персонализация | Banking возвращает готовый typed `hotelPreferences`; `best_value` и диапазон за ночь применяются локально и мягко только при `preferencesApplied.applied=true`, без передачи банковских агрегатов или price filter провайдеру; provider total и MCP-derived цена за ночь разделены |
-| Автоматические тесты | 60 Hotels + 52 Banking/broker/probe/smoke/packaging + 21 local toolkit tests и offline conformance обоих MCP; Unix-socket test выполняется вне ограниченной sandbox-среды |
-| Следующий шаг | Повторить естественный checkout smoke на опубликованном patch `0.28.1/0.14.1` после чистого перезапуска клиента. Прямые booking/payment execution остаются отдельным future gate и не блокируют публичный read-only/preview/handoff release |
+| Автоматические тесты | 71 Hotels + 52 Banking/broker/probe/smoke/packaging + 21 local toolkit tests и offline conformance обоих MCP; Unix-socket test выполняется вне ограниченной sandbox-среды |
+| Следующий шаг | Независимый review и bounded natural-language smoke завершены; следующий gate — registry publication и fresh install. Прямые booking/payment execution остаются отдельным future gate и не блокируют публичный read-only/preview/handoff release |
 
 Checkpoint и границы сохранены в
 `docs/reviews/tbank-hotels-mcp-0.8.0-progress-checkpoint.md`.
@@ -95,6 +95,10 @@ provider и обновляться перед бронированием.
   в MCP arguments.
 - `plan_stay` принимает локацию, даты и комнаты в agent-facing форме; provider
   payload формируется внутри MCP и проверяется до сетевого вызова.
+- Канонические поля `destination`, `rooms`, `maxOptions`, `adults` и
+  `childrenAges` остаются рекомендуемыми. Ограниченные compatibility aliases
+  для LLM-клиентов нормализуются локально до provider-вызова; конфликтующие
+  alias/canonical пары и неизвестные поля отклоняются без network fallback.
 - Обезличенный `hotelDefaults` Banking MCP передаётся как typed
   `hotelPreferences`. Диапазон цены остаётся мягким, не превращается в provider
   filter, а `best_value` отделяется от исходных provider facts как MCP-derived
@@ -226,6 +230,19 @@ provider DTO; schema/runtime/tests согласованы.
 - [x] Ограничить search collection бюджетом 11 секунд и возвращать накопленный
   partial result вместо общего MCP timeout.
 - [x] Возвращать `searchCoverage` с completeness/truncation metadata.
+- [x] Классифицировать покрытие как `complete`/`substantial`/`partial` и
+  возвращать долю относительно provider reported count.
+- [x] Продолжать partial journey с сохранённого offset без повторной загрузки
+  первой страницы и со стабильными `optionId`.
+- [x] Сохранять общий предел 20 provider search requests на initial и
+  continuation; не продолжать terminal pagination anomalies.
+- [x] Не сохранять truncated search как финальный global cache result.
+- [x] Покрыть terminal continuation states: repeated offset, provider failure,
+  request limit и bounded loading poll recovery.
+- [x] После первого continuation механически отключать автоматическую
+  рекомендацию повторения, сохраняя явное user-driven продолжение.
+- [x] Сбрасывать stale hotel/rate selection, если выбранный provider-вариант
+  исчез из обновлённой выборки.
 - [x] Наследовать ranking `plan_stay` в `get_stay_options` и
   `compare_stay_options`, если клиент не передал override.
 - [x] При явном ranking сравнивать всю journey-выборку, даже если LLM также
@@ -234,8 +251,9 @@ provider DTO; schema/runtime/tests согласованы.
   fake-transport regression tests.
 
 **Критерий готовности:** формулировка «пять лучших» относится ко всей bounded
-собранной выборке, а не только к первой странице; неполнота видна агенту через
-`searchCoverage.truncated`.
+собранной выборке, а не только к первой странице; при низком покрытии agent
+один раз продолжает тот же journey, а оставшаяся неполнота видна через
+`searchCoverage` и не маскируется cache.
 
 ### Шаг 3c. Стабилизировать обязательные search conditions
 

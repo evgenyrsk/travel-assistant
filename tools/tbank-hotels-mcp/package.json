@@ -1,6 +1,6 @@
 {
   "name": "tbank-hotels-mcp",
-  "version": "0.28.1",
+  "version": "0.29.0",
   "private": false,
   "description": "Unofficial developer-preview MCP for read-only T-Bank Hotels search and safe checkout handoff.",
   "license": "UNLICENSED",

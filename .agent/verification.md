@@ -27,4 +27,8 @@
 | Full patch release gate | yes | toolkit 21/21, Hotels 60/60, Banking 52/52, repository-wide `verify.sh all`, manifests/conformance; 0 skipped and 0 provider requests |
 | npm publish dry-run 0.28.1/0.14.1 | yes | passed; Hotels 8 files, toolkit 9 allowlisted files |
 | Public patch 0.28.1/0.14.1 | yes | both packages published, fresh-installed from npm and Hotels initialize verified; local Codex registration updated without login/provider calls |
-| Provider requests | must be 0 | 0; verify и docs gate полностью offline |
+| Provider requests in automated gates | must be 0 | 0; verify и docs gate полностью offline |
+| Resumable search targeted tests | yes | Hotels 71/71 passed; coverage levels, continuation offset, stable optionId, coalescing, partial-cache, shared request cap, terminal branches, stale selection reset, one-shot recommendation, common LLM alias normalization and conflict rejection covered |
+| Resumable search full offline gate | yes | toolkit 21/21 + Hotels 71/71 + Banking 52/52 passed after final review hardening; manifests/conformance passed, provider requests 0 |
+| npm publish dry-run 0.29.0/0.15.0 | yes | passed with temporary isolated npm caches; Hotels contains 8 allowlisted files, toolkit contains 9 allowlisted files |
+| Bounded current-worktree live smoke | yes | passed on Hotels 0.29.0 / Banking 0.17.0: Moscow search, breakfast search, rates + booking/payment preview + hosted checkout, anonymized booking summary, portfolio profile + personalized Kazan search with exactly one continuation; no writes/PII/card data |

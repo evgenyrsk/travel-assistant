@@ -1147,8 +1147,8 @@ order identifiers. Следующий разрешённый шаг toolstream �
 оставшихся order reads при наличии собственных identifiers; booking/payment
 mutations остаются отдельным gate.
 
-Текущий локальный checkpoint toolstream: Hotels MCP `0.28.1`, Banking/broker
-`0.17.0`, local toolkit `0.14.1`. Safe voucher handoff реализован и проверен
+Текущий локальный checkpoint toolstream: Hotels MCP `0.29.0`, Banking/broker
+`0.17.0`, local toolkit `0.15.0`. Safe voucher handoff реализован и проверен
 только на fixture/fake transport после ранее зафиксированного read-only auth
 evidence. Публичная граница оформления закреплена в `ADR-0005`: после выбора
 тарифа Hotels MCP создаёт безопасный hosted-checkout handoff без PII,
@@ -1410,15 +1410,48 @@ Handoff по-прежнему не переносит exact rate, PII или pay
 public npm registry, установлены обратно вне checkout и локально подключены к
 Codex без повторного mobile login; provider requests не выполнялись.
 
-Финальный Qwen-аудит не выявил P0–P2 и подтвердил готовность read-only и
-preview-only tiers. Follow-up закрыл четыре P3: version consistency теперь
-проверяется автоматически, нестандартные MCP annotations объявляются рядом с
-tools, runtime использует единый handler registry с полным contract test, а
-локальный Banking editable install синхронизирован с `0.16.0`. Полный offline
-gate предыдущего checkpoint: toolkit 14/14, Hotels 58/58, Banking 52/52, без
-provider requests. Для `0.27.0/0.16.0/0.10.0` добавлен отдельный offline gate.
-Следующий разрешённый шаг — bounded human live smoke после чистого перезапуска;
-booking/payment execution остаётся отдельным `NO-GO` gate.
+Resumable-search checkpoint `0.29.0/0.17.0/0.15.0` делает неполную hotel
+search-выборку возобновляемой внутри того же process-local journey. MCP
+классифицирует покрытие как `complete`/`substantial`/`partial`, возвращает долю
+от provider reported count и при низком покрытии разрешает один автоматический
+`tbank_hotels_continue_stay_search` перед сравнением. Продолжение сохраняет
+ранее выданные `optionId`, начинает с сохранённого offset и разделяет с initial
+search общий лимит 20 provider requests. Усечённый результат больше не
+попадает в финальный global cache; repeated offset, request limit и provider
+failure остаются terminal. Реализация и regression tests полностью offline;
+live smoke завершён, публикация остаётся следующим отдельным gate.
+
+Независимый Qwen 3.8 Max review resumable-search checkpoint подтвердил
+`READY` для read-only/preview/handoff tiers и не выявил P0–P2. Follow-up
+закрыл три P3-направления: terminal continuation branches защищены fake
+transport tests, stale selection сбрасывается при исчезновении выбранного
+отеля, а после первого continuation `continuationRecommended` механически
+становится `false`. Первый Codex smoke выявил, что модель устойчиво использует
+распространённые semantic aliases `location`, `guests`/`adultsCount` и `limit`.
+Agent-facing boundary теперь принимает их, локально нормализует в единственную
+каноническую journey-форму и отклоняет конфликтующие дубли; regression test
+закрепляет отсутствие contract-guessing retry. Текущий offline набор содержит
+71 Hotels, 52 Banking и 21 toolkit test. Focused compatibility review дал
+`READY`, P0–P2 отсутствуют; все три P3 закрыты до публикации тестами,
+синхронизацией room schema и краткой документацией aliases.
+
+Bounded current-worktree live smoke Hotels `0.29.0` / Banking `0.17.0` прошёл
+обычный поиск, обязательный breakfast filter, выбор из предыдущей comparison,
+rates, booking/payment previews, hosted checkout, обезличенную customer summary
+и персонализированный поиск. Казанский поиск начал с partial coverage 100/144,
+выполнил ровно один continuation и корректно остановился без автоматического
+цикла; профиль был применён с `preferencesApplied.applied=true`. Booking,
+payment и cancel writes, PII и card data не выполнялись. Следующий gate —
+registry publication `0.29.0/0.15.0` и fresh-install проверка.
+
+Финальный Qwen-аудит предыдущего checkpoint не выявил P0–P2 и подтвердил
+готовность read-only и preview-only tiers. Follow-up закрыл четыре P3: version
+consistency проверяется автоматически, нестандартные MCP annotations объявлены
+рядом с tools, runtime использует единый handler registry с полным contract
+test, а локальный Banking editable install синхронизирован с `0.16.0`.
+Последующий resumable-search checkpoint прошёл отдельные review, полный offline
+gate и bounded live smoke, описанные выше; booking/payment execution остаётся
+отдельным `NO-GO` gate.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

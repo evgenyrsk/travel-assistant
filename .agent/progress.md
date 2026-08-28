@@ -2,7 +2,8 @@
 
 ## Current focus
 
-Checkout-orchestration patch публичного read-only/preview-only release.
+Resumable bounded hotel-search coverage поверх опубликованного
+read-only/preview-only release.
 
 ## Completed
 
@@ -110,6 +111,55 @@ Checkout-orchestration patch публичного read-only/preview-only release
   установлены обратно во временный runtime и подключены к локальному Codex без
   повторного mobile login. Installed Hotels initialize подтвердил версию и
   checkout-handoff instructions.
+- Hotels `0.29.0` классифицирует search coverage как
+  `complete`/`substantial`/`partial`, возвращает ratio и bounded continuation
+  guidance.
+- `tbank_hotels_continue_stay_search` продолжает тот же journey с сохранённого
+  offset, сохраняет прежние `optionId` и coalesces одновременные continuation.
+- Общий initial+continuation предел остаётся 20 provider requests; request
+  limit, repeated offset и provider failure не образуют retry loop.
+- Truncated search больше не сохраняется как final global cache; завершённый
+  continuation заполняет короткий cache.
+- Новый checkpoint синхронизирован как Hotels `0.29.0`, Banking `0.17.0`,
+  toolkit `0.15.0`; manifest обновлён offline.
+- Targeted Hotels tests 64/64, toolkit 21/21, Banking 52/52, conformance и
+  repository-wide `verify.sh all` прошли без пропусков; provider requests 0.
+- Независимый Qwen 3.8 Max review checkpoint `0.29.0/0.17.0/0.15.0` дал
+  `READY`, P0–P2 отсутствуют.
+- Review hardening добавил terminal continuation tests, stale selection reset
+  и механическое `continuationRecommended=false` после первого продолжения;
+  targeted Hotels tests 68/68.
+- Полный post-review offline gate пройден: toolkit 21/21, Hotels 68/68,
+  Banking 52/52, manifests/conformance зелёные, provider requests 0.
+- Первый Codex smoke обнаружил orchestration mismatch: модель использовала
+  `location`, `guests`/`rooms[].adultsCount` и `limit`, из-за чего опубликованный
+  strict runtime отклонял первый вызов и модель начинала перебирать форму.
+- Agent-facing `plan_stay` теперь принимает bounded compatibility aliases
+  `location`, `guests`, `limit`, `adultsCount` и `childrenAge`, локально
+  нормализует их в `destination`, `rooms`, `maxOptions`, `adults` и
+  `childrenAges`, а конфликтующие дубли отклоняет.
+- Regression test закрепляет alias normalization без повторного provider
+  contract guessing; targeted Hotels suite теперь 69/69, manifest обновлён.
+- Focused Qwen review compatibility boundary дал `READY`, P0–P2 отсутствуют.
+  Три P3 закрыты до публикации: конфликтные/unknown aliases покрыты шестью
+  fail-before-fetch сценариями, room JSON Schema требует `adults` или
+  `adultsCount`, а README и journey plan объясняют локальную нормализацию.
+  Targeted Hotels suite теперь 71/71; manifest обновлён.
+- Финальный post-review offline gate пройден: toolkit 21/21, Hotels 71/71,
+  Banking 52/52, manifests/conformance зелёные, provider requests 0. Оба npm
+  publish dry-run прошли с allowlist-наборами 8/9 файлов.
+- Bounded live smoke текущего Hotels `0.29.0` через ephemeral Codex прошёл:
+  обычный поиск Москвы, обязательный завтрак в Санкт-Петербурге, выбор только из
+  comparison, rates, booking/payment previews, selected-hotel checkout handoff,
+  customer summary и Banking-personalized поиск Казани.
+- Персонализированный поиск начал с 100/144 (`partial`), выполнил ровно один
+  continuation, не получил новых вариантов и корректно остановил automatic
+  continuation. `preferencesApplied.applied=true`, альтернативы вне мягкого
+  диапазона возвращены отдельно.
+- Booking/payment/cancel writes, guest PII и card data не использовались.
+- Harness finding: initial ephemeral override запускал managed published runtime
+  вместо working tree; current-worktree smoke закреплён явным executable
+  override и подтверждён `connection_status.serverVersion=0.29.0`.
 
 ## Blocker
 
@@ -119,7 +169,6 @@ evidence. Это не блокирует read-only/preview-only выпуск и 
 
 ## Next action
 
-Полностью перезапустить Codex и повторить естественный checkout smoke: после
-выбранного тарифа запрос «хочу оформить бронирование» должен вернуть ссылку на
-выбранный отель. GitHub preview release, stable license и remote ChatGPT
-transport остаются отдельными checkpoint.
+Провести короткий focused review добавленного compatibility boundary,
+опубликовать `0.29.0/0.15.0`, затем проверить fresh install и естественные
+Codex/OpenCode requests уже из registry runtime.

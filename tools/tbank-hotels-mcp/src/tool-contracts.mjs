@@ -103,10 +103,15 @@ const providerSearchPayload = objectSchema({
   limit: { type: "integer", minimum: 0 },
 }, ["destinationId", "checkinDate", "checkoutDate", "guests"]);
 
-const journeyRoom = objectSchema({
-  adults: { type: "integer", minimum: 1, maximum: 16, description: "Количество взрослых в комнате." },
-  childrenAges: { type: "array", maxItems: 16, items: { type: "integer", minimum: 0, maximum: 17 }, description: "Возраст каждого ребёнка, 0–17." },
-}, ["adults"]);
+const journeyRoom = {
+  ...objectSchema({
+    adults: { type: "integer", minimum: 1, maximum: 16, description: "Количество взрослых в комнате." },
+    adultsCount: { type: "integer", minimum: 1, maximum: 16, description: "Совместимый алиас adults для LLM-клиентов; внутри MCP нормализуется в adults." },
+    childrenAges: { type: "array", maxItems: 16, items: { type: "integer", minimum: 0, maximum: 17 }, description: "Возраст каждого ребёнка, 0–17." },
+    childrenAge: { type: "array", maxItems: 16, items: { type: "integer", minimum: 0, maximum: 17 }, description: "Совместимый алиас childrenAges; внутри MCP нормализуется в childrenAges." },
+  }),
+  anyOf: [{ required: ["adults"] }, { required: ["adultsCount"] }],
+};
 
 const pricePerNightPreference = objectSchema({
   min: { type: "number", minimum: 0, description: "Мягкая нижняя граница цены за ночь." },
@@ -136,20 +141,26 @@ const planStayInput = {
   type: "object",
   properties: {
     destination: { type: "string", minLength: 1, maxLength: 200, description: "Название города или локации, например Москва. MCP сам разрешит destinationId." },
+    location: { type: "string", minLength: 1, maxLength: 200, description: "Совместимый алиас destination для LLM-клиентов; внутри MCP нормализуется в destination." },
     destinationId: { type: "integer", minimum: 1, description: "Используйте только после выбора кандидата из resolve_destination или clarification_required." },
     countryName: { type: "string", minLength: 1, maxLength: 120, description: "Необязательное название страны для разрешения одноимённых локаций." },
     checkinDate: isoDate,
     checkoutDate: isoDate,
     rooms: { type: "array", minItems: 1, maxItems: MAX_ROOMS, items: journeyRoom, description: "Один элемент на комнату." },
+    guests: { type: "array", minItems: 1, maxItems: MAX_ROOMS, items: journeyRoom, description: "Совместимый алиас rooms для LLM-клиентов; один элемент на комнату, внутри MCP нормализуется в rooms." },
     hotelName: { type: "string", minLength: 1, maxLength: 250, description: "Необязательное название конкретного отеля внутри выбранной локации. Глобальный поиск без локации не заявлен контрактом." },
     breakfastIncluded: { type: "boolean", default: false, description: "Если true, MCP применяет подтверждённый provider-фильтр meal_types=breakfast до построения journey. Не заменяйте этот параметр низкоуровневым перебором filters." },
     hotelPreferences: { ...hotelPreferences, description: "Необязательные privacy-safe hotelDefaults из tbank_banking_build_portfolio_travel_profile. Это мягкие локальные предпочтения: они не отправляются provider и не скрывают варианты вне диапазона." },
     ranking: rankingStrategy,
     maxOptions: { type: "integer", minimum: 1, maximum: MAX_PLAN_OPTIONS, default: DEFAULT_PLAN_OPTIONS, description: "Ограничивает число вариантов в ответе plan_stay, но не размер собираемой MCP выборки." },
+    limit: { type: "integer", minimum: 1, maximum: MAX_PLAN_OPTIONS, description: "Совместимый алиас maxOptions для LLM-клиентов; не является provider pagination limit." },
     language: languageSchema(),
   },
-  required: ["checkinDate", "checkoutDate", "rooms"],
-  anyOf: [{ required: ["destination"] }, { required: ["destinationId"] }],
+  required: ["checkinDate", "checkoutDate"],
+  allOf: [
+    { anyOf: [{ required: ["destination"] }, { required: ["location"] }, { required: ["destinationId"] }] },
+    { anyOf: [{ required: ["rooms"] }, { required: ["guests"] }] },
+  ],
   additionalProperties: false,
 };
 
@@ -303,13 +314,18 @@ export const tools = [
   },
   {
     name: "tbank_hotels_plan_stay",
-    description: "Основной agent-facing поиск. Принимает название локации, даты, комнаты, semantic breakfastIncluded и необязательные privacy-safe hotelPreferences из Banking portfolio profile. Если пользователь просит применить профиль, передайте объект hotelPreferences из tbank_banking_build_portfolio_travel_profile без преобразований: ranking=best_value без hotelPreferences не считается применением профиля, и это нельзя утверждать. Сам разрешает destinationId, включая безопасный внутренний fallback при несовпадении локализованного countryName; после clarification_required или search_unavailable не вызывайте resolve_destination с альтернативными написаниями и не перебирайте локации автоматически. Применяет обязательные условия до поиска, собирает bounded paginated/partial provider results и создаёт short-lived journeyId. hotelPreferences — мягкое локальное ранжирование: диапазон цены за ночь не отправляется provider и не скрывает альтернативы; provider shownPrice трактуется как полная цена поездки, а MCP вычисляет отдельную цену за ночь. При provider network/DNS/timeout/HTTP failure возвращает terminal search_unavailable с retryAllowed=false: не повторяйте поиск, не обходите MCP и не перебирайте low-level tools. Для конкретного отеля передайте hotelName вместе с локацией.",
+    description: "Каноническая форма обычного вызова: destination, checkinDate, checkoutDate, rooms:[{adults, childrenAges?}], необязательные breakfastIncluded, ranking, maxOptions и language. Для устойчивости LLM-клиентов MCP также принимает location→destination, guests→rooms, limit→maxOptions и adultsCount/childrenAge внутри комнаты; не смешивайте каноническое поле с его алиасом и не перебирайте формы после ошибки. Основной agent-facing поиск принимает название локации, даты, комнаты, semantic breakfastIncluded и необязательные privacy-safe hotelPreferences из Banking portfolio profile. Если пользователь просит применить профиль, передайте объект hotelPreferences из tbank_banking_build_portfolio_travel_profile без преобразований: ranking=best_value без hotelPreferences не считается применением профиля, и это нельзя утверждать. Сам разрешает destinationId, включая безопасный внутренний fallback при несовпадении локализованного countryName; после clarification_required или search_unavailable не вызывайте resolve_destination с альтернативными написаниями и не перебирайте локации автоматически. Применяет обязательные условия до поиска, собирает bounded paginated provider results и создаёт short-lived journeyId. Если searchCoverage.continuationRecommended=true, перед сравнением пяти лучших вызовите tbank_hotels_continue_stay_search ровно один раз; не перезапускайте plan_stay. При substantial coverage сравнивайте текущую выборку с честной оговоркой, а дополнительное продолжение выполняйте только по явному запросу пользователя. hotelPreferences — мягкое локальное ранжирование: диапазон цены за ночь не отправляется provider и не скрывает альтернативы; provider shownPrice трактуется как полная цена поездки, а MCP вычисляет отдельную цену за ночь. При provider network/DNS/timeout/HTTP failure возвращает terminal search_unavailable с retryAllowed=false: не повторяйте поиск, не обходите MCP и не перебирайте low-level tools. Для конкретного отеля передайте hotelName вместе с локацией.",
     inputSchema: planStayInput,
   },
   {
     name: "tbank_hotels_plan_personalized_stay",
-    description: "Основной tool для естественных запросов «используй мой обезличенный профиль». Полностью повторяет semantic hotel journey, но обязательно требует hotelPreferences из tbank_banking_build_portfolio_travel_profile и поэтому не позволяет спутать generic best_value с применённым пользовательским профилем. Передавайте hotelPreferences без преобразований; применение можно утверждать только при preferencesApplied.applied=true.",
+    description: "Основной tool для естественных запросов «используй мой обезличенный профиль». Полностью повторяет semantic hotel journey, но обязательно требует hotelPreferences из tbank_banking_build_portfolio_travel_profile и поэтому не позволяет спутать generic best_value с применённым пользовательским профилем. Передавайте hotelPreferences без преобразований; применение можно утверждать только при preferencesApplied.applied=true. Если searchCoverage.continuationRecommended=true, один раз продолжите тот же journey через tbank_hotels_continue_stay_search перед сравнением.",
     inputSchema: personalizedPlanStayInput,
+  },
+  {
+    name: "tbank_hotels_continue_stay_search",
+    description: "Безопасно продолжает неполную provider-выборку существующего journey без повторной загрузки уже пройденных страниц и без смены optionId ранее найденных отелей. Вызывайте автоматически не более одного раза и только когда plan_stay вернул searchCoverage.continuationRecommended=true. После первого продолжения MCP механически возвращает continuationRecommended=false, даже если явное дополнительное продолжение ещё доступно. Если покрытие остаётся partial/substantial, сравните текущую выборку и честно укажите coverage; повторное продолжение допустимо только по явному запросу пользователя на более полный поиск. Общий лимит initial+continuation остаётся 20 provider search requests. Не используйте этот tool после terminal search_unavailable и не заменяйте им low-level search.",
+    inputSchema: objectSchema({ journeyId: identifierSchema("Непрозрачный journeyId из plan_stay.") }, ["journeyId"]),
   },
   {
     name: "tbank_hotels_get_stay_options",

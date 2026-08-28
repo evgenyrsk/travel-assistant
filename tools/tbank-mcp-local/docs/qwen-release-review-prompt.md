@@ -8,9 +8,9 @@ smoke-кейсов. Это review-only задача.
 /Users/evgenyrsk/Projects/travel-assistant.
 
 Scope:
-- tools/tbank-hotels-mcp, ожидаемая версия 0.28.1;
+- tools/tbank-hotels-mcp, ожидаемая версия 0.29.0;
 - tools/tbank-banking-mcp, ожидаемая версия 0.17.0;
-- tools/tbank-mcp-local, ожидаемая версия 0.14.1;
+- tools/tbank-mcp-local, ожидаемая версия 0.15.0;
 - ADR-0003, ADR-0004, ADR-0005;
 - tools/tbank-hotels-mcp/docs/journey-tools-plan.md;
 - tools/tbank-hotels-mcp/docs/booking-payment-contract-readiness.md;
@@ -56,6 +56,16 @@ Scope:
 5. Natural-language journey: обычный поиск, обязательный breakfast,
    сравнение, rates, preview_only, customer reads и spending personalization
    без угадывания provider DTO.
+   Отдельно проверь resumable search coverage: `searchCoverage` должен честно
+   различать `complete`/`substantial`/`partial` и считать `coverageRatio`
+   относительно provider reported count. Truncated search не должен попадать
+   в финальный global cache. `tbank_hotels_continue_stay_search` должен
+   продолжать сохранённый offset без повторной загрузки первой страницы,
+   сохранять прежние optionId и разделять с initial search общий предел 20
+   provider requests. Agent guidance может автоматически продолжить поиск
+   ровно один раз только при `continuationRecommended=true`; повторный цикл
+   разрешён лишь по явному запросу пользователя. Repeated offset, request
+   limit и provider failure должны оставаться terminal.
    Номера тарифов должны быть стабильны во всём journey: нельзя перенумеровывать
    breakfast/refundable-подмножество. Готовую rates-таблицу нужно показывать
    ровно один раз; если критерий выбора уже задан, select и preview завершаются

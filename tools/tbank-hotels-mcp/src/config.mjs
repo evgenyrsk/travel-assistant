@@ -1,5 +1,5 @@
 export const SERVER_NAME = "tbank-hotels-api-mcp";
-export const SERVER_VERSION = "0.28.1";
+export const SERVER_VERSION = "0.29.0";
 export const MCP_PROTOCOL_VERSION = "2025-03-26";
 export const DEFAULT_TIMEOUT_MS = 15_000;
 export const MAX_TIMEOUT_MS = 60_000;
@@ -29,6 +29,7 @@ export const MAX_SEARCH_LOADING_POLLS = 3;
 export const SEARCH_LOADING_POLL_DELAY_MS = 200;
 export const SEARCH_COLLECTION_BUDGET_MS = 11_000;
 export const MIN_SEARCH_REQUEST_BUDGET_MS = 1_000;
+export const SUBSTANTIAL_SEARCH_COVERAGE_RATIO = 0.8;
 export const DEFAULT_MAX_PROVIDER_CONCURRENCY = 2;
 export const MAX_PROVIDER_CONCURRENCY = 8;
 export const MAX_PROVIDER_REQUEST_QUEUE = 32;

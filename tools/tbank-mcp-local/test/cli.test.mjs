@@ -218,7 +218,7 @@ test("connect registers a secret-free managed combined runtime without network o
     `mcp add tbank-banking -- ${paths.toolkit} run banking --ensure-broker`,
   ]);
   assert.doesNotMatch(configText + output, /token|password|private.?key|authorization/i);
-  assert.deepEqual(publicPackageVersions, { hotels: "0.28.1", banking: "0.17.0", toolkit: "0.14.1" });
+  assert.deepEqual(publicPackageVersions, { hotels: "0.29.0", banking: "0.17.0", toolkit: "0.15.0" });
 });
 
 test("connect binds terminal login to the managed session path", () => {

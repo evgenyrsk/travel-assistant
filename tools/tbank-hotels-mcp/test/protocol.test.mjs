@@ -119,21 +119,34 @@ test("reports API MCP metadata and no browser tools", async (t) => {
   assert.equal(initialized.result.serverInfo.version, SERVER_VERSION);
   assert.match(initialized.result.instructions, /tbank_hotels_create_checkout_handoff/);
   assert.match(initialized.result.instructions, /remains available when direct booking execution is unavailable/);
+  assert.match(initialized.result.instructions, /destination, checkinDate, checkoutDate and rooms/);
+  assert.match(initialized.result.instructions, /Compatibility aliases location, guests, limit/);
   const listed = await server.request({ jsonrpc: "2.0", id: 2, method: "tools/list" });
   const names = listed.result.tools.map((tool) => tool.name);
   assert.ok(names.includes("tbank_hotels_search"));
   assert.ok(names.includes("tbank_hotels_execute_booking"));
   assert.ok(names.includes("tbank_hotels_resolve_destination"));
   assert.ok(names.includes("tbank_hotels_plan_stay"));
+  assert.ok(names.includes("tbank_hotels_continue_stay_search"));
   assert.ok(names.includes("tbank_hotels_compare_stay_options"));
   assert.ok(!names.some((name) => /browser|snapshot|cookie|open_/.test(name)));
   assert.ok(!names.some((name) => /card_data|save_credit_card|finger.?print|3ds|tds/i.test(name)));
   const planTool = listed.result.tools.find((tool) => tool.name === "tbank_hotels_plan_stay");
   assert.ok(planTool.inputSchema.properties.destination);
+  assert.ok(planTool.inputSchema.properties.location);
   assert.ok(planTool.inputSchema.properties.rooms);
+  assert.ok(planTool.inputSchema.properties.guests);
+  assert.ok(planTool.inputSchema.properties.limit);
+  assert.ok(planTool.inputSchema.properties.rooms.items.properties.adultsCount);
+  assert.match(planTool.description, /destination, checkinDate, checkoutDate, rooms/);
+  assert.match(planTool.description, /location→destination, guests→rooms, limit→maxOptions/);
   assert.equal(planTool.inputSchema.properties.breakfastIncluded.type, "boolean");
   assert.ok(!planTool.inputSchema.properties.searchRequest);
   assert.equal(planTool.annotations.readOnlyHint, true);
+  const continueSearch = listed.result.tools.find((tool) => tool.name === "tbank_hotels_continue_stay_search");
+  assert.deepEqual(continueSearch.inputSchema.required, ["journeyId"]);
+  assert.equal(continueSearch.annotations.readOnlyHint, true);
+  assert.match(continueSearch.description, /не более одного раза/);
   const lowLevelSearch = listed.result.tools.find((tool) => tool.name === "tbank_hotels_search");
   const filterSchema = lowLevelSearch.inputSchema.properties.payload.properties.filters.items;
   assert.equal(filterSchema.oneOf.length, 4);
@@ -229,6 +242,115 @@ test("rejects journey operations for an unknown context without network access",
   const result = await server.request({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "tbank_hotels_get_stay_options", arguments: { journeyId: "missing" } } });
   assert.equal(result.result.isError, true);
   assert.match(result.result.content[0].text, /Unknown or expired journeyId/);
+});
+
+test("normalizes common LLM plan aliases without provider-contract retries", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  const searchBodies = [];
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async (url, options) => {
+    const target = new URL(url);
+    if (target.pathname === "/api/v1/seo/locations") {
+      return new Response(JSON.stringify({ payload: { locations: [
+        { locationId: 17039, locationName: "Moscow", locationNameRu: "Москва", countryName: "Russia", countryNameRu: "Россия", hotelsCount: 1 },
+      ] } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    if (target.pathname === "/api/v1/hotels/search") {
+      searchBodies.push(JSON.parse(options.body));
+      return new Response(JSON.stringify({ payload: {
+        hotels: [{ hotelId: `hotel-${searchBodies.length}`, hotelName: "Alias Hotel", review: { rating: 9.1 } }],
+        hotelsTotalCount: 1,
+        filteredHotelsCount: 1,
+        isLoadingCompleted: true,
+      } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    throw new Error(`unexpected provider call: ${target}`);
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const nestedAlias = await callTool("tbank_hotels_plan_stay", {
+    location: "Москва",
+    checkinDate: "2099-09-01",
+    checkoutDate: "2099-09-02",
+    rooms: [{ adultsCount: 2, childrenAge: [] }],
+    limit: 1,
+  });
+  const topLevelAlias = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-10-01",
+    checkoutDate: "2099-10-02",
+    guests: [{ adultsCount: 2 }],
+    maxOptions: 1,
+  });
+
+  assert.equal(nestedAlias.status, "ready");
+  assert.equal(topLevelAlias.status, "ready");
+  assert.equal(nestedAlias.options.length, 1);
+  assert.deepEqual(searchBodies.map((body) => body.guests), [
+    [{ adultsCount: 2, childrenAge: [] }],
+    [{ adultsCount: 2, childrenAge: [] }],
+  ]);
+});
+
+test("rejects conflicting or unknown plan aliases before provider access", async (t) => {
+  const savedFetch = globalThis.fetch;
+  let providerCalls = 0;
+  globalThis.fetch = async () => {
+    providerCalls += 1;
+    throw new Error("provider access is forbidden for invalid plan input");
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+  });
+
+  const base = {
+    destination: "Москва",
+    checkinDate: "2099-09-01",
+    checkoutDate: "2099-09-02",
+    rooms: [{ adults: 2 }],
+  };
+  const cases = [
+    [{ ...base, location: "Казань" }, /either destination.*location/i],
+    [{ ...base, guests: [{ adultsCount: 1 }] }, /either rooms.*guests/i],
+    [{ ...base, maxOptions: 10, limit: 5 }, /either maxOptions.*limit/i],
+    [{ ...base, rooms: [{ adults: 2, adultsCount: 1 }] }, /either adults.*adultsCount/i],
+    [{ ...base, rooms: [{ adults: 2, childrenAges: [5], childrenAge: [5] }] }, /either childrenAges.*childrenAge/i],
+    [{ ...base, guestCount: 2 }, /unsupported fields: guestCount/i],
+  ];
+
+  for (const [argumentsValue, expectedMessage] of cases) {
+    await assert.rejects(
+      callTool("tbank_hotels_plan_stay", argumentsValue),
+      (error) => {
+        assert.match(error.message, expectedMessage);
+        assert.doesNotMatch(error.message, /guess|retry|try another|provider DTO/i);
+        return true;
+      },
+    );
+  }
+  assert.equal(providerCalls, 0);
+});
+
+test("requires an adult count in canonical or compatibility form in journey room schemas", () => {
+  for (const toolName of ["tbank_hotels_plan_stay", "tbank_hotels_plan_personalized_stay"]) {
+    const tool = tools.find((candidate) => candidate.name === toolName);
+    assert.ok(tool, `${toolName} must be present`);
+    for (const propertyName of ["rooms", "guests"]) {
+      assert.deepEqual(tool.inputSchema.properties[propertyName].items.anyOf, [
+        { required: ["adults"] },
+        { required: ["adultsCount"] },
+      ]);
+    }
+  }
 });
 
 test("applies the breakfast requirement before search and preserves it during comparison", async (t) => {
@@ -1256,7 +1378,12 @@ test("collects paginated search results and preserves the previous comparison sc
     filteredHotelsCount: 3,
     isLoadingCompleted: true,
     truncated: false,
+    coverageLevel: "complete",
+    coverageRatio: 1,
+    continuationAvailable: false,
+    continuationRecommended: false,
     requestCount: 2,
+    maxRequestCount: 20,
     providerSort: null,
     rankingAppliedLocally: "highest_rating",
     stoppedReason: null,
@@ -1385,7 +1512,431 @@ test("returns accumulated search results when a follow-up page exhausts the coll
   assert.equal(plan.totalOptions, 1);
   assert.equal(plan.searchCoverage.requestCount, 2);
   assert.equal(plan.searchCoverage.truncated, true);
+  assert.equal(plan.searchCoverage.coverageLevel, "partial");
+  assert.equal(plan.searchCoverage.coverageRatio, 0.5);
+  assert.equal(plan.searchCoverage.continuationAvailable, true);
+  assert.equal(plan.searchCoverage.continuationRecommended, true);
   assert.equal(plan.searchCoverage.stoppedReason, "time_budget");
+});
+
+test("classifies an incomplete eighty-percent sample as substantial without automatic continuation", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const savedBaseUrl = process.env.TBANK_HOTELS_API_BASE_URL;
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-substantial.example.test/";
+  globalThis.fetch = async () => {
+    requests += 1;
+    if (requests > 1) {
+      const error = new Error("simulated timeout");
+      error.name = "TimeoutError";
+      throw error;
+    }
+    return new Response(JSON.stringify({ payload: {
+      hotels: Array.from({ length: 4 }, (_, index) => ({ hotelId: `hotel-${index}`, hotelName: `Hotel ${index}` })),
+      filteredHotelsCount: 5,
+      isLoadingCompleted: false,
+      nextOffset: 4,
+    } }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    if (savedBaseUrl === undefined) delete process.env.TBANK_HOTELS_API_BASE_URL;
+    else process.env.TBANK_HOTELS_API_BASE_URL = savedBaseUrl;
+  });
+
+  const plan = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-09-10",
+    checkoutDate: "2099-09-11",
+    rooms: [{ adults: 2 }],
+  });
+  assert.equal(plan.searchCoverage.coverageRatio, 0.8);
+  assert.equal(plan.searchCoverage.coverageLevel, "substantial");
+  assert.equal(plan.searchCoverage.continuationAvailable, true);
+  assert.equal(plan.searchCoverage.continuationRecommended, false);
+  assert.match(plan.nextStep, /Compare the current journey options/);
+});
+
+test("continues a partial journey without reloading its first page and preserves option ids", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  const offsets = [];
+  let secondPageAttempts = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-resumable.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    offsets.push(body.offset);
+    if (body.offset === 0) {
+      return new Response(JSON.stringify({ payload: {
+        hotels: [{ hotelId: "hotel-a", hotelName: "Hotel A", review: { rating: 8.9 } }],
+        filteredHotelsCount: 2,
+        hotelsTotalCount: 2,
+        isLoadingCompleted: false,
+        nextOffset: 1,
+      } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    secondPageAttempts += 1;
+    if (secondPageAttempts === 1) {
+      const error = new Error("simulated timeout");
+      error.name = "TimeoutError";
+      throw error;
+    }
+    return new Response(JSON.stringify({ payload: {
+      hotels: [{ hotelId: "hotel-b", hotelName: "Hotel B", review: { rating: 9.5 } }],
+      filteredHotelsCount: 2,
+      hotelsTotalCount: 2,
+      isLoadingCompleted: true,
+      nextOffset: null,
+    } }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const args = {
+    destinationId: 17039,
+    checkinDate: "2099-11-01",
+    checkoutDate: "2099-11-02",
+    rooms: [{ adults: 2 }],
+    ranking: "highest_rating",
+    maxOptions: 2,
+  };
+  const plan = await callTool("tbank_hotels_plan_stay", args);
+  const firstOptionId = plan.options.find((option) => option.hotelName === "Hotel A").optionId;
+  assert.deepEqual(offsets, [0, 1]);
+  assert.equal(plan.searchCoverage.continuationRecommended, true);
+
+  const [continued, coalescedContinuation] = await Promise.all([
+    callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId }),
+    callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId }),
+  ]);
+  assert.deepEqual(offsets, [0, 1, 1]);
+  assert.deepEqual(coalescedContinuation, continued);
+  assert.equal(continued.addedOptions, 1);
+  assert.equal(continued.totalOptions, 2);
+  assert.equal(continued.searchCoverage.coverageLevel, "complete");
+  assert.equal(continued.searchCoverage.coverageRatio, 1);
+  assert.equal(continued.searchCoverage.requestCount, 3);
+  assert.equal(continued.searchCoverage.continuationAvailable, false);
+  assert.equal(continued.options.find((option) => option.hotelName === "Hotel A").optionId, firstOptionId);
+
+  const alreadyComplete = await callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId });
+  assert.equal(alreadyComplete.status, "already_complete");
+  assert.deepEqual(offsets, [0, 1, 1]);
+
+  const cached = await callTool("tbank_hotels_plan_stay", args);
+  assert.equal(cached.searchCoverage.cacheStatus, "hit");
+  assert.equal(cached.totalOptions, 2);
+  assert.deepEqual(offsets, [0, 1, 1]);
+});
+
+test("does not cache a truncated search as a final result", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  const offsets = [];
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-partial-cache.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    offsets.push(body.offset);
+    if (body.offset > 0) {
+      const error = new Error("simulated timeout");
+      error.name = "TimeoutError";
+      throw error;
+    }
+    return new Response(JSON.stringify({ payload: {
+      hotels: [{ hotelId: "hotel-partial", hotelName: "Partial Hotel" }],
+      filteredHotelsCount: 2,
+      isLoadingCompleted: false,
+      nextOffset: 1,
+    } }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+  const args = {
+    destinationId: 17039,
+    checkinDate: "2099-12-01",
+    checkoutDate: "2099-12-02",
+    rooms: [{ adults: 2 }],
+  };
+
+  const first = await callTool("tbank_hotels_plan_stay", args);
+  const second = await callTool("tbank_hotels_plan_stay", args);
+  assert.equal(first.searchCoverage.cacheStatus, "miss");
+  assert.equal(second.searchCoverage.cacheStatus, "miss");
+  assert.deepEqual(offsets, [0, 1, 0, 1]);
+});
+
+test("keeps the provider request cap across initial and continued search", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const names = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-request-cap.example.test/";
+  process.env.TBANK_HOTELS_AUTH_TOKEN = "test-token";
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  globalThis.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    requests += 1;
+    return new Response(JSON.stringify({ payload: {
+      hotels: [{ hotelId: `hotel-${body.offset}`, hotelName: `Hotel ${body.offset}` }],
+      filteredHotelsCount: 100,
+      isLoadingCompleted: false,
+      nextOffset: body.offset + 1,
+    } }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const plan = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-12-10",
+    checkoutDate: "2099-12-11",
+    rooms: [{ adults: 2 }],
+  });
+  assert.equal(requests, 20);
+  assert.equal(plan.searchCoverage.requestCount, 20);
+  assert.equal(plan.searchCoverage.stoppedReason, "request_limit");
+  assert.equal(plan.searchCoverage.continuationAvailable, false);
+  const continuation = await callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId });
+  assert.equal(continuation.status, "continuation_unavailable");
+  assert.equal(requests, 20);
+});
+
+test("makes a repeated continuation offset terminal without another provider request", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const savedBaseUrl = process.env.TBANK_HOTELS_API_BASE_URL;
+  const offsets = [];
+  let secondPageAttempts = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-repeated-offset.example.test/";
+  globalThis.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    offsets.push(body.offset);
+    if (body.offset === 0) {
+      return new Response(JSON.stringify({ payload: {
+        hotels: [{ hotelId: "hotel-a", hotelName: "Hotel A" }],
+        filteredHotelsCount: 3,
+        isLoadingCompleted: false,
+        nextOffset: 1,
+      } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    secondPageAttempts += 1;
+    if (secondPageAttempts === 1) {
+      const error = new Error("simulated timeout");
+      error.name = "TimeoutError";
+      throw error;
+    }
+    return new Response(JSON.stringify({ payload: {
+      hotels: [{ hotelId: "hotel-b", hotelName: "Hotel B" }],
+      filteredHotelsCount: 3,
+      isLoadingCompleted: false,
+      nextOffset: 0,
+    } }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    if (savedBaseUrl === undefined) delete process.env.TBANK_HOTELS_API_BASE_URL;
+    else process.env.TBANK_HOTELS_API_BASE_URL = savedBaseUrl;
+  });
+
+  const plan = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-12-12",
+    checkoutDate: "2099-12-13",
+    rooms: [{ adults: 2 }],
+  });
+  const continued = await callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId });
+  assert.equal(continued.status, "ready");
+  assert.equal(continued.searchCoverage.stoppedReason, "repeated_next_offset");
+  assert.equal(continued.searchCoverage.continuationAvailable, false);
+  assert.equal(continued.searchCoverage.continuationRecommended, false);
+  const requestsAfterTerminalResult = offsets.length;
+
+  const terminal = await callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId });
+  assert.equal(terminal.status, "continuation_unavailable");
+  assert.equal(terminal.retryAllowed, false);
+  assert.equal(offsets.length, requestsAfterTerminalResult);
+});
+
+test("makes a provider failure during continuation terminal", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const savedBaseUrl = process.env.TBANK_HOTELS_API_BASE_URL;
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-continuation-failure.example.test/";
+  globalThis.fetch = async () => {
+    requests += 1;
+    if (requests === 1) {
+      return new Response(JSON.stringify({ payload: {
+        hotels: [{ hotelId: "hotel-a", hotelName: "Hotel A" }],
+        filteredHotelsCount: 2,
+        isLoadingCompleted: false,
+        nextOffset: 1,
+      } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    if (requests === 2) {
+      const error = new Error("simulated timeout");
+      error.name = "TimeoutError";
+      throw error;
+    }
+    return new Response(JSON.stringify({ code: "temporarily_unavailable" }), {
+      status: 503,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    if (savedBaseUrl === undefined) delete process.env.TBANK_HOTELS_API_BASE_URL;
+    else process.env.TBANK_HOTELS_API_BASE_URL = savedBaseUrl;
+  });
+
+  const plan = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-12-14",
+    checkoutDate: "2099-12-15",
+    rooms: [{ adults: 2 }],
+  });
+  const continuation = await callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId });
+  assert.equal(continuation.status, "continuation_unavailable");
+  assert.equal(continuation.searchCoverage.stoppedReason, "continuation_provider_failure");
+  assert.equal(continuation.searchCoverage.continuationAvailable, false);
+  assert.equal(continuation.searchCoverage.continuationRecommended, false);
+  assert.equal(continuation.retryAllowed, false);
+  const requestsAfterFailure = requests;
+  const terminal = await callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId });
+  assert.equal(terminal.status, "continuation_unavailable");
+  assert.equal(requests, requestsAfterFailure);
+});
+
+test("continues successfully after the bounded loading poll limit", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const savedBaseUrl = process.env.TBANK_HOTELS_API_BASE_URL;
+  let requests = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-loading-polls.example.test/";
+  globalThis.fetch = async () => {
+    requests += 1;
+    const payload = requests <= 4
+      ? {
+          hotels: [{ hotelId: "hotel-a", hotelName: "Hotel A" }],
+          filteredHotelsCount: 2,
+          isLoadingCompleted: false,
+          nextOffset: 0,
+        }
+      : {
+          hotels: [
+            { hotelId: "hotel-a", hotelName: "Hotel A" },
+            { hotelId: "hotel-b", hotelName: "Hotel B" },
+          ],
+          filteredHotelsCount: 2,
+          isLoadingCompleted: true,
+          nextOffset: null,
+        };
+    return new Response(JSON.stringify({ payload }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    if (savedBaseUrl === undefined) delete process.env.TBANK_HOTELS_API_BASE_URL;
+    else process.env.TBANK_HOTELS_API_BASE_URL = savedBaseUrl;
+  });
+
+  const plan = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    checkinDate: "2099-12-16",
+    checkoutDate: "2099-12-17",
+    rooms: [{ adults: 2 }],
+  });
+  assert.equal(plan.searchCoverage.stoppedReason, "loading_poll_limit");
+  assert.equal(plan.searchCoverage.continuationAvailable, true);
+  const continuation = await callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId });
+  assert.equal(continuation.status, "ready");
+  assert.equal(continuation.totalOptions, 2);
+  assert.equal(continuation.searchCoverage.coverageLevel, "complete");
+  assert.equal(continuation.searchCoverage.continuationAvailable, false);
+  assert.equal(requests, 5);
+});
+
+test("resets a stale selection and suppresses automatic continuation after the first continuation", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const savedBaseUrl = process.env.TBANK_HOTELS_API_BASE_URL;
+  const offsets = [];
+  let secondPageAttempts = 0;
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-selection-reset.example.test/";
+  globalThis.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    offsets.push(body.offset);
+    if (body.offset === 0) {
+      return new Response(JSON.stringify({ payload: {
+        hotels: [{ hotelId: "renamed-hotel", hotelName: "Original Hotel" }],
+        filteredHotelsCount: 4,
+        isLoadingCompleted: false,
+        nextOffset: 1,
+      } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    if (body.offset === 1) {
+      secondPageAttempts += 1;
+      if (secondPageAttempts === 1) {
+        const error = new Error("simulated timeout");
+        error.name = "TimeoutError";
+        throw error;
+      }
+      return new Response(JSON.stringify({ payload: {
+        hotels: [
+          { hotelId: "renamed-hotel", hotelName: "Renamed Hotel" },
+          { hotelId: "hotel-b", hotelName: "Hotel B" },
+        ],
+        filteredHotelsCount: 4,
+        isLoadingCompleted: false,
+        nextOffset: 2,
+      } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    const error = new Error("simulated timeout");
+    error.name = "TimeoutError";
+    throw error;
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    if (savedBaseUrl === undefined) delete process.env.TBANK_HOTELS_API_BASE_URL;
+    else process.env.TBANK_HOTELS_API_BASE_URL = savedBaseUrl;
+  });
+
+  const plan = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 17039,
+    hotelName: "Original Hotel",
+    checkinDate: "2099-12-18",
+    checkoutDate: "2099-12-19",
+    rooms: [{ adults: 2 }],
+  });
+  await callTool("tbank_hotels_select_stay_option", {
+    journeyId: plan.journeyId,
+    optionId: plan.options[0].optionId,
+  });
+  const continuation = await callTool("tbank_hotels_continue_stay_search", { journeyId: plan.journeyId });
+  assert.equal(continuation.selectionReset, true);
+  assert.equal(continuation.searchCoverage.continuationAvailable, true);
+  assert.equal(continuation.searchCoverage.continuationRecommended, false);
+  assert.match(continuation.nextStep, /previously selected hotel is no longer present/);
+  const current = await callTool("tbank_hotels_get_stay_options", { journeyId: plan.journeyId });
+  assert.equal(current.selectedOptionId, null);
+  await assert.rejects(
+    callTool("tbank_hotels_get_selected_stay_rates", { journeyId: plan.journeyId }),
+    /Select one stay option/,
+  );
+  assert.deepEqual(offsets, [0, 1, 1, 2]);
 });
 
 test("rejects an invalid semantic stay plan before any provider call", async (t) => {

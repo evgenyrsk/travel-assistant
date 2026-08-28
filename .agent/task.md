@@ -1,16 +1,31 @@
 # Active task
 
-**Статус:** Cursor/Codex one-command installer published and verified
+**Статус:** resumable hotel-search checkpoint реализован, прошёл independent review и bounded live smoke; ожидается публикация
 
 ## Goal
 
-Подготовить experimental Hotels/Banking MCP toolstream к публичному
-read-only/preview-only выпуску: разделить крупные runtime-обязанности, сузить
-поставляемую Banking mobile-поверхность и добавить безопасный переход из
-выбранного journey в официальный checkout без передачи card data модели и без
-provider mutations.
+Сделать неполную provider-выборку Hotels MCP честной и безопасно
+возобновляемой: не считать усечённый результат финальным cache, продолжать тот
+же journey без повторной загрузки уже собранных страниц и сохранять жёсткий
+общий лимит нагрузки.
 
 ## Acceptance criteria
+
+- [x] `searchCoverage` различает `complete`, `substantial` и `partial`, сообщает
+  долю покрытия и доступность продолжения.
+- [x] Частичный поиск не сохраняется как финальный global cache result.
+- [x] Новый read-only tool продолжает существующий journey с сохранением
+  прежних `optionId` и без повторной загрузки первых страниц.
+- [x] Суммарно initial + continuation выполняют не более 20 provider search
+  requests; terminal pagination anomalies не повторяются.
+- [x] Tool guidance направляет естественный запрос «пять лучших» на одно
+  продолжение только при действительно низком покрытии.
+- [x] Hermetic tests, manifests, версии и активная документация синхронизированы.
+- [x] Natural-language Codex smoke принимает устойчивые LLM-алиасы plan input
+  без перебора provider contract и нормализует их в каноническую journey-форму.
+- [x] Bounded live smoke подтвердил обычный поиск, обязательный завтрак,
+  тарифы/preview/hosted checkout, customer summary и персонализированный поиск
+  с одним continuation; production writes не выполнялись.
 
 - [x] Hotels stdio entrypoint, tool schemas и runtime orchestration разделены
   без изменения существующих tool contracts.
@@ -41,10 +56,15 @@ provider mutations.
 ## Constraints
 
 - Hotels и Banking остаются раздельными MCP по ADR-0003/ADR-0004.
-- Не выполнять provider/live calls, production booking/payment/cancel/update.
+- После отдельного разрешения пользователя допустимы только bounded read-only и
+  preview-only provider/live calls; production booking/payment/cancel/update запрещены.
 - Не читать и не выводить секреты или платёжные реквизиты.
 - Не переносить internal API endpoints в публичную MCP-поверхность.
 - Не менять Kotlin backend и public Travel Assistant OpenAPI.
+- Автоматические проверки остаются fake/offline; live evidence фиксируется
+  отдельно и не подменяет hermetic regression gate.
+- Не превращать `complete` в обещание полного provider-каталога: это полнота
+  относительно reported filtered/total count конкретного search lifecycle.
 
 ## Out of scope
 
@@ -53,3 +73,4 @@ provider mutations.
 - Remote transport, Docker и OS credential store.
 - Утверждение фактической auth-схемы без bounded external evidence.
 - Активация raw-card, Banking `/v1/pay` или direct payment execution.
+- Remote transport и production mutation smoke.

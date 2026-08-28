@@ -5,7 +5,7 @@ import { readFileSync, statSync } from "node:fs";
 import { createConnection } from "node:net";
 import { isAbsolute } from "node:path";
 
-import { SERVER_NAME, SERVER_VERSION, MCP_PROTOCOL_VERSION, DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS, JOURNEY_TTL_MS, BOOKING_DRAFT_TTL_MS, CHECKOUT_VALIDATION_TTL_MS, PREPARED_CONFIRMATION_TTL_MS, AUTH_HEADER_NAME, SERVICE_JWT_REFRESH_MS, LOCATION_CACHE_TTL_MS, DEFAULT_PLAN_OPTIONS, MAX_PLAN_OPTIONS, MAX_ROOMS, MAX_ACTIVE_JOURNEYS, MAX_ACTIVE_BOOKING_DRAFTS, MAX_ACTIVE_BOOKING_REFERENCES, MAX_TRACKED_MUTATION_EXECUTIONS, MAX_LOCATION_CACHES, LOCATION_PAGE_SIZE, MAX_LOCATION_PAGES, LOCATION_COLLECTION_BUDGET_MS, MAX_PROVIDER_RESPONSE_BYTES, MAX_SERVICE_JWT_KEY_BYTES, SEARCH_PAGE_SIZE, MAX_SEARCH_REQUESTS, MAX_SEARCH_LOADING_POLLS, SEARCH_LOADING_POLL_DELAY_MS, SEARCH_COLLECTION_BUDGET_MS, MIN_SEARCH_REQUEST_BUDGET_MS, DEFAULT_MAX_PROVIDER_CONCURRENCY, MAX_PROVIDER_CONCURRENCY, MAX_PROVIDER_REQUEST_QUEUE, SEARCH_CACHE_TTL_MS, MAX_SEARCH_CACHE_ENTRIES, CHECKOUT_REQUEST_BUDGET_MS, CHECKOUT_FIRST_ATTEMPT_MS, RATES_REQUEST_BUDGET_MS, RATES_FIRST_ATTEMPT_MS, PAYMENT_FORM_CONTRACT_VERSION, PAYMENT_FORM_EXTERNAL_BLOCKERS } from "./config.mjs";
+import { SERVER_NAME, SERVER_VERSION, MCP_PROTOCOL_VERSION, DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS, JOURNEY_TTL_MS, BOOKING_DRAFT_TTL_MS, CHECKOUT_VALIDATION_TTL_MS, PREPARED_CONFIRMATION_TTL_MS, AUTH_HEADER_NAME, SERVICE_JWT_REFRESH_MS, LOCATION_CACHE_TTL_MS, DEFAULT_PLAN_OPTIONS, MAX_PLAN_OPTIONS, MAX_ROOMS, MAX_ACTIVE_JOURNEYS, MAX_ACTIVE_BOOKING_DRAFTS, MAX_ACTIVE_BOOKING_REFERENCES, MAX_TRACKED_MUTATION_EXECUTIONS, MAX_LOCATION_CACHES, LOCATION_PAGE_SIZE, MAX_LOCATION_PAGES, LOCATION_COLLECTION_BUDGET_MS, MAX_PROVIDER_RESPONSE_BYTES, MAX_SERVICE_JWT_KEY_BYTES, SEARCH_PAGE_SIZE, MAX_SEARCH_REQUESTS, MAX_SEARCH_LOADING_POLLS, SEARCH_LOADING_POLL_DELAY_MS, SEARCH_COLLECTION_BUDGET_MS, MIN_SEARCH_REQUEST_BUDGET_MS, SUBSTANTIAL_SEARCH_COVERAGE_RATIO, DEFAULT_MAX_PROVIDER_CONCURRENCY, MAX_PROVIDER_CONCURRENCY, MAX_PROVIDER_REQUEST_QUEUE, SEARCH_CACHE_TTL_MS, MAX_SEARCH_CACHE_ENTRIES, CHECKOUT_REQUEST_BUDGET_MS, CHECKOUT_FIRST_ATTEMPT_MS, RATES_REQUEST_BUDGET_MS, RATES_FIRST_ATTEMPT_MS, PAYMENT_FORM_CONTRACT_VERSION, PAYMENT_FORM_EXTERNAL_BLOCKERS } from "./config.mjs";
 import { hostedCheckoutTarget } from "./checkout-handoff.mjs";
 import { SEARCH_FILTER_IDS, tools } from "./tool-contracts.mjs";
 const journeysById = new Map();
@@ -14,6 +14,7 @@ const bookingReferencesById = new Map();
 const mutationExecutionsByHash = new Map();
 const hotelSearchCacheByKey = new Map();
 const inFlightHotelSearchByKey = new Map();
+const inFlightJourneySearchContinuations = new Map();
 let cachedServiceJwt;
 const locationCatalogByCountry = new Map();
 let authBrokerConnector = createConnection;
@@ -816,8 +817,12 @@ function dateOnly(value, name) {
 
 function validatedPlanInput(args) {
   requestObject(args, "arguments");
-  assertOnlyKeys(args, ["destination", "destinationId", "countryName", "checkinDate", "checkoutDate", "rooms", "hotelName", "breakfastIncluded", "hotelPreferences", "ranking", "maxOptions", "language"], "arguments");
-  const destination = typeof args.destination === "string" ? args.destination.trim() : "";
+  assertOnlyKeys(args, ["destination", "location", "destinationId", "countryName", "checkinDate", "checkoutDate", "rooms", "guests", "hotelName", "breakfastIncluded", "hotelPreferences", "ranking", "maxOptions", "limit", "language"], "arguments");
+  if (args.destination !== undefined && args.location !== undefined) throw new Error("Use either destination or its compatibility alias location, not both.");
+  if (args.rooms !== undefined && args.guests !== undefined) throw new Error("Use either rooms or its compatibility alias guests, not both.");
+  if (args.maxOptions !== undefined && args.limit !== undefined) throw new Error("Use either maxOptions or its compatibility alias limit, not both.");
+  const destinationValue = args.destination ?? args.location;
+  const destination = typeof destinationValue === "string" ? destinationValue.trim() : "";
   const destinationId = args.destinationId;
   if (!destination && (!Number.isInteger(destinationId) || destinationId <= 0)) throw new Error("Provide destination as a location name or a positive destinationId from destination resolution.");
   if (destination && destination.length > 200) throw new Error("destination must not exceed 200 characters.");
@@ -828,15 +833,20 @@ function validatedPlanInput(args) {
   const today = new Date();
   const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
   if (checkin < todayUtc) throw new Error("checkinDate must not be in the past.");
-  if (!Array.isArray(args.rooms) || args.rooms.length < 1 || args.rooms.length > MAX_ROOMS) throw new Error(`rooms must contain 1 to ${MAX_ROOMS} rooms.`);
-  const rooms = args.rooms.map((room, index) => {
+  const roomValues = args.rooms ?? args.guests;
+  if (!Array.isArray(roomValues) || roomValues.length < 1 || roomValues.length > MAX_ROOMS) throw new Error(`rooms must contain 1 to ${MAX_ROOMS} rooms.`);
+  const rooms = roomValues.map((room, index) => {
     requestObject(room, `rooms[${index}]`);
-    if (!Number.isInteger(room.adults) || room.adults < 1 || room.adults > 16) throw new Error(`rooms[${index}].adults must be an integer from 1 to 16.`);
-    const childrenAges = room.childrenAges ?? [];
+    assertOnlyKeys(room, ["adults", "adultsCount", "childrenAges", "childrenAge"], `rooms[${index}]`);
+    if (room.adults !== undefined && room.adultsCount !== undefined) throw new Error(`rooms[${index}] must use either adults or adultsCount, not both.`);
+    if (room.childrenAges !== undefined && room.childrenAge !== undefined) throw new Error(`rooms[${index}] must use either childrenAges or childrenAge, not both.`);
+    const adults = room.adults ?? room.adultsCount;
+    if (!Number.isInteger(adults) || adults < 1 || adults > 16) throw new Error(`rooms[${index}].adults must be an integer from 1 to 16.`);
+    const childrenAges = room.childrenAges ?? room.childrenAge ?? [];
     if (!Array.isArray(childrenAges) || childrenAges.length > 16 || childrenAges.some((age) => !Number.isInteger(age) || age < 0 || age > 17)) {
       throw new Error(`rooms[${index}].childrenAges must contain at most 16 integer ages from 0 to 17.`);
     }
-    return { adults: room.adults, childrenAges: [...childrenAges] };
+    return { adults, childrenAges: [...childrenAges] };
   });
   const hotelName = args.hotelName == null ? null : String(args.hotelName).trim();
   if (args.hotelName != null && (!hotelName || hotelName.length > 250)) throw new Error("hotelName must contain 1 to 250 characters.");
@@ -873,7 +883,7 @@ function validatedPlanInput(args) {
     breakfastIncluded: args.breakfastIncluded === true,
     hotelPreferences: hotelPreferencesValue,
     ranking,
-    maxOptions: boundedInteger(args.maxOptions, "maxOptions", DEFAULT_PLAN_OPTIONS, 1, MAX_PLAN_OPTIONS),
+    maxOptions: boundedInteger(args.maxOptions ?? args.limit, "maxOptions", DEFAULT_PLAN_OPTIONS, 1, MAX_PLAN_OPTIONS),
     language: args.language,
   };
 }
@@ -1322,16 +1332,49 @@ function optionalCount(value) {
   return Number.isInteger(value) && value >= 0 ? value : null;
 }
 
-async function collectHotelSearchUncached(searchRequest, ranking, language) {
-  const hotelsByKey = new Map();
-  const visitedOffsets = new Set([0]);
+function searchCoverageMetadata({ hotelsCount, hotelsTotalCount, filteredHotelsCount, isLoadingCompleted, requestCount, ranking, stoppedReason }) {
+  const expectedCount = filteredHotelsCount ?? hotelsTotalCount;
+  const coverageRatio = expectedCount === null || expectedCount === 0
+    ? null
+    : Number(Math.min(1, hotelsCount / expectedCount).toFixed(4));
+  const truncated = stoppedReason !== null || !isLoadingCompleted || (expectedCount !== null && hotelsCount < expectedCount);
+  const continuationAvailable = truncated
+    && requestCount < MAX_SEARCH_REQUESTS
+    && (stoppedReason === "time_budget" || stoppedReason === "loading_poll_limit");
+  const coverageLevel = !truncated
+    ? "complete"
+    : coverageRatio !== null && coverageRatio >= SUBSTANTIAL_SEARCH_COVERAGE_RATIO
+      ? "substantial"
+      : "partial";
+  return {
+    fetchedHotelsCount: hotelsCount,
+    hotelsTotalCount,
+    filteredHotelsCount,
+    isLoadingCompleted,
+    truncated,
+    coverageLevel,
+    coverageRatio,
+    continuationAvailable,
+    continuationRecommended: continuationAvailable && coverageLevel === "partial",
+    requestCount,
+    maxRequestCount: MAX_SEARCH_REQUESTS,
+    providerSort: null,
+    rankingAppliedLocally: ranking,
+    stoppedReason,
+  };
+}
+
+async function collectHotelSearchUncached(searchRequest, ranking, language, previousSearch = null) {
+  const hotelsByKey = new Map((previousSearch?.hotels ?? []).map((hotel) => [hotelDeduplicationKey(hotel), hotel]));
+  const previousContinuation = previousSearch?.continuationState ?? null;
+  const visitedOffsets = new Set(previousContinuation?.visitedOffsets ?? [0]);
   const startedAt = Date.now();
-  let offset = 0;
-  let requestCount = 0;
+  let offset = previousContinuation?.offset ?? 0;
+  let requestCount = previousContinuation?.requestCount ?? 0;
   let loadingPolls = 0;
-  let isLoadingCompleted = false;
-  let hotelsTotalCount = null;
-  let filteredHotelsCount = null;
+  let isLoadingCompleted = previousContinuation?.isLoadingCompleted ?? false;
+  let hotelsTotalCount = previousContinuation?.hotelsTotalCount ?? null;
+  let filteredHotelsCount = previousContinuation?.filteredHotelsCount ?? null;
   let stoppedReason = null;
 
   while (requestCount < MAX_SEARCH_REQUESTS) {
@@ -1402,21 +1445,26 @@ async function collectHotelSearchUncached(searchRequest, ranking, language) {
 
   if (requestCount >= MAX_SEARCH_REQUESTS && !isLoadingCompleted && stoppedReason === null) stoppedReason = "request_limit";
   const hotels = [...hotelsByKey.values()];
-  const expectedCount = filteredHotelsCount ?? hotelsTotalCount;
-  const truncated = stoppedReason !== null || !isLoadingCompleted || (expectedCount !== null && hotels.length < expectedCount);
+  const metadata = searchCoverageMetadata({
+    hotelsCount: hotels.length,
+    hotelsTotalCount,
+    filteredHotelsCount,
+    isLoadingCompleted,
+    requestCount,
+    ranking,
+    stoppedReason,
+  });
   return {
     hotels,
-    metadata: {
-      fetchedHotelsCount: hotels.length,
+    metadata,
+    continuationState: metadata.continuationAvailable ? {
+      offset,
+      visitedOffsets: [...visitedOffsets],
+      requestCount,
+      isLoadingCompleted,
       hotelsTotalCount,
       filteredHotelsCount,
-      isLoadingCompleted,
-      truncated,
-      requestCount,
-      providerSort: null,
-      rankingAppliedLocally: ranking,
-      stoppedReason,
-    },
+    } : null,
   };
 }
 
@@ -1438,6 +1486,7 @@ function collectedSearchCopy(search, cacheStatus, ranking) {
   return {
     hotels: structuredClone(search.hotels),
     metadata: { ...search.metadata, rankingAppliedLocally: ranking, cacheStatus },
+    continuationState: search.continuationState ? structuredClone(search.continuationState) : null,
   };
 }
 
@@ -1456,14 +1505,47 @@ async function collectHotelSearch(searchRequest, ranking, language) {
   inFlightHotelSearchByKey.set(key, pending);
   try {
     const search = await pending;
-    storeBounded(hotelSearchCacheByKey, key, {
-      expiresAt: Date.now() + SEARCH_CACHE_TTL_MS,
-      search: collectedSearchCopy(search, "stored", ranking),
-    }, MAX_SEARCH_CACHE_ENTRIES);
+    if (!search.metadata.truncated) {
+      storeBounded(hotelSearchCacheByKey, key, {
+        expiresAt: Date.now() + SEARCH_CACHE_TTL_MS,
+        search: collectedSearchCopy(search, "stored", ranking),
+      }, MAX_SEARCH_CACHE_ENTRIES);
+    }
     return collectedSearchCopy(search, "miss", ranking);
   } finally {
     inFlightHotelSearchByKey.delete(key);
   }
+}
+
+function updateJourneySearchOptions(journey, search) {
+  const existingOptions = new Map(journey.options.map((option) => [hotelDeduplicationKey(option.hotel), option]));
+  const nameMatch = hotelsByName(search.hotels, journey.planInput.hotelName);
+  journey.searchHotels = search.hotels;
+  journey.searchMetadata = search.metadata;
+  journey.searchContinuationState = search.continuationState;
+  journey.options = nameMatch.hotels.map((hotel) => {
+    const existing = existingOptions.get(hotelDeduplicationKey(hotel));
+    return existing ? { ...existing, hotel } : { optionId: randomUUID(), hotel };
+  });
+  const selectionReset = journey.selectedOptionId !== null
+    && !journey.options.some((option) => option.optionId === journey.selectedOptionId);
+  if (selectionReset) {
+    journey.selectedOptionId = null;
+    journey.rateOptions = [];
+    journey.selectedRateOptionId = null;
+  }
+  journey.lastComparison = null;
+  return { ...nameMatch, selectionReset };
+}
+
+function cacheCompletedHotelSearch(searchRequest, language, search) {
+  if (search.metadata.truncated) return;
+  resetSearchCacheForChangedTransport();
+  const key = hotelSearchCacheKey(searchRequest, language);
+  storeBounded(hotelSearchCacheByKey, key, {
+    expiresAt: Date.now() + SEARCH_CACHE_TTL_MS,
+    search: collectedSearchCopy(search, "stored", search.metadata.rankingAppliedLocally),
+  }, MAX_SEARCH_CACHE_ENTRIES);
 }
 
 async function planStay(args) {
@@ -1540,7 +1622,20 @@ async function planStay(args) {
   const journeyId = randomUUID();
   const expiresAt = Date.now() + JOURNEY_TTL_MS;
   const options = nameMatch.hotels.map((hotel) => ({ optionId: randomUUID(), hotel }));
-  storeBounded(journeysById, journeyId, { expiresAt, searchRequest, searchMetadata: search.metadata, planInput: input, destination, language: input.language, options, selectedOptionId: null, rateOptions: [], selectedRateOptionId: null }, MAX_ACTIVE_JOURNEYS);
+  storeBounded(journeysById, journeyId, {
+    expiresAt,
+    searchRequest,
+    searchHotels: search.hotels,
+    searchMetadata: search.metadata,
+    searchContinuationState: search.continuationState,
+    planInput: input,
+    destination,
+    language: input.language,
+    options,
+    selectedOptionId: null,
+    rateOptions: [],
+    selectedRateOptionId: null,
+  }, MAX_ACTIVE_JOURNEYS);
   const stayNights = stayNightCount(input.checkinDate, input.checkoutDate);
   const displayedOptions = rankedOptions(options, input.ranking, input.hotelPreferences, stayNights).slice(0, input.maxOptions);
   return {
@@ -1558,8 +1653,114 @@ async function planStay(args) {
     stayNights,
     searchCoverage: search.metadata,
     options: displayedOptions.map((option) => presentedStayOption(option, options, input.hotelPreferences, input.ranking, stayNights)),
+    nextStep: search.metadata.continuationRecommended
+      ? "Call tbank_hotels_continue_stay_search once before comparing the best options. Do not restart plan_stay or use low-level search tools."
+      : "Compare the current journey options. If coverageLevel=substantial, state that ranking covers a substantial but incomplete provider sample; continue only when the user explicitly asks for a more exhaustive search.",
     note: "Контекст хранится только в текущем MCP-процессе до expiresAt и не содержит токен или auth headers. Provider shownPrice — полная цена поездки; pricePerNightDisplay вычислен MCP делением на stayNights. preferencesApplied.applied=true — единственное основание утверждать, что Banking-профиль применён. conditionsApplied подтверждает provider-фильтр ко всей journey; утверждайте включение завтрака в показанную цену только при displayedPriceBreakfastEvidence=confirmed_by_meal_name.",
   };
+}
+
+async function continueStaySearchUncoalesced(args) {
+  const journey = journeyById(args.journeyId);
+  if (!journey.searchContinuationState) {
+    return {
+      status: journey.searchMetadata.truncated ? "continuation_unavailable" : "already_complete",
+      journeyId: args.journeyId,
+      totalOptions: journey.options.length,
+      searchCoverage: journey.searchMetadata,
+      retryAllowed: false,
+      nextStep: journey.searchMetadata.truncated
+        ? "Use the current bounded sample and disclose its coverage. Do not restart or retry the provider search automatically."
+        : "The collected provider search lifecycle is complete; compare the current journey options.",
+    };
+  }
+  const previousOptionIds = new Set(journey.options.map((option) => option.optionId));
+  let search;
+  try {
+    search = await collectHotelSearchUncached(
+      journey.searchRequest,
+      journey.planInput.ranking,
+      journey.language,
+      { hotels: journey.searchHotels, continuationState: journey.searchContinuationState },
+    );
+  } catch (error) {
+    if (!providerConditionFailure(error)) throw error;
+    const failure = providerConditionUnavailable(error, requiredStayConditions(journey.planInput));
+    journey.searchContinuationState = null;
+    journey.searchMetadata = {
+      ...journey.searchMetadata,
+      continuationAvailable: false,
+      continuationRecommended: false,
+      stoppedReason: "continuation_provider_failure",
+    };
+    return {
+      status: "continuation_unavailable",
+      reason: failure.reason,
+      journeyId: args.journeyId,
+      totalOptions: journey.options.length,
+      searchCoverage: journey.searchMetadata,
+      retryAllowed: false,
+      nextStep: "Use the already collected bounded sample and disclose its coverage. Do not retry, restart plan_stay, or use low-level search tools automatically.",
+    };
+  }
+  search.metadata = {
+    ...search.metadata,
+    cacheStatus: "continued",
+    continuationRecommended: false,
+  };
+  const { selectionReset } = updateJourneySearchOptions(journey, search);
+  cacheCompletedHotelSearch(journey.searchRequest, journey.language, search);
+  const stayNights = stayNightCount(journey.planInput.checkinDate, journey.planInput.checkoutDate);
+  const displayedOptions = rankedOptions(
+    journey.options,
+    journey.planInput.ranking,
+    journey.planInput.hotelPreferences,
+    stayNights,
+  ).slice(0, journey.planInput.maxOptions);
+  const addedOptions = journey.options.filter((option) => !previousOptionIds.has(option.optionId)).length;
+  return {
+    status: "ready",
+    journeyId: args.journeyId,
+    expiresAt: new Date(journey.expiresAt).toISOString(),
+    resolvedDestination: journey.destination,
+    ranking: journey.planInput.ranking,
+    preferencesApplied: appliedHotelPreferences(journey.planInput),
+    requiredConditions: requiredStayConditions(journey.planInput),
+    conditionsApplied: appliedStayConditions(journey.planInput),
+    addedOptions,
+    selectionReset,
+    totalOptions: journey.options.length,
+    returnedOptions: displayedOptions.length,
+    stayNights,
+    searchCoverage: journey.searchMetadata,
+    options: displayedOptions.map((option) => presentedStayOption(
+      option,
+      journey.options,
+      journey.planInput.hotelPreferences,
+      journey.planInput.ranking,
+      stayNights,
+    )),
+    nextStep: selectionReset
+      ? "The previously selected hotel is no longer present in the refreshed provider result. Ask the user to select a current option when options remain; otherwise ask whether to start a new plan without the exact hotelName filter."
+      : journey.searchMetadata.continuationAvailable
+        ? "Compare the current journey options now. continuationRecommended is false after the first continuation; continue again only after an explicit user request for a more exhaustive search."
+        : "Compare the current journey options. Disclose substantial coverage when coverageLevel is not complete.",
+  };
+}
+
+async function continueStaySearch(args) {
+  requestObject(args, "arguments");
+  assertOnlyKeys(args, ["journeyId"], "arguments");
+  if (typeof args.journeyId !== "string" || !args.journeyId) throw new Error("journeyId must be a non-empty string.");
+  const existing = inFlightJourneySearchContinuations.get(args.journeyId);
+  if (existing) return structuredClone(await existing);
+  const pending = continueStaySearchUncoalesced(args);
+  inFlightJourneySearchContinuations.set(args.journeyId, pending);
+  try {
+    return await pending;
+  } finally {
+    inFlightJourneySearchContinuations.delete(args.journeyId);
+  }
 }
 
 function getStayOptions(args) {
@@ -2486,6 +2687,7 @@ const directToolHandlers = new Map([
     }
     return planStay(args);
   }],
+  ["tbank_hotels_continue_stay_search", (args) => continueStaySearch(args)],
   ["tbank_hotels_get_stay_options", (args) => getStayOptions(args)],
   ["tbank_hotels_compare_stay_options", (args) => compareStayOptions(args)],
   ["tbank_hotels_select_stay_option", (args) => selectStayOption(args)],
