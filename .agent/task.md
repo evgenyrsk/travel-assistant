@@ -1,6 +1,6 @@
 # Active task
 
-**Статус:** resumable hotel-search checkpoint реализован, прошёл independent review и bounded live smoke; ожидается публикация
+**Статус:** resumable hotel-search checkpoint опубликован и проверен из public registries
 
 ## Goal
 

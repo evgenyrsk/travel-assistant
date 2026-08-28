@@ -30,6 +30,6 @@
 | Зафиксировать resumable search coverage contract | completed |
 | Реализовать continuation state и partial-cache policy | completed |
 | Добавить tool schemas/guidance и hermetic regression tests | completed; 71/71 после review hardening конфликтных aliases и room schema |
-| Опубликовать Hotels 0.29.0 и toolkit 0.15.0, затем проверить fresh install | pending; следующий release gate |
+| Опубликовать Hotels 0.29.0 и toolkit 0.15.0, затем проверить fresh install | completed; npm latest подтверждён, Hotels initialize и combined Codex/OpenCode registration проверены из public registries |
 | Синхронизировать версии, manifests и документацию | completed |
 | Пройти independent review и полный offline release gate | completed; P3 hardening закрыт, финальный gate повторён |

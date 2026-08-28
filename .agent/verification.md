@@ -32,3 +32,6 @@
 | Resumable search full offline gate | yes | toolkit 21/21 + Hotels 71/71 + Banking 52/52 passed after final review hardening; manifests/conformance passed, provider requests 0 |
 | npm publish dry-run 0.29.0/0.15.0 | yes | passed with temporary isolated npm caches; Hotels contains 8 allowlisted files, toolkit contains 9 allowlisted files |
 | Bounded current-worktree live smoke | yes | passed on Hotels 0.29.0 / Banking 0.17.0: Moscow search, breakfast search, rates + booking/payment preview + hosted checkout, anonymized booking summary, portfolio profile + personalized Kazan search with exactly one continuation; no writes/PII/card data |
+| Public release 0.29.0/0.15.0 | yes | npm registry metadata reports both versions as latest; fresh install outside checkout passed |
+| Public fresh Hotels initialize | yes | installed server returned serverVersion 0.29.0 and alias-aware instructions; no provider request |
+| Public combined Codex/OpenCode | yes | isolated HOME registrations contain Hotels and Banking from npm/PyPI; OpenCode connected both MCP with local broker, mobile login skipped, provider requests 0 |

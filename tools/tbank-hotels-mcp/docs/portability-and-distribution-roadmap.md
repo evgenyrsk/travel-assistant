@@ -5,9 +5,10 @@
 MCP-клиентам и приложениям. Документ не меняет основной product roadmap,
 hotel-only MVP или порядок этапов Kotlin backend.
 
-**Статус:** `In progress`. Локальный toolkit `0.15.0` закрыл локальную
-установку, раздельное/совместное подключение и versioned contracts без
-активации remote transport или execution capabilities.
+**Статус:** `In progress`. Опубликованный toolkit `0.15.0` закрыл локальную
+установку, раздельное/совместное подключение и versioned contracts; public
+fresh-install проверен в Codex/OpenCode без активации remote transport или
+execution capabilities.
 
 **Принятое решение от 2026-08-24:** сначала довести и стабилизировать локальный
 read-only/preview-only MCP, затем выпустить воспроизводимый локальный `stdio`
@@ -270,10 +271,10 @@ recovery, audit trail и kill switch; production activation разрешаетс
    presentation facts и локальные artifact candidates.
 4. [x] Провести повторный независимый review текущих Hotels/Banking/broker
    изменений и закрыть release-blocking findings.
-5. [ ] Current-worktree Codex smoke пройден для обычного/breakfast поиска,
-   preview/handoff, customer summary и Banking-personalized flow. После
-   публикации повторить короткий fresh-install smoke в Codex и OpenCode;
-   Claude Code не входит в текущую acceptance matrix.
+5. [x] Current-worktree Codex smoke пройден для обычного/breakfast поиска,
+   preview/handoff, customer summary и Banking-personalized flow. Public
+   fresh-install и combined registration проверены в Codex/OpenCode; Claude
+   Code не входит в текущую acceptance matrix.
 6. [ ] Завершить P1–P3 до объявления portable release: fresh-machine install,
    macOS/Linux/client matrix, secure storage, checksums, SBOM и provenance.
 7. [ ] P4–P5 начинать отдельными задачами; P6 не следует автоматически ни из

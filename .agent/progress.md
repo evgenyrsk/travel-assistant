@@ -160,6 +160,12 @@ read-only/preview-only release.
 - Harness finding: initial ephemeral override запускал managed published runtime
   вместо working tree; current-worktree smoke закреплён явным executable
   override и подтверждён `connection_status.serverVersion=0.29.0`.
+- `tbank-hotels-mcp@0.29.0` и `tbank-mcp-local@0.15.0` опубликованы в npm с
+  dist-tag `latest`; registry metadata подтверждён.
+- Fresh install вне checkout подтвердил обе версии и Hotels initialize
+  `serverVersion=0.29.0`. Hotels-only и combined one-command registration
+  прошли в изолированных Codex/OpenCode HOME; combined использовал публичный
+  Banking wheel `0.17.0`, mobile login был пропущен, provider requests 0.
 
 ## Blocker
 
@@ -169,6 +175,6 @@ evidence. Это не блокирует read-only/preview-only выпуск и 
 
 ## Next action
 
-Провести короткий focused review добавленного compatibility boundary,
-опубликовать `0.29.0/0.15.0`, затем проверить fresh install и естественные
-Codex/OpenCode requests уже из registry runtime.
+Release checkpoint завершён. Следующая отдельная задача — выбрать следующий
+portable-release gate (client/OS matrix, checksums/SBOM/provenance либо remote
+transport design); booking/payment execution остаётся отдельным `NO-GO`.

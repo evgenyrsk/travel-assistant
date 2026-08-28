@@ -1441,8 +1441,15 @@ rates, booking/payment previews, hosted checkout, обезличенную custo
 и персонализированный поиск. Казанский поиск начал с partial coverage 100/144,
 выполнил ровно один continuation и корректно остановился без автоматического
 цикла; профиль был применён с `preferencesApplied.applied=true`. Booking,
-payment и cancel writes, PII и card data не выполнялись. Следующий gate —
-registry publication `0.29.0/0.15.0` и fresh-install проверка.
+payment и cancel writes, PII и card data не выполнялись.
+
+`tbank-hotels-mcp@0.29.0` и `tbank-mcp-local@0.15.0` опубликованы в public npm
+registry с dist-tag `latest`. Fresh install вне checkout подтвердил package
+metadata и Hotels initialize `serverVersion=0.29.0`. Изолированные Codex и
+OpenCode HOME прошли Hotels-only и combined registration; combined profile
+установил публичный Banking wheel `0.17.0`, mobile login был пропущен, provider
+requests не выполнялись. Следующий отдельный gate — portability hardening;
+booking/payment execution остаётся `NO-GO`.
 
 Финальный Qwen-аудит предыдущего checkpoint не выявил P0–P2 и подтвердил
 готовность read-only и preview-only tiers. Follow-up закрыл четыре P3: version
