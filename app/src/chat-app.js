@@ -5,6 +5,7 @@ import {
   formatAppliedPreferences,
   OFFER_RANKING_EXPLANATION,
   renderOfferCardMarkup,
+  SEMANTIC_OFFER_RANKING_EXPLANATION,
   toErrorMessage,
 } from "./offer-view.js";
 import { renderHotelDetailsMarkup } from "./hotel-details-view.js";
@@ -80,14 +81,14 @@ function appendMessage(role, author, content) {
   article.scrollIntoView({ block: "nearest" });
 }
 
-function renderOffers({ offers, totalCount, appliedPreferences }) {
+function renderOffers({ offers, totalCount, appliedPreferences, searchStatus, analysis }) {
   elements.results.replaceChildren();
   elements.resultsCount.textContent = String(offers.length);
   const preferenceSummary = formatAppliedPreferences(appliedPreferences);
 
   if (offers.length === 0) {
     elements.emptyState.hidden = false;
-    elements.emptyState.textContent = "По текущим параметрам предложения не найдены.";
+    elements.emptyState.textContent = emptyStateMessage(searchStatus);
     elements.resultsSummary.hidden = !preferenceSummary;
     elements.resultsSummary.textContent = preferenceSummary
       ? `Применённые условия: ${preferenceSummary}.`
@@ -100,9 +101,15 @@ function renderOffers({ offers, totalCount, appliedPreferences }) {
   const countSummary = totalCount > offers.length
     ? `Показаны ${offers.length} лучших предложений из ${totalCount}.`
     : `Показаны все предложения: ${offers.length}.`;
+  const partialSummary = analysis?.status === "partial"
+    ? "Часть расширенных сведений была недоступна; показаны подтверждённые результаты coarse-анализа. "
+    : "";
+  const rankingExplanation = appliedPreferences?.accommodationConcept === "glamping"
+    ? SEMANTIC_OFFER_RANKING_EXPLANATION
+    : OFFER_RANKING_EXPLANATION;
   elements.resultsSummary.textContent = preferenceSummary
-    ? `${countSummary} Применённые условия: ${preferenceSummary}. ${OFFER_RANKING_EXPLANATION}`
-    : `${countSummary} ${OFFER_RANKING_EXPLANATION}`;
+    ? `${countSummary} ${partialSummary}Применённые условия: ${preferenceSummary}. ${rankingExplanation}`
+    : `${countSummary} ${partialSummary}${rankingExplanation}`;
 
   offers.forEach((offer, index) => {
     const article = document.createElement("article");
@@ -117,6 +124,17 @@ function renderOffers({ offers, totalCount, appliedPreferences }) {
     image?.addEventListener("error", () => showOfferImageFallback(article), { once: true });
     elements.results.append(article);
   });
+}
+
+function emptyStateMessage(searchStatus) {
+  switch (searchStatus) {
+    case "completed_no_semantic_matches":
+      return "Среди найденных вариантов не удалось подтвердить соответствие запросу «глемпинг».";
+    case "failed":
+      return "Не удалось выполнить semantic-анализ. Обычные отели не показаны.";
+    default:
+      return "По текущим параметрам предложения не найдены.";
+  }
 }
 
 function showOfferImageFallback(card) {

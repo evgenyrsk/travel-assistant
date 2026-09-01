@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   buildBackendProcessEnvironment,
   buildProfileEnvironment,
+  formatRuntimeModes,
   isPortAvailable,
   parseArguments,
   parseEnvContent,
@@ -64,6 +65,7 @@ test("imports only launcher configuration from the env file", () => {
   assert.deepEqual(
     selectDemoFileValues({
       OPENROUTER_MODEL: "provider/model",
+      ACCOMMODATION_ANALYSIS_MODE: "OPENROUTER",
       NODE_OPTIONS: "--require=/tmp/untrusted.js",
       BASH_ENV: "/tmp/untrusted.sh",
     }),
@@ -75,14 +77,39 @@ test("fake profile overrides modes and removes OpenRouter key", () => {
   const environment = buildProfileEnvironment("fake", {
     LLM_PROVIDER_MODE: "OPENROUTER",
     HOTEL_PROVIDER_MODE: "REAL",
+    ACCOMMODATION_ANALYSIS_MODE: "OPENROUTER",
     OPENROUTER_API_KEY: "must-not-propagate",
   });
 
   assert.equal(environment.LLM_PROVIDER_MODE, "FAKE");
   assert.equal(environment.HOTEL_PROVIDER_MODE, "FAKE");
+  assert.equal(environment.ACCOMMODATION_ANALYSIS_MODE, "FAKE");
   assert.equal(environment.OPENROUTER_API_KEY, undefined);
   assert.equal(environment.OPENROUTER_RUNTIME_QA_ENABLED, "false");
   assert.equal(environment.HOTELS_API_RUNTIME_QA_ENABLED, "false");
+});
+
+test("real profile keeps semantic analysis fake and reports three safe modes", () => {
+  const secret = "local-super-secret";
+  const model = "provider/private-model";
+  const environment = buildProfileEnvironment("real", {
+    OPENROUTER_API_KEY: secret,
+    OPENROUTER_MODEL: model,
+    ACCOMMODATION_ANALYSIS_MODE: "OPENROUTER",
+    ACCOMMODATION_ANALYSIS_EXTERNAL_CONTENT_APPROVED: "true",
+  });
+
+  assert.equal(environment.LLM_PROVIDER_MODE, "OPENROUTER");
+  assert.equal(environment.HOTEL_PROVIDER_MODE, "REAL");
+  assert.equal(environment.ACCOMMODATION_ANALYSIS_MODE, "FAKE");
+
+  const summary = formatRuntimeModes(environment);
+  assert.equal(
+    summary,
+    "Runtime modes: LLM=OPENROUTER, Hotels=REAL, Semantic=FAKE",
+  );
+  assert.equal(summary.includes(secret), false);
+  assert.equal(summary.includes(model), false);
 });
 
 test("real profile fails closed without credentials and never reveals a key", () => {

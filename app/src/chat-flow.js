@@ -1,4 +1,7 @@
 export const MAX_PRESENTED_OFFERS = 5;
+export const SEMANTIC_POLL_MIN_MILLIS = 1_000;
+export const SEMANTIC_POLL_MAX_MILLIS = 3_000;
+export const SEMANTIC_POLL_TIMEOUT_MILLIS = 120_000;
 
 export function createChatFlow({
   api,
@@ -7,6 +10,8 @@ export function createChatFlow({
   onAssistantMessage = () => {},
   onStatus = () => {},
   onOffers = () => {},
+  wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  now = () => Date.now(),
 }) {
   let sessionId;
   let activeHotelSearchId;
@@ -76,7 +81,25 @@ export function createChatFlow({
     }
 
     onStatus("Загружаю предложения отелей...", "loading");
-    const result = await api.getHotelOffers(hotelSearchId);
+    const pollingStartedAt = now();
+    let result = await api.getHotelOffers(hotelSearchId);
+    let pollDelay = toPollDelay(result?.metadata?.analysis?.pollAfterMillis);
+
+    while (result?.status === "searching") {
+      const elapsed = now() - pollingStartedAt;
+      if (elapsed >= SEMANTIC_POLL_TIMEOUT_MILLIS) {
+        throw new Error("Semantic-анализ не завершился за 120 секунд. Попробуйте новый поиск.");
+      }
+
+      onStatus("Анализирую найденные варианты размещения...", "loading");
+      await wait(Math.min(pollDelay, SEMANTIC_POLL_TIMEOUT_MILLIS - elapsed));
+      result = await api.getHotelOffers(hotelSearchId);
+      pollDelay = Math.min(
+        SEMANTIC_POLL_MAX_MILLIS,
+        Math.max(SEMANTIC_POLL_MIN_MILLIS, Math.round(pollDelay * 1.5)),
+      );
+    }
+
     const allOffers = Array.isArray(result?.offers) ? result.offers : [];
     const offers = allOffers.slice(0, MAX_PRESENTED_OFFERS);
     const refinementSuggestion = toRefinementSuggestion(result?.refinementSuggestion);
@@ -88,17 +111,43 @@ export function createChatFlow({
       hotelSearchId,
       appliedPreferences: result?.appliedPreferences,
       refinementSuggestion,
+      searchStatus: result?.status,
+      analysis: result?.metadata?.analysis,
     });
-    if (allOffers.length === 0 && refinementSuggestion) {
+    if (result?.status === "completed_no_offers" && refinementSuggestion) {
       onAssistantMessage(refinementSuggestion.message);
     }
+
+    if (result?.status === "failed") {
+      onStatus(
+        "Semantic-анализ недоступен. Обычные отели не показаны.",
+        "error",
+      );
+      return;
+    }
+
     onStatus(
-      allOffers.length === 0
-        ? "Поиск завершён без предложений."
-        : `Показано предложений: ${offers.length}.`,
+      result?.status === "completed_no_semantic_matches"
+        ? "Поиск завершён без подтверждённых semantic-совпадений."
+        : allOffers.length === 0
+          ? "Поиск завершён без предложений."
+          : result?.metadata?.analysis?.status === "partial"
+            ? `Показано предложений: ${offers.length}. Анализ выполнен частично.`
+            : `Показано предложений: ${offers.length}.`,
       allOffers.length === 0 ? "idle" : "success",
     );
   }
+}
+
+function toPollDelay(value) {
+  if (!Number.isFinite(value)) {
+    return SEMANTIC_POLL_MIN_MILLIS;
+  }
+
+  return Math.min(
+    SEMANTIC_POLL_MAX_MILLIS,
+    Math.max(SEMANTIC_POLL_MIN_MILLIS, Math.round(value)),
+  );
 }
 
 function toRefinementSuggestion(value) {

@@ -8,9 +8,9 @@ Roadmap не является трекером задач, продуктово�
 
 | Пункт | Статус |
 |---|---|
-| Текущий этап | Stage 15 завершён; следующий этап не активирован |
-| Последний завершенный этап | Stage 15.4 — operational contract, conformance и runbook |
-| Следующий планируемый шаг | Выбрать отдельную явную roadmap-aligned задачу без автоматической активации нового этапа |
+| Текущий этап | Нет активного implementation stage; Stage 17.0 corporate semantic portability завершён, REAL activation заблокирована |
+| Последний завершенный этап | Stage 17.0 — internal gateway contract, adapter и corporate transfer readiness без REAL calls |
+| Следующий планируемый шаг | Не активирован; corporate platform intake и model shortlist требуют доступных deployment constraints и отдельной задачи |
 | Источник подробных статусов | Только этот документ: `docs/roadmap/roadmap.md` |
 
 | Область | Текущее состояние |
@@ -66,6 +66,8 @@ Roadmap не является трекером задач, продуктово�
 | Stage 13 | Завершен | Details выбранного opaque offer доступны через platform-neutral API и загружаются demo shell только по явному запросу. |
 | Stage 14 | Завершен | Stage 14.0–14.7 закрыли рабочий hotel-only MVP; финальная REAL-проверка подтвердила multi-room guard, сохранение критериев и exact-hotel details/rates flow без заявления production readiness. |
 | Stage 15 | Завершен | Подтверждены backend-owned business logic и Java 17 portability; добавлены layering guards, correlation, stdout JSON events, probes, OpenMetrics и operational runbook. |
+| Stage 16 | Activation readiness завершён; REAL rollout заблокирован | Provider-neutral async two-pass semantic-анализ `GLAMPING`, exact endpoint pinning, public polling, observability и evaluation harness прошли regression gates; provider content не передавался внешней модели. |
+| Stage 17 | Portability foundation завершён; REAL rollout заблокирован | Internal semantic gateway adapter и contract v1 отделяют Travel Assistant от конкретной model/provider; transfer и evaluation checklist зафиксированы без live calls или deployment artifacts. |
 
 ## 2. Правила управления roadmap
 
@@ -1006,6 +1008,478 @@ capture, auth, CORS, deployment manifests и monitoring vendor остаются 
 Итоговые quality gates подтвердили backend tests, frontend tests/lint/build,
 OpenAPI conformance tests/check и чистый `git diff --check`. Stage 15 закрыт без
 заявления multi-instance/HA или полной production readiness.
+
+### Stage 16 — Semantic-анализ типа размещения
+
+**Статус:** Stage 16.0–16.9 readiness завершены. Смешанный REAL Hotels + FAKE
+semantic runtime закрыт fail-closed, OpenRouter adapter фиксирует exact endpoint
+без fallback, а launcher сохраняет semantic `FAKE`. REAL rollout не активирован.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 16.0 | Feasibility, taxonomy и policy gates | Завершён; широкое определение `GLAMPING`, границы provider facts/semantic assessment и критерии quality evaluation закреплены. Право передавать provider descriptions/images внешней модели и совместимость выбранного ZDR endpoint не подтверждены, поэтому REAL vision не активирован и controlled probe не выполнялся |
+| Stage 16.1 | Conversation model | Завершён; managed `GLAMPING` извлекается и снимается детерминированно и через strict LLM schema, сохраняется между уточнениями, входит в confirmation/idempotency и сопровождается booking-boundary copy |
+| Stage 16.2 | Classification core | Завершён; application-owned port, typed verdict/evidence/signals, fail-closed batch validation, merge/selection policy и deterministic network-free FAKE implementation покрыты tests |
+| Stage 16.3 | Multimodal adapter | Завершён; opt-in OpenRouter adapter, strict schema, exact-host URL policy, privacy routing, batching и typed failures проверены только через MockEngine; REAL activation отсутствует |
+| Stage 16.4 | Async lifecycle | Завершён; semantic search сначала сохраняется как `searching`, application-owned scheduler ограничивает job 45 секундами, не допускает duplicate launch, атомарно публикует terminal state и отменяется при shutdown |
+| Stage 16.5 | Two-pass orchestration | Завершён; coarse до 20, deep до 6, concurrency 3/2, 45-second lifecycle budget, partial fallback, bounded details cache и FAKE-default runtime composition покрыты tests |
+| Stage 16.6 | Public contract и demo shell | Завершён; response/OpenAPI/conformance расширены async status, bounded analysis/semantic fields, demo polling 1–3 секунды с лимитом 120 секунд и безопасным evidence presentation |
+| Stage 16.7 | Observability, evaluation и closure | Завершён; bounded semantic search/dependency events и metrics, rights-safe evaluation harness/schema и aggregate report добавлены, полный backend regression gate пройден. REAL smoke не выполнялся, потому что provider-content approval, ZDR/model probe и dataset quality gates не закрыты |
+| Stage 16.8a | Backend semantic runtime safety | Завершён; composition policy запрещает REAL Hotels + FAKE semantic, не создаёт analyzer runtime/scheduler и возвращает сохранённый terminal `failed` snapshot с пустыми offers без provider calls. Обычный REAL search и полный FAKE flow не изменены |
+| Stage 16.8b | Async UX и прозрачность режимов | Завершён; initial `searching` сообщает о запуске проверки отдельно от duplicate, terminal frontend states не сохраняют loading copy, а launcher явно показывает LLM, Hotels и semantic modes без secrets/model slug и фиксирует semantic `FAKE` в обоих demo-профилях |
+| Stage 16.8c | Regression и closure | Завершён; exact word-form patterns и structural-evidence sufficiency блокируют ложные `MATCH`/`PROBABLE` для `город`, `городской`, `домашний`, обычных hotel descriptions и nature/amenity-only fixtures. Полные backend/frontend/conformance gates пройдены без REAL vision call |
+| Stage 16.9 | REAL semantic activation readiness | Завершён как configuration/policy readiness без REAL calls: model и exact endpoint задаются отдельно, `provider.only` содержит одну пару, fallback запрещён, EU-only shortlist и rights/evaluation gates зафиксированы. Activation остаётся `BLOCKED` до письменного разрешения, controlled probe и quality dataset |
+
+Диагноз и общие границы Stage 16.8 зафиксированы в
+`docs/reviews/stage-16-8-semantic-runtime-safety-plan.md`, результат Stage 16.8a —
+в `docs/reviews/stage-16-8a-backend-semantic-runtime-safety.md`, а результат
+Stage 16.8b — в
+`docs/reviews/stage-16-8b-async-ux-and-runtime-mode-transparency.md`, а closure
+Stage 16.8c — в
+`docs/reviews/stage-16-8c-semantic-runtime-safety-closure.md`. Stage 16.9
+readiness зафиксирован в
+`docs/reviews/stage-16-9-real-semantic-activation-readiness.md`. Stage 16.8 не
+меняет taxonomy, ranking, provider mapping или обычный hotel search. Backend
+safety, frontend/demo изменения и closure выполнены отдельными commits и review
+reports.
+
+Первый и единственный активный semantic concept — `GLAMPING`. Он охватывает
+оборудованные tents, domes, yurts, safari tents, tiny houses и отдельные cabins
+в природном формате. Обычные hotel rooms, apartment blocks, пустые camping
+pitches и стандартные cottages без признаков glamping исключаются. `APARTMENT`
+не активирован и требует отдельного определения и quality evaluation.
+
+Semantic verdict является assessment ассистента, а не provider fact. Provider
+остаётся источником availability, цены, рейтинга, amenities, descriptions и
+изображений. Booking и payment не входят в Stage 16; запрос «забронировать
+глемпинг» запускает подбор с явным сообщением этой границы.
+
+До закрытия внешнего policy gate разрешены conversation slice, provider-neutral
+classification core, FAKE mode, тестовые fixtures и evaluation harness без
+provider content. Передача provider descriptions/images во внешнюю модель,
+REAL vision activation и controlled live probe запрещены, пока владелец данных
+не подтвердит такое использование, а выбранные model/provider endpoint —
+совместимость с `require_parameters=true`, `data_collection=deny` и `zdr=true`.
+
+Quality gate перед REAL rollout требует не менее 100 вручную размеченных
+кандидатов из нескольких направлений, precision `MATCH` не ниже 90%, precision
+`MATCH + PROBABLE` не ниже 80%, recall не ниже 70% и false-positive rate для
+обычных отелей не выше 5%. Пограничная часть размечается двумя независимыми
+reviewer. Изображения не коммитятся без подтверждённых прав.
+
+Evaluation harness находится в `tools/semantic-evaluation/`; текущий aggregate
+report имеет статус `NOT_RUN`, поскольку rights-approved dataset ещё не
+предоставлен. Stage 16.9 подготовил EU-only shortlist и exact endpoint pinning,
+но это не закрывает rights, probe и quality gates. REAL activation не разрешена
+автоматически.
+
+### Stage 17 — Корпоративная переносимость semantic analysis
+
+**Статус:** Stage 17.0 завершён без REAL calls. Model/provider/runtime остаются
+сменным deployment за внутренним gateway; `FAKE` сохраняется default.
+
+| Sub-stage | Scope | Статус |
+|---|---|---|
+| Stage 17.0 | Provider-neutral corporate semantic portability | Завершён; добавлены `INTERNAL_GATEWAY` mode, contract v1, opaque deployment ID, exact endpoint/token/allowlist config, fail-closed adapter tests, ADR и transfer readiness checklist |
+
+Stage 17.0 сохраняет существующий `AccommodationAnalysisClient` и
+two-pass orchestration. Gateway request не содержит session/search/offer или
+provider IDs и ограничивает descriptions, amenities и images. Response обязан
+вернуть ту же contract version и deployment ID; schema/deployment drift,
+unknown verdict/evidence и network failures преобразуются в существующий typed
+failure без retry или automatic fallback.
+
+Конкретная модель не выбрана предположением. После переноса корпоративная
+платформа формирует 2–3 доступных deployment и оценивает их на одном
+rights-approved dataset. Первый rollout использует один deployment для coarse
+и deep passes; второй прошедший candidate может быть только ручным rollback
+target. Порядок переноса и model-selection gate находятся в
+`docs/guides/corporate-transfer-readiness.md`, архитектурное решение — в
+`docs/decisions/adr-0002-provider-neutral-semantic-gateway-boundary.md`, а
+closure — в
+`docs/reviews/stage-17-0-corporate-semantic-portability.md`.
+
+Stage 17.0 не меняет public API/OpenAPI, taxonomy `GLAMPING`, ranking, Hotels
+provider mapping, frontend, durable storage или deployment manifests. Internal
+gateway implementation, corporate auth/workload identity, model weights,
+probe, evaluation и rollout требуют отдельных задач после появления внешних
+входных данных.
+
+### Параллельный experimental toolstream — T-Bank Banking MCP
+
+**Статус:** первый безопасный срез реализован отдельно от core roadmap stages.
+
+`tools/tbank-banking-mcp` добавляет локальный phone auth вне LLM, read-only
+счета и агрегаты расходов, spending-based travel profile за 90 дней и
+`preview_only` hotel payment intent. Он подключается вторым MCP рядом с Hotels
+MCP и не меняет Kotlin backend, public API, product MVP или provider ranking.
+
+Реальные payment calls, передача banking session в Hotels API, автоматическая
+персонализация и production rollout не активированы. Следующий разрешённый срез
+для этого toolstream — sandbox/read-only проверка phone auth и агрегатов, затем
+отдельный contract/security gate для связи Hotels `orderId/payment setup` с
+banking payment, idempotency, reconciliation и trusted human confirmation.
+Архитектурная граница зафиксирована в `ADR-0003`.
+
+Опциональный локальный auth broker реализует первый совместимый срез: оба MCP
+остаются независимо подключаемыми, broker единолично обновляет mobile session,
+а Hotels allowlist ограничен route-level подтверждёнными `get_customer`,
+`list_bookings`, `get_booking_v1` и voucher. Voucher выдаётся только через
+owner-only local handoff: binary content не входит в MCP JSON. Расширение endpoint
+matrix и payment linkage ведётся по
+`docs/guides/tbank-mobile-auth-and-hotel-payment-research.md`; неизвестные
+routes и реальные mutations остаются заблокированы. Решение зафиксировано в
+`ADR-0004`.
+
+После внешнего review локальный hardening обновлён до Banking MCP `0.5.0` и
+Hotels MCP `0.11.0`: broker protocol v2 разделяет client scopes, session refresh
+защищён межпроцессной блокировкой, readiness проверяет доступность broker,
+добавлены bounded state, усиленная redaction, owner-only socket hardening и
+локальный `--logout`. Для следующего шага добавлен отдельный CLI-пробник с
+фиксированными read-only Hotels routes и тремя ограниченными auth profiles; он
+не читает response bodies и не доступен модели. Probe `1.1` подтвердил auth
+effect для `customerdata` и `booking_list`: unauthenticated control получил
+`401`, а Bearer-only — `200`; дополнительные session/cookie/device/IP данные не
+потребовались. Эти два reads подключены через broker в Banking MCP `0.5.0` и
+Hotels MCP `0.11.0`; обезличенный end-to-end smoke подтвердил
+`mobile_read_only_ready` и получение обоих provider payloads без вывода PII или
+order identifiers. Следующий разрешённый шаг toolstream — route-level проверка
+оставшихся order reads при наличии собственных identifiers; booking/payment
+mutations остаются отдельным gate.
+
+Текущий локальный checkpoint toolstream: Hotels MCP `0.30.0`, Banking/broker
+`0.17.0`, local toolkit `0.16.0`. Safe voucher handoff реализован и проверен
+только на fixture/fake transport после ранее зафиксированного read-only auth
+evidence. Публичная граница оформления закреплена в `ADR-0005`: после выбора
+тарифа Hotels MCP создаёт безопасный hosted-checkout handoff без PII,
+`bookHash`, payment credentials и provider write; точный тариф не считается
+перенесённым или зарезервированным. Hotels entrypoint, stdio framing, tool
+contracts, config и runtime разделены на модули. Banking server и broker
+получают только `CuratedMobileSession` с allowlisted read-операциями, хотя
+vendored mobile client сохранён для совместимого phone login/refresh. Hotels search
+journey теперь принимает semantic `breakfastIncluded`, применяет подтверждённый
+`meal_types=breakfast` до поиска и сравнения, строго валидирует четыре
+discriminator-формы low-level filters и запрещает автоматический unfiltered
+fallback или перебор payload после отказа обязательного фильтра. Qwen 3.8 Max
+review дал `READY`; локальный P3 hardening дополнительно разделил
+provider auth rejection, закрыл network/condition test gaps и задокументировал
+неподтверждённые rates filters. После восстановления `searchReady=true` первый
+естественный breakfast smoke прошёл двумя journey-tools без low-level перебора
+и writes; control search также прошёл двумя journey tools. Smoke выявил UX gap:
+модель скрывала основные сравнительные поля и могла смешать неподтверждённый и
+исключённый завтрак. В `0.15.3` evidence стал трёхсостоянийным, а compare response
+получил обязательный presentation scope. Повторный control сохранил scope, но
+модель всё ещё скрыла сложный provider price. В `0.16.0` сохранены плоские
+`comparisonRows` и добавлен крупный compatibility batch: key-file auth без PEM
+в config, одноразовый setup, offline doctor, launcher/config generator для
+Hotels-only/Banking-only/combined, manifests и clean-restart conformance обоих
+MCP. Первый полный естественный прогон подтвердил search, breakfast, rates и
+preview-only flows, но обнаружил одну подмену `ratingsCount` в текстовом выводе
+и отсутствие broker после client restart. В `0.17.0` compare возвращает готовую
+Markdown-таблицу с правилом неизменности provider facts, а toolkit `0.2.0`
+привязывает broker lifecycle к Banking launcher в combined profile. Повтор
+подтвердил исправление comparison и broker lifecycle, но выявил избыточное
+раскрытие travel history и абсолютных банковских агрегатов в privacy-запросах.
+Hotels `0.18.0` добавляет count-only booking summary, а Banking `0.8.1` — один
+portfolio travel profile без счетов, абсолютных сумм, разбивки категорий и booking
+history. Первый повтор подтвердил Hotels summary и выявил, что Banking-ответ
+раскрывал количество счетов и неверно говорил, что категории не использовались.
+В `0.8.1` количество счетов исключено, а provenance явно разделяет внутреннее
+использование агрегированных категорий и отсутствие их разбивки в ответе.
+Повтор privacy-кейса 5 прошёл, после чего выполнен release-focused review.
+Release-focused review подтвердил отсутствие P0–P2. В patch checkpoint
+`0.18.1` / `0.2.1` закрыты все семь P3: component-scoped env, актуальные
+версии и test counts, локальные ignore-правила, owner-only key enforcement и
+расширенное удаление provider booking identifiers. Следующий portability gate —
+Codex CLI также подтверждён: оба MCP зарегистрированы без env-секретов,
+combined doctor готов, встроенный tool discovery нашёл оба status-tool и
+локальные `connection_status` вернули Hotels `0.18.1` / Banking `0.8.1` без
+provider requests. OpenCode и Codex входят в подтверждённую acceptance matrix,
+Claude Code исключён решением владельца. Следующий шаг — статическая офлайн-
+цепочка hotel order → Hotels payment state → Banking payment preview.
+В Hotels `0.20.0` / Banking `0.11.0` следующий безопасный участок этой цепочки
+закрыт общим broker capability: Hotels преобразует собственный process-local
+`bookingRef` в короткоживущий `paymentHandoffRef`, Banking проверяет capability у
+того же broker и не получает provider `orderId/paymentToken`. Binding брони
+подтверждён локально. Один явно разрешённый structure-only capture собственной
+активной брони подтвердил пути booking v1 `paymentPrice.amount/currency` и raw
+`paymentStatus` без сохранения значений. Broker теперь связывает эти facts с
+capability, а Banking больше не принимает сумму от модели. Raw status не
+интерпретируется, а paymentPrice не считается автоматически задолженностью или
+разрешённой суммой списания.
+Для следующего contract intake local toolkit `0.3.0` добавляет полностью
+офлайн-команду `inspect-booking-fixture`: она удаляет значения и динамические
+identifiers из уже имеющегося JSON собственной брони и оставляет только
+наблюдаемую структуру. Следующий gate — получить просмотренный владельцем
+structure-only отчёт и проверить наличие подтверждённых amount, currency и
+payment-state facts; исходный fixture не входит в репозиторий или prompt.
+Если исходного fixture нет, тот же toolkit может только по явному
+`--acknowledge-read-own-data` выполнить два bounded Hotels reads собственной
+брони через broker и сразу записать structure-only результат без raw
+persistence. Этот capture не является MCP-tool и не разрешает writes.
+External review payment handoff не выявил P0/P1 и подтвердил `preview_only` GO.
+В следующем локальном hardening checkpoint исправлен request accounting,
+readiness привязан к активной mobile session, raw status переименован в
+`paymentStatusObservation`, capability стал одноразовым, маскирование коротких
+dynamic keys усилено, а негативные и bounded-store тесты добавлены. Эти
+изменения не активируют payment setup или execution.
+Следующий offline hardening делает сумму decimal-safe внутри MCP-контракта,
+добавляет freshness window, проверку process-local source account до поглощения
+capability и единый fail-closed readiness report. Локальная команда
+`payment-readiness` фиксирует оставшиеся provider/security blockers и запрещает
+автоматический retry после неизвестного исхода. Статический аудит подтверждает,
+что банковский `/v1/pay` и известные marketplace payment-gateway flows не
+доказывают Hotels payment contract и не переиспользуются.
+Review этого checkpoint не выявил P0–P2. В patch follow-up `payloadHash`
+защищён per-process pepper, а ошибка после поглощения невалидного capability
+содержит однозначный recovery-шаг создать новый handoff.
+Реальная оплата, booking/payment setup, мутации и remote transport этим
+checkpoint не активированы.
+
+Live smoke customer summary и portfolio profile подтвердил корректность самих
+read-only tools, но выявил зависимость mobile auth от порядка ленивого запуска
+MCP-клиентом. Lifecycle hardening устранил ручной шаг: combined launcher обоих
+MCP обеспечивает один persistent local broker для Hotels-first, Banking-first и
+одновременного старта; закрытие одного MCP не обрывает session, а `logout` и
+`stop-broker` выполняют явное graceful shutdown. Provider API при проверке этого
+изменения не вызывались.
+
+Следующий локальный release-candidate slice добавил прямой privacy-safe handoff
+`hotelDefaults` → `hotelPreferences`: Hotels принимает только ценовой диапазон,
+`best_value` и разрешение показывать альтернативы, не получает счета,
+категории или абсолютные суммы и не превращает профиль в provider price filter.
+Детерминированный `best_value_v2` отделён от provider facts, варианты вне
+диапазона остаются видимыми. Presentation-поля для денег, времени и отмены
+сохраняют точные факты и исходное UTC-смещение без догадок о timezone отеля.
+Смена только локального ranking переиспользует тот же короткий search cache и
+не увеличивает provider traffic. Offline gate дополнен устанавливаемыми вне
+checkout npm tarball candidate для Hotels и wheel candidate для Banking. Это
+не считается публикацией или portable release: независимый review, шесть
+естественных smoke-кейсов, fresh-machine/client/OS matrix, secure storage,
+checksums, SBOM и provenance ещё не закрыты. Execution tiers и remote transport
+не активированы.
+
+Независимый Qwen 3.8 Max review этого release candidate дал `CONDITIONAL
+READY` и не обнаружил P0–P2. Локальный follow-up закрыл все P3: overview и
+cancellation preview используют opaque `bookingRef` через mobile broker,
+legacy broker без явного `verifiedOperations` не получает customer readiness,
+а booking draft не разбирает и не сохраняет guest PII при недоступном
+execution. Historical payment report синхронизирован с одноразовой consume
+семантикой. Следующий gate остаётся прежним: полный offline regression, затем
+естественный read-only/preview-only smoke после рестарта клиента; writes и
+remote transport не активированы.
+
+Первый post-review live smoke не прошёл штатный tool path: stale inline PEM из
+родительского OpenCode environment смешался с каноничным key-file local config.
+Toolkit `0.6.3` делает configured Hotels auth-profile авторитетным, отбрасывает
+родительские auth credentials и mutation activation, но сохраняет явный
+transport URL. Это исправляет регрессию `0.6.2`, которая подменила рабочий
+`https://hotels.tbank.ru/` устаревшим private origin из local config и вызвала
+DNS `ENOTFOUND`. Выполненный моделью ad-hoc direct provider driver не считается
+acceptance evidence. Повтор начинается с одного обычного кейса после полного
+рестарта; обход MCP и model-side изменение config запрещены. Hotels `0.23.1` возвращает
+для такого сбоя terminal `search_unavailable` с запретом retry/low-level
+fallback, а status явно ограничивает `searchReady` локальной конфигурацией.
+Acceptance остаётся pending до полного рестарта MCP-клиента и повторного
+естественного smoke через исправленный effective transport URL.
+
+Следующий live smoke подтвердил transport/auth/customer-read и portfolio
+flows, но выявил две ошибки композиции. Модель вызвала booking preview до
+выбора тарифа, а в двухночном персонализированном поиске не передала
+`hotelPreferences`, хотя заявила применение профиля; дополнительно provider
+`shownPrice` total ошибочно сравнивался с диапазоном за ночь. Hotels `0.23.2`
+разделяет `totalPriceDisplay` и MCP-derived `pricePerNightDisplay`, использует
+цену за ночь в `best_value` и `pricePreferenceFit` и требует последовательность
+rates → select rate → preview в tool guidance. Banking `0.14.1` возвращает
+готовый `hotelPreferences` и точное правило передачи без преобразований;
+применение можно утверждать только при `preferencesApplied.applied=true`.
+Toolkit `0.6.4` синхронизирует versioned manifests. Повторный personalized
+smoke остаётся acceptance gate; writes не активированы.
+
+Повторный natural-language smoke подтвердил исправление total/per-night,
+точный profile handoff, последовательный rates-preview и customer/banking
+reads. Он также показал, что `best_value_v1` чрезмерно награждал цену ниже
+нижней границы: far-below вариант мог возглавить мягкий диапазон. Hotels
+`0.23.3` заменяет его band-aware `best_value_v2`, нормализует отсутствующую
+звёздность и не раскрывает внутренние trusted-header blockers в обычном
+preview. Toolkit `0.6.5` синхронизирует manifests; нужен один focused live
+repeat персонализированного поиска после restart клиента.
+
+Focused repeat подтвердил `best_value_v2`, но выявил model-side location retry:
+локализованный `countryName=Россия` вернул пустой каталог, после чего модель
+перебрала несколько вариантов `resolve_destination`. Hotels `0.23.4` выполняет
+этот bounded fallback внутри исходного `plan_stay`, локально сопоставляет
+русское и международное название страны и запрещает автоматический перебор
+после terminal clarification. Toolkit `0.6.6` синхронизирует manifests; нужен
+один короткий repeat Казани, writes остаются отключены.
+
+Финальный Kazan repeat прошёл через portfolio profile → один `plan_stay` →
+compare без отдельных resolver-вызовов, retry или writes. Live evidence
+подтвердил `preferencesApplied.applied=true`, корректный total/per-night и
+band-aware top-5. Одна строка поясняющего текста модели неверно пересказала
+review rating при корректной MCP-таблице; это зафиксировано как неблокирующий
+P3 presentation issue. Локальный read-only/preview-only release candidate готов
+к финальному independent review; mutations по-прежнему NO-GO.
+
+Следующий contract-intake checkpoint сверил предоставленные владельцем
+Swagger-экспорты `HotelsApi` и `HotelsApi.Payments` полностью офлайн. Booking
+DTO дополнен подтверждёнными `paymentMeans=pos`, `isBusinessTrip` и UUID card
+reference. Для будущей публичной оплаты выбран hosted payment form; raw-card,
+fingerprint и 3-D Secure endpoints намеренно исключены из MCP. Hotels добавляет
+локальный `tbank_hotels_create_payment_form_preview` и отдельный
+`paymentFormExecution` readiness без PII, credentials или provider-вызовов.
+Owner-provided production origin зафиксирован без сетевой проверки; execution
+остаётся `NO-GO`: нет доступного non-production origin, Swagger не подтверждает
+customer auth, доверенный источник client IP, idempotency, recovery после
+timeout до `taskId` и безопасный owner-bound handoff `paymentUrl`. Полная
+матрица и activation gates находятся в
+`tools/tbank-hotels-mcp/docs/booking-payment-contract-readiness.md`.
+
+Post-smoke hardening `0.27.0/0.16.0/0.10.0` закрыл ошибки
+естественной композиции. Повторное сравнение без явного scope
+теперь остаётся в предыдущей показанной comparison-группе; выход на
+всю journey требует `scope=all_journey_options`. Privacy-first portfolio flow
+ведёт в отдельный `tbank_hotels_plan_personalized_stay`, где
+`hotelPreferences` обязателен; лишние account/summary calls прямо запрещены
+в tool guidance. Checkout handoff больше не ведёт на generic entry point:
+он сохраняет выбор отеля, даты и число взрослых для простой occupancy через
+подтверждённые public query-параметры. Сложный состав гостей переносится только
+в подтверждённой части, а exact rate и бронь не переносятся. Номера тарифов
+стабильны во всём journey, а готовая таблица предназначена для однократного
+показа. Full offline gate остаётся обязательным без provider requests;
+booking/payment execution остаётся `NO-GO`.
+
+Publication hardening `0.27.0/0.17.0/0.11.0` устраняет техническую зависимость
+локального launcher от repository checkout. Launcher разрешает отдельно
+установленные Hotels, Banking, auth broker и phone-login команды через `PATH`
+или проверенные абсолютные overrides; repository layout остаётся только
+development fallback. Phone login включён в Banking wheel как отдельный
+terminal entry point, а toolkit npm artifact ограничен runtime/manifests/README.
+Artifact tests устанавливают пакеты вне checkout и проверяют MCP initialize и
+login/logout без provider network. Фактическая registry-публикация всё ещё
+требует решения владельца по лицензии, package namespace и аудитории service
+JWT credentials; booking/payment execution остаётся `NO-GO`.
+
+Developer-preview publication checkpoint `0.28.0/0.17.0/0.12.0` делает
+публичный Hotels search анонимным по умолчанию: достаточно настроить
+`https://hotels.tbank.ru/api`, `Authorization` не отправляется. Service JWT и
+static token остаются только опциональными integration overrides, а customer
+reads используют локальную mobile session через broker. Anonymous mode не
+разрешает booking/payment mutations. `tbank-hotels-mcp@0.28.0` и
+`tbank-mcp-local@0.12.0` опубликованы в публичном npm registry и установлены
+обратно из registry в чистое временное окружение; Hotels MCP подтвердил
+`initialize`, toolkit — локальный `payment-readiness` без provider requests.
+Для полного combined release остаются PyPI upload Banking package и
+fresh-machine client matrix.
+
+Combined installer checkpoint `0.28.0/0.17.0/0.13.1` добавляет одну публичную
+команду `connect` для OpenCode/Codex. Она устанавливает фиксированные версии в
+owner-only runtime, сохраняет проверенные абсолютные executable paths,
+регистрирует Hotels и Banking как два отдельных MCP и запускает terminal-only
+mobile login. Hotels-only профиль не требует Python, mobile session или broker.
+Первая опубликованная `0.13.0` была superseded до объявления combined release:
+fresh-install gate обнаружил лишний `--ensure-broker` в Hotels-only
+регистрации; `0.13.1` исправляет это и имеет отдельный regression test.
+`tbank-mcp-local@0.13.1` опубликован и повторно проверен из npm вне checkout.
+Banking wheel `0.17.0` прошёл `twine check`, опубликован в PyPI и установлен
+обратно публичным `connect`. Чистые OpenCode и Codex CLI приняли обе
+регистрации; оба MCP ответили на `initialize`, installer/login regression
+использует управляемый session path. Provider requests в release smoke не
+выполнялись. Local stdio read-only/preview-only combined developer preview
+считается опубликованным; remote ChatGPT transport, stable license,
+SBOM/provenance и production mutations остаются отдельными будущими gates.
+
+Toolkit `0.14.0` расширяет этот checkpoint поддержкой Cursor и коротким
+синтаксисом `connect cursor|codex|opencode`. Для Cursor installer безопасно
+объединяет два stdio server entry с существующим глобальным
+`~/.cursor/mcp.json`; для Codex сохраняется официальная CLI-регистрация. Одна
+команда включает установку совместимых версий, регистрацию и terminal-only
+mobile login; secrets не попадают в MCP config или model context.
+Версия опубликована в npm и установлена обратно из public registry в двух
+изолированных HOME: Cursor получил корректный global `mcp.json`, Codex — две
+enabled stdio-регистрации. Mobile login в release smoke был пропущен, provider
+requests не выполнялись.
+
+Checkout-orchestration patch `0.28.1/0.17.0/0.14.1` устраняет конфликт между
+локальным booking preview и публичным hosted checkout. После выбранного тарифа
+естественные запросы «оформить», «забронировать» или «продолжить» направляются
+в `tbank_hotels_create_checkout_handoff` даже при выключенном direct execution;
+модель обязана показать ссылку на выбранный отель вместо остановки на preview.
+Handoff по-прежнему не переносит exact rate, PII или payment credentials и не
+выполняет provider write. Hotels `0.28.1` и toolkit `0.14.1` опубликованы в
+public npm registry, установлены обратно вне checkout и локально подключены к
+Codex без повторного mobile login; provider requests не выполнялись.
+
+Resumable-search checkpoint `0.29.0/0.17.0/0.15.0` делает неполную hotel
+search-выборку возобновляемой внутри того же process-local journey. MCP
+классифицирует покрытие как `complete`/`substantial`/`partial`, возвращает долю
+от provider reported count и при низком покрытии разрешает один автоматический
+`tbank_hotels_continue_stay_search` перед сравнением. Продолжение сохраняет
+ранее выданные `optionId`, начинает с сохранённого offset и разделяет с initial
+search общий лимит 20 provider requests. Усечённый результат больше не
+попадает в финальный global cache; repeated offset, request limit и provider
+failure остаются terminal. Реализация и regression tests полностью offline;
+live smoke завершён, публикация остаётся следующим отдельным gate.
+
+Независимый Qwen 3.8 Max review resumable-search checkpoint подтвердил
+`READY` для read-only/preview/handoff tiers и не выявил P0–P2. Follow-up
+закрыл три P3-направления: terminal continuation branches защищены fake
+transport tests, stale selection сбрасывается при исчезновении выбранного
+отеля, а после первого continuation `continuationRecommended` механически
+становится `false`. Первый Codex smoke выявил, что модель устойчиво использует
+распространённые semantic aliases `location`, `guests`/`adultsCount` и `limit`.
+Agent-facing boundary теперь принимает их, локально нормализует в единственную
+каноническую journey-форму и отклоняет конфликтующие дубли; regression test
+закрепляет отсутствие contract-guessing retry. Текущий offline набор содержит
+71 Hotels, 52 Banking и 21 toolkit test. Focused compatibility review дал
+`READY`, P0–P2 отсутствуют; все три P3 закрыты до публикации тестами,
+синхронизацией room schema и краткой документацией aliases.
+
+Bounded current-worktree live smoke Hotels `0.29.0` / Banking `0.17.0` прошёл
+обычный поиск, обязательный breakfast filter, выбор из предыдущей comparison,
+rates, booking/payment previews, hosted checkout, обезличенную customer summary
+и персонализированный поиск. Казанский поиск начал с partial coverage 100/144,
+выполнил ровно один continuation и корректно остановился без автоматического
+цикла; профиль был применён с `preferencesApplied.applied=true`. Booking,
+payment и cancel writes, PII и card data не выполнялись.
+
+`tbank-hotels-mcp@0.29.0` и `tbank-mcp-local@0.15.0` опубликованы в public npm
+registry с dist-tag `latest`. Fresh install вне checkout подтвердил package
+metadata и Hotels initialize `serverVersion=0.29.0`. Изолированные Codex и
+OpenCode HOME прошли Hotels-only и combined registration; combined profile
+установил публичный Banking wheel `0.17.0`, mobile login был пропущен, provider
+requests не выполнялись. Следующий отдельный gate — portability hardening;
+booking/payment execution остаётся `NO-GO`.
+
+Checkout-inspection release candidate `0.30.0/0.17.0/0.16.0` добавляет
+journey-level актуальную проверку выбранного тарифа без provider identifiers:
+цены, отмену, cashback без account numbers, opaque ранний заезд/поздний выезд,
+безопасную promo validation и optional upgrade. Отдельный local preview
+показывает желаемые checkout-изменения, но не вызывает stateful apply
+endpoints, не создаёт бронь и не запускает оплату. Hermetic Hotels suite
+содержит 74 теста. Первый bounded smoke выявил несовпадение v1/v3 response
+shape; после исправления повторный read-only smoke прошёл checkout, promo
+validation, upgrade и локальный preview без provider identifiers и writes.
+Внешний Qwen review не выявил P0-P2; follow-up закрыл все пять P3: строгую
+сверку wrapper `bookHash`, обе contract-формы в regression tests,
+структурированный no-retry checkout failure, пятиминутную свежесть инспекции и
+неподтверждённое удаление промокода из публичной journey-схемы. Следующий gate —
+registry upload и fresh-install проверка.
+
+`tbank-hotels-mcp@0.30.0` и `tbank-mcp-local@0.16.0` опубликованы в public npm
+registry с dist-tag `latest`; Banking wheel `0.17.0` остаётся совместимой
+опубликованной версией. Fresh install в изолированный каталог подтвердил точные
+версии и Hotels `initialize` с `serverVersion=0.30.0`; provider requests,
+booking, payment и quote mutations не выполнялись.
+
+Финальный Qwen-аудит предыдущего checkpoint не выявил P0–P2 и подтвердил
+готовность read-only и preview-only tiers. Follow-up закрыл четыре P3: version
+consistency проверяется автоматически, нестандартные MCP annotations объявлены
+рядом с tools, runtime использует единый handler registry с полным contract
+test, а локальный Banking editable install синхронизирован с `0.16.0`.
+Последующий resumable-search checkpoint прошёл отдельные review, полный offline
+gate и bounded live smoke, описанные выше; booking/payment execution остаётся
+отдельным `NO-GO` gate.
 
 **Правило активации будущих этапов:** planned stages не являются active backlog. Каждый будущий этап начинается только после отдельной явной roadmap-задачи, которая активирует этап и подтверждает нужные предыдущие решения.
 

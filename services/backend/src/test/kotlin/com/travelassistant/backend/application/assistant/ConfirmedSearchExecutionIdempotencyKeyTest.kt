@@ -4,6 +4,7 @@ import com.travelassistant.backend.application.hotel.CreateHotelSearchCommand
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
 import com.travelassistant.backend.domain.hotel.HotelSearchCriteria
 import com.travelassistant.backend.domain.hotel.HotelSearchPreferences
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.Test
@@ -28,6 +29,7 @@ class ConfirmedSearchExecutionIdempotencyKeyTest {
             ),
             HotelSearchPreferences(freeCancellationRequired = true),
             HotelSearchPreferences(breakfastIncludedRequired = true),
+            HotelSearchPreferences(accommodationConcept = AccommodationConcept.GLAMPING),
         ).forEach { preferences ->
             assertNotEquals(baseline, keyFor(preferences))
         }

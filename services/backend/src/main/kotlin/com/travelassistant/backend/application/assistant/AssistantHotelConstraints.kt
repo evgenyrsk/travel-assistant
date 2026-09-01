@@ -36,6 +36,9 @@ data class AssistantHotelConstraints(
             if (preferences.breakfastIncludedRequired) {
                 put(BREAKFAST_INCLUDED_KEY, "true")
             }
+            preferences.accommodationConcept?.let { concept ->
+                put(ACCOMMODATION_CONCEPT_KEY, concept.code)
+            }
         }
 
     fun toCoreConstraints(): Map<String, String> =
@@ -107,6 +110,7 @@ data class AssistantHotelConstraints(
         const val MINIMUM_GUEST_RATING_KEY = "min-guest-rating"
         const val FREE_CANCELLATION_KEY = "free-cancellation"
         const val BREAKFAST_INCLUDED_KEY = "breakfast-included"
+        const val ACCOMMODATION_CONCEPT_KEY = "accommodation-concept"
     }
 }
 

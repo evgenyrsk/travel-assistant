@@ -1,5 +1,9 @@
 package com.travelassistant.backend.api
 
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
+import com.travelassistant.backend.domain.hotel.AccommodationEvidenceSource
+import com.travelassistant.backend.domain.hotel.AccommodationMatchVerdict
+import com.travelassistant.backend.domain.hotel.AccommodationSemanticMatch
 import com.travelassistant.backend.domain.hotel.HotelOffer
 import com.travelassistant.backend.domain.hotel.RankedHotelOffer
 import kotlinx.serialization.encodeToString
@@ -69,6 +73,36 @@ class HotelOfferResponseTest {
         assertFalse(encoded.contains("provider-1"))
     }
 
+    @Test
+    fun exposesOnlyBoundedSemanticMatchFields() {
+        val response = HotelOfferResponse.from(
+            rankedOffer(
+                rating = null,
+                reviewCount = null,
+                amenities = null,
+                starRating = null,
+                freeCancellationUntil = null,
+                imageUrl = null,
+                breakfastIncluded = null,
+                semanticMatch = AccommodationSemanticMatch(
+                    concept = AccommodationConcept.GLAMPING,
+                    verdict = AccommodationMatchVerdict.MATCH,
+                    evidenceSources = linkedSetOf(
+                        AccommodationEvidenceSource.NAME,
+                        AccommodationEvidenceSource.IMAGE,
+                    ),
+                ),
+            ),
+        )
+
+        val encoded = json.encodeToString(response)
+
+        assertTrue(encoded.contains("\"concept\":\"glamping\""))
+        assertTrue(encoded.contains("\"verdict\":\"match\""))
+        assertTrue(encoded.contains("\"evidenceSources\":[\"name\",\"image\"]"))
+        assertFalse(encoded.contains("rationale"))
+    }
+
     private fun rankedOffer(
         rating: Double?,
         reviewCount: Int?,
@@ -77,6 +111,7 @@ class HotelOfferResponseTest {
         freeCancellationUntil: Instant?,
         imageUrl: String?,
         breakfastIncluded: Boolean?,
+        semanticMatch: AccommodationSemanticMatch? = null,
     ): RankedHotelOffer =
         RankedHotelOffer(
             offer = HotelOffer(
@@ -99,5 +134,6 @@ class HotelOfferResponseTest {
                 breakfastIncluded = breakfastIncluded,
             ),
             matchSummary = "Test summary",
+            semanticMatch = semanticMatch,
         )
 }

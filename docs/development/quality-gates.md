@@ -8,6 +8,14 @@ Run only checks that are relevant to the task and supported by the repository.
 git diff --check
 ```
 
+Repository-native equivalent:
+
+```bash
+./scripts/verify.sh docs
+```
+
+The repository-native gate checks staged and unstaged diffs and scans untracked text files for trailing whitespace. Untracked files still require explicit `git status` and scope review before completion.
+
 Also manually check:
 
 - new or changed links point to existing files;
@@ -38,6 +46,30 @@ Run backend tests when changing:
 - application/domain behavior;
 - test fixtures or test utilities.
 
+## Stable Cross-Module Gate
+
+For substantial changes that span the stable backend, demo shell, local launcher, OpenAPI conformance tool, or semantic evaluation harness, run:
+
+```bash
+./scripts/verify.sh core
+```
+
+The command composes existing repository checks; it does not install dependencies, access external providers, start production-like services, or claim OpenAPI/generated-client readiness. Use targeted module commands for narrower tasks instead of running an unnecessarily broad gate.
+
+For an explicitly repository-wide task that also changes experimental tools, run:
+
+```bash
+./scripts/verify.sh all
+```
+
+The `all` profile additionally runs checks for locally present MCP tools. It does not invoke REAL providers or credentials. Native build tooling may still need its ordinary dependency cache or request network access to resolve missing build dependencies; that access remains controlled by the active harness permissions.
+
+## CI Gate
+
+`.github/workflows/core-verification.yml` запускает `./scripts/verify.sh core` для pull request, push в `main` и ручного `workflow_dispatch`. Workflow использует Java 17 и поддерживаемую Node.js 22 LTS, устанавливает locked dependencies из `tools/openapi-conformance/package-lock.json` и применяет встроенные Gradle/npm caches официальных setup actions.
+
+Workflow имеет только `contents: read`, не требует repository secrets и не задаёт REAL provider modes. Сетевой доступ используется только обычными dependency/toolchain setup steps; сам `core` profile не вызывает внешние provider integrations. Более широкий `all` profile остаётся task-specific локальной проверкой и не входит в минимальный CI gate.
+
 ## Diff Hygiene
 
 Before finishing:
@@ -46,6 +78,7 @@ Before finishing:
 - inspect the diff for unrelated changes;
 - avoid formatting unrelated sections;
 - verify no generated or local-only files were added.
+- inspect both staged and unstaged changes so pre-existing user work is not attributed to the task.
 
 ## Review Output Expectations
 

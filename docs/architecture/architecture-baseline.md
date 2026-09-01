@@ -17,10 +17,9 @@
 
 ## 2. Текущий статус архитектуры
 
-- Stage 0–14.6 завершены в границах рабочего `demo-ready MVP`; Stage 14.7
-  реализован, full gates пройдены, ожидается ручная REAL-перепроверка; Stage 14.1c
-  закрыт после подтверждения provider image template; подробные статусы находятся в
-  `docs/roadmap/roadmap.md`.
+- Stage 0–17.0 завершены; REAL semantic activation остаётся
+  заблокированной внешними rights/model/quality gates. Подробные статусы
+  находятся в `docs/roadmap/roadmap.md`.
 - Backend использует Kotlin + Ktor и сохраняет разделение domain, application, infrastructure и API слоев.
 - `LlmClient` и `HotelOfferProviderBoundary` реализованы как application-owned асинхронные границы.
 - OpenRouter и публичный Hotels API имеют opt-in adapters и отдельные `HttpClient`; оба режима по умолчанию остаются `FAKE`.
@@ -92,9 +91,25 @@
   критериев application может консервативно дополнить отсутствующий destination
   из явно названного отеля; transport, provider IDs и raw LLM data в эту policy
   не входят.
+- Stage 15 подтвердил backend-owned business logic, Java 17 process portability
+  и single-instance ограничение process-local stores; operational events,
+  probes и metrics остаются infrastructure concerns за application-owned
+  boundaries.
+- Stage 16 вводит отдельную application-owned
+  `AccommodationAnalysisClient`; существующий текстовый `LlmClient` не получает
+  multimodal responsibility. Semantic verdict не меняет provider facts.
+  OpenRouter vision является opt-in adapter и не активируется до подтверждения
+  прав на provider descriptions/images, privacy routing и model compatibility.
+  Adapter требует отдельные model и exact provider endpoint без defaults,
+  передаёт endpoint через singleton `provider.only` и запрещает fallback.
+- Stage 17.0 добавляет отдельный `INTERNAL_GATEWAY` adapter с narrow contract
+  v1 и opaque deployment ID. Конкретная model, provider, hardware и inference
+  runtime остаются за gateway; application/domain и public API их не знают.
 
-После закрытия Stage 14.7 следующая задача реализации может начаться только
-через отдельную явную задачу, согласованную с roadmap.
+Stage 16 завершил provider-neutral async/two-pass implementation в FAKE scope,
+public polling contract и bounded observability. Process-local scheduler/cache
+сохраняют single-instance ограничение. REAL vision остаётся закрыт внешними
+policy, model/ZDR и quality gates, зафиксированными в roadmap.
 
 Chat-first demo shell использует Assistant routes и загружает результаты только по
 полученному `hotelSearchId`. Диагностическая форма Stage 7.51 вызывает
@@ -273,6 +288,13 @@ API; provider DTO и transport остаются в infrastructure layer, а appl
 adapter включается только явно и использует отдельный runtime client, поэтому
 его `Authorization` не может попасть в Hotels API transport.
 
+`AccommodationAnalysisClient` отделяет semantic orchestration от inference
+provider. `FAKE`, OpenRouter и internal gateway являются независимыми
+infrastructure adapters. Internal gateway проверяет contract version и opaque
+deployment ID, ограничивает payload и не делает retry или automatic fallback.
+Решение зафиксировано в
+[`ADR-0002`](../decisions/adr-0002-provider-neutral-semantic-gateway-boundary.md).
+
 Provider abstraction не является публичным API/OpenAPI contract. Изменения
 внешнего provider contract требуют отдельной сверки и не должны менять domain
 модель напрямую.
@@ -300,10 +322,11 @@ Operational, security, observability и testing details требуют отде�
 
 Accepted ADR должны находиться в `docs/decisions/`.
 
-Принят [`ADR-0001`](../decisions/adr-0001-service-core-and-client-integration-boundary.md),
-который фиксирует backend как удалённое сервисное ядро и отделяет его от
-локальной demo shell и будущих product clients. Stage 5 также создал non-ADR
-decision inventory в `docs/architecture/stage-5/architecture-decisions-draft.md`.
+Приняты [`ADR-0001`](../decisions/adr-0001-service-core-and-client-integration-boundary.md)
+о сервисной границе клиентов и
+[`ADR-0002`](../decisions/adr-0002-provider-neutral-semantic-gateway-boundary.md)
+о provider-neutral semantic gateway. Stage 5 также создал non-ADR decision
+inventory в `docs/architecture/stage-5/architecture-decisions-draft.md`.
 
 Этот inventory содержит confirmed architecture guardrails, deferred decisions и future ADR candidates, но не создает accepted ADR и не активирует future decisions.
 
@@ -355,6 +378,8 @@ Roadmap остается source of truth по статусам и progression.
 - `docs/guides/documentation-style-guide.md` - правила языка, структуры и безопасного documentation refactoring.
 - `docs/reviews/documentation-refactoring-plan.md` - план controlled documentation refactoring.
 - `docs/decisions/README.md` - ADR governance и decision index.
+- `docs/decisions/adr-0002-provider-neutral-semantic-gateway-boundary.md` -
+  принятая граница corporate semantic gateway и сменных deployments.
 - `docs/architecture/stage-5/architecture-scope-and-principles.md` - scope и architecture principles.
 - `docs/architecture/stage-5/system-context-and-boundaries.md` - system context и boundaries.
 - `docs/architecture/stage-5/domain-model-and-boundaries.md` - conceptual domain model.

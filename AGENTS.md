@@ -31,12 +31,15 @@ Use current documents in this order:
 3. Primary roadmap: `docs/roadmap/roadmap.md`.
 4. Product baseline: `docs/product/product-baseline.md`.
 5. Architecture baseline: `docs/architecture/architecture-baseline.md`.
-6. Active engineering rules: `docs/development/`.
-7. Backend layering rules: `docs/architecture/backend-layering-rules.md`.
-8. Prompt templates: `docs/prompts/`.
-9. Historical stage artifacts and review reports for traceability only.
+6. Public API contract intent: `docs/architecture/stage-6/openapi-draft.yaml`, while it remains explicitly marked as a draft with `not_ready` generated-client status; backend route tests and implementation are runtime evidence, not permission to silently change the contract.
+7. Active engineering rules: `docs/development/`.
+8. Backend layering rules: `docs/architecture/backend-layering-rules.md`.
+9. Prompt templates: `docs/prompts/`.
+10. Historical stage artifacts and review reports for traceability only.
 
 If documents conflict, follow the higher-priority source, report the conflict, and do not perform work that may violate roadmap, ADR, product scope, or architecture boundaries.
+
+There is no durable database or accepted database schema in the current baseline. Process-local stores are implementation details, and migrations, persistent storage, or a schema require an explicit roadmap-aligned task and any applicable architecture decision.
 
 ## Roadmap and Scope Control
 
@@ -80,9 +83,26 @@ Detailed rules live in:
 - `docs/development/documentation-guidelines.md`;
 - `docs/development/definition-of-done.md`;
 - `docs/development/quality-gates.md`;
+- `docs/development/autonomous-engineering.md`;
 - `docs/architecture/backend-layering-rules.md`.
 
 Before implementation work, read the relevant files under `docs/development/` and `docs/architecture/backend-layering-rules.md`. Use `docs/prompts/codex-task-template.md` for implementation/maintenance prompts and `docs/prompts/codex-review-template.md` for review-only prompts.
+
+## Autonomous Engineering Protocol
+
+- Optimize for maximum safe autonomy and minimum unnecessary interruption. Resolve implementation-level choices from repository evidence, record only meaningful decisions, and continue.
+- Escalate only for material product or scope changes, public/external contract changes beyond the task, architecture baseline changes, destructive or irreversible data operations, production mutations, unavailable secrets or privileged credentials, significant external cost, materially contradictory requirements, or a persistent blocker after multiple genuinely different attempts.
+- Do not escalate ordinary build, test, lint, formatting, or implementation failures immediately. Follow the evidence-driven recovery loop in `docs/development/autonomous-engineering.md`.
+- Forbidden by default: force-pushing protected branches, rewriting history, deleting production data, modifying production systems, exposing or committing secrets, disabling tests to obtain a pass, weakening security controls, silently expanding product scope, or marking incomplete work complete.
+- For substantial tasks, maintain concise resumable state in `.agent/` as described by `.agent/README.md`. Small read-only or narrowly scoped tasks do not require persistent task state.
+- Substantial implementation work requires an independent read-only review from a fresh context when the active harness supports it. Review findings return to the implementation loop; ordinary findings are fixed without user escalation.
+
+## Git Workflow
+
+- Inspect the current branch, worktree state, and repository history before changes. Existing uncommitted changes belong to the user unless the task proves otherwise.
+- Prefer a dedicated `codex/` branch and a separate worktree for substantial or parallel work. Do not impose a new branching model when an explicit repository or user workflow already applies.
+- Keep commits small and meaningful when the task permits commits. Do not push, merge to a protected branch, force-push, or rewrite history without explicit authorization.
+- Review the final diff and confirm that unrelated changes are absent before completion.
 
 ## Language Policy
 
@@ -118,6 +138,7 @@ Before implementation work, read the relevant files under `docs/development/` an
 ## Validation
 
 - For documentation-only changes, run `git diff --check`.
+- Use `./scripts/verify.sh docs` for the repository documentation gate and `./scripts/verify.sh core` for the stable cross-module verification set when that breadth is applicable. Use targeted commands for narrower changes; see `docs/development/quality-gates.md`.
 - For backend code, build, test, or behavior changes, run the relevant supported Gradle checks from `services/backend`; see `docs/development/quality-gates.md`.
 - Manually verify new or changed documentation links.
 - Do not claim a check passed unless it actually ran.
@@ -135,5 +156,6 @@ Answer in the language requested by the task. If the task does not specify anoth
 6. Open questions
 7. Scope control
 8. Recommendations not implemented
+9. Known risks
 
 Keep the report concise. Write `None` for empty sections.

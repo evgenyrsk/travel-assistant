@@ -1,0 +1,39 @@
+{
+  "name": "tbank-mcp-local",
+  "version": "0.16.0",
+  "private": false,
+  "description": "Unofficial local launcher, setup and contract tooling for T-Bank Hotels and Banking MCP servers.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evgenyrsk/travel-assistant.git",
+    "directory": "tools/tbank-mcp-local"
+  },
+  "homepage": "https://github.com/evgenyrsk/travel-assistant#readme",
+  "bugs": {
+    "url": "https://github.com/evgenyrsk/travel-assistant/issues"
+  },
+  "keywords": ["mcp", "launcher", "tbank", "cursor", "opencode", "codex"],
+  "type": "module",
+  "bin": {
+    "tbank-mcp-local": "src/cli.mjs"
+  },
+  "files": [
+    "src",
+    "contracts",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "doctor": "node src/cli.mjs doctor --profile combined",
+    "contracts:update": "node src/cli.mjs contracts update",
+    "contracts:check": "node src/cli.mjs contracts check",
+    "test": "node src/cli.mjs verify",
+    "verify": "node src/cli.mjs verify"
+  }
+}

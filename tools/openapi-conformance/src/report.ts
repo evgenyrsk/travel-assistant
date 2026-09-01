@@ -328,14 +328,20 @@ function buildPlatformClientChecks(
       ]),
     ],
     [
-      "terminal search statuses match runtime",
+      "search lifecycle statuses match runtime",
       sameValues(shape.searchStatusValues, [
+        "completed_no_semantic_matches",
         "completed_no_offers",
         "completed_with_offers",
+        "failed",
+        "searching",
       ]) &&
         sameValues(shape.offersStatusValues, [
+          "completed_no_semantic_matches",
           "completed_no_offers",
           "completed_with_offers",
+          "failed",
+          "searching",
         ]),
     ],
     [
@@ -346,6 +352,24 @@ function buildPlatformClientChecks(
         "resultCompleteness",
         "warnings",
       ]),
+    ],
+    [
+      "semantic analysis metadata matches runtime",
+      shape.analysisOptional &&
+        sameValues(shape.analysisRequiredFields, [
+          "analyzedCount",
+          "deepAnalyzedCount",
+          "matchCount",
+          "probableCount",
+          "status",
+        ]) &&
+        sameValues(shape.analysisStatusValues, [
+          "completed",
+          "failed",
+          "partial",
+          "searching",
+        ]) &&
+        shape.analysisAdditionalPropertiesForbidden,
     ],
     [
       "hotel offer required fields match runtime",
@@ -362,14 +386,36 @@ function buildPlatformClientChecks(
       ]),
     ],
     [
+      "semantic match fields match runtime",
+      shape.semanticMatchOptional &&
+        sameValues(shape.semanticMatchRequiredFields, [
+          "concept",
+          "evidenceSources",
+          "verdict",
+        ]) &&
+        sameValues(shape.semanticMatchVerdictValues, ["match", "probable"]) &&
+        sameValues(shape.semanticMatchEvidenceValues, [
+          "amenities",
+          "description",
+          "image",
+          "name",
+        ]) &&
+        shape.semanticMatchAdditionalPropertiesForbidden,
+    ],
+    [
       "applied preference fields match runtime",
       sameValues(shape.appliedPreferencesFields, [
+        "accommodationConcept",
         "breakfastIncludedRequired",
         "freeCancellationRequired",
         "maxTotalPrice",
         "minimumGuestRating",
         "stars",
       ]),
+    ],
+    [
+      "accommodation concept values match runtime",
+      sameValues(shape.accommodationConceptValues, ["glamping"]),
     ],
     [
       "refinement suggestion required fields match runtime",

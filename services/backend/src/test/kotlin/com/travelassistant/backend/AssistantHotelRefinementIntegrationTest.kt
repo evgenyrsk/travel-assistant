@@ -9,6 +9,7 @@ import com.travelassistant.backend.application.llm.LlmClient
 import com.travelassistant.backend.application.llm.LlmClientResponse
 import com.travelassistant.backend.application.llm.LlmHotelSearchPreferencesPatch
 import com.travelassistant.backend.domain.assistant.AssistantSessionId
+import com.travelassistant.backend.domain.hotel.AccommodationConcept
 import com.travelassistant.backend.infrastructure.provider.HotelProviderConfig
 import com.travelassistant.backend.infrastructure.provider.HotelProviderMode
 import com.travelassistant.backend.infrastructure.provider.HotelsApiConfig
@@ -51,6 +52,62 @@ import kotlin.test.assertTrue
 class AssistantHotelRefinementIntegrationTest {
     private val now = Instant.parse("2026-07-22T10:00:00Z")
     private val clock = Clock.fixed(now, ZoneOffset.UTC)
+
+    @Test
+    fun glampingPreferencePersistsAcrossClarificationAndCanBeCleared() = testApplication {
+        val constraintsStore = InMemoryAssistantHotelConstraintsStore()
+        val requests = mutableListOf<LlmCandidateRequest>()
+        val llmClient = queuedCandidateClient(
+            requests = requests,
+            responses = listOf(
+                candidate(),
+                candidate(constraints = completeConstraints()),
+                candidate(),
+            ),
+        )
+
+        application {
+            moduleWithAssistantLlm(
+                llmClient = llmClient,
+                hotelConstraintsStore = constraintsStore,
+                clock = clock,
+            )
+        }
+
+        val sessionId = createSession()
+        val clarification = sendMessage(sessionId, "Хочу забронировать глемпинг")
+
+        assertEquals("ask_clarification", clarification.nextAction())
+        assertTrue(
+            clarification.assistantContent().startsWith(
+                "Я могу помочь подобрать глемпинг, но не выполняю бронирование.",
+            ),
+        )
+        assertEquals(
+            AccommodationConcept.GLAMPING,
+            constraintsStore.findBySession(AssistantSessionId(sessionId))
+                ?.preferences
+                ?.accommodationConcept,
+        )
+
+        val confirmation = sendMessage(sessionId, "Казань, 10–14 августа 2026, двое взрослых")
+
+        assertEquals("glamping", requests[1].confirmedConstraints["accommodation-concept"])
+        assertTrue(
+            confirmation.assistantContent().contains("тип размещения — глемпинг"),
+            confirmation.assistantContent(),
+        )
+        assertFalse(confirmation.assistantContent().contains("не выполняю бронирование"))
+
+        val cleared = sendMessage(sessionId, "Убери требование глемпинга")
+
+        assertFalse(cleared.assistantContent().contains("тип размещения — глемпинг"))
+        assertNull(
+            constraintsStore.findBySession(AssistantSessionId(sessionId))
+                ?.preferences
+                ?.accommodationConcept,
+        )
+    }
 
     @Test
     fun appliesMultiplePreferencesThenClearsOneThroughSeparateConfirmations() = testApplication {

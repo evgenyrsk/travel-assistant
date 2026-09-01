@@ -1,0 +1,35 @@
+{
+  "name": "tbank-hotels-mcp",
+  "version": "0.30.0",
+  "private": false,
+  "description": "Unofficial developer-preview MCP for read-only T-Bank Hotels search and safe checkout handoff.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evgenyrsk/travel-assistant.git",
+    "directory": "tools/tbank-hotels-mcp"
+  },
+  "homepage": "https://github.com/evgenyrsk/travel-assistant#readme",
+  "bugs": {
+    "url": "https://github.com/evgenyrsk/travel-assistant/issues"
+  },
+  "keywords": ["mcp", "hotels", "travel", "tbank", "stdio"],
+  "type": "module",
+  "bin": {
+    "tbank-hotels-mcp": "src/server.mjs"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}

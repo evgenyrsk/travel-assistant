@@ -12,6 +12,7 @@
 - [Documentation guidelines](documentation-guidelines.md) - правила источников истины, навигации и языка документации.
 - [Definition of Done](definition-of-done.md) - критерии завершения задач в репозитории.
 - [Quality gates](quality-gates.md) - команды проверки, проверка diff и отчетность о рисках.
+- [Autonomous engineering](autonomous-engineering.md) - политика автономности, устойчивое состояние длительных задач, recovery loop, независимое review и границы harness adapters.
 - [Backend layering rules](../architecture/backend-layering-rules.md) - допустимые зависимости и границы слоев.
 - [Codex task template](../prompts/codex-task-template.md) - шаблон запроса для задач реализации.
 - [Codex review template](../prompts/codex-review-template.md) - шаблон запроса для задач только на проверку.

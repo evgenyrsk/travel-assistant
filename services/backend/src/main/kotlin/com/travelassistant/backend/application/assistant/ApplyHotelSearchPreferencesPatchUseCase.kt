@@ -36,6 +36,9 @@ class ApplyHotelSearchPreferencesPatchUseCase(
                     current = currentPreferences.breakfastIncludedRequired,
                     issues = issues,
                 ),
+            accommodationConcept = command.patch.accommodationConcept.applyNullable(
+                currentPreferences.accommodationConcept,
+            ),
         )
 
         if (issues.isNotEmpty()) {
@@ -148,6 +151,13 @@ class ApplyHotelSearchPreferencesPatchUseCase(
                     issues += HotelSearchPreferencesPatchIssue.INVALID_BREAKFAST_REQUIREMENT
                     current
                 }
+        }
+
+    private fun <T> HotelSearchPreferencePatch<T>.applyNullable(current: T?): T? =
+        when (this) {
+            HotelSearchPreferencePatch.Keep -> current
+            HotelSearchPreferencePatch.Clear -> null
+            is HotelSearchPreferencePatch.Set -> value
         }
 
     private companion object {

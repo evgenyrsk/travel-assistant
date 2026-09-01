@@ -28,6 +28,32 @@
 
 | Документ | Роль | Как читать |
 |---|---|---|
+| `tbank-hotels-mcp-0.8.0-progress-checkpoint.md` | Completed progress checkpoint / MCP 0.8.0 | Фиксирует реализованный read-only journey и safe preview, текущие safety gates и handoff; дальнейшая исполнимая последовательность хранится только в `tools/tbank-hotels-mcp/docs/journey-tools-plan.md` |
+| `tbank-payment-handoff-preview.md` | Completed local implementation / Hotels 0.19.0 + Banking 0.10.0 | Фиксирует безопасный broker-issued payment capability без provider identifiers, сетевых запросов, payment setup или списания |
+| `tbank-booking-fixture-contract-inspector.md` | Completed offline tooling / local toolkit 0.3.0 | Фиксирует structure-only обработку собственного booking JSON без значений, provider-запросов и MCP tool exposure |
+| `tbank-booking-payment-facts-handoff.md` | Completed bounded evidence + fake implementation / Hotels 0.20.0 + Banking 0.11.0 | Фиксирует binding наблюдаемых booking v1 paymentPrice/raw paymentStatus без provider identifiers, payment setup или списания |
+| `tbank-payment-handoff-preview-hardening.md` | Completed offline hardening / Hotels 0.21.0 + Banking 0.12.0 + toolkit 0.4.0 | Закрывает findings внешнего review: request accounting, readiness mobile session, однократный capability, терминологию наблюдаемого статуса, dynamic-key masking и regression tests без provider calls |
+| `tbank-payment-contract-readiness-foundation.md` | Completed offline foundation / Hotels 0.22.0 + Banking 0.13.0 + toolkit 0.5.0 | Добавляет decimal-safe handoff, freshness и source-account binding, fail-closed execution readiness и offline contract-intake command без payment setup, writes или provider calls |
+| `tbank-payment-contract-readiness-review-follow-up.md` | Completed P3 follow-up / Banking 0.13.1 | Закрывает два неблокирующих finding независимого review: per-process pepper для payloadHash и recovery-подсказку после поглощения невалидного handoff |
+| `tbank-combined-mcp-auth-lifecycle-hardening.md` | Completed local lifecycle hardening / Banking 0.14.0 + toolkit 0.6.0 | Устраняет ручной запуск общего auth broker и зависимость customer reads от порядка lazy-start двух MCP; проверено офлайн без provider calls |
+| `tbank-personalized-search-and-artifact-candidate.md` | Completed local release-candidate checkpoint / Hotels 0.23.0 + Banking 0.14.0 + toolkit 0.6.1 | Добавляет privacy-safe `hotelPreferences`, мягкий `best_value`, точные presentation facts, cache reuse между local rankings и устанавливаемые вне checkout npm/wheel candidates без публикации или provider calls |
+| `tbank-personalized-search-qwen-review-follow-up.md` | Completed Qwen review follow-up / Hotels 0.23.0 | Закрывает все P3 независимого release-candidate review: `bookingRef` для overview/cancellation, fail-closed verified operations, no-store PII gate и точное описание одноразового payment handoff |
+| `tbank-live-smoke-launcher-auth-conflict-follow-up.md` | Completed local hardening / Hotels 0.23.1 + toolkit 0.6.3 | Фиксирует конфликт inline PEM/key-file и регрессию transport URL, делает auth config каноничным без подмены рабочего origin, возвращает terminal no-retry search result и запрещает model-side обход MCP |
+| `tbank-live-smoke-price-basis-follow-up.md` | Completed local hardening / Hotels 0.23.4 + Banking 0.14.1 + toolkit 0.6.6 | Фиксирует успешное восстановление transport и устраняет ложное применение профиля, смешение total/per-night цены и preview до выбора тарифа |
+| `tbank-checkout-inspection-live-smoke-follow-up.md` | Completed implementation/live-smoke follow-up / Hotels 0.30.0 + Banking 0.17.0 + toolkit 0.16.0 | Фиксирует безопасную checkout inspection, исправление v3 response shape и bounded live evidence без применения promo/extras, бронирования или оплаты |
+| `tbank-checkout-inspection-qwen-release-follow-up.md` | Completed Qwen release follow-up / Hotels 0.30.0 + Banking 0.17.0 + toolkit 0.16.0 | Фиксирует независимый verdict без P0-P2 и закрытие всех пяти P3 перед публикацией |
+| `tbank-release-candidate-qwen-final-follow-up.md` | Completed final review follow-up / Hotels 0.26.0 + Banking 0.16.0 + toolkit 0.9.0 | Закрывает четыре P3 финального Qwen-аудита: version consistency, декларативные annotations, полный runtime handler registry и актуальный Banking editable install; live smoke остаётся отдельным gate |
+| `tbank-hosted-checkout-search-context-follow-up.md` | Completed local implementation / Hotels 0.27.0 + Banking 0.16.0 + toolkit 0.10.0 | Закрепляет стабильные номера тарифов, однократную rates-таблицу и allowlisted перенос дат/числа взрослых на public page выбранного отеля; exact-rate contract остаётся неподтверждённым |
+| `tbank-publication-readiness-review.md` | Completed internal publication review and preview follow-up / Hotels 0.28.0 + Banking 0.17.0 + toolkit 0.12.0 | Подтверждает локальный GO, anonymous read-only search, portable launcher/login/package allowlist и готовность registry metadata; upload требует registry login |
+| `tbank-hotels-mcp-qwen-3-8-max-review-follow-up.md` | Review context / tool-local MCP audit | Фиксирует внешний review и triage Hotels MCP; активная последовательность исправлений хранится в `tools/tbank-hotels-mcp/docs/journey-tools-plan.md`, реальные mutating calls не разрешает |
+| `tbank-shared-auth-qwen-3-8-max-review-follow-up.md` | Completed implementation follow-up / shared auth audit | Фиксирует локальное закрытие findings Banking MCP, Hotels MCP и auth broker; live read-only smoke и payment contract gaps остаются отдельными шагами |
+| `tbank-hotels-mobile-auth-probe-progress.md` | Completed local implementation report / mobile auth probe | Фиксирует безопасный fixed-route CLI и offline checks; live mobile auth evidence и любые mutations остаются отдельными шагами |
+| `tbank-combined-mcp-safe-smoke-follow-up.md` | Completed implementation/smoke follow-up / combined MCP | Фиксирует совместный read-only/preview-only smoke, live acceptance booking v1, opaque `bookingRef` и privacy-safe CLI без разрешения write-операций |
+| `tbank-hotels-own-orders-auth-probe-evidence.md` | Completed live-evidence report / own Hotels orders | Подтверждает mobile Bearer для voucher, partial EVO evidence и отсутствие собственного `taskId`; не разрешает writes и не раскрывает booking identifiers |
+| `tbank-hotels-offline-load-safety-hardening.md` | Completed implementation report / Hotels MCP 0.13.0 | Фиксирует per-process concurrency, bounded queue и identical-search coalescing/cache, проверенные только fake transport без production load-test |
+| `tbank-hotels-voucher-safe-local-handoff.md` | Completed implementation report / Hotels MCP 0.14.0 + broker 0.7.0 | Фиксирует fixture-only owner-only voucher PDF handoff без binary content, PII и provider orderId в MCP JSON; production API не вызывался |
+| `tbank-hotels-search-tools-qwen-3-8-max-review.md` | Completed review/follow-up / Hotels MCP 0.15.0–0.16.0 | Фиксирует semantic breakfast flow, строгие filter contracts, Qwen READY verdict, естественные live journey smoke, meal/comparisonRows hardening и переход к compatibility batch |
+| `tbank-mcp-local-compatibility-batch.md` | Completed local implementation / Hotels 0.18.1 + Banking 0.8.1 + toolkit 0.2.1 | Фиксирует key-file auth, setup/doctor/launcher, privacy-first summaries, client config generation, versioned manifests, release hardening и offline conformance двух MCP без provider calls |
 | `documentation-redundancy-structure-audit.md` | Review context / Stage 7.0e audit | Deep audit структуры документации. Его findings читаются как context для bounded cleanup tasks, а не как open-ended blocker. |
 | `stage-7-status-navigation-sync-cleanup.md` | Completed cleanup report / Stage 7.0f-a | Подтверждает, что stale active wording про pending restart readiness review удален из active/navigation/source-of-truth docs. |
 | `stage-7-reviews-index-historical-labeling-cleanup.md` | Completed cleanup report / Stage 7.0f-b | Фиксирует создание этого reviews index и минимальную historical role labeling работу. |
@@ -527,6 +553,21 @@
 214. `docs/reviews/stage-15-1-15-2-request-correlation-and-operational-events.md`
 215. `docs/reviews/stage-15-3-health-and-openmetrics.md`
 216. `docs/reviews/stage-15-4-operational-contract-and-runbook.md`
+217. `docs/reviews/stage-16-0-semantic-accommodation-feasibility-and-policy.md`
+218. `docs/reviews/stage-16-1-semantic-accommodation-conversation-model.md`
+219. `docs/reviews/stage-16-2-semantic-accommodation-classification-core.md`
+220. `docs/reviews/stage-16-3-semantic-accommodation-multimodal-adapter.md`
+221. `docs/reviews/stage-16-4-semantic-accommodation-async-lifecycle.md`
+222. `docs/reviews/stage-16-5-semantic-accommodation-two-pass-orchestration.md`
+223. `docs/reviews/stage-16-6-semantic-accommodation-public-contract-and-demo.md`
+224. `docs/reviews/stage-16-7-semantic-accommodation-quality-evaluation-report.md`
+225. `docs/reviews/stage-16-7-semantic-accommodation-observability-and-closure.md`
+226. `docs/reviews/stage-16-8-semantic-runtime-safety-plan.md`
+227. `docs/reviews/stage-16-8a-backend-semantic-runtime-safety.md`
+228. `docs/reviews/stage-16-8b-async-ux-and-runtime-mode-transparency.md`
+229. `docs/reviews/stage-16-8c-semantic-runtime-safety-closure.md`
+230. `docs/reviews/stage-16-9-real-semantic-activation-readiness.md`
+231. `docs/reviews/stage-17-0-corporate-semantic-portability.md`
 
 ## Historical / superseded документы
 

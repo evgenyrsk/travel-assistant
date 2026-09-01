@@ -11,10 +11,15 @@ Use current documents in this order unless the task states otherwise:
 3. Primary roadmap: `../roadmap/roadmap.md`.
 4. Product baseline: `../product/product-baseline.md`.
 5. Architecture baseline: `../architecture/architecture-baseline.md`.
-6. Active engineering rules in `../development/`.
-7. Historical stage artifacts and review reports for traceability only.
+6. Public API contract intent: `../architecture/stage-6/openapi-draft.yaml`, while it remains explicitly marked as draft with generated-client status `not_ready`.
+7. Active engineering rules in `../development/`.
+8. Backend layering rules: `../architecture/backend-layering-rules.md`.
+9. Prompt templates: `../prompts/`.
+10. Historical stage artifacts and review reports for traceability only.
 
 Do not turn historical wording, review findings, or future/reference material into active backlog.
+
+У проекта нет принятой durable database schema или migrations. Process-local stores не являются разрешением проектировать persistent storage без отдельной roadmap-aligned задачи и применимого architecture decision.
 
 ## Active Docs vs Historical Artifacts
 

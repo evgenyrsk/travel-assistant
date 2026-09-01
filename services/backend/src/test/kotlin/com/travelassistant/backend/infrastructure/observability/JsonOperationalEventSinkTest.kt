@@ -43,6 +43,10 @@ class JsonOperationalEventSinkTest {
                 outcome = OperationalOutcome.NO_OFFERS,
                 durationMillis = 12,
                 offerCount = 0,
+                analyzedCount = 10,
+                deepAnalyzedCount = 4,
+                matchCount = 2,
+                probableCount = 3,
             ),
         )
 
@@ -56,6 +60,10 @@ class JsonOperationalEventSinkTest {
         assertEquals("session-1", json.getValue("session_id").jsonPrimitive.content)
         assertEquals("search-1", json.getValue("hotel_search_id").jsonPrimitive.content)
         assertEquals("no_offers", json.getValue("outcome").jsonPrimitive.content)
+        assertEquals("10", json.getValue("analyzed_count").jsonPrimitive.content)
+        assertEquals("4", json.getValue("deep_analyzed_count").jsonPrimitive.content)
+        assertEquals("2", json.getValue("match_count").jsonPrimitive.content)
+        assertEquals("3", json.getValue("probable_count").jsonPrimitive.content)
     }
 
     @Test

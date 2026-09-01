@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://travel-assistant.internal/schemas/semantic-evaluation-record-v1.json",
+  "title": "Semantic accommodation aggregate evaluation record",
+  "type": "object",
+  "required": [
+    "candidateId",
+    "expectedLabel",
+    "predictedVerdict",
+    "destinationGroup",
+    "borderline",
+    "reviewerLabels"
+  ],
+  "properties": {
+    "candidateId": { "type": "string", "minLength": 1 },
+    "expectedLabel": { "enum": ["glamping", "not_glamping"] },
+    "predictedVerdict": { "enum": ["match", "probable", "no_match", "unknown"] },
+    "destinationGroup": {
+      "type": "string",
+      "pattern": "^destination-group-[a-z0-9_-]+$"
+    },
+    "borderline": { "type": "boolean" },
+    "reviewerLabels": {
+      "type": "array",
+      "items": { "enum": ["glamping", "not_glamping"] }
+    }
+  },
+  "additionalProperties": false
+}
