@@ -5,7 +5,8 @@ import { readFileSync, statSync } from "node:fs";
 import { createConnection } from "node:net";
 import { isAbsolute } from "node:path";
 
-import { SERVER_NAME, SERVER_VERSION, MCP_PROTOCOL_VERSION, DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS, JOURNEY_TTL_MS, BOOKING_DRAFT_TTL_MS, CHECKOUT_VALIDATION_TTL_MS, PREPARED_CONFIRMATION_TTL_MS, AUTH_HEADER_NAME, SERVICE_JWT_REFRESH_MS, LOCATION_CACHE_TTL_MS, DEFAULT_PLAN_OPTIONS, MAX_PLAN_OPTIONS, MAX_ROOMS, MAX_ACTIVE_JOURNEYS, MAX_ACTIVE_BOOKING_DRAFTS, MAX_ACTIVE_BOOKING_REFERENCES, MAX_TRACKED_MUTATION_EXECUTIONS, MAX_LOCATION_CACHES, LOCATION_PAGE_SIZE, MAX_LOCATION_PAGES, LOCATION_COLLECTION_BUDGET_MS, MAX_PROVIDER_RESPONSE_BYTES, MAX_SERVICE_JWT_KEY_BYTES, SEARCH_PAGE_SIZE, MAX_SEARCH_REQUESTS, MAX_SEARCH_LOADING_POLLS, SEARCH_LOADING_POLL_DELAY_MS, SEARCH_COLLECTION_BUDGET_MS, MIN_SEARCH_REQUEST_BUDGET_MS, SUBSTANTIAL_SEARCH_COVERAGE_RATIO, DEFAULT_MAX_PROVIDER_CONCURRENCY, MAX_PROVIDER_CONCURRENCY, MAX_PROVIDER_REQUEST_QUEUE, SEARCH_CACHE_TTL_MS, MAX_SEARCH_CACHE_ENTRIES, CHECKOUT_REQUEST_BUDGET_MS, CHECKOUT_FIRST_ATTEMPT_MS, RATES_REQUEST_BUDGET_MS, RATES_FIRST_ATTEMPT_MS, PAYMENT_FORM_CONTRACT_VERSION, PAYMENT_FORM_EXTERNAL_BLOCKERS } from "./config.mjs";
+import { SERVER_NAME, SERVER_VERSION, MCP_PROTOCOL_VERSION, DEFAULT_TIMEOUT_MS, MAX_TIMEOUT_MS, JOURNEY_TTL_MS, BOOKING_DRAFT_TTL_MS, CHECKOUT_VALIDATION_TTL_MS, CHECKOUT_INSPECTION_TTL_MS, PREPARED_CONFIRMATION_TTL_MS, AUTH_HEADER_NAME, SERVICE_JWT_REFRESH_MS, LOCATION_CACHE_TTL_MS, DEFAULT_PLAN_OPTIONS, MAX_PLAN_OPTIONS, MAX_ROOMS, MAX_ACTIVE_JOURNEYS, MAX_ACTIVE_BOOKING_DRAFTS, MAX_ACTIVE_BOOKING_REFERENCES, MAX_TRACKED_MUTATION_EXECUTIONS, MAX_LOCATION_CACHES, LOCATION_PAGE_SIZE, MAX_LOCATION_PAGES, LOCATION_COLLECTION_BUDGET_MS, MAX_PROVIDER_RESPONSE_BYTES, MAX_SERVICE_JWT_KEY_BYTES, SEARCH_PAGE_SIZE, MAX_SEARCH_REQUESTS, MAX_SEARCH_LOADING_POLLS, SEARCH_LOADING_POLL_DELAY_MS, SEARCH_COLLECTION_BUDGET_MS, MIN_SEARCH_REQUEST_BUDGET_MS, SUBSTANTIAL_SEARCH_COVERAGE_RATIO, DEFAULT_MAX_PROVIDER_CONCURRENCY, MAX_PROVIDER_CONCURRENCY, MAX_PROVIDER_REQUEST_QUEUE, SEARCH_CACHE_TTL_MS, MAX_SEARCH_CACHE_ENTRIES, CHECKOUT_REQUEST_BUDGET_MS, CHECKOUT_FIRST_ATTEMPT_MS, RATES_REQUEST_BUDGET_MS, RATES_FIRST_ATTEMPT_MS, PAYMENT_FORM_CONTRACT_VERSION, PAYMENT_FORM_EXTERNAL_BLOCKERS } from "./config.mjs";
+import { normalizeCheckoutInspection, normalizePromocodeValidation, normalizeRateUpgrade } from "./checkout-inspection.mjs";
 import { hostedCheckoutTarget } from "./checkout-handoff.mjs";
 import { SEARCH_FILTER_IDS, tools } from "./tool-contracts.mjs";
 const journeysById = new Map();
@@ -1869,6 +1870,11 @@ function selectStayOption(args) {
   const journey = journeyById(args.journeyId);
   const option = selectedJourneyOption(journey, args.optionId);
   const stayNights = stayNightCount(journey.planInput.checkinDate, journey.planInput.checkoutDate);
+  if (journey.selectedOptionId !== option.optionId) {
+    journey.rateOptions = [];
+    journey.selectedRateOptionId = null;
+    journey.checkoutInspection = null;
+  }
   journey.selectedOptionId = option.optionId;
   return {
     journeyId: args.journeyId,
@@ -1940,6 +1946,7 @@ async function selectedStayRates(args) {
   if (!Array.isArray(rates)) throw new Error("Hotels API rates response does not contain the expected payload.rates array.");
   journey.rateOptions = rates.map((rate, index) => ({ rateOptionId: randomUUID(), rateNumber: index + 1, rate }));
   journey.selectedRateOptionId = null;
+  journey.checkoutInspection = null;
   const canCreateBookingDraft = journey.rateOptions.length > 0;
   const otherRates = result.data?.payload?.otherRates;
   const rooms = result.data?.payload?.rooms;
@@ -1979,6 +1986,7 @@ function selectedStayRate(args) {
   if (!journey.selectedOptionId) throw new Error("Select one stay option before selecting a rate.");
   const rateOption = journey.rateOptions.find((candidate) => candidate.rateOptionId === args.rateOptionId);
   if (!rateOption) throw new Error("rateOptionId is not part of this journey. Load current rates again.");
+  if (journey.selectedRateOptionId !== rateOption.rateOptionId) journey.checkoutInspection = null;
   journey.selectedRateOptionId = rateOption.rateOptionId;
   const stayNights = stayNightCount(journey.planInput.checkinDate, journey.planInput.checkoutDate);
   const executionReadiness = mutationExecutionReadiness("booking");
@@ -1990,8 +1998,254 @@ function selectedStayRate(args) {
     executionAvailable: executionReadiness.available,
     executionReadiness: journeyExecutionReadiness(executionReadiness),
     nextStep: executionReadiness.available
-      ? "If the user asks only for a preview, call tbank_hotels_create_booking_preview. If they ask to book, complete, continue or proceed to checkout, call tbank_hotels_create_checkout_handoff and show its hostedCheckoutUrl. Collect guest PII and create a booking draft only for an explicitly requested reviewed API-execution flow."
-      : "If the user asks only for a preview, call tbank_hotels_create_booking_preview. If they ask to book, complete, continue or proceed to checkout, call tbank_hotels_create_checkout_handoff and show its hostedCheckoutUrl. The safe external handoff remains available while direct execution is unavailable; do not request guest PII or final API confirmation.",
+      ? "For current checkout price, cancellation, promocode validation, extra services or upgrade, call tbank_hotels_inspect_checkout. If the user asks only for a local summary, call tbank_hotels_create_booking_preview. If they ask to book, complete, continue or proceed to checkout, call tbank_hotels_create_checkout_handoff and show its hostedCheckoutUrl. Collect guest PII only for an explicitly requested reviewed API-execution flow."
+      : "For current checkout price, cancellation, promocode validation, extra services or upgrade, call tbank_hotels_inspect_checkout. If the user asks only for a local summary, call tbank_hotels_create_booking_preview. If they ask to book, complete, continue or proceed to checkout, call tbank_hotels_create_checkout_handoff and show its hostedCheckoutUrl. The safe external handoff remains available while direct execution is unavailable; do not request guest PII or final API confirmation.",
+  };
+}
+
+function selectedRateContext(journeyId) {
+  const journey = journeyById(journeyId);
+  if (!journey.selectedOptionId) throw new Error("Select one stay option before inspecting checkout.");
+  if (!journey.selectedRateOptionId) throw new Error("Select one current rate before inspecting checkout.");
+  const option = selectedJourneyOption(journey, journey.selectedOptionId);
+  const rateOption = journey.rateOptions.find((candidate) => candidate.rateOptionId === journey.selectedRateOptionId);
+  if (!rateOption) throw new Error("Selected rate is no longer part of this journey. Load current rates again.");
+  const bookHash = optional(rateOption.rate, "bookHash");
+  if (typeof bookHash !== "string" || !bookHash) throw new Error("Selected rate does not contain a usable bookHash.");
+  return { journey, option, rateOption, bookHash };
+}
+
+async function fetchCheckoutRate(bookHash, language) {
+  const path = `/api/v3/rates/${value(bookHash, "bookHash")}`;
+  const startedAt = Date.now();
+  let attempts = 1;
+  try {
+    const result = await apiRequest("GET", path, { language, requestTimeoutMs: CHECKOUT_FIRST_ATTEMPT_MS });
+    return { result, attempts, durationMs: Math.max(0, Date.now() - startedAt) };
+  } catch (error) {
+    const remainingMs = CHECKOUT_REQUEST_BUDGET_MS - (Date.now() - startedAt);
+    if (error.code !== "HOTELS_API_TIMEOUT" || remainingMs < MIN_SEARCH_REQUEST_BUDGET_MS) {
+      error.checkoutAttempts = attempts;
+      error.checkoutDurationMs = Math.max(0, Date.now() - startedAt);
+      throw error;
+    }
+    attempts = 2;
+    try {
+      const result = await apiRequest("GET", path, { language, requestTimeoutMs: remainingMs });
+      return { result, attempts, durationMs: Math.max(0, Date.now() - startedAt) };
+    } catch (retryError) {
+      retryError.checkoutAttempts = attempts;
+      retryError.checkoutDurationMs = Math.max(0, Date.now() - startedAt);
+      throw retryError;
+    }
+  }
+}
+
+function checkoutProviderFailure(error, args, journey, option, rateOption) {
+  const providerFailure = optionalProviderOperationFailure(error, "checkout");
+  const stayNights = stayNightCount(journey.planInput.checkinDate, journey.planInput.checkoutDate);
+  journey.checkoutInspection = null;
+  return {
+    status: "checkout_temporarily_unavailable",
+    journeyId: args.journeyId,
+    stayNights,
+    selectedStay: presentedStayOption(option, journey.options, journey.planInput.hotelPreferences, journey.planInput.ranking, stayNights),
+    selectedRate: stayRateOption(rateOption, stayNights),
+    providerRequestCount: Number.isInteger(error?.checkoutAttempts) ? error.checkoutAttempts : 1,
+    checkoutAttempts: Number.isInteger(error?.checkoutAttempts) ? error.checkoutAttempts : 1,
+    checkoutDurationMs: Number.isFinite(error?.checkoutDurationMs) ? error.checkoutDurationMs : null,
+    failureKind: providerFailure.reason,
+    providerCode: providerFailure.providerCode,
+    providerHttpStatus: providerFailure.providerHttpStatus,
+    retryAllowed: false,
+    lowLevelFallbackAllowed: false,
+    personalDataCollected: false,
+    checkoutModified: false,
+    bookingCreated: false,
+    paymentStarted: false,
+    nextStep: "Do not repeat the same checkout inspection automatically and do not call low-level provider tools. Tell the user checkout facts are temporarily unavailable; offer the existing hotel-page handoff or a later explicit retry.",
+  };
+}
+
+function optionalProviderOperationFailure(error, kind) {
+  const httpStatus = Number.isInteger(error?.httpStatus) ? error.httpStatus : null;
+  const providerCode = typeof error?.providerCode === "string" ? error.providerCode : null;
+  if (kind === "promocode" && httpStatus === 400) {
+    return { status: "invalid", reason: "provider_rejected_promocode", providerCode, providerHttpStatus: httpStatus };
+  }
+  const reason = httpStatus === 401 || httpStatus === 403
+    ? "provider_auth_rejected"
+    : error?.code === "HOTELS_API_TIMEOUT"
+      ? "provider_timeout"
+      : error?.code === "HOTELS_API_NETWORK"
+        ? "provider_unreachable"
+        : httpStatus !== null
+          ? "provider_rejected_request"
+          : "provider_operation_unavailable";
+  return { status: "unavailable", reason, providerCode, providerHttpStatus: httpStatus };
+}
+
+async function inspectCheckout(args) {
+  requestObject(args, "arguments");
+  assertOnlyKeys(args, ["journeyId", "promocode", "includeUpgradeOffer", "language"], "arguments");
+  if (args.promocode !== undefined && (typeof args.promocode !== "string" || !args.promocode.trim() || args.promocode.length > 128)) {
+    throw new Error("promocode must contain 1 to 128 characters.");
+  }
+  if (args.includeUpgradeOffer !== undefined && typeof args.includeUpgradeOffer !== "boolean") {
+    throw new Error("includeUpgradeOffer must be a boolean when provided.");
+  }
+  const { journey, option, rateOption, bookHash } = selectedRateContext(args.journeyId);
+  const extraServicesByRef = new Map();
+  const serviceReference = (kind) => {
+    const reference = `checkout_extra_${randomUUID().replaceAll("-", "").slice(0, 24)}`;
+    extraServicesByRef.set(reference, { kind });
+    return reference;
+  };
+  let checkoutFetch;
+  try {
+    checkoutFetch = await fetchCheckoutRate(bookHash, args.language);
+  } catch (error) {
+    return checkoutProviderFailure(error, args, journey, option, rateOption);
+  }
+  const normalized = normalizeCheckoutInspection(checkoutFetch.result.data, {
+    expectedBookHash: bookHash,
+    serviceReference,
+    formatMoney: formatProviderMoney,
+    formatTimestamp: formatProviderTimestamp,
+  });
+  let promocodeValidation = { status: "not_requested", discount: null };
+  let promocodeRequestCount = 0;
+  if (args.promocode !== undefined) {
+    promocodeRequestCount = 1;
+    try {
+      const result = await apiRequest("POST", "/api/v1/hotels/promocodes/validate", {
+        payload: { promocode: args.promocode.trim(), bookHash },
+        language: args.language,
+      });
+      promocodeValidation = normalizePromocodeValidation(result.data, formatProviderMoney);
+    } catch (error) {
+      promocodeValidation = optionalProviderOperationFailure(error, "promocode");
+    }
+  }
+  let upgradeOffer = { status: "not_requested", available: false };
+  let upgradeRequestCount = 0;
+  if (args.includeUpgradeOffer === true) {
+    const hotelId = Number(optional(option.hotel, "hotelId"));
+    if (!Number.isInteger(hotelId) || hotelId < 1) {
+      upgradeOffer = { status: "unavailable", available: false, reason: "selected_hotel_id_not_compatible" };
+    } else {
+      upgradeRequestCount = 1;
+      try {
+        const result = await apiRequest("POST", `/api/v1/hotels/rates/${value(bookHash, "bookHash")}/upgrade`, {
+          payload: {
+            hotelId,
+            checkInDate: journey.searchRequest.checkinDate,
+            checkOutDate: journey.searchRequest.checkoutDate,
+            guests: journey.searchRequest.guests,
+          },
+          language: args.language,
+        });
+        upgradeOffer = { status: "ready", ...normalizeRateUpgrade(result.data, formatProviderMoney) };
+      } catch (error) {
+        upgradeOffer = { available: false, ...optionalProviderOperationFailure(error, "upgrade") };
+      }
+    }
+  }
+  const checkoutRef = `checkout_${randomUUID().replaceAll("-", "").slice(0, 24)}`;
+  const stayNights = stayNightCount(journey.planInput.checkinDate, journey.planInput.checkoutDate);
+  const inspectedAt = Date.now();
+  journey.checkoutInspection = {
+    checkoutRef,
+    selectedRateOptionId: journey.selectedRateOptionId,
+    inspectedAt,
+    expiresAt: inspectedAt + CHECKOUT_INSPECTION_TTL_MS,
+    checkout: normalized,
+    extraServicesByRef,
+    promocodeValidation,
+  };
+  return {
+    status: "ready",
+    journeyId: args.journeyId,
+    checkoutRef,
+    inspectedAt: new Date(journey.checkoutInspection.inspectedAt).toISOString(),
+    expiresAt: new Date(journey.checkoutInspection.expiresAt).toISOString(),
+    stayNights,
+    selectedStay: presentedStayOption(option, journey.options, journey.planInput.hotelPreferences, journey.planInput.ranking, stayNights),
+    selectedRate: stayRateOption(rateOption, stayNights),
+    checkout: normalized,
+    promocodeValidation,
+    upgradeOffer,
+    providerRequestCount: checkoutFetch.attempts + promocodeRequestCount + upgradeRequestCount,
+    checkoutAttempts: checkoutFetch.attempts,
+    checkoutDurationMs: checkoutFetch.durationMs,
+    personalDataCollected: false,
+    checkoutModified: false,
+    bookingCreated: false,
+    paymentStarted: false,
+    nextStep: "Show the authoritative checkout facts. If the user wants to review a validated promocode or choose listed extra services, call tbank_hotels_preview_checkout_changes. If they want to complete booking, call tbank_hotels_create_checkout_handoff. Do not call low-level apply tools in the normal journey flow.",
+    note: "Promocode validation and upgrade lookup do not apply changes. Provider bookHash, checkOutId, hotelId, extra-service IDs and cashback account numbers are intentionally omitted.",
+  };
+}
+
+function previewCheckoutChanges(args) {
+  requestObject(args, "arguments");
+  assertOnlyKeys(args, ["journeyId", "promocodeAction", "extraServiceOptionRefs"], "arguments");
+  const { journey, option, rateOption } = selectedRateContext(args.journeyId);
+  const inspection = journey.checkoutInspection;
+  if (!inspection || inspection.selectedRateOptionId !== journey.selectedRateOptionId) {
+    throw new Error("Inspect the currently selected checkout before previewing changes.");
+  }
+  if (Date.now() >= inspection.expiresAt) {
+    journey.checkoutInspection = null;
+    throw new Error("Checkout inspection expired. Call tbank_hotels_inspect_checkout again before previewing changes.");
+  }
+  const promocodeAction = args.promocodeAction ?? "unchanged";
+  if (!["unchanged", "apply_validated"].includes(promocodeAction)) {
+    throw new Error("promocodeAction must be unchanged or apply_validated. Removing an applied promocode is not supported by the verified read contract.");
+  }
+  if (promocodeAction === "apply_validated" && inspection.promocodeValidation?.status !== "valid") {
+    throw new Error("A successfully validated promocode from the latest checkout inspection is required.");
+  }
+  if (args.extraServiceOptionRefs !== undefined && (!Array.isArray(args.extraServiceOptionRefs)
+    || args.extraServiceOptionRefs.length > 2
+    || new Set(args.extraServiceOptionRefs).size !== args.extraServiceOptionRefs.length)) {
+    throw new Error("extraServiceOptionRefs must contain at most two unique references.");
+  }
+  const selectedExtraServices = (args.extraServiceOptionRefs ?? []).map((reference) => {
+    const internal = inspection.extraServicesByRef.get(reference);
+    if (!internal) throw new Error("extraServiceOptionRef is not part of the latest checkout inspection.");
+    const safeOptions = [...inspection.checkout.extraServices.earlyCheckIn, ...inspection.checkout.extraServices.lateCheckOut];
+    return safeOptions.find((optionValue) => optionValue.extraServiceOptionRef === reference);
+  });
+  if (new Set(selectedExtraServices.map((service) => service.kind)).size !== selectedExtraServices.length) {
+    throw new Error("Choose at most one early check-in and one late check-out option.");
+  }
+  const stayNights = stayNightCount(journey.planInput.checkinDate, journey.planInput.checkoutDate);
+  const providerQuoteUpdateRequired = promocodeAction !== "unchanged" || args.extraServiceOptionRefs !== undefined;
+  return {
+    status: "preview_only",
+    journeyId: args.journeyId,
+    checkoutRef: inspection.checkoutRef,
+    selectedStay: presentedStayOption(option, journey.options, journey.planInput.hotelPreferences, journey.planInput.ranking, stayNights),
+    selectedRate: stayRateOption(rateOption, stayNights),
+    currentCheckout: inspection.checkout,
+    requestedChanges: {
+      promocodeAction,
+      validatedPromocodeDiscount: promocodeAction === "apply_validated" ? inspection.promocodeValidation.discount : null,
+      extraServicesAction: args.extraServiceOptionRefs === undefined ? "unchanged" : "replace",
+      selectedExtraServices,
+    },
+    providerQuoteUpdateRequired,
+    authoritativeUpdatedPriceAvailable: !providerQuoteUpdateRequired,
+    personalDataCollected: false,
+    providerWritePerformed: false,
+    checkoutModified: false,
+    bookingCreated: false,
+    paymentStarted: false,
+    nextStep: providerQuoteUpdateRequired
+      ? "Show this no-write preview and explain that the authoritative updated total is available only after provider quote mutation, which is not part of the public journey. To continue safely, use tbank_hotels_create_checkout_handoff."
+      : "No checkout change was requested. Show the current checkout or use tbank_hotels_create_checkout_handoff when the user wants to continue.",
+    note: "This preview does not call promocode or extra-services apply endpoints and does not compute a synthetic final total.",
   };
 }
 
@@ -2663,6 +2917,8 @@ async function apiRequest(method, path, { payload: body, query, language, reques
       const providerError = new Error(`Hotels API returned HTTP ${response.status}${details.length ? ` (${details.join(", ")})` : ""}.`);
       providerError.code = "HOTELS_API_HTTP";
       providerError.httpStatus = response.status;
+      providerError.providerCode = code;
+      providerError.requestId = requestId;
       throw providerError;
     }
     return { status: response.status, data: responseBody };
@@ -2694,6 +2950,8 @@ const directToolHandlers = new Map([
   ["tbank_hotels_get_selected_stay_rates", (args) => selectedStayRates(args)],
   ["tbank_hotels_select_stay_rate", (args) => selectedStayRate(args)],
   ["tbank_hotels_create_booking_preview", (args) => createBookingPreview(args)],
+  ["tbank_hotels_inspect_checkout", (args) => inspectCheckout(args)],
+  ["tbank_hotels_preview_checkout_changes", (args) => previewCheckoutChanges(args)],
   ["tbank_hotels_create_payment_form_preview", (args) => createPaymentFormPreview(args)],
   ["tbank_hotels_create_checkout_handoff", (args) => createCheckoutHandoff(args)],
   ["tbank_hotels_create_booking_draft", (args) => createBookingDraft(args)],

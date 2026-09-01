@@ -106,7 +106,24 @@ auth review и не блокирует hosted payment form.
 - `tbank_hotels_create_checkout_handoff` завершает публичный сценарий через
   внешний hosted checkout без PII, payment credentials, provider request или
   обещания переноса точного тарифа;
+- `tbank_hotels_inspect_checkout` получает актуальный выбранный rate,
+  нормализует цены/отмену/cashback, скрывает provider identifiers и может
+  отдельно валидировать промокод либо запросить upgrade без применения;
+- `tbank_hotels_preview_checkout_changes` локально показывает выбор
+  проверенного промокода и opaque дополнительных услуг, но не вызывает
+  stateful apply endpoints и не вычисляет неподтверждённую итоговую цену;
+- checkout inspection действует пять минут и после истечения требует повторной
+  provider-проверки; удаление применённого промокода не выставлено в public
+  journey до подтверждения источника promo-состояния в read-контракте;
 - booking/payment execution по умолчанию и в release candidate остаётся `NO-GO`.
+
+Применение/удаление промокода и замена дополнительных услуг являются
+изменением provider checkout quote, хотя ещё не создают бронь и не запускают
+оплату. Error taxonomy содержит lifecycle-коды promo operation, поэтому эти
+два POST нельзя классифицировать как read-only только по отсутствию списания.
+Обычный journey ограничен inspection/validation/local preview; существующие
+low-level `prepare → execute` остаются интеграционным `NO-GO` до отдельного
+live evidence о TTL, повторе, rollback и потреблении промокода.
 
 ## Внешние blockers
 
@@ -134,7 +151,7 @@ SHEVO payment setup. Этот маршрут не объединяется с ho
 - [x] Booking request/response и task status сверены офлайн.
 - [x] Hosted payment form request/response и task status сверены офлайн.
 - [x] Raw-card/3DS поверхность исключена из MCP.
-- [x] Typed schema и local preview покрыты hermetic tests.
+- [x] Typed schema, checkout inspection и local preview покрыты hermetic tests.
 - [x] Зафиксирован owner-provided production origin без выполнения запросов.
 - [ ] Получен одобренный и доступный non-production payment origin.
 - [ ] Подтверждены переходы и terminal/action-required semantics payment task.

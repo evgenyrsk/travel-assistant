@@ -8,16 +8,18 @@ smoke-кейсов. Это review-only задача.
 /Users/evgenyrsk/Projects/travel-assistant.
 
 Scope:
-- tools/tbank-hotels-mcp, ожидаемая версия 0.29.0;
+- tools/tbank-hotels-mcp, ожидаемая версия 0.30.0;
 - tools/tbank-banking-mcp, ожидаемая версия 0.17.0;
-- tools/tbank-mcp-local, ожидаемая версия 0.15.0;
+- tools/tbank-mcp-local, ожидаемая версия 0.16.0;
 - ADR-0003, ADR-0004, ADR-0005;
 - tools/tbank-hotels-mcp/docs/journey-tools-plan.md;
 - tools/tbank-hotels-mcp/docs/booking-payment-contract-readiness.md;
 - tools/tbank-hotels-mcp/docs/portability-and-distribution-roadmap.md;
+- tools/tbank-mcp-local/docs/human-smoke-cases.md;
 - docs/reviews/tbank-mcp-local-compatibility-batch.md;
 - docs/reviews/tbank-payment-handoff-preview-hardening.md;
 - docs/reviews/tbank-payment-contract-readiness-foundation.md;
+- docs/reviews/tbank-checkout-inspection-live-smoke-follow-up.md;
 - результаты человеческих smoke-кейсов, если они приложены пользователем.
 
 Ограничения:
@@ -115,6 +117,23 @@ Scope:
    нужен отдельный non-production reviewed execution profile, который combined
    launcher не наследует из parent environment; production profile отсутствует.
 8. Payment boundary:
+   - `tbank_hotels_inspect_checkout` должен принимать только journey-level
+     параметры, сам связывать выбранный rate с `bookHash`, получать актуальный
+     checkout и возвращать нормализованные provider facts без `bookHash`,
+     `checkOutId`, hotel/room/extra-service IDs и cashback account numbers;
+   - проверка промокода и optional upgrade не должны применять изменения,
+     создавать бронь или запускать оплату; ошибки optional операций должны
+     оставаться структурированными и не раскрывать raw provider body;
+   - дополнительные услуги должны возвращаться только как process-local opaque
+     `extraServiceOptionRef`; повторный select hotel/rates/rate обязан
+     инвалидировать предыдущую checkout inspection;
+   - `tbank_hotels_preview_checkout_changes` должен принимать только refs из
+     последней инспекции, локально отклонять неизвестные/дублирующиеся options,
+     не вызывать provider apply endpoints и не вычислять синтетическую итоговую
+     цену после желаемого изменения;
+   - stateful применение/удаление промокода и замена extra services остаются
+     low-level `prepare → execute`, выключены по умолчанию и не входят в
+     обычный публичный journey до отдельного lifecycle/idempotency evidence;
    - handoff одноразовый и атомарно поглощается;
    - сумма передаётся как canonical `amountDecimal`, с честным ограничением:
      исходная lexical precision provider JSON не восстанавливается;
@@ -181,7 +200,7 @@ impact, минимальный fix и regression test. Не называй от�
    preview_only, booking_execute, payment_execute.
 2. Findings P0–P3, включая явное «нет», если категория пуста.
 3. Compatibility/security matrix.
-4. Проверка восьми естественных кейсов по предоставленному trace; не выдумывай
+4. Проверка девяти естественных кейсов по предоставленному trace; не выдумывай
    live evidence, которого нет.
 5. Contract gaps и внешние blockers.
 6. Checks performed с точными результатами.

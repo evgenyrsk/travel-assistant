@@ -1,6 +1,6 @@
 {
   "name": "tbank-mcp-local",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "private": false,
   "description": "Unofficial local launcher, setup and contract tooling for T-Bank Hotels and Banking MCP servers.",
   "license": "UNLICENSED",

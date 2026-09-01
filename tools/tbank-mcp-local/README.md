@@ -183,16 +183,16 @@ Gate также проверяет два installable artifact candidates без
 - Banking wheel собирается из изолированной копии, не содержит session/env/test
   файлов, устанавливается вне checkout и отвечает на `initialize`.
 
-Совместимый кандидат следующей публикации: `tbank-hotels-mcp@0.29.0`,
-`travel-assistant-tbank-banking-mcp@0.17.0` и `tbank-mcp-local@0.15.0`.
+Совместимый кандидат следующей публикации: `tbank-hotels-mcp@0.30.0`,
+`travel-assistant-tbank-banking-mcp@0.17.0` и `tbank-mcp-local@0.16.0`.
 Автоматический `connect` устанавливает их в owner-only runtime и закрепляет
 абсолютные executable paths в локальном конфиге, поэтому глобальные npm/pipx
-команды и repository checkout не нужны. Npm-пакеты опубликованы с
-`UNLICENSED`: это разрешает установку preview из registry, но не предоставляет
-отдельную open-source лицензию на повторное использование кода. До полного
-stable release остаются выбор публичной лицензии, SBOM/provenance и remote
-Streamable HTTP transport. Локальные Cursor/OpenCode/Codex подключения работают через
-stdio; ChatGPT web/mobile не может подключить такой локальный процесс напрямую.
+команды и repository checkout не нужны. Предыдущие npm-версии опубликованы с
+`UNLICENSED`; кандидат `0.30.0/0.17.0/0.16.0` прошёл review и bounded smoke,
+но ещё требует registry upload и fresh-install проверки. До полного stable release остаются выбор публичной лицензии,
+SBOM/provenance и remote Streamable HTTP transport. Локальные
+Cursor/OpenCode/Codex подключения работают через stdio; ChatGPT web/mobile не
+может подключить такой локальный процесс напрямую.
 
 Текущую границу готовности реальной hotel payment можно проверить отдельно:
 

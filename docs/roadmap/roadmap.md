@@ -1147,8 +1147,8 @@ order identifiers. Следующий разрешённый шаг toolstream �
 оставшихся order reads при наличии собственных identifiers; booking/payment
 mutations остаются отдельным gate.
 
-Текущий локальный checkpoint toolstream: Hotels MCP `0.29.0`, Banking/broker
-`0.17.0`, local toolkit `0.15.0`. Safe voucher handoff реализован и проверен
+Текущий локальный checkpoint toolstream: Hotels MCP `0.30.0`, Banking/broker
+`0.17.0`, local toolkit `0.16.0`. Safe voucher handoff реализован и проверен
 только на fixture/fake transport после ранее зафиксированного read-only auth
 evidence. Публичная граница оформления закреплена в `ADR-0005`: после выбора
 тарифа Hotels MCP создаёт безопасный hosted-checkout handoff без PII,
@@ -1450,6 +1450,21 @@ OpenCode HOME прошли Hotels-only и combined registration; combined profil
 установил публичный Banking wheel `0.17.0`, mobile login был пропущен, provider
 requests не выполнялись. Следующий отдельный gate — portability hardening;
 booking/payment execution остаётся `NO-GO`.
+
+Checkout-inspection release candidate `0.30.0/0.17.0/0.16.0` добавляет
+journey-level актуальную проверку выбранного тарифа без provider identifiers:
+цены, отмену, cashback без account numbers, opaque ранний заезд/поздний выезд,
+безопасную promo validation и optional upgrade. Отдельный local preview
+показывает желаемые checkout-изменения, но не вызывает stateful apply
+endpoints, не создаёт бронь и не запускает оплату. Hermetic Hotels suite
+содержит 74 теста. Первый bounded smoke выявил несовпадение v1/v3 response
+shape; после исправления повторный read-only smoke прошёл checkout, promo
+validation, upgrade и локальный preview без provider identifiers и writes.
+Внешний Qwen review не выявил P0-P2; follow-up закрыл все пять P3: строгую
+сверку wrapper `bookHash`, обе contract-формы в regression tests,
+структурированный no-retry checkout failure, пятиминутную свежесть инспекции и
+неподтверждённое удаление промокода из публичной journey-схемы. Следующий gate —
+registry upload и fresh-install проверка.
 
 Финальный Qwen-аудит предыдущего checkpoint не выявил P0–P2 и подтвердил
 готовность read-only и preview-only tiers. Follow-up закрыл четыре P3: version

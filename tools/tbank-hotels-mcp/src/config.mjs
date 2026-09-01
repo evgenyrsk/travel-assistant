@@ -1,11 +1,12 @@
 export const SERVER_NAME = "tbank-hotels-api-mcp";
-export const SERVER_VERSION = "0.29.0";
+export const SERVER_VERSION = "0.30.0";
 export const MCP_PROTOCOL_VERSION = "2025-03-26";
 export const DEFAULT_TIMEOUT_MS = 15_000;
 export const MAX_TIMEOUT_MS = 60_000;
 export const JOURNEY_TTL_MS = 60 * 60 * 1_000;
 export const BOOKING_DRAFT_TTL_MS = 60 * 60 * 1_000;
 export const CHECKOUT_VALIDATION_TTL_MS = 5 * 60 * 1_000;
+export const CHECKOUT_INSPECTION_TTL_MS = 5 * 60 * 1_000;
 export const PREPARED_CONFIRMATION_TTL_MS = 5 * 60 * 1_000;
 export const AUTH_HEADER_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
 export const SERVICE_JWT_REFRESH_MS = 30_000;

@@ -6,9 +6,10 @@ MCP-клиентам и приложениям. Документ не меняе
 hotel-only MVP или порядок этапов Kotlin backend.
 
 **Статус:** `In progress`. Опубликованный toolkit `0.15.0` закрыл локальную
-установку, раздельное/совместное подключение и versioned contracts; public
-fresh-install проверен в Codex/OpenCode без активации remote transport или
-execution capabilities.
+установку, раздельное/совместное подключение и versioned contracts; candidate
+`0.16.0` с Hotels checkout inspection прошёл bounded smoke, независимый review
+и локальные release-gates без активации booking/payment или quote mutations.
+Следующий gate — registry upload и fresh install опубликованных артефактов.
 
 **Принятое решение от 2026-08-24:** сначала довести и стабилизировать локальный
 read-only/preview-only MCP, затем выпустить воспроизводимый локальный `stdio`
@@ -48,7 +49,7 @@ bundle не должен объединять их полномочия. Это 
 
 | Область | Сейчас | Ограничение для распространения |
 | --- | --- | --- |
-| Hotels MCP | Node.js 20+, `stdio`, package bin, protocol `2025-03-26`; anonymous read-only search; `0.28.1` опубликована, `0.29.0` — локальный resumable-search candidate | Для нового candidate нужны review/smoke/upload; нет checksums/SBOM/provenance и полной OS/client matrix |
+| Hotels MCP | Node.js 20+, `stdio`, package bin, protocol `2025-03-26`; anonymous read-only search; `0.29.0` опубликована, `0.30.0` прошла review/smoke и готова к upload | Нет checksums/SBOM/provenance и полной OS/client matrix |
 | Banking MCP | Python 3.11+, `stdio`, protocol `2025-03-26`; `0.17.0` опубликована и устанавливается вне checkout | Нет кроссплатформенного secure storage, checksums/SBOM/provenance и полной OS matrix |
 | Общая авторизация | Локальный broker через owner-only Unix socket | Unix socket и session-файл не подходят как remote/multi-tenant boundary |
 | Состояние journey | Process-local opaque handles с TTL | После перезапуска теряется; для нескольких HTTP instances нужен общий secure store |

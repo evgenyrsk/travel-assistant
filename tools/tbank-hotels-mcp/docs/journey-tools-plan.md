@@ -8,10 +8,11 @@ Assistant или границы MVP v1.
 
 | Пункт | Состояние |
 | --- | --- |
-| Версия MCP | Hotels `0.29.0`, Banking/broker `0.17.0`, local toolkit `0.15.0` |
+| Версия MCP | Hotels `0.30.0`, Banking/broker `0.17.0`, local toolkit `0.16.0` |
 | Transport | stdio, Node.js 20+, без браузера и cookie |
 | Read-only search journey | Реализован и проверен fake transport tests и bounded current-worktree smoke; `breakfastIncluded` преобразуется в строгий provider filter без low-level перебора |
 | Safe booking preview | Реализован без PII, booking draft и HTTP-вызова |
+| Checkout inspection | Реализован provider-backed read-only flow: актуальная цена/отмена, promo validation, opaque extra-service refs и optional upgrade без PII, booking/payment или quote mutation |
 | Hosted payment form preview | Контракт и state machine сверены офлайн; локальный preview реализован без PII/payment credentials/HTTP, execution остаётся `NO-GO` |
 | Hosted checkout handoff | Реализован безопасный переход на выбранный отель: для одной комнаты без детей сохраняются даты и число взрослых; PII, `bookHash`, token/card data, exact rate и provider write не переносятся |
 | Customer reads | `GO`: `get_customer`, `list_bookings` и `get_booking_v1` прошли end-to-end read-only smoke через mobile broker; agent-facing order flow использует process-local `bookingRef` |
@@ -19,8 +20,8 @@ Assistant или границы MVP v1.
 | Реальные mutations | `NO-GO`; нужны подтверждённые auth/header/idempotency contracts и отдельное non-production approval |
 | Load safety | Per-process concurrency `2`, bounded queue `32`, 30-second identical-search coalescing/cache; смена только локального ranking не повторяет provider search; проверено fake transport |
 | Персонализация | Banking возвращает готовый typed `hotelPreferences`; `best_value` и диапазон за ночь применяются локально и мягко только при `preferencesApplied.applied=true`, без передачи банковских агрегатов или price filter провайдеру; provider total и MCP-derived цена за ночь разделены |
-| Автоматические тесты | 71 Hotels + 52 Banking/broker/probe/smoke/packaging + 21 local toolkit tests и offline conformance обоих MCP; Unix-socket test выполняется вне ограниченной sandbox-среды |
-| Следующий шаг | `0.29.0/0.17.0/0.15.0` опубликованы и проверены fresh install в Codex/OpenCode. Следующая отдельная задача — portability hardening; прямые booking/payment execution остаются future gate |
+| Автоматические тесты | 74 Hotels + 52 Banking/broker/probe/smoke/packaging + 21 local toolkit tests и offline conformance обоих MCP; Unix-socket test выполняется вне ограниченной sandbox-среды |
+| Следующий шаг | `0.30.0/0.17.0/0.16.0` — checkout-inspection release candidate; bounded read-only live smoke и внешний Qwen review пройдены, пять P3 закрыты. Следующий gate — registry upload и fresh install; direct booking/payment и quote mutations остаются отдельным `NO-GO` gate |
 
 Checkpoint и границы сохранены в
 `docs/reviews/tbank-hotels-mcp-0.8.0-progress-checkpoint.md`.
@@ -81,6 +82,8 @@ provider и обновляться перед бронированием.
 | Выбор | `tbank_hotels_select_stay_option` | Связывает выбранный option с контекстом | Реализовано |
 | Тарифы | `tbank_hotels_get_selected_stay_rates` | Загружает rates выбранного option без передачи `hotelId` и provider DTO | Реализовано |
 | Preview | `tbank_hotels_create_booking_preview` | Показывает выбранный stay/rate и occupancy без PII, draft и HTTP-вызова | Реализовано |
+| Инспекция checkout | `tbank_hotels_inspect_checkout` | Получает актуальную цену/отмену, валидирует promo, показывает opaque extras и optional upgrade | Реализовано без writes/PII/provider IDs |
+| Preview изменений | `tbank_hotels_preview_checkout_changes` | Локально показывает выбор проверенного promo/extras без применения и расчёта синтетической цены | Реализовано без provider-вызова |
 | Checkout | `tbank_hotels_create_booking_draft` | Формирует черновик брони, не вызывая create endpoint | Реализовано; при недоступном execution PII не сохраняется и draft не создаётся |
 | Проверка | `tbank_hotels_validate_checkout` | Повторно проверяет provider rate/availability перед действием | Реализовано |
 | Оформление | `tbank_hotels_prepare_draft_booking`, `tbank_hotels_confirm_booking` | Использует отдельное явное подтверждение | Реальные мутации `NO-GO` до закрытия auth/contract gaps |
@@ -131,6 +134,16 @@ provider и обновляться перед бронированием.
   факта; отсутствие cancellation fact показывается как «нет данных».
 - Никакой journey tool не создаёт бронь, оплату, отмену или изменение тарифа
   без существующего stateless `prepare → execute` подтверждения.
+- `inspect_checkout` может вызывать только checkout GET, promo validation и
+  read-like upgrade. Promo/extra-services apply endpoints не входят в этот
+  tool; `preview_checkout_changes` полностью локален.
+- Инспекция действует пять минут; сбой checkout возвращается как terminal
+  no-retry result. Публичный preview поддерживает применение предварительно
+  проверенного промокода, но не удаление: read-контракт не подтверждает источник
+  текущего promo-состояния.
+- Provider checkout identifiers не выходят в model-facing ответ; provider IDs
+  дополнительных услуг не сохраняются в checkout inspection, а agent-facing
+  flow использует только `checkoutRef` и `extraServiceOptionRef`.
 - Booking draft удаляется после успешного `confirm_booking` или истечения TTL;
   его preview всегда redacted.
 - Автоматизированные тесты используют только fake transport и не вызывают
@@ -476,7 +489,8 @@ CLI без checkout репозитория, а real mutation activation оста
 
 ### Отдельный activation gate для реальных мутаций
 
-Booking, payment, cancel, promocode и extra services остаются `NO-GO`, пока не
+Booking, payment, cancel, применение промокода и изменение extra services
+остаются `NO-GO`, пока не
 закрыт Шаг 3, не подготовлен изолированный sandbox и владелец API не дал
 отдельное явное разрешение на конкретный non-production сценарий. Runtime
 дополнительно требует `TBANK_HOTELS_ENABLE_MUTATIONS=true` и отдельный

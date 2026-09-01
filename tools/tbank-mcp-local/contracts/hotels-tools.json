@@ -4,7 +4,7 @@
   "protocolVersion": "2025-03-26",
   "serverInfo": {
     "name": "tbank-hotels-api-mcp",
-    "version": "0.29.0"
+    "version": "0.30.0"
   },
   "tools": [
     {
@@ -3164,6 +3164,49 @@
       }
     },
     {
+      "name": "tbank_hotels_inspect_checkout",
+      "description": "Получает актуальный provider checkout для уже выбранного journey-тарифа, нормализует итоговые цены, отмену, cashback и доступные ранний заезд/поздний выезд. Опционально проверяет один промокод без применения и запрашивает одно доступное upgrade-предложение. Используйте этот tool для естественных запросов об окончательной цене, промокоде, дополнительных услугах или upgrade; не вызывайте low-level get_rate/validate_promocode/get_rate_upgrade и не передавайте bookHash/provider DTO. Не принимает PII, не создаёт бронь, не изменяет checkout и не запускает оплату.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId с выбранным rateOptionId."
+          },
+          "promocode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Промокод для безопасной проверки без применения."
+          },
+          "includeUpgradeOffer": {
+            "type": "boolean",
+            "default": false,
+            "description": "Если true, выполняет один read-like provider запрос доступного upgrade без применения."
+          },
+          "language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "description": "Значение заголовка X-User-Language, например ru-RU."
+          }
+        },
+        "required": [
+          "journeyId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
       "name": "tbank_hotels_list_bookings",
       "description": "Возвращает детали выбранных категорий броней текущего авторизованного клиента. Ответ содержит личную историю поездок; не используйте этот tool для краткой сводки без деталей — вызывайте tbank_hotels_summarize_bookings. В mobile broker-режиме provider orderId заменяется на process-local bookingRef для последующего tbank_hotels_get_booking; raw orderId не раскрывается модели.",
       "inputSchema": {
@@ -4869,6 +4912,51 @@
             ]
           }
         ]
+      },
+      "outputSchema": null,
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "tbank_hotels_preview_checkout_changes",
+      "description": "Создаёт локальный preview желаемого изменения checkout после tbank_hotels_inspect_checkout. Принимает только opaque extraServiceOptionRef из последней инспекции и действие с уже проверенным промокодом; не принимает bookHash, checkOutId или provider IDs. Не применяет промокод, не заменяет допуслуги, не вычисляет новую итоговую цену, не создаёт бронь и не запускает оплату. Для фактического оформления после preview используйте tbank_hotels_create_checkout_handoff.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "journeyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "description": "Непрозрачный journeyId с актуальной checkout-инспекцией."
+          },
+          "promocodeAction": {
+            "type": "string",
+            "enum": [
+              "unchanged",
+              "apply_validated"
+            ],
+            "default": "unchanged",
+            "description": "Удаление уже применённого промокода не поддерживается: read-контракт checkout не подтверждает источник текущего promo-состояния."
+          },
+          "extraServiceOptionRefs": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 2,
+            "items": {
+              "type": "string",
+              "pattern": "^checkout_extra_[a-f0-9]{24}$"
+            },
+            "description": "Не более одного раннего заезда и одного позднего выезда из последней checkout-инспекции."
+          }
+        },
+        "required": [
+          "journeyId"
+        ],
+        "additionalProperties": false
       },
       "outputSchema": null,
       "annotations": {

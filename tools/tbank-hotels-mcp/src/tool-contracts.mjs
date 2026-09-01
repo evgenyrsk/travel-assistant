@@ -363,6 +363,31 @@ export const tools = [
     inputSchema: objectSchema({ journeyId: identifierSchema("Непрозрачный journeyId с выбранным rateOptionId.") }, ["journeyId"]),
   },
   {
+    name: "tbank_hotels_inspect_checkout",
+    description: "Получает актуальный provider checkout для уже выбранного journey-тарифа, нормализует итоговые цены, отмену, cashback и доступные ранний заезд/поздний выезд. Опционально проверяет один промокод без применения и запрашивает одно доступное upgrade-предложение. Используйте этот tool для естественных запросов об окончательной цене, промокоде, дополнительных услугах или upgrade; не вызывайте low-level get_rate/validate_promocode/get_rate_upgrade и не передавайте bookHash/provider DTO. Не принимает PII, не создаёт бронь, не изменяет checkout и не запускает оплату.",
+    inputSchema: objectSchema({
+      journeyId: identifierSchema("Непрозрачный journeyId с выбранным rateOptionId."),
+      promocode: { type: "string", minLength: 1, maxLength: 128, description: "Промокод для безопасной проверки без применения." },
+      includeUpgradeOffer: { type: "boolean", default: false, description: "Если true, выполняет один read-like provider запрос доступного upgrade без применения." },
+      language: languageSchema(),
+    }, ["journeyId"]),
+  },
+  {
+    name: "tbank_hotels_preview_checkout_changes",
+    description: "Создаёт локальный preview желаемого изменения checkout после tbank_hotels_inspect_checkout. Принимает только opaque extraServiceOptionRef из последней инспекции и действие с уже проверенным промокодом; не принимает bookHash, checkOutId или provider IDs. Не применяет промокод, не заменяет допуслуги, не вычисляет новую итоговую цену, не создаёт бронь и не запускает оплату. Для фактического оформления после preview используйте tbank_hotels_create_checkout_handoff.",
+    inputSchema: objectSchema({
+      journeyId: identifierSchema("Непрозрачный journeyId с актуальной checkout-инспекцией."),
+      promocodeAction: { type: "string", enum: ["unchanged", "apply_validated"], default: "unchanged", description: "Удаление уже применённого промокода не поддерживается: read-контракт checkout не подтверждает источник текущего promo-состояния." },
+      extraServiceOptionRefs: {
+        type: "array",
+        uniqueItems: true,
+        maxItems: 2,
+        items: { type: "string", pattern: "^checkout_extra_[a-f0-9]{24}$" },
+        description: "Не более одного раннего заезда и одного позднего выезда из последней checkout-инспекции.",
+      },
+    }, ["journeyId"]),
+  },
+  {
     name: "tbank_hotels_create_payment_form_preview",
     description: "Создаёт локальный preview безопасного hosted payment form flow для выбранного тарифа. Не принимает ФИО, email, телефон, PAN, CVV/CVC, PIN, OTP, browser fingerprint или redirect URL; не вызывает Hotels API, не создаёт бронь и не запускает оплату. Возвращает подтверждённые состояния payment task без внутренних имён headers или blockers; полная диагностика доступна только в connection_status. Пока executionAvailable=false, покажите preview и остановитесь без запроса финального подтверждения.",
     inputSchema: objectSchema({ journeyId: identifierSchema("Непрозрачный journeyId с выбранным rateOptionId.") }, ["journeyId"]),

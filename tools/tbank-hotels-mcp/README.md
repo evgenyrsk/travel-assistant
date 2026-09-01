@@ -324,12 +324,13 @@ contract gaps, перечисленные в tool-local плане развит�
 | Авторизованные заказы | `tbank_hotels_get_booking`, `tbank_hotels_list_bookings`, `tbank_hotels_save_voucher`, `tbank_hotels_create_payment_handoff_preview`; `tbank_hotels_get_voucher` — safety guard; остальные low-level reads: `tbank_hotels_get_reservation`, `tbank_hotels_get_evo_booking`, `tbank_hotels_get_bnpl_offer`, `tbank_hotels_get_booking_task_status`, `tbank_hotels_check_ls_order` |
 | Изменяющие операции | `tbank_hotels_prepare_*` и `tbank_hotels_execute_*` для обычной и LS-брони, отмены, setup оплаты, промокода и дополнительных услуг |
 | Journey-сценарий | `tbank_hotels_plan_stay`, `tbank_hotels_get_stay_options`, `tbank_hotels_compare_stay_options`, `tbank_hotels_select_stay_option`, `tbank_hotels_get_selected_stay_rates`, `tbank_hotels_select_stay_rate`, `tbank_hotels_repeat_stay_plan` |
-| Journey checkout и заказ | `tbank_hotels_create_booking_preview`, `tbank_hotels_create_payment_form_preview`, `tbank_hotels_create_checkout_handoff`, `tbank_hotels_create_booking_draft`, `tbank_hotels_validate_checkout`, `tbank_hotels_prepare_draft_booking`, `tbank_hotels_confirm_booking`, `tbank_hotels_get_booking_overview`, `tbank_hotels_preview_cancellation` |
+| Journey checkout и заказ | `tbank_hotels_create_booking_preview`, `tbank_hotels_inspect_checkout`, `tbank_hotels_preview_checkout_changes`, `tbank_hotels_create_payment_form_preview`, `tbank_hotels_create_checkout_handoff`, `tbank_hotels_create_booking_draft`, `tbank_hotels_validate_checkout`, `tbank_hotels_prepare_draft_booking`, `tbank_hotels_confirm_booking`, `tbank_hotels_get_booking_overview`, `tbank_hotels_preview_cancellation` |
 
 Runtime разделён на тонкую stdio-точку входа (`src/server.mjs`), MCP framing
 (`src/stdio-server.mjs`), tool contracts (`src/tool-contracts.mjs`),
-конфигурацию (`src/config.mjs`), checkout boundary
-(`src/checkout-handoff.mjs`) и доменный runtime (`src/runtime.mjs`). Большой
+конфигурацию (`src/config.mjs`), checkout handoff
+(`src/checkout-handoff.mjs`), checkout normalization
+(`src/checkout-inspection.mjs`) и доменный runtime (`src/runtime.mjs`). Большой
 runtime остаётся внутренним implementation module, а публичный контракт
 фиксируется versioned manifest и не зависит от расположения кода.
 
@@ -500,6 +501,27 @@ continuation может использоваться обычным коротк
 без передачи provider `hotelId` между вызовами. После выбора тарифа MCP может
 сформировать безопасный локальный `booking preview` без ФИО, email и телефона.
 Такой preview не создаёт draft, не проверяет checkout и не вызывает Hotels API.
+Для актуальной provider-проверки выбранного тарифа используется
+`tbank_hotels_inspect_checkout`. Он сам берёт `bookHash`, даты, гостей и
+`hotelId` из journey, получает текущие цены и отмену, показывает доступный
+ранний заезд/поздний выезд через opaque `extraServiceOptionRef`, а также может
+проверить один промокод и одно upgrade-предложение. Provider `bookHash`,
+`checkOutId`, hotel/room/extra-service IDs и номера cashback-счетов в ответ не
+попадают. Инспекция считается актуальной пять минут; после этого локальный
+preview требует повторного `inspect_checkout`. При недоступности provider
+инструмент возвращает терминальный `checkout_temporarily_unavailable` и
+запрещает автоматический повтор либо переход к low-level tools.
+
+Проверка промокода не означает его применения. Для обсуждения желаемого
+промокода и дополнительных услуг существует
+`tbank_hotels_preview_checkout_changes`: это полностью локальный preview без
+provider write и без синтетического расчёта новой итоговой цены. Authoritative
+цена после изменения возможна только через stateful provider endpoints. Они
+сохранены как низкоуровневые `prepare → execute`, выключены по умолчанию и не
+используются обычным journey-flow. Для фактического оформления публичный MCP
+по-прежнему направляет пользователя через `tbank_hotels_create_checkout_handoff`.
+Удаление уже применённого промокода не объявлено в journey-схеме: подтверждённый
+read-контракт не показывает надёжный источник текущего promo-состояния.
 Реальные guest PII нужны только после явного намерения оформить бронь и при
 готовом execution profile. Затем MCP может сформировать черновик брони без
 `bookHash` в аргументах клиента, повторно
@@ -636,9 +658,11 @@ cd tools/tbank-hotels-mcp
 npm test
 ```
 
-59 тестов проверяют MCP-протокол, конфигурационные границы, строгие search filters,
+72 теста проверяют MCP-протокол, конфигурационные границы, строгие search filters,
 semantic breakfast journey, мягкую персонализацию `best_value`, presentation-
-поля, безопасную упаковку npm-артефакта, no-retry guard, auth
+поля, provider-backed checkout inspection, promo validation, opaque
+extra-service refs, upgrade normalization, безопасную упаковку npm-артефакта,
+no-retry guard, auth
 rejection/network fail-closed, общий auth broker, безопасную локальную выдачу
 voucher и stateless confirmation
 без сетевых вызовов к Т-Банку. Test subprocess получает allowlist окружения и

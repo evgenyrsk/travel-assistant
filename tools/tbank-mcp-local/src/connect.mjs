@@ -4,9 +4,9 @@ import { delimiter, dirname, isAbsolute, resolve } from "node:path";
 import { spawn } from "node:child_process";
 
 export const publicPackageVersions = Object.freeze({
-  hotels: "0.29.0",
+  hotels: "0.30.0",
   banking: "0.17.0",
-  toolkit: "0.15.0",
+  toolkit: "0.16.0",
 });
 
 function argumentValue(args, name) {

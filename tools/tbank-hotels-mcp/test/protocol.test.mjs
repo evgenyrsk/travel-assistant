@@ -8,6 +8,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { SERVER_VERSION } from "../src/config.mjs";
 import { hostedCheckoutTarget } from "../src/checkout-handoff.mjs";
+import { normalizeCheckoutInspection } from "../src/checkout-inspection.mjs";
 import { runtimeHandledToolNames } from "../src/runtime.mjs";
 import { callTool, setAuthBrokerConnectorForTests } from "../src/server.mjs";
 import { tools } from "../src/tool-contracts.mjs";
@@ -36,6 +37,45 @@ test("builds a selected-hotel handoff with only verified public search parameter
   assert.equal(family.searchCriteriaPreservationScope, "dates_only");
   assert.equal(family.guestCountPreserved, false);
   assert.equal(family.childrenAgesPreserved, false);
+});
+
+const checkoutNormalizerOptions = (expectedBookHash) => ({
+  expectedBookHash,
+  serviceReference: (kind) => `checkout_extra_${kind === "early_check_in" ? "1" : "2"}`,
+  formatMoney: (amount, currency) => amount === null ? null : `${amount} ${currency ?? ""}`.trim(),
+  formatTimestamp: (value) => value ?? null,
+});
+
+test("normalizes the v1 checkout wrapper and rejects a foreign wrapper rate", () => {
+  const normalized = normalizeCheckoutInspection({ payload: {
+    rate: {
+      bookHash: "expected-book",
+      shownPrice: { amount: 12000, currency: "RUB" },
+      paymentPrice: { amount: 11500, currency: "RUB" },
+      cancellationPolicyRules: { freeCancellationUntil: "2099-09-14T00:00:00+03:00", policies: [] },
+    },
+    promocodeInfo: { status: "applied", value: { amount: 500, currency: "RUB" } },
+    cashbackInfo: { cbServiceName: "Hotels", accounts: [{ accountNumber: "must-not-leak", cashbackAmount: 1000 }] },
+  } }, checkoutNormalizerOptions("expected-book"));
+
+  assert.equal(normalized.prices.shown.amount, 12000);
+  assert.equal(normalized.prices.payment.amount, 11500);
+  assert.equal(normalized.promocode.present, true);
+  assert.equal(normalized.cashback.options[0].cashbackAmount, 1000);
+  assert.doesNotMatch(JSON.stringify(normalized), /expected-book|must-not-leak/);
+  assert.throws(
+    () => normalizeCheckoutInspection({ payload: { rate: { bookHash: "foreign-book" } } }, checkoutNormalizerOptions("expected-book")),
+    /does not contain a checkout rate/,
+  );
+});
+
+test("rejects a v3 checkout response without the selected bookHash", () => {
+  assert.throws(
+    () => normalizeCheckoutInspection({ payload: { roomsForBooking: { rooms: [{ rates: [
+      { bookHash: "foreign-book", shownPrice: { amount: 1, currency: "RUB" } },
+    ] }] } } }, checkoutNormalizerOptions("expected-book")),
+    /does not contain a checkout rate/,
+  );
 });
 
 // Direct callTool tests execute in this process. Remove all real Hotels/broker
@@ -163,6 +203,17 @@ test("reports API MCP metadata and no browser tools", async (t) => {
   assert.ok(!bookingPreview.inputSchema.properties.bookingData);
   assert.equal(bookingPreview.annotations.readOnlyHint, true);
   assert.match(bookingPreview.description, /tbank_hotels_create_checkout_handoff/);
+  const inspectCheckout = listed.result.tools.find((tool) => tool.name === "tbank_hotels_inspect_checkout");
+  assert.deepEqual(inspectCheckout.inputSchema.required, ["journeyId"]);
+  assert.deepEqual(Object.keys(inspectCheckout.inputSchema.properties), ["journeyId", "promocode", "includeUpgradeOffer", "language"]);
+  assert.equal(inspectCheckout.annotations.readOnlyHint, true);
+  assert.doesNotMatch(JSON.stringify(inspectCheckout.inputSchema), /bookHash|checkOutId|hotelId|extraServiceIds|email|phone|pan|cvv|otp/i);
+  const previewCheckoutChanges = listed.result.tools.find((tool) => tool.name === "tbank_hotels_preview_checkout_changes");
+  assert.deepEqual(previewCheckoutChanges.inputSchema.required, ["journeyId"]);
+  assert.equal(previewCheckoutChanges.annotations.readOnlyHint, true);
+  assert.deepEqual(previewCheckoutChanges.inputSchema.properties.promocodeAction.enum, ["unchanged", "apply_validated"]);
+  assert.match(previewCheckoutChanges.inputSchema.properties.extraServiceOptionRefs.items.pattern, /checkout_extra_/);
+  assert.doesNotMatch(JSON.stringify(previewCheckoutChanges.inputSchema), /bookHash|checkOutId|hotelId|extraServiceIds|email|phone|pan|cvv|otp/i);
   const paymentFormPreview = listed.result.tools.find((tool) => tool.name === "tbank_hotels_create_payment_form_preview");
   assert.deepEqual(paymentFormPreview.inputSchema.required, ["journeyId"]);
   assert.deepEqual(Object.keys(paymentFormPreview.inputSchema.properties), ["journeyId"]);
@@ -1093,6 +1144,11 @@ test("does not retain guest PII while execution is unavailable and keeps an enab
     }
     if (target.endsWith("/api/v3/rates/book-1")) {
       checkoutAttempts += 1;
+      if (checkoutBehavior === "timeout_twice") {
+        const error = new Error("simulated checkout timeout");
+        error.name = "TimeoutError";
+        throw error;
+      }
       if (checkoutBehavior === "budget_exhausted") {
         currentTime += 12_500;
         const error = new Error("simulated slow timeout");
@@ -1137,6 +1193,18 @@ test("does not retain guest PII while execution is unavailable and keeps an enab
   assert.doesNotMatch(JSON.stringify(selectedRate), /x-real-ip|missingRequiredHeaders/);
   assert.match(selectedRate.nextStep, /tbank_hotels_create_checkout_handoff/);
   assert.match(selectedRate.nextStep, /remains available while direct execution is unavailable/);
+  checkoutBehavior = "timeout_twice";
+  checkoutAttempts = 0;
+  const unavailableCheckout = await callTool("tbank_hotels_inspect_checkout", { journeyId: plan.journeyId });
+  assert.equal(unavailableCheckout.status, "checkout_temporarily_unavailable");
+  assert.equal(unavailableCheckout.failureKind, "provider_timeout");
+  assert.equal(unavailableCheckout.checkoutAttempts, 2);
+  assert.equal(unavailableCheckout.providerRequestCount, 2);
+  assert.equal(unavailableCheckout.retryAllowed, false);
+  assert.equal(unavailableCheckout.lowLevelFallbackAllowed, false);
+  assert.match(unavailableCheckout.nextStep, /Do not repeat the same checkout inspection automatically/);
+  checkoutBehavior = "retry_once";
+  checkoutAttempts = 0;
   const preview = await callTool("tbank_hotels_create_booking_preview", { journeyId: plan.journeyId });
   assert.equal(preview.status, "preview_only");
   assert.equal(preview.executionAvailable, false);
@@ -3192,4 +3260,238 @@ test("marks search unready for an invalid local concurrency setting", async (t) 
   assert.equal(status.searchReady, false);
   assert.equal(status.loadProtection.status, "invalid_configuration");
   assert.match(status.diagnostics.loadProtection, /must be an integer from 1 to 8/);
+});
+
+test("inspects selected checkout and previews promocode and extra-service changes without writes or identifier leaks", async (t) => {
+  const savedFetch = globalThis.fetch;
+  const savedNow = Date.now;
+  let currentTime = savedNow();
+  Date.now = () => currentTime;
+  const environmentNames = ["TBANK_HOTELS_API_BASE_URL", "TBANK_HOTELS_AUTH_TOKEN", "TBANK_HOTELS_AUTH_HEADERS_JSON", "TBANK_HOTELS_JWT_PRIVATE_KEY"];
+  const savedEnvironment = Object.fromEntries(environmentNames.map((name) => [name, process.env[name]]));
+  process.env.TBANK_HOTELS_API_BASE_URL = "https://hotels-checkout.example.test/";
+  delete process.env.TBANK_HOTELS_AUTH_TOKEN;
+  delete process.env.TBANK_HOTELS_AUTH_HEADERS_JSON;
+  delete process.env.TBANK_HOTELS_JWT_PRIVATE_KEY;
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    const request = { url: String(url), method: options.method ?? "GET", body: options.body ? JSON.parse(options.body) : null };
+    calls.push(request);
+    if (request.url.endsWith("/api/v1/hotels/search")) {
+      return new Response(JSON.stringify({ payload: {
+        hotels: [{
+          hotelId: "101",
+          hotelName: "Checkout Hotel",
+          starRating: 4,
+          areaLocation: { destinationName: "Kazan" },
+          hotelLocation: { address: "Safe street" },
+          rateForHotelsFeed: { shownPrice: { amount: 12000, currency: "RUB" }, mealName: "Breakfast" },
+          review: { rating: 9.2, ratingsCount: 500 },
+        }],
+        hotelsTotalCount: 1,
+        filteredHotelsCount: 1,
+        isLoadingCompleted: true,
+      } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    if (request.url.endsWith("/api/v3/hotels/101/rates")) {
+      return new Response(JSON.stringify({ payload: { rates: [{
+        bookHash: "provider-book-secret",
+        roomId: "provider-room-secret",
+        shownPrice: { amount: 11462.88, currency: "RUB" },
+        paymentPrice: { amount: 11462.88, currency: "RUB" },
+        mealName: "Breakfast",
+        isNonRefundable: false,
+      }, {
+        bookHash: "provider-second-book-secret",
+        roomId: "provider-second-room-secret",
+        shownPrice: { amount: 12026.63, currency: "RUB" },
+        paymentPrice: { amount: 12026.63, currency: "RUB" },
+        mealName: "Breakfast",
+        isNonRefundable: false,
+      }], rooms: [], otherRates: [] } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    if (request.url.endsWith("/api/v3/rates/provider-book-secret")) {
+      return new Response(JSON.stringify({ payload: {
+        checkInDate: "2099-09-15",
+        checkOutDate: "2099-09-17",
+        hotelInfo: { hotelId: "provider-hotel-secret", hotelName: "Checkout Hotel" },
+        roomsForBooking: { rooms: [{
+          roomId: "provider-checkout-room-secret",
+          roomName: "Standard",
+          guests: [],
+          rates: [{
+            bookHash: "provider-decoy-book-secret",
+            shownPrice: { amount: 1, currency: "RUB" },
+            paymentPrice: { amount: 1, currency: "RUB" },
+            cancellationPolicyRules: { policies: [] },
+          }, {
+            bookHash: "provider-book-secret",
+            shownPrice: { amount: 11462.88, currency: "RUB" },
+            paymentPrice: { amount: 11462.88, currency: "RUB" },
+            cancellationPolicyRules: {
+              freeCancellationUntil: "2026-09-14T00:00:00+03:00",
+              policies: [{
+                startAt: "2026-09-14T00:00:00+03:00",
+                endAt: null,
+                shownPrice: { amount: 11462.88, currency: "RUB" },
+                paymentPrice: { amount: 11462.88, currency: "RUB" },
+              }],
+            },
+            extraServices: {
+              earlyCheckIn: [{ id: "provider-early-secret", time: "12:00", price: { amount: 1000, currency: "RUB" } }],
+              lateCheckOut: [{ id: "provider-late-secret", time: "16:00", price: { amount: 1500, currency: "RUB" } }],
+            },
+            discount: { standardRatePrice: { amount: 13000, currency: "RUB" } },
+          }],
+        }] },
+        promocodeInfo: null,
+        cashbackInfo: {
+          cbServiceName: "Hotels",
+          accounts: [{
+            accountNumber: "provider-account-secret",
+            loyaltyProgram: "Black",
+            loyaltyProgramCurrency: "RUB",
+            cashbackPercent: 10,
+            cashbackAmount: 1146,
+            cashbackCorrectionAmount: 0,
+            topBorder: null,
+          }],
+        },
+      } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    if (request.url.endsWith("/api/v1/hotels/promocodes/validate")) {
+      assert.equal(request.body.bookHash, "provider-book-secret");
+      if (request.body.promocode === "BAD") {
+        return new Response(JSON.stringify({ code: "promocode_expired", details: "must-not-leak" }), { status: 400, headers: { "content-type": "application/json" } });
+      }
+      assert.equal(request.body.promocode, "SUMMER");
+      return new Response(JSON.stringify({ payload: { promocodeInfo: { value: { amount: 1000, currency: "RUB" } } } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    if (request.url.endsWith("/api/v1/hotels/rates/provider-book-secret/upgrade")) {
+      assert.deepEqual(request.body, {
+        hotelId: 101,
+        checkInDate: "2099-09-15",
+        checkOutDate: "2099-09-17",
+        guests: [{ adultsCount: 2, childrenAge: [] }],
+      });
+      return new Response(JSON.stringify({ payload: { rate: {
+        bookHash: "provider-upgrade-wrapper-secret",
+        rateForUpgrade: {
+          bookHash: "provider-upgrade-secret",
+          upgradeType: "room",
+          additionalCost: { amount: 2500, currency: "RUB" },
+          room: {
+            roomId: "provider-upgrade-room-secret",
+            roomName: "Superior",
+            bedName: "King",
+            roomSize: 28,
+            roomFacilities: [],
+            images: [{ url: "https://images.example.test/secret" }],
+            facilitiesDifference: { baseFacilityCodes: ["base"], upgradedFacilityCodes: ["view"] },
+          },
+        },
+      } } }), { status: 200, headers: { "content-type": "application/json" } });
+    }
+    throw new Error(`Unexpected fake provider request: ${request.method} ${request.url}`);
+  };
+  t.after(() => {
+    globalThis.fetch = savedFetch;
+    Date.now = savedNow;
+    for (const [name, value] of Object.entries(savedEnvironment)) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  });
+
+  const plan = await callTool("tbank_hotels_plan_stay", {
+    destinationId: 90229,
+    checkinDate: "2099-09-15",
+    checkoutDate: "2099-09-17",
+    rooms: [{ adults: 2 }],
+  });
+  await callTool("tbank_hotels_select_stay_option", { journeyId: plan.journeyId, optionId: plan.options[0].optionId });
+  const rates = await callTool("tbank_hotels_get_selected_stay_rates", { journeyId: plan.journeyId });
+  await callTool("tbank_hotels_select_stay_rate", { journeyId: plan.journeyId, rateOptionId: rates.rateOptions[0].rateOptionId });
+  const inspection = await callTool("tbank_hotels_inspect_checkout", {
+    journeyId: plan.journeyId,
+    promocode: "SUMMER",
+    includeUpgradeOffer: true,
+  });
+
+  assert.equal(inspection.status, "ready");
+  assert.match(inspection.checkoutRef, /^checkout_[a-f0-9]{24}$/);
+  assert.equal(Date.parse(inspection.expiresAt) - Date.parse(inspection.inspectedAt), 5 * 60 * 1_000);
+  assert.equal(inspection.providerRequestCount, 3);
+  assert.equal(inspection.checkout.prices.shown.display, "11 462,88 ₽");
+  assert.equal(inspection.checkout.prices.standard.display, "13 000 ₽");
+  assert.equal(inspection.checkout.cancellation.freeCancellationUntilDisplay, "14.09.2026 00:00 (UTC+03:00)");
+  assert.equal(inspection.checkout.cashback.options[0].cashbackAmount, 1146);
+  assert.equal(inspection.promocodeValidation.status, "valid");
+  assert.equal(inspection.promocodeValidation.discount.display, "1 000 ₽");
+  assert.equal(inspection.upgradeOffer.available, true);
+  assert.equal(inspection.upgradeOffer.additionalCost.display, "2 500 ₽");
+  assert.deepEqual(inspection.upgradeOffer.room, { roomName: "Superior", bedName: "King", roomSize: 28, upgradedFacilityCodes: ["view"] });
+  const early = inspection.checkout.extraServices.earlyCheckIn[0];
+  const late = inspection.checkout.extraServices.lateCheckOut[0];
+  assert.match(early.extraServiceOptionRef, /^checkout_extra_[a-f0-9]{24}$/);
+  assert.match(late.extraServiceOptionRef, /^checkout_extra_[a-f0-9]{24}$/);
+  const serializedInspection = JSON.stringify(inspection);
+  assert.doesNotMatch(serializedInspection, /provider-book-secret|rotated-book-secret|provider-checkout-secret|provider-early-secret|provider-late-secret|provider-account-secret|provider-upgrade|provider-room-secret|images\.example/i);
+  assert.equal(inspection.personalDataCollected, false);
+  assert.equal(inspection.checkoutModified, false);
+  assert.equal(inspection.bookingCreated, false);
+  assert.equal(inspection.paymentStarted, false);
+
+  const callsBeforePreview = calls.length;
+  const preview = await callTool("tbank_hotels_preview_checkout_changes", {
+    journeyId: plan.journeyId,
+    promocodeAction: "apply_validated",
+    extraServiceOptionRefs: [early.extraServiceOptionRef, late.extraServiceOptionRef],
+  });
+  assert.equal(calls.length, callsBeforePreview);
+  assert.equal(preview.status, "preview_only");
+  assert.equal(preview.providerQuoteUpdateRequired, true);
+  assert.equal(preview.authoritativeUpdatedPriceAvailable, false);
+  assert.equal(preview.requestedChanges.selectedExtraServices.length, 2);
+  assert.equal(preview.providerWritePerformed, false);
+  assert.equal(preview.checkoutModified, false);
+  assert.equal(preview.bookingCreated, false);
+  assert.equal(preview.paymentStarted, false);
+  assert.doesNotMatch(JSON.stringify(preview), /provider-book-secret|provider-checkout-secret|provider-early-secret|provider-late-secret|provider-account-secret/i);
+  assert.equal(calls.some((call) => /\/rates\/[^/]+\/(promocode|extraServices)$/.test(new URL(call.url).pathname)), false);
+
+  await assert.rejects(
+    callTool("tbank_hotels_preview_checkout_changes", { journeyId: plan.journeyId, extraServiceOptionRefs: ["checkout_extra_000000000000000000000000"] }),
+    /not part of the latest checkout inspection/,
+  );
+  assert.equal(calls.length, callsBeforePreview);
+
+  const rejectedPromocode = await callTool("tbank_hotels_inspect_checkout", { journeyId: plan.journeyId, promocode: "BAD" });
+  assert.equal(rejectedPromocode.status, "ready");
+  assert.deepEqual(rejectedPromocode.promocodeValidation, {
+    status: "invalid",
+    reason: "provider_rejected_promocode",
+    providerCode: "promocode_expired",
+    providerHttpStatus: 400,
+  });
+  assert.doesNotMatch(JSON.stringify(rejectedPromocode), /must-not-leak|provider-book-secret|provider-checkout-secret/i);
+  const callsBeforeRejectedPreview = calls.length;
+  await assert.rejects(
+    callTool("tbank_hotels_preview_checkout_changes", { journeyId: plan.journeyId, promocodeAction: "apply_validated" }),
+    /successfully validated promocode/,
+  );
+  assert.equal(calls.length, callsBeforeRejectedPreview);
+
+  currentTime += 5 * 60 * 1_000;
+  await assert.rejects(
+    callTool("tbank_hotels_preview_checkout_changes", { journeyId: plan.journeyId }),
+    /Checkout inspection expired/,
+  );
+  assert.equal(calls.length, callsBeforeRejectedPreview);
+
+  await callTool("tbank_hotels_select_stay_rate", { journeyId: plan.journeyId, rateOptionId: rates.rateOptions[1].rateOptionId });
+  await assert.rejects(
+    callTool("tbank_hotels_preview_checkout_changes", { journeyId: plan.journeyId }),
+    /Inspect the currently selected checkout/,
+  );
+  assert.equal(calls.length, callsBeforeRejectedPreview);
 });
