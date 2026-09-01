@@ -2,8 +2,8 @@
 
 ## Current focus
 
-Checkout-inspection release candidate прошёл внешний review и P3 follow-up;
-текущий focus — публикация и fresh-install проверка без mutations.
+Checkout-inspection release `0.30.0/0.17.0/0.16.0` опубликован и проверен
+fresh-install initialize без mutations.
 
 ## Completed
 
@@ -28,6 +28,10 @@ Checkout-inspection release candidate прошёл внешний review и P3 f
   promo remove убран до подтверждения read-контракта, обе формы и mismatch
   покрыты тестами, checkout failure стал terminal/no-retry, wrapper bookHash
   сверяется fail-closed, inspection TTL ограничен пятью минутами.
+- Release commit `b3a8395` отправлен в `codex/tbank-hotels-mcp`.
+- `tbank-hotels-mcp@0.30.0` и `tbank-mcp-local@0.16.0` опубликованы с dist-tag
+  `latest`; публичный Banking wheel остаётся `0.17.0`.
+- Fresh registry install подтвердил версии и Hotels MCP `initialize` `0.30.0`.
 
 ## Blocker
 
@@ -35,5 +39,5 @@ None.
 
 ## Next action
 
-Полный release-gate, commit/push, npm publication и fresh-install smoke;
-quote mutations, booking и payment не активировать.
+Зафиксировать publication checkpoint отдельным docs-коммитом; дальнейшие
+license/SBOM/remote transport этапы активировать отдельной задачей.

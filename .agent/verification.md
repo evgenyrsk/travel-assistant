@@ -15,3 +15,5 @@
 | Provider requests in automated gates | must be 0 | 0 |
 | Bounded checkout live smoke | yes | passed after v3 shape fix; no writes |
 | Independent Qwen 3.8 Max review | yes | `CONDITIONAL READY`, 0 P0-P2; all 5 P3 fixed locally |
+| npm publication | yes | Hotels `0.30.0` and toolkit `0.16.0` published as `latest`; Banking `0.17.0` present on PyPI |
+| Fresh registry install | yes | exact versions installed; Hotels MCP initialize returned `0.30.0` |

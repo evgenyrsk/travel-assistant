@@ -1466,6 +1466,12 @@ validation, upgrade и локальный preview без provider identifiers и
 неподтверждённое удаление промокода из публичной journey-схемы. Следующий gate —
 registry upload и fresh-install проверка.
 
+`tbank-hotels-mcp@0.30.0` и `tbank-mcp-local@0.16.0` опубликованы в public npm
+registry с dist-tag `latest`; Banking wheel `0.17.0` остаётся совместимой
+опубликованной версией. Fresh install в изолированный каталог подтвердил точные
+версии и Hotels `initialize` с `serverVersion=0.30.0`; provider requests,
+booking, payment и quote mutations не выполнялись.
+
 Финальный Qwen-аудит предыдущего checkpoint не выявил P0–P2 и подтвердил
 готовность read-only и preview-only tiers. Follow-up закрыл четыре P3: version
 consistency проверяется автоматически, нестандартные MCP annotations объявлены

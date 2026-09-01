@@ -9,4 +9,4 @@
 | Manifest, docs и version sync | completed | tests |
 | Offline verification and final diff review | completed | all changes |
 | Independent Qwen review | completed | review report received; 0 P0-P2, 5 P3 fixed |
-| Publication and fresh-install verification | in progress | final release gate |
+| Publication and fresh-install verification | completed | npm latest + isolated initialize passed |
